@@ -1,0 +1,224 @@
+.case-detail {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+}
+
+.case-detail-header {
+  background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+  color: white;
+  padding: 24px;
+  border-radius: 12px 12px 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header-info {
+  flex: 1;
+}
+
+.case-detail-number {
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 4px;
+}
+
+.case-detail-title {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.case-close-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 20px;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.case-close-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.case-detail-body {
+  padding: 24px;
+}
+
+.case-info-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.info-label {
+  font-size: 13px;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+.info-value {
+  font-weight: 700;
+  color: #1f2937;
+  font-size: 16px;
+}
+
+.notes-section {
+  margin-bottom: 24px;
+}
+
+.notes-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.notes-icon {
+  font-size: 20px;
+}
+
+.notes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.note-item {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.note-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.note-author {
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 14px;
+}
+
+.note-time {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.note-content {
+  color: #374151;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.note-input-wrapper {
+  display: flex;
+  gap: 8px;
+}
+
+.note-input {
+  flex: 1;
+  padding: 10px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.note-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.note-submit-btn {
+  padding: 10px 24px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.note-submit-btn:hover {
+  background: #2563eb;
+}
+
+.case-actions {
+  display: flex;
+  gap: 12px;
+  padding-top: 24px;
+  border-top: 1px solid #e5e7eb;
+  flex-wrap: wrap;
+}
+
+.case-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.case-action-btn.export {
+  background: #10b981;
+  color: white;
+}
+
+.case-action-btn.export:hover {
+  background: #059669;
+}
+
+.case-action-btn.attach {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.case-action-btn.attach:hover {
+  background: #e5e7eb;
+}
+
+.case-action-btn.close {
+  margin-left: auto;
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.case-action-btn.close:hover {
+  background: #d1d5db;
+}
+
+.action-icon {
+  font-size: 16px;
+}
