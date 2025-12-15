@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import Dashboard from './components/Dashboard';
-import Login from './components/Login';
-import './styles/App.css';
+import Login from './components/Auth/Login';
+import MainLayout from './components/Layout/MainLayout';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -34,7 +33,7 @@ function App() {
     return <Login onLogin={handleLogin} />;
   }
 
-  return <Dashboard user={user} onLogout={handleLogout} />;
+  return <MainLayout user={user} onLogout={handleLogout} />;
 }
 
 export default App;

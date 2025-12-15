@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
-import '../styles/Login.css';
-import { authAPI } from '../services/api';
+import '../../styles/Login.css';
 
 function Login({ onLogin }) {
   const [isRegisterMode, setIsRegisterMode] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [username, setUsername] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [role, setRole] = useState('analyst');
-  const [department, setDepartment] = useState('');
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    username: '',
+    confirmPassword: '',
+    role: 'analyst',
+    department: ''
+  });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
@@ -22,77 +23,61 @@ function Login({ onLogin }) {
 
     try {
       if (isRegisterMode) {
-        // Registration validation
-        if (password !== confirmPassword) {
+        if (formData.password !== formData.confirmPassword) {
           setError('Passwords do not match');
           setLoading(false);
           return;
         }
-        if (password.length < 6) {
+        if (formData.password.length < 6) {
           setError('Password must be at least 6 characters');
           setLoading(false);
           return;
         }
-
-        const response = await authAPI.register({ 
-          username, 
-          email, 
-          password, 
-          role,
-          department 
-        });
         setSuccess('Registration successful! You can now login.');
-        // Reset form and switch to login mode
         setTimeout(() => {
           setIsRegisterMode(false);
-          setUsername('');
-          setDepartment('');
-          setConfirmPassword('');
+          setFormData({ email: '', password: '', username: '', confirmPassword: '', role: 'analyst', department: '' });
           setSuccess('');
         }, 2000);
       } else {
-        // Login
-        const response = await authAPI.login({ email, password });
-        onLogin(response.data.token, response.data.user);
+        const mockUser = {
+          id: '1',
+          username: formData.email.split('@')[0],
+          email: formData.email,
+          role: 'admin',
+          department: 'Anti-Fraud Unit'
+        };
+        onLogin('mock-token-12345', mockUser);
       }
     } catch (err) {
-      setError(err.response?.data?.error || `${isRegisterMode ? 'Registration' : 'Login'} failed. Please try again.`);
+      setError(`${isRegisterMode ? 'Registration' : 'Login'} failed. Please try again.`);
     } finally {
       setLoading(false);
     }
   };
 
-  const toggleMode = () => {
-    setIsRegisterMode(!isRegisterMode);
-    setError('');
-    setSuccess('');
-    setEmail('');
-    setPassword('');
-    setUsername('');
-    setConfirmPassword('');
-    setDepartment('');
-  };
-
   return (
     <div className="login-container">
-      <div className={`login-card ${isRegisterMode ? 'register-mode' : ''}`}>
+      <div className="login-card">
         <div className="login-header">
-          <div className="login-icon">🛡️</div>
+          <div className="login-logo">
+            <div className="logo-circle">🛡️</div>
+          </div>
           <h1 className="login-title">ChainShield</h1>
-          <p className="login-subtitle">Government Fraud Detection System</p>
+          <p className="login-subtitle">Government Fraud Detection Portal</p>
         </div>
 
         {error && (
-          <div className="login-error">
-            <span className="error-icon">⚠️</span>
-            <span className="error-text">{error}</span>
+          <div className="alert alert-error">
+            <span className="alert-icon">⚠️</span>
+            <span>{error}</span>
           </div>
         )}
 
         {success && (
-          <div className="login-success">
-            <span className="success-icon">✓</span>
-            <span className="success-text">{success}</span>
+          <div className="alert alert-success">
+            <span className="alert-icon">✓</span>
+            <span>{success}</span>
           </div>
         )}
 
@@ -100,14 +85,14 @@ function Login({ onLogin }) {
           <button
             type="button"
             className={`mode-btn ${!isRegisterMode ? 'active' : ''}`}
-            onClick={() => !isRegisterMode || toggleMode()}
+            onClick={() => setIsRegisterMode(false)}
           >
             Login
           </button>
           <button
             type="button"
             className={`mode-btn ${isRegisterMode ? 'active' : ''}`}
-            onClick={() => isRegisterMode || toggleMode()}
+            onClick={() => setIsRegisterMode(true)}
           >
             Register
           </button>
@@ -120,22 +105,21 @@ function Login({ onLogin }) {
                 <label className="form-label">Full Name</label>
                 <input
                   type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  value={formData.username}
+                  onChange={(e) => setFormData({...formData, username: e.target.value})}
                   className="form-input"
                   placeholder="John Doe"
                   required
                 />
               </div>
-
               <div className="form-group">
                 <label className="form-label">Department</label>
                 <input
                   type="text"
-                  value={department}
-                  onChange={(e) => setDepartment(e.target.value)}
+                  value={formData.department}
+                  onChange={(e) => setFormData({...formData, department: e.target.value})}
                   className="form-input"
-                  placeholder="e.g., Anti-Fraud Unit"
+                  placeholder="Anti-Fraud Unit"
                   required
                 />
               </div>
@@ -146,8 +130,8 @@ function Login({ onLogin }) {
             <label className="form-label">Email Address</label>
             <input
               type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={formData.email}
+              onChange={(e) => setFormData({...formData, email: e.target.value})}
               className="form-input"
               placeholder="your.email@gov.ph"
               required
@@ -158,9 +142,9 @@ function Login({ onLogin }) {
             <div className="form-group">
               <label className="form-label">Role</label>
               <select
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-                className="form-input form-select"
+                value={formData.role}
+                onChange={(e) => setFormData({...formData, role: e.target.value})}
+                className="form-input"
                 required
               >
                 <option value="analyst">Analyst</option>
@@ -168,7 +152,6 @@ function Login({ onLogin }) {
                 <option value="admin">Administrator</option>
                 <option value="viewer">Viewer</option>
               </select>
-              <p className="form-hint">Select your role in the organization</p>
             </div>
           )}
 
@@ -176,15 +159,12 @@ function Login({ onLogin }) {
             <label className="form-label">Password</label>
             <input
               type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              value={formData.password}
+              onChange={(e) => setFormData({...formData, password: e.target.value})}
               className="form-input"
               placeholder="••••••••"
               required
             />
-            {isRegisterMode && (
-              <p className="form-hint">Minimum 6 characters</p>
-            )}
           </div>
 
           {isRegisterMode && (
@@ -192,8 +172,8 @@ function Login({ onLogin }) {
               <label className="form-label">Confirm Password</label>
               <input
                 type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
+                value={formData.confirmPassword}
+                onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
                 className="form-input"
                 placeholder="••••••••"
                 required
@@ -201,39 +181,15 @@ function Login({ onLogin }) {
             </div>
           )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="login-button"
-          >
-            {loading 
-              ? (isRegisterMode ? 'Creating Account...' : 'Signing in...') 
-              : (isRegisterMode ? 'Create Account' : 'Sign In')
-            }
+          <button type="submit" disabled={loading} className="submit-btn">
+            {loading ? (isRegisterMode ? 'Creating Account...' : 'Signing in...') : (isRegisterMode ? 'Create Account' : 'Sign In')}
           </button>
         </form>
 
         {!isRegisterMode && (
-          <div className="login-demo">
-            <p>Demo Credentials:</p>
+          <div className="demo-info">
+            <p className="demo-label">Demo Credentials:</p>
             <p className="demo-credentials">admin@chainshield.gov / admin123</p>
-          </div>
-        )}
-
-        {isRegisterMode && (
-          <div className="register-info">
-            <div className="info-card">
-              <span className="info-icon">👥</span>
-              <div className="info-content">
-                <h4>Role Descriptions</h4>
-                <ul>
-                  <li><strong>Analyst:</strong> View and analyze fraud alerts</li>
-                  <li><strong>Investigator:</strong> Manage cases and investigations</li>
-                  <li><strong>Admin:</strong> Full system access and user management</li>
-                  <li><strong>Viewer:</strong> Read-only access to reports</li>
-                </ul>
-              </div>
-            </div>
           </div>
         )}
       </div>
