@@ -1,45 +1,22 @@
 import React, { useState } from 'react';
 import '../../styles/Login.css';
 
-function Login({ onLogin }) {
-  const [isRegisterMode, setIsRegisterMode] = useState(false);
+function Login({ onLogin, onNavigate }) {
   const [formData, setFormData] = useState({
     email: '',
-    password: '',
-    username: '',
-    confirmPassword: '',
-    role: 'analyst',
-    department: ''
+    password: ''
   });
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    setSuccess('');
     setLoading(true);
 
     try {
-      if (isRegisterMode) {
-        if (formData.password !== formData.confirmPassword) {
-          setError('Passwords do not match');
-          setLoading(false);
-          return;
-        }
-        if (formData.password.length < 6) {
-          setError('Password must be at least 6 characters');
-          setLoading(false);
-          return;
-        }
-        setSuccess('Registration successful! You can now login.');
-        setTimeout(() => {
-          setIsRegisterMode(false);
-          setFormData({ email: '', password: '', username: '', confirmPassword: '', role: 'analyst', department: '' });
-          setSuccess('');
-        }, 2000);
-      } else {
+      // Simulate API call
+      if (formData.email && formData.password) {
         const mockUser = {
           id: '1',
           username: formData.email.split('@')[0],
@@ -47,151 +24,137 @@ function Login({ onLogin }) {
           role: 'admin',
           department: 'Anti-Fraud Unit'
         };
-        onLogin('mock-token-12345', mockUser);
+        setTimeout(() => {
+          onLogin('mock-token-12345', mockUser);
+        }, 1000);
+      } else {
+        setError('Please fill in all fields');
+        setLoading(false);
       }
     } catch (err) {
-      setError(`${isRegisterMode ? 'Registration' : 'Login'} failed. Please try again.`);
-    } finally {
+      setError('Login failed. Please check your credentials.');
       setLoading(false);
     }
   };
 
   return (
-    <div className="login-container">
-      <div className="login-card">
-        <div className="login-header">
-          <div className="login-logo">
-            <div className="logo-circle">🛡️</div>
+    <div className="auth-container">
+      <div className="auth-sidebar">
+        <div className="auth-sidebar-content">
+          <div className="sidebar-brand" onClick={() => onNavigate('welcome')} style={{ cursor: 'pointer' }}>
+            <div className="sidebar-logo">🛡️</div>
+            <h2 className="sidebar-title">ChainShield</h2>
+            <p className="sidebar-subtitle">Government Fraud Detection</p>
           </div>
-          <h1 className="login-title">ChainShield</h1>
-          <p className="login-subtitle">Government Fraud Detection Portal</p>
+
+          <div className="sidebar-illustration">
+            <div className="illustration-circle"></div>
+            <div className="illustration-icon">🔐</div>
+          </div>
+
+          <div className="sidebar-info">
+            <h3 className="sidebar-info-title">Secure Access</h3>
+            <p className="sidebar-info-text">
+              Sign in to access fraud detection tools, investigate cases, and monitor suspicious transactions.
+            </p>
+          </div>
         </div>
+      </div>
 
-        {error && (
-          <div className="alert alert-error">
-            <span className="alert-icon">⚠️</span>
-            <span>{error}</span>
-          </div>
-        )}
-
-        {success && (
-          <div className="alert alert-success">
-            <span className="alert-icon">✓</span>
-            <span>{success}</span>
-          </div>
-        )}
-
-        <div className="mode-toggle">
-          <button
-            type="button"
-            className={`mode-btn ${!isRegisterMode ? 'active' : ''}`}
-            onClick={() => setIsRegisterMode(false)}
-          >
-            Login
+      <div className="auth-main">
+        <div className="auth-content">
+          <button className="back-button" onClick={() => onNavigate('welcome')}>
+            ← Back to Home
           </button>
-          <button
-            type="button"
-            className={`mode-btn ${isRegisterMode ? 'active' : ''}`}
-            onClick={() => setIsRegisterMode(true)}
-          >
-            Register
-          </button>
-        </div>
 
-        <form onSubmit={handleSubmit} className="login-form">
-          {isRegisterMode && (
-            <>
-              <div className="form-group">
-                <label className="form-label">Full Name</label>
-                <input
-                  type="text"
-                  value={formData.username}
-                  onChange={(e) => setFormData({...formData, username: e.target.value})}
-                  className="form-input"
-                  placeholder="John Doe"
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Department</label>
-                <input
-                  type="text"
-                  value={formData.department}
-                  onChange={(e) => setFormData({...formData, department: e.target.value})}
-                  className="form-input"
-                  placeholder="Anti-Fraud Unit"
-                  required
-                />
-              </div>
-            </>
-          )}
-
-          <div className="form-group">
-            <label className="form-label">Email Address</label>
-            <input
-              type="email"
-              value={formData.email}
-              onChange={(e) => setFormData({...formData, email: e.target.value})}
-              className="form-input"
-              placeholder="your.email@gov.ph"
-              required
-            />
+          <div className="auth-header">
+            <h1 className="auth-title">Welcome Back</h1>
+            <p className="auth-subtitle">Sign in to continue to ChainShield Portal</p>
           </div>
 
-          {isRegisterMode && (
-            <div className="form-group">
-              <label className="form-label">Role</label>
-              <select
-                value={formData.role}
-                onChange={(e) => setFormData({...formData, role: e.target.value})}
-                className="form-input"
-                required
-              >
-                <option value="analyst">Analyst</option>
-                <option value="investigator">Investigator</option>
-                <option value="admin">Administrator</option>
-                <option value="viewer">Viewer</option>
-              </select>
+          {error && (
+            <div className="alert-box error">
+              <span className="alert-icon">⚠️</span>
+              <span className="alert-message">{error}</span>
             </div>
           )}
 
-          <div className="form-group">
-            <label className="form-label">Password</label>
-            <input
-              type="password"
-              value={formData.password}
-              onChange={(e) => setFormData({...formData, password: e.target.value})}
-              className="form-input"
-              placeholder="••••••••"
-              required
-            />
-          </div>
-
-          {isRegisterMode && (
-            <div className="form-group">
-              <label className="form-label">Confirm Password</label>
+          <form onSubmit={handleSubmit} className="auth-form">
+            <div className="form-field">
+              <label className="field-label">
+                <span className="label-icon">📧</span>
+                <span>Email Address</span>
+              </label>
               <input
-                type="password"
-                value={formData.confirmPassword}
-                onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
-                className="form-input"
-                placeholder="••••••••"
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({...formData, email: e.target.value})}
+                className="field-input"
+                placeholder="your.email@gov.ph"
                 required
               />
+              <span className="field-hint">Use your government email address</span>
             </div>
-          )}
 
-          <button type="submit" disabled={loading} className="submit-btn">
-            {loading ? (isRegisterMode ? 'Creating Account...' : 'Signing in...') : (isRegisterMode ? 'Create Account' : 'Sign In')}
-          </button>
-        </form>
+            <div className="form-field">
+              <label className="field-label">
+                <span className="label-icon">🔒</span>
+                <span>Password</span>
+              </label>
+              <input
+                type="password"
+                value={formData.password}
+                onChange={(e) => setFormData({...formData, password: e.target.value})}
+                className="field-input"
+                placeholder="Enter your password"
+                required
+              />
+              <span className="field-hint">Minimum 6 characters</span>
+            </div>
 
-        {!isRegisterMode && (
-          <div className="demo-info">
-            <p className="demo-label">Demo Credentials:</p>
-            <p className="demo-credentials">admin@chainshield.gov / admin123</p>
+            <div className="form-options">
+              <label className="checkbox-label">
+                <input type="checkbox" className="checkbox-input" />
+                <span>Remember me</span>
+              </label>
+              <a href="#" className="link-text">Forgot password?</a>
+            </div>
+
+            <button type="submit" disabled={loading} className="submit-button">
+              {loading ? (
+                <>
+                  <span className="spinner"></span>
+                  <span>Signing in...</span>
+                </>
+              ) : (
+                <>
+                  <span>Sign In</span>
+                  <span className="button-icon">→</span>
+                </>
+              )}
+            </button>
+          </form>
+
+          <div className="demo-credentials">
+            <div className="demo-header">
+              <span className="demo-icon">ℹ️</span>
+              <span className="demo-title">Demo Credentials</span>
+            </div>
+            <div className="demo-info">
+              <code className="demo-code">admin@chainshield.gov</code>
+              <code className="demo-code">admin123</code>
+            </div>
           </div>
-        )}
+
+          <div className="auth-footer">
+            <p className="footer-text">
+              Don't have an account?{' '}
+              <button className="link-button" onClick={() => onNavigate('register')}>
+                Create Account
+              </button>
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );

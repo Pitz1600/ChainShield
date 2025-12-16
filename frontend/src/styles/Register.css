@@ -1,0 +1,129 @@
+.register-sidebar {
+  background: linear-gradient(135deg, #15803d 0%, #22c55e 100%);
+}
+
+.illustration-circle.green {
+  background: rgba(255,255,255,0.15);
+}
+
+.progress-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 32px;
+  padding: 24px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  border: 1px solid #e5e7eb;
+}
+
+.progress-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.step-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.progress-step.completed .step-circle {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  color: white;
+}
+
+.step-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #9ca3af;
+}
+
+.progress-step.completed .step-label {
+  color: #16a34a;
+}
+
+.progress-line {
+  width: 80px;
+  height: 2px;
+  background: #e5e7eb;
+  margin: 0 16px;
+}
+
+.role-info {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255,255,255,0.2);
+}
+
+.role-info-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 16px 0;
+  opacity: 0.9;
+}
+
+.role-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.role-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.role-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.role-item strong {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.role-desc {
+  opacity: 0.9;
+  display: block;
+  font-size: 12px;
+}
+
+.terms-box {
+  margin: 24px 0;
+  padding: 16px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+@media (max-width: 1024px) {
+  .progress-bar {
+    padding: 16px;
+  }
+
+  .progress-line {
+    width: 40px;
+  }
+
+  .step-label {
+    display: none;
+  }
+}
