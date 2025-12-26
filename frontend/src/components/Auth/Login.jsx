@@ -2,10 +2,7 @@ import React, { useState } from 'react';
 import '../../styles/Login.css';
 
 function Login({ onLogin, onNavigate }) {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  });
+  const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -22,7 +19,7 @@ function Login({ onLogin, onNavigate }) {
           username: formData.email.split('@')[0],
           email: formData.email,
           role: 'admin',
-          department: 'Anti-Fraud Unit'
+          department: 'Document Verification Unit'
         };
         setTimeout(() => {
           onLogin('mock-token-12345', mockUser);
@@ -44,7 +41,7 @@ function Login({ onLogin, onNavigate }) {
           <div className="sidebar-brand" onClick={() => onNavigate('welcome')} style={{ cursor: 'pointer' }}>
             <div className="sidebar-logo">🛡️</div>
             <h2 className="sidebar-title">ChainShield</h2>
-            <p className="sidebar-subtitle">Government Fraud Detection</p>
+            <p className="sidebar-subtitle">Document Fraud Detection</p>
           </div>
 
           <div className="sidebar-illustration">
@@ -55,7 +52,7 @@ function Login({ onLogin, onNavigate }) {
           <div className="sidebar-info">
             <h3 className="sidebar-info-title">Secure Access</h3>
             <p className="sidebar-info-text">
-              Sign in to access fraud detection tools, investigate cases, and monitor suspicious transactions.
+              Sign in to access document verification tools, investigate fraud cases, and monitor suspicious transactions.
             </p>
           </div>
         </div>
@@ -141,7 +138,7 @@ function Login({ onLogin, onNavigate }) {
               <span className="demo-title">Demo Credentials</span>
             </div>
             <div className="demo-info">
-              <code className="demo-code">admin@chainshield.gov</code>
+              <code className="demo-code">admin@chainshield.gov.ph</code>
               <code className="demo-code">admin123</code>
             </div>
           </div>

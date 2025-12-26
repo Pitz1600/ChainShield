@@ -24,8 +24,17 @@ function AlertCard({ alert }) {
         </div>
       </div>
       <h4 className="alert-type">{alert.type}</h4>
-      <div className="alert-hash">{alert.txHash}</div>
-      <div className="alert-amount">{alert.amount}</div>
+      <div className="alert-hash">{alert.documentId}</div>
+      <div className="alert-meta-info">
+        <div className="meta-row">
+          <span className="meta-label">Document Type:</span>
+          <span className="meta-value">{alert.documentType}</span>
+        </div>
+        <div className="meta-row">
+          <span className="meta-label">Issuing Agency:</span>
+          <span className="meta-value">{alert.issuer}</span>
+        </div>
+      </div>
       <button className="investigate-btn">👁️ Investigate</button>
     </div>
   );

@@ -11,39 +11,39 @@ function Welcome({ onNavigate }) {
               <div className="logo-shield">🛡️</div>
             </div>
             <h1 className="brand-name">ChainShield</h1>
-            <p className="brand-tagline">Government Fraud Detection System</p>
+            <p className="brand-tagline">Government Document Fraud Detection System</p>
           </div>
 
           <div className="features-section">
             <div className="feature-item">
               <div className="feature-icon">⚡</div>
               <div className="feature-content">
-                <h3 className="feature-title">Real-Time Detection</h3>
-                <p className="feature-description">Monitor blockchain transactions for suspicious activity instantly</p>
+                <h3 className="feature-title">Real-Time Monitoring</h3>
+                <p className="feature-description">Track government document transactions on blockchain instantly</p>
               </div>
             </div>
 
             <div className="feature-item">
               <div className="feature-icon">🎯</div>
               <div className="feature-content">
-                <h3 className="feature-title">AI-Powered Analysis</h3>
-                <p className="feature-description">Machine learning algorithms detect complex fraud patterns</p>
+                <h3 className="feature-title">AI-Powered Detection</h3>
+                <p className="feature-description">Identify fraudulent document patterns and anomalies</p>
               </div>
             </div>
 
             <div className="feature-item">
               <div className="feature-icon">📊</div>
               <div className="feature-content">
-                <h3 className="feature-title">Comprehensive Reports</h3>
-                <p className="feature-description">Generate detailed investigation reports and analytics</p>
+                <h3 className="feature-title">Audit Trail Reports</h3>
+                <p className="feature-description">Complete document transaction history and analytics</p>
               </div>
             </div>
 
             <div className="feature-item">
               <div className="feature-icon">🔒</div>
               <div className="feature-content">
-                <h3 className="feature-title">Secure & Compliant</h3>
-                <p className="feature-description">Government-grade security with full audit trails</p>
+                <h3 className="feature-title">Tamper-Proof Records</h3>
+                <p className="feature-description">Blockchain-secured document verification system</p>
               </div>
             </div>
           </div>
@@ -68,10 +68,10 @@ function Welcome({ onNavigate }) {
         <div className="welcome-content">
           <div className="welcome-header">
             <span className="welcome-badge">Government Portal</span>
-            <h2 className="welcome-title">Protecting Public Funds Through Advanced Technology</h2>
+            <h2 className="welcome-title">Protecting Government Documents Through Blockchain</h2>
             <p className="welcome-description">
-              Join the fight against financial fraud with our state-of-the-art detection system. 
-              Monitor transactions, investigate cases, and safeguard public resources.
+              Secure document tracking system using blockchain technology. Monitor permits, licenses, 
+              certificates, and official transactions to prevent forgery and unauthorized modifications.
             </p>
           </div>
 
@@ -88,27 +88,27 @@ function Welcome({ onNavigate }) {
 
           <div className="info-cards">
             <div className="info-card">
-              <div className="info-card-icon blue">👥</div>
-              <h4 className="info-card-title">For Government Agencies</h4>
-              <p className="info-card-text">Access advanced fraud detection tools designed for public sector operations</p>
+              <div className="info-card-icon blue">📄</div>
+              <h4 className="info-card-title">Document Verification</h4>
+              <p className="info-card-text">Verify authenticity of government-issued documents and certificates</p>
             </div>
 
             <div className="info-card">
               <div className="info-card-icon green">🔍</div>
-              <h4 className="info-card-title">For Investigators</h4>
-              <p className="info-card-text">Track and analyze suspicious transactions with powerful investigation tools</p>
+              <h4 className="info-card-title">Transaction Tracking</h4>
+              <p className="info-card-text">Monitor all document modifications and access attempts</p>
             </div>
 
             <div className="info-card">
-              <div className="info-card-icon orange">📈</div>
-              <h4 className="info-card-title">For Analysts</h4>
-              <p className="info-card-text">Generate insights and reports to prevent financial crimes</p>
+              <div className="info-card-icon orange">⚠️</div>
+              <h4 className="info-card-title">Fraud Detection</h4>
+              <p className="info-card-text">Identify suspicious patterns and unauthorized document changes</p>
             </div>
           </div>
 
           <div className="security-notice">
             <span className="notice-icon">🔒</span>
-            <span className="notice-text">All data is encrypted and stored securely. This system complies with government security standards.</span>
+            <span className="notice-text">All document transactions are encrypted and stored on blockchain. This system complies with government security standards.</span>
           </div>
         </div>
       </div>

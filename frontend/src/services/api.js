@@ -24,10 +24,10 @@ export const alertsAPI = {
   getStats: () => api.get('/alerts/stats')
 };
 
-export const transactionsAPI = {
-  getAll: (params) => api.get('/transactions', { params }),
-  getById: (id) => api.get(`/transactions/${id}`),
-  create: (data) => api.post('/transactions', data)
+export const documentsAPI = {
+  getAll: (params) => api.get('/documents', { params }),
+  getById: (id) => api.get(`/documents/${id}`),
+  verify: (data) => api.post('/documents/verify', data)
 };
 
 export const casesAPI = {

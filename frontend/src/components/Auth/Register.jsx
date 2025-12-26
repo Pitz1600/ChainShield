@@ -12,7 +12,7 @@ function Register({ onRegister, onNavigate }) {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [step, setStep] = useState(1); // Multi-step form
+  const [step, setStep] = useState(1);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -63,7 +63,7 @@ function Register({ onRegister, onNavigate }) {
           <div className="sidebar-brand" onClick={() => onNavigate('welcome')} style={{ cursor: 'pointer' }}>
             <div className="sidebar-logo">🛡️</div>
             <h2 className="sidebar-title">ChainShield</h2>
-            <p className="sidebar-subtitle">Government Fraud Detection</p>
+            <p className="sidebar-subtitle">Document Fraud Detection</p>
           </div>
 
           <div className="sidebar-illustration">
@@ -74,7 +74,7 @@ function Register({ onRegister, onNavigate }) {
           <div className="sidebar-info">
             <h3 className="sidebar-info-title">Join ChainShield</h3>
             <p className="sidebar-info-text">
-              Create your account to access powerful fraud detection tools and help protect public funds.
+              Create your account to access document verification tools and help protect government records.
             </p>
 
             <div className="role-info">
@@ -84,14 +84,14 @@ function Register({ onRegister, onNavigate }) {
                   <span className="role-icon">👤</span>
                   <div>
                     <strong>Analyst</strong>
-                    <span className="role-desc">View and analyze alerts</span>
+                    <span className="role-desc">View and analyze document alerts</span>
                   </div>
                 </li>
                 <li className="role-item">
                   <span className="role-icon">🔍</span>
                   <div>
                     <strong>Investigator</strong>
-                    <span className="role-desc">Manage cases and investigations</span>
+                    <span className="role-desc">Manage fraud cases</span>
                   </div>
                 </li>
                 <li className="role-item">
@@ -185,7 +185,7 @@ function Register({ onRegister, onNavigate }) {
                     value={formData.department}
                     onChange={(e) => setFormData({...formData, department: e.target.value})}
                     className="field-input"
-                    placeholder="e.g., Anti-Fraud Unit, Bureau of Treasury"
+                    placeholder="e.g., Document Verification Unit, LTO, NSO"
                     required
                   />
                   <span className="field-hint">Your organizational unit</span>

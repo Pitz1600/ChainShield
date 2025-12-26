@@ -10,9 +10,10 @@ function AlertsManagement() {
     {
       id: '1',
       severity: 'critical',
-      type: 'Procurement Fraud',
-      txHash: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb',
-      amount: '145,000 ETH',
+      type: 'Forged Birth Certificate',
+      documentId: 'PSA-2024-BC-001234',
+      documentType: 'PSA Birth Certificate',
+      issuer: 'Philippine Statistics Authority',
       riskScore: 92,
       status: 'open',
       time: '2 minutes ago'
@@ -20,9 +21,10 @@ function AlertsManagement() {
     {
       id: '2',
       severity: 'high',
-      type: 'Tax Evasion',
-      txHash: '0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063',
-      amount: '28,500 ETH',
+      type: 'Duplicate Driver License',
+      documentId: 'LTO-2024-DL-567890',
+      documentType: 'LTO Driver License',
+      issuer: 'Land Transportation Office',
       riskScore: 78,
       status: 'under_review',
       time: '1 hour ago'
@@ -30,9 +32,10 @@ function AlertsManagement() {
     {
       id: '3',
       severity: 'medium',
-      type: 'Welfare Fraud',
-      txHash: '0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984',
-      amount: '5,200 ETH',
+      type: 'Modified Land Title',
+      documentId: 'RD-2024-LT-987654',
+      documentType: 'Registry of Deeds',
+      issuer: 'Registry of Deeds',
       riskScore: 65,
       status: 'open',
       time: '3 hours ago'
@@ -41,7 +44,7 @@ function AlertsManagement() {
 
   const filteredAlerts = alerts.filter(alert => {
     const matchesFilter = filter === 'all' || alert.severity === filter;
-    const matchesSearch = alert.txHash.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = alert.documentId.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           alert.type.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesFilter && matchesSearch;
   });
@@ -49,9 +52,9 @@ function AlertsManagement() {
   return (
     <div className="alerts-container">
       <div className="page-hero alerts-hero">
-        <span className="hero-tag">ALERTS MANAGEMENT</span>
-        <h2 className="hero-title">Monitor fraud alerts</h2>
-        <p className="hero-subtitle">Search, filter, and investigate suspicious transactions flagged by the system.</p>
+        <span className="hero-tag">DOCUMENT ALERTS MANAGEMENT</span>
+        <h2 className="hero-title">Monitor document fraud alerts</h2>
+        <p className="hero-subtitle">Search, filter, and investigate suspicious document transactions flagged by the system.</p>
       </div>
 
       <div className="filters-bar">
@@ -59,7 +62,7 @@ function AlertsManagement() {
           <span className="search-icon">🔍</span>
           <input
             type="text"
-            placeholder="Search by transaction hash or fraud type..."
+            placeholder="Search by document ID or fraud type..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="search-input"

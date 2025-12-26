@@ -18,7 +18,8 @@ function CaseCard({ caseData }) {
       </div>
       <h4 className="case-title">{caseData.title}</h4>
       <div className="case-meta">
-        <span>📁 {caseData.alerts} alerts</span>
+        <span>📄 {caseData.documents} documents</span>
+        <span>🏢 {caseData.agency}</span>
         <span>📅 {caseData.date}</span>
       </div>
       <div className="case-status">

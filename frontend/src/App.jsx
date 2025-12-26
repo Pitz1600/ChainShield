@@ -5,7 +5,7 @@ import Register from './components/Auth/Register';
 import MainLayout from './components/Layout/MainLayout';
 
 function App() {
-  const [view, setView] = useState('welcome'); // Always start with welcome
+  const [view, setView] = useState('welcome');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -61,9 +61,7 @@ function App() {
         minHeight: '100vh',
         background: '#f9fafb'
       }}>
-        <div style={{
-          textAlign: 'center'
-        }}>
+        <div style={{ textAlign: 'center' }}>
           <div style={{
             width: '60px',
             height: '60px',
@@ -73,33 +71,17 @@ function App() {
             animation: 'spin 1s linear infinite',
             margin: '0 auto 16px'
           }}></div>
-          <p style={{
-            fontSize: '14px',
-            color: '#6b7280'
-          }}>Loading ChainShield...</p>
+          <p style={{ fontSize: '14px', color: '#6b7280' }}>Loading ChainShield...</p>
         </div>
       </div>
     );
   }
 
-  // Route to appropriate view
-  if (view === 'welcome') {
-    return <Welcome onNavigate={setView} />;
-  }
+  if (view === 'welcome') return <Welcome onNavigate={setView} />;
+  if (view === 'login') return <Login onLogin={handleLogin} onNavigate={setView} />;
+  if (view === 'register') return <Register onRegister={handleLogin} onNavigate={setView} />;
+  if (isAuthenticated && view === 'dashboard') return <MainLayout user={user} onLogout={handleLogout} />;
 
-  if (view === 'login') {
-    return <Login onLogin={handleLogin} onNavigate={setView} />;
-  }
-
-  if (view === 'register') {
-    return <Register onRegister={handleLogin} onNavigate={setView} />;
-  }
-
-  if (isAuthenticated && view === 'dashboard') {
-    return <MainLayout user={user} onLogout={handleLogout} />;
-  }
-
-  // Fallback to welcome page
   return <Welcome onNavigate={setView} />;
 }
 

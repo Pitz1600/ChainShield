@@ -6,30 +6,32 @@ function CaseManagement() {
   const cases = [
     {
       id: '1',
-      number: 'CASE-1701234567890',
-      title: 'Large Scale Procurement Fraud Investigation',
+      number: 'CASE-2024-001234',
+      title: 'Large Scale Birth Certificate Forgery Ring',
       status: 'investigating',
       priority: 'critical',
-      alerts: 5,
-      date: '10/27/2025'
+      documents: 45,
+      date: '10/27/2025',
+      agency: 'PSA'
     },
     {
       id: '2',
-      number: 'CASE-1701234567891',
-      title: 'Tax Evasion Network Analysis',
+      number: 'CASE-2024-001235',
+      title: 'Land Title Fraud Network Investigation',
       status: 'open',
       priority: 'high',
-      alerts: 3,
-      date: '10/26/2025'
+      documents: 23,
+      date: '10/26/2025',
+      agency: 'Registry of Deeds'
     }
   ];
 
   return (
     <div className="cases-container">
       <div className="page-hero cases-hero">
-        <span className="hero-tag">CASE MANAGEMENT</span>
+        <span className="hero-tag">FRAUD CASES MANAGEMENT</span>
         <h2 className="hero-title">Organize investigations</h2>
-        <p className="hero-subtitle">Track cases, manage evidence, and coordinate fraud investigations.</p>
+        <p className="hero-subtitle">Track cases, manage evidence, and coordinate document fraud investigations.</p>
         <button className="hero-cta">+ New Case</button>
       </div>
 

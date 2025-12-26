@@ -4,8 +4,8 @@ import '../../styles/Sidebar.css';
 function Sidebar({ activeView, setActiveView, onLogout }) {
   const menuItems = [
     { id: 'dashboard', icon: '🏠', label: 'Dashboard' },
-    { id: 'alerts', icon: '⚠️', label: 'Alerts Management' },
-    { id: 'cases', icon: '📁', label: 'Case Management' },
+    { id: 'alerts', icon: '⚠️', label: 'Document Alerts' },
+    { id: 'cases', icon: '📁', label: 'Fraud Cases' },
     { id: 'analytics', icon: '📊', label: 'Analytics' },
     { id: 'profile', icon: '👤', label: 'My Profile' },
   ];

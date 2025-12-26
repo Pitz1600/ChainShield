@@ -4,7 +4,7 @@ function HeroCard({ title, subtitle, stats }) {
   return (
     <div className="hero-card">
       <div className="hero-content">
-        <span className="hero-tag">FRAUD DETECTION WORKSPACE</span>
+        <span className="hero-tag">DOCUMENT FRAUD DETECTION WORKSPACE</span>
         <h2 className="hero-title">{title}</h2>
         <p className="hero-subtitle">{subtitle}</p>
       </div>
