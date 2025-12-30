@@ -4,26 +4,8 @@ import '../../styles/Cases.css';
 
 function CaseManagement() {
   const cases = [
-    {
-      id: '1',
-      number: 'CASE-2024-001234',
-      title: 'Large Scale Birth Certificate Forgery Ring',
-      status: 'investigating',
-      priority: 'critical',
-      documents: 45,
-      date: '10/27/2025',
-      agency: 'PSA'
-    },
-    {
-      id: '2',
-      number: 'CASE-2024-001235',
-      title: 'Land Title Fraud Network Investigation',
-      status: 'open',
-      priority: 'high',
-      documents: 23,
-      date: '10/26/2025',
-      agency: 'Registry of Deeds'
-    }
+    { id: '1', number: 'CASE-2024-001234', title: 'Large Scale Birth Certificate Forgery Ring', status: 'investigating', priority: 'critical', documents: 45, date: '10/27/2025', agency: 'PSA' },
+    { id: '2', number: 'CASE-2024-001235', title: 'Land Title Fraud Network Investigation', status: 'open', priority: 'high', documents: 23, date: '10/26/2025', agency: 'Registry of Deeds' }
   ];
 
   return (
@@ -32,7 +14,7 @@ function CaseManagement() {
         <span className="hero-tag">FRAUD CASES MANAGEMENT</span>
         <h2 className="hero-title">Organize investigations</h2>
         <p className="hero-subtitle">Track cases, manage evidence, and coordinate document fraud investigations.</p>
-        <button className="hero-cta">+ New Case</button>
+        <button className="btn-primary" style={{marginTop: '1rem'}}>+ Create New Case</button>
       </div>
 
       <div className="cases-grid">

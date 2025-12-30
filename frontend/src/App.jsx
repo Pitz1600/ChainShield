@@ -28,10 +28,8 @@ function App() {
           localStorage.removeItem('user');
         }
       }
-      
       setIsLoading(false);
     };
-
     checkAuth();
   }, []);
 
@@ -54,25 +52,9 @@ function App() {
   // Show loading state while checking authentication
   if (isLoading) {
     return (
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '100vh',
-        background: '#f9fafb'
-      }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{
-            width: '60px',
-            height: '60px',
-            border: '4px solid #e5e7eb',
-            borderTopColor: '#3b82f6',
-            borderRadius: '50%',
-            animation: 'spin 1s linear infinite',
-            margin: '0 auto 16px'
-          }}></div>
-          <p style={{ fontSize: '14px', color: '#6b7280' }}>Loading ChainShield...</p>
-        </div>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#f8fafc' }}>
+        <div style={{ width: '50px', height: '50px', border: '4px solid #e2e8f0', borderTopColor: '#3b82f6', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+        <p style={{ marginTop: '1rem', color: '#64748b', fontSize: '0.875rem' }}>Verifying System Integrity...</p>
       </div>
     );
   }
@@ -81,7 +63,7 @@ function App() {
   if (view === 'login') return <Login onLogin={handleLogin} onNavigate={setView} />;
   if (view === 'register') return <Register onRegister={handleLogin} onNavigate={setView} />;
   if (isAuthenticated && view === 'dashboard') return <MainLayout user={user} onLogout={handleLogout} />;
-
+  
   return <Welcome onNavigate={setView} />;
 }
 

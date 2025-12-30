@@ -38,7 +38,7 @@ function Sidebar({ activeView, setActiveView, onLogout }) {
       <div className="sidebar-footer">
         <button onClick={onLogout} className="logout-btn">
           <span>🚪</span>
-          <span>Logout</span>
+          <span>Logout Portal</span>
         </button>
       </div>
     </aside>

@@ -7,45 +7,14 @@ function AlertsManagement() {
   const [filter, setFilter] = useState('all');
 
   const alerts = [
-    {
-      id: '1',
-      severity: 'critical',
-      type: 'Forged Birth Certificate',
-      documentId: 'PSA-2024-BC-001234',
-      documentType: 'PSA Birth Certificate',
-      issuer: 'Philippine Statistics Authority',
-      riskScore: 92,
-      status: 'open',
-      time: '2 minutes ago'
-    },
-    {
-      id: '2',
-      severity: 'high',
-      type: 'Duplicate Driver License',
-      documentId: 'LTO-2024-DL-567890',
-      documentType: 'LTO Driver License',
-      issuer: 'Land Transportation Office',
-      riskScore: 78,
-      status: 'under_review',
-      time: '1 hour ago'
-    },
-    {
-      id: '3',
-      severity: 'medium',
-      type: 'Modified Land Title',
-      documentId: 'RD-2024-LT-987654',
-      documentType: 'Registry of Deeds',
-      issuer: 'Registry of Deeds',
-      riskScore: 65,
-      status: 'open',
-      time: '3 hours ago'
-    }
+    { id: '1', severity: 'critical', type: 'Forged Birth Certificate', documentId: 'PSA-2024-BC-001234', documentType: 'PSA Birth Certificate', issuer: 'Philippine Statistics Authority', riskScore: 92, status: 'open', time: '2 minutes ago' },
+    { id: '2', severity: 'high', type: 'Duplicate Driver License', documentId: 'LTO-2024-DL-567890', documentType: 'LTO Driver License', issuer: 'Land Transportation Office', riskScore: 78, status: 'under_review', time: '1 hour ago' },
+    { id: '3', severity: 'medium', type: 'Modified Land Title', documentId: 'RD-2024-LT-987654', documentType: 'Registry of Deeds', issuer: 'Registry of Deeds', riskScore: 65, status: 'open', time: '3 hours ago' }
   ];
 
   const filteredAlerts = alerts.filter(alert => {
     const matchesFilter = filter === 'all' || alert.severity === filter;
-    const matchesSearch = alert.documentId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          alert.type.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = alert.documentId.toLowerCase().includes(searchTerm.toLowerCase()) || alert.type.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesFilter && matchesSearch;
   });
 
@@ -60,19 +29,25 @@ function AlertsManagement() {
       <div className="filters-bar">
         <div className="search-box">
           <span className="search-icon">🔍</span>
-          <input
-            type="text"
-            placeholder="Search by document ID or fraud type..."
+          <input 
+            type="text" 
+            placeholder="Search by document ID or fraud type..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="search-input"
           />
         </div>
         <div className="filter-buttons">
-          <button className={`filter-btn ${filter === 'all' ? 'active' : ''}`} onClick={() => setFilter('all')}>All</button>
-          <button className={`filter-btn ${filter === 'critical' ? 'active' : ''}`} onClick={() => setFilter('critical')}>Critical</button>
-          <button className={`filter-btn ${filter === 'high' ? 'active' : ''}`} onClick={() => setFilter('high')}>High</button>
-          <button className="export-btn">📥 Export</button>
+          {['all', 'critical', 'high', 'medium'].map(f => (
+            <button 
+              key={f}
+              className={`filter-btn ${filter === f ? 'active' : ''}`} 
+              onClick={() => setFilter(f)}
+            >
+              {f.charAt(0).toUpperCase() + f.slice(1)}
+            </button>
+          ))}
+          <button className="export-btn">📥 Export Report</button>
         </div>
       </div>
 

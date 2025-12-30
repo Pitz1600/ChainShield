@@ -6,6 +6,7 @@ import AlertsManagement from '../Alerts/AlertsManagement';
 import CaseManagement from '../Cases/CaseManagement';
 import Analytics from '../Analytics/Analytics';
 import Profile from '../Profile/Profile';
+import '../../styles/MainLayout.css';
 
 function MainLayout({ user, onLogout }) {
   const [activeView, setActiveView] = useState('dashboard');

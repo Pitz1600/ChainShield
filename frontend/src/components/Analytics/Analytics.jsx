@@ -56,34 +56,20 @@ function Analytics() {
             </div>
           </div>
           <div className="chart-legend">
-            <div className="legend-item">
-              <div className="legend-color" style={{ background: '#dc2626' }}></div>
-              <div className="legend-info">
-                <div className="legend-label">Birth Certificates</div>
-                <div className="legend-value">35%</div>
+            {[
+              { label: 'Birth Certificates', value: '35%', color: '#dc2626' },
+              { label: 'Land Titles', value: '28%', color: '#f59e0b' },
+              { label: 'Driver Licenses', value: '22%', color: '#3b82f6' },
+              { label: 'Other Documents', value: '15%', color: '#8b5cf6' }
+            ].map((item, idx) => (
+              <div key={idx} className="legend-item">
+                <div className="legend-color" style={{ background: item.color }}></div>
+                <div className="legend-info">
+                  <div className="legend-label">{item.label}</div>
+                  <div className="legend-value">{item.value}</div>
+                </div>
               </div>
-            </div>
-            <div className="legend-item">
-              <div className="legend-color" style={{ background: '#f59e0b' }}></div>
-              <div className="legend-info">
-                <div className="legend-label">Land Titles</div>
-                <div className="legend-value">28%</div>
-              </div>
-            </div>
-            <div className="legend-item">
-              <div className="legend-color" style={{ background: '#3b82f6' }}></div>
-              <div className="legend-info">
-                <div className="legend-label">Driver Licenses</div>
-                <div className="legend-value">22%</div>
-              </div>
-            </div>
-            <div className="legend-item">
-              <div className="legend-color" style={{ background: '#8b5cf6' }}></div>
-              <div className="legend-info">
-                <div className="legend-label">Other Documents</div>
-                <div className="legend-value">15%</div>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </div>

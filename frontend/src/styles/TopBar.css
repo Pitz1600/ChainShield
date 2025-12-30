@@ -1,62 +1,115 @@
 .top-bar {
-  height: 72px;
-  background: #7c2d12;
+  background: white;
+  border-bottom: 1px solid var(--border-color);
+  padding: 0 2rem;
+  height: 70px;
   display: flex;
   align-items: center;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   position: sticky;
   top: 0;
-  z-index: 100;
+  z-index: 40;
 }
 
 .top-bar-content {
   width: 100%;
-  padding: 0 32px;
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: center;
 }
 
 .page-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: white;
-  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--primary-blue);
+  margin-right: 1rem;
+}
+
+.top-bar-brand {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.security-badge {
+  font-size: 0.65rem;
+  background: #ecfdf5;
+  color: #059669;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid #a7f3d0;
+  font-weight: 700;
+  letter-spacing: 0.5px;
 }
 
 .top-bar-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 1.5rem;
 }
 
 .icon-btn {
-  width: 40px;
-  height: 40px;
-  background: rgba(255,255,255,0.1);
+  background: transparent;
   border: none;
-  border-radius: 8px;
-  color: white;
-  font-size: 18px;
+  font-size: 1.25rem;
   cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  color: var(--text-secondary);
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: background 0.2s;
+  position: relative;
 }
 
 .icon-btn:hover {
-  background: rgba(255,255,255,0.2);
+  background: var(--bg-main);
+  color: var(--primary-blue);
+}
+
+.notification-dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  background: var(--gov-red);
+  border-radius: 50%;
+  border: 2px solid white;
+}
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-left: 1.5rem;
+  border-left: 1px solid var(--border-color);
+}
+
+.user-info {
+  text-align: right;
+}
+
+.user-name {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.user-role {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-transform: capitalize;
 }
 
 .user-avatar {
   width: 40px;
   height: 40px;
-  background: rgba(255,255,255,0.2);
+  background: var(--primary-blue);
+  color: white;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
-  color: white;
+  font-weight: 600;
+  border: 2px solid #e2e8f0;
 }

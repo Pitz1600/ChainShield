@@ -1,191 +1,193 @@
 .alerts-container {
-  max-width: 100%;
-}
-
-.alerts-hero {
-  background: linear-gradient(135deg, #7c2d12 0%, #dc2626 100%);
+  padding-bottom: 2rem;
 }
 
 .filters-bar {
+  background: white;
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  margin-bottom: 2rem;
   display: flex;
-  gap: 16px;
-  margin-bottom: 24px;
+  justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
 .search-box {
-  flex: 1;
   position: relative;
+  flex: 1;
+  max-width: 400px;
 }
 
 .search-icon {
   position: absolute;
-  left: 16px;
+  left: 12px;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 18px;
-  color: #9ca3af;
+  color: var(--text-secondary);
 }
 
 .search-input {
   width: 100%;
-  padding: 12px 12px 12px 48px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  font-size: 14px;
-  background: white;
+  padding: 0.75rem 0.75rem 0.75rem 2.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+  outline: none;
 }
 
 .search-input:focus {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+  border-color: var(--secondary-blue);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .filter-buttons {
   display: flex;
-  gap: 8px;
+  gap: 0.5rem;
 }
 
 .filter-btn {
-  padding: 10px 20px;
-  border: 1px solid #d1d5db;
   background: white;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #374151;
+  border: 1px solid var(--border-color);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-md);
   cursor: pointer;
+  font-weight: 500;
+  color: var(--text-secondary);
   transition: all 0.2s;
 }
 
 .filter-btn:hover {
-  background: #f9fafb;
+  background: var(--bg-main);
+  color: var(--text-primary);
 }
 
 .filter-btn.active {
-  background: #3b82f6;
+  background: var(--primary-blue);
   color: white;
-  border-color: #3b82f6;
+  border-color: var(--primary-blue);
 }
 
 .export-btn {
-  padding: 10px 20px;
-  border: 1px solid #d1d5db;
-  background: white;
-  border-radius: 8px;
-  font-size: 14px;
+  background: #f8fafc;
+  border: 1px solid var(--border-color);
+  color: var(--secondary-blue);
   font-weight: 600;
-  color: #374151;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-md);
   cursor: pointer;
+  margin-left: 1rem;
 }
 
 .alerts-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 24px;
+  gap: 1.5rem;
 }
 
+/* Alert Card Specifics included here for simplicity */
 .alert-card {
   background: white;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  border: 1px solid #e5e7eb;
-  transition: all 0.2s;
-  cursor: pointer;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s;
 }
 
 .alert-card:hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  transform: translateY(-2px);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
 }
 
 .alert-card-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 16px;
-}
-
-.alert-badges {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  margin-bottom: 1rem;
 }
 
 .severity-badge {
-  padding: 4px 12px;
-  border-radius: 999px;
-  font-size: 11px;
+  font-size: 0.7rem;
   font-weight: 700;
-  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+  margin-right: 0.5rem;
 }
 
 .status-badge {
-  padding: 4px 12px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 700;
-  background: #d1fae5;
-  color: #065f46;
-  display: inline-block;
-}
-
-.alert-score-box {
-  text-align: right;
+  font-size: 0.7rem;
+  background: #f1f5f9;
+  color: var(--text-secondary);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 600;
 }
 
 .score-label {
-  font-size: 11px;
-  color: #6b7280;
-  margin-bottom: 4px;
+  font-size: 0.65rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
 }
 
 .score-value {
-  font-size: 32px;
-  font-weight: 700;
+  font-size: 1.1rem;
+  font-weight: 800;
 }
 
 .alert-type {
-  font-size: 16px;
+  font-size: 1.1rem;
   font-weight: 700;
-  color: #1f2937;
-  margin: 0 0 12px 0;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
 }
 
 .alert-hash {
-  font-size: 12px;
   font-family: monospace;
-  color: #6b7280;
-  background: #f9fafb;
-  padding: 8px 12px;
-  border-radius: 6px;
-  margin-bottom: 12px;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  background: #f1f5f9;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  display: inline-block;
+  margin-bottom: 1rem;
 }
 
-.alert-amount {
-  font-size: 14px;
-  font-weight: 700;
-  color: #374151;
-  margin-bottom: 16px;
+.alert-meta-info {
+  margin-bottom: 1.5rem;
+}
+
+.meta-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.meta-label {
+  color: var(--text-secondary);
+}
+
+.meta-value {
+  color: var(--text-primary);
+  font-weight: 500;
 }
 
 .investigate-btn {
   width: 100%;
-  padding: 10px;
-  background: #3b82f6;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
+  background: white;
+  border: 1px solid var(--secondary-blue);
+  color: var(--secondary-blue);
+  padding: 0.75rem;
+  border-radius: var(--radius-md);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .investigate-btn:hover {
-  background: #2563eb;
+  background: var(--secondary-blue);
+  color: white;
 }

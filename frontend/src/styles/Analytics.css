@@ -1,45 +1,38 @@
-.analytics-container {
-  max-width: 100%;
-}
-
-.analytics-hero {
-  background: linear-gradient(135deg, #15803d 0%, #22c55e 100%);
-}
-
 .chart-card {
   background: white;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  border: 1px solid #e5e7eb;
+  padding: 2rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  margin-top: 2rem;
 }
 
 .chart-placeholder {
   display: flex;
-  gap: 48px;
   align-items: center;
-  margin-top: 24px;
+  justify-content: space-around;
+  padding: 2rem 0;
 }
 
 .donut-chart {
-  width: 200px;
-  height: 200px;
+  width: 250px;
+  height: 250px;
   border-radius: 50%;
   background: conic-gradient(
-    #dc2626 0deg 162deg,
-    #f59e0b 162deg 270deg,
-    #3b82f6 270deg 324deg,
-    #8b5cf6 324deg 360deg
+    #dc2626 0deg 126deg, 
+    #f59e0b 126deg 227deg, 
+    #3b82f6 227deg 306deg, 
+    #8b5cf6 306deg 360deg
   );
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
 }
 
 .donut-inner {
-  width: 140px;
-  height: 140px;
+  width: 180px;
+  height: 180px;
   background: white;
   border-radius: 50%;
   display: flex;
@@ -49,49 +42,46 @@
 }
 
 .donut-value {
-  font-size: 32px;
+  font-size: 2rem;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--primary-blue);
 }
 
 .donut-label {
-  font-size: 12px;
-  color: #6b7280;
-  margin-top: 4px;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
 }
 
 .chart-legend {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  flex: 1;
+  gap: 1.5rem;
 }
 
 .legend-item {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 1rem;
 }
 
 .legend-color {
   width: 16px;
   height: 16px;
   border-radius: 4px;
-  flex-shrink: 0;
 }
 
 .legend-info {
-  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .legend-label {
-  font-size: 14px;
-  color: #374151;
-  margin-bottom: 2px;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
 }
 
 .legend-value {
-  font-size: 18px;
-  font-weight: 700;
-  color: #1f2937;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
 }

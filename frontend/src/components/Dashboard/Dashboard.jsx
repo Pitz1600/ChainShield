@@ -36,8 +36,13 @@ function Dashboard({ user }) {
 
       <div className="dashboard-cards">
         <div className="dashboard-card">
-          <h3 className="card-title">Recent Alerts</h3>
-          <p className="card-subtitle">Latest document fraud alerts requiring attention</p>
+          <div className="card-header">
+            <div>
+              <h3 className="card-title">Recent Alerts</h3>
+              <p className="card-subtitle">Latest document fraud alerts requiring attention</p>
+            </div>
+            <button className="btn-link">View All</button>
+          </div>
           <div className="alerts-list">
             {recentAlerts.map(alert => (
               <div key={alert.id} className="alert-item">
@@ -49,8 +54,7 @@ function Dashboard({ user }) {
                   </div>
                 </div>
                 <div className="alert-meta">
-                  <div className="alert-amount">{alert.docType}</div>
-                  <div className={`alert-score ${alert.severity}`}>{alert.score}</div>
+                  <div className={`alert-score ${alert.severity}`}>{alert.score} Risk Score</div>
                 </div>
               </div>
             ))}
@@ -66,6 +70,7 @@ function Dashboard({ user }) {
                 <span className="risk-dot critical"></span>
                 <span>High Risk</span>
               </div>
+              <div className="progress-bg"><div style={{width: '15%'}} className="progress-fill critical"></div></div>
               <span className="risk-count">23</span>
             </div>
             <div className="risk-bar-item">
@@ -73,6 +78,7 @@ function Dashboard({ user }) {
                 <span className="risk-dot medium"></span>
                 <span>Medium Risk</span>
               </div>
+              <div className="progress-bg"><div style={{width: '45%'}} className="progress-fill medium"></div></div>
               <span className="risk-count">156</span>
             </div>
             <div className="risk-bar-item">
@@ -80,6 +86,7 @@ function Dashboard({ user }) {
                 <span className="risk-dot low"></span>
                 <span>Low Risk</span>
               </div>
+              <div className="progress-bg"><div style={{width: '30%'}} className="progress-fill low"></div></div>
               <span className="risk-count">89</span>
             </div>
           </div>
