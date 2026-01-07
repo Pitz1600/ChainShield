@@ -1,0 +1,19 @@
+{
+  "name": "chainshield-contracts",
+  "version": "1.0.0",
+  "description": "ChainShield smart contracts",
+  "scripts": {
+    "compile": "truffle compile",
+    "migrate:dev": "truffle migrate --network development",
+    "migrate:sepolia": "truffle migrate --network sepolia",
+    "test": "truffle test",
+    "deploy": "node deploy.js"
+  },
+  "dependencies": {
+    "@truffle/hdwallet-provider": "^2.1.15",
+    "web3": "^4.16.0"
+  },
+  "devDependencies": {
+    "truffle": "^5.11.5"
+  }
+}

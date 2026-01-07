@@ -1,12 +1,36 @@
 const mongoose = require('mongoose');
 
 const transactionSchema = new mongoose.Schema({
+  // Transaction ID (Philippine Government Format)
+  transactionId: {
+    type: String,
+    unique: true,
+    index: true
+  },
+
+  // Blockchain fields
   txHash: {
     type: String,
     required: true,
     unique: true,
     index: true
   },
+  blockHash: String,
+  blockNumber: Number,
+  blockchainTxId: String, // Ethereum transaction ID
+  gasUsed: Number,
+
+  // Philippine Government Context
+  transactionType: {
+    type: String,
+    enum: ['Social Welfare', 'Procurement', 'Grant', 'Tax', 'Revenue', 'Other'],
+    required: true,
+    index: true
+  },
+  programName: String, // e.g., "4Ps", "SAP", "TUPAD", "AICS"
+  agency: String, // e.g., "DSWD", "DOH", "DILG", "DOF"
+
+  // Transaction details
   fromAddress: {
     type: String,
     required: true,
@@ -23,28 +47,79 @@ const transactionSchema = new mongoose.Schema({
   },
   currency: {
     type: String,
-    default: 'ETH'
+    default: 'PHP'
   },
+
+  // Beneficiary info (anonymized/hashed only - no PII)
+  beneficiaryId: String, // Hashed/anonymized ID
+  beneficiaryType: {
+    type: String,
+    enum: ['Individual', 'Household', 'Organization', 'Government Entity', 'Vendor', 'Contractor']
+  },
+
+  // Metadata
   timestamp: {
     type: Date,
     default: Date.now,
     index: true
   },
-  blockNumber: Number,
-  gasUsed: Number,
   metadata: {
     type: Map,
     of: mongoose.Schema.Types.Mixed
   },
+
+  // Fraud detection results
   flagged: {
     type: Boolean,
-    default: false
+    default: false,
+    index: true
   },
   riskScore: {
     type: Number,
     min: 0,
-    max: 100
-  }
+    max: 100,
+    index: true
+  },
+  riskLevel: {
+    type: String,
+    enum: ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'],
+    index: true
+  },
+
+  // Graph analytics
+  graphNodeId: String, // Neo4j node ID (optional)
+  networkFeatures: {
+    degree: Number,
+    inDegree: Number,
+    outDegree: Number,
+    clusteringCoefficient: Number,
+    betweennessCentrality: Number
+  },
+
+  // Fraud patterns detected
+  fraudPatterns: [{
+    type: {
+      type: String,
+      enum: ['Fund Convergence', 'Circular Movement', 'Shell Wallet', 'Collusion', 'Other']
+    },
+    severity: String,
+    description: String
+  }]
 }, { timestamps: true });
+
+// Generate transaction ID before saving
+transactionSchema.pre('save', function (next) {
+  if (!this.transactionId) {
+    const prefix = 'PH-GOV-';
+    const randomNum = Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
+    this.transactionId = prefix + randomNum;
+  }
+  next();
+});
+
+// Indexes for performance
+transactionSchema.index({ transactionType: 1, timestamp: -1 });
+transactionSchema.index({ riskLevel: 1, flagged: 1 });
+transactionSchema.index({ agency: 1, programName: 1 });
 
 module.exports = mongoose.model('Transaction', transactionSchema);

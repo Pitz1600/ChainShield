@@ -39,18 +39,32 @@ function Register({ onRegister, onNavigate }) {
 
       setLoading(true);
       try {
-        const mockUser = {
-          id: Date.now().toString(),
-          username: formData.username,
-          email: formData.email,
-          role: formData.role,
-          department: formData.department
-        };
-        setTimeout(() => {
-          onRegister('mock-token-' + Date.now(), mockUser);
-        }, 1500);
+        const response = await fetch('http://localhost:5000/api/auth/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            username: formData.username,
+            email: formData.email,
+            password: formData.password,
+            department: formData.department,
+            role: formData.role
+          })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          // Successful registration
+          onRegister(data.token, data.user);
+        } else {
+          // Registration failed
+          setError(data.error || 'Registration failed. Please try again.');
+          setLoading(false);
+        }
       } catch (err) {
-        setError('Registration failed. Please try again.');
+        setError('Unable to connect to server. Please make sure the backend is running.');
         setLoading(false);
       }
     }
@@ -149,7 +163,7 @@ function Register({ onRegister, onNavigate }) {
                   <input
                     type="text"
                     value={formData.username}
-                    onChange={(e) => setFormData({...formData, username: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                     className="field-input"
                     placeholder="Juan Dela Cruz"
                     required
@@ -166,7 +180,7 @@ function Register({ onRegister, onNavigate }) {
                   <input
                     type="email"
                     value={formData.email}
-                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className="field-input"
                     placeholder="juan.delacruz@gov.ph"
                     required
@@ -183,7 +197,7 @@ function Register({ onRegister, onNavigate }) {
                   <input
                     type="text"
                     value={formData.department}
-                    onChange={(e) => setFormData({...formData, department: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, department: e.target.value })}
                     className="field-input"
                     placeholder="e.g., Document Verification Unit, LTO, NSO"
                     required
@@ -199,7 +213,7 @@ function Register({ onRegister, onNavigate }) {
                   </label>
                   <select
                     value={formData.role}
-                    onChange={(e) => setFormData({...formData, role: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                     className="field-input"
                     required
                   >
@@ -224,7 +238,7 @@ function Register({ onRegister, onNavigate }) {
                   <input
                     type="password"
                     value={formData.password}
-                    onChange={(e) => setFormData({...formData, password: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                     className="field-input"
                     placeholder="Create a strong password"
                     required
@@ -241,7 +255,7 @@ function Register({ onRegister, onNavigate }) {
                   <input
                     type="password"
                     value={formData.confirmPassword}
-                    onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                     className="field-input"
                     placeholder="Re-enter your password"
                     required

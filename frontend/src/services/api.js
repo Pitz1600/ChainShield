@@ -42,4 +42,26 @@ export const authAPI = {
   register: (userData) => api.post('/auth/register', userData)
 };
 
+export const transactionsAPI = {
+  getAll: (params) => api.get('/transactions', { params }),
+  getById: (id) => api.get(`/transactions/${id}`),
+  create: (data) => api.post('/transactions', data)
+};
+
+export const evaluationAPI = {
+  getMetrics: (params) => api.get('/evaluation/metrics', { params }),
+  getPerformance: (params) => api.get('/evaluation/performance', { params })
+};
+
+export const blockchainAPI = {
+  getStatus: () => api.get('/blockchain/status'),
+  verify: (txHash) => api.post('/blockchain/verify', { txHash }),
+  getBlockNumber: () => api.get('/blockchain/block-number')
+};
+
+export const dataGovPhAPI = {
+  scan: (data) => api.post('/datagovph/scan', data),
+  search: (params) => api.get('/datagovph/search', { params })
+};
+
 export default api;

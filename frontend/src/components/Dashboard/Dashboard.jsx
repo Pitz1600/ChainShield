@@ -5,23 +5,23 @@ import '../../styles/Dashboard.css';
 
 function Dashboard({ user }) {
   const statsData = [
-    { icon: '⚠️', label: 'Total Alerts', value: '1,247', subtitle: 'Document anomalies detected', color: '#ef4444' },
+    { icon: '⚠️', label: 'Total Alerts', value: '1,247', subtitle: 'Fraud alerts detected', color: '#ef4444' },
     { icon: '🔴', label: 'Critical Cases', value: '23', subtitle: 'Requires immediate action', color: '#f97316' },
     { icon: '📈', label: 'Under Review', value: '156', subtitle: 'Being investigated', color: '#eab308' },
     { icon: '✅', label: 'Resolved', value: '1,068', subtitle: 'Successfully closed', color: '#22c55e' },
   ];
 
   const recentAlerts = [
-    { id: 1, severity: 'critical', type: 'Forged Birth Certificate', docType: 'PSA Document', score: 92, time: '2 minutes ago' },
-    { id: 2, severity: 'high', type: 'Duplicate Driver License', docType: 'LTO Record', score: 78, time: '1 hour ago' },
-    { id: 3, severity: 'medium', type: 'Modified Land Title', docType: 'Registry Document', score: 65, time: '3 hours ago' },
+    { id: 1, severity: 'critical', type: 'Welfare Fraud', transactionType: 'Social Welfare', agency: 'DSWD', score: 92, time: '2 minutes ago' },
+    { id: 2, severity: 'high', type: 'Procurement Fraud', transactionType: 'Procurement', agency: 'DOH', score: 78, time: '1 hour ago' },
+    { id: 3, severity: 'medium', type: 'Fund Convergence', transactionType: 'Social Welfare', agency: 'DSWD', score: 65, time: '3 hours ago' },
   ];
 
   return (
     <div className="dashboard-container">
       <HeroCard 
         title={`Welcome back, ${user.username}!`}
-        subtitle="Monitor document transactions, investigate fraud cases, and maintain the integrity of government records."
+        subtitle="Monitor Philippine government financial transactions, detect fraud patterns, and maintain transparent audit trails using AI and blockchain technology."
         stats={[
           { label: 'Active Alerts', value: '23' },
           { label: 'Open Cases', value: '8' }
@@ -39,7 +39,7 @@ function Dashboard({ user }) {
           <div className="card-header">
             <div>
               <h3 className="card-title">Recent Alerts</h3>
-              <p className="card-subtitle">Latest document fraud alerts requiring attention</p>
+              <p className="card-subtitle">Latest fraud alerts from government transactions</p>
             </div>
             <button className="btn-link">View All</button>
           </div>
@@ -50,7 +50,7 @@ function Dashboard({ user }) {
                   <span className={`severity-dot ${alert.severity}`}></span>
                   <div>
                     <div className="alert-type">{alert.type}</div>
-                    <div className="alert-time">{alert.docType} • {alert.time}</div>
+                    <div className="alert-time">{alert.transactionType} • {alert.agency} • {alert.time}</div>
                   </div>
                 </div>
                 <div className="alert-meta">

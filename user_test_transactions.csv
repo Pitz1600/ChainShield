@@ -1,0 +1,11 @@
+transactionType,fromAddress,toAddress,amount,agency,programName,beneficiaryType,currency,timestamp
+Social Welfare,DSWD_WALLET,0xA91f3c,9000,DSWD,4Ps,Individual,PHP,2026-01-05T09:15:00
+Social Welfare,DSWD_WALLET,0xA91f3c,9000,DSWD,4Ps,Individual,PHP,2026-01-05T09:16:10
+Social Welfare,DSWD_WALLET,0xA91f3c,9000,DSWD,4Ps,Individual,PHP,2026-01-05T09:17:45
+Social Welfare,DSWD_WALLET,0xB73d8a,9000,DSWD,4Ps,Individual,PHP,2026-01-05T11:02:00
+Procurement,DOH_WALLET,0xF19c2e,1450000,DOH,Medical Supplies,Vendor,PHP,2026-01-06T14:30:00
+Procurement,DOH_WALLET,0xF19c2e,1470000,DOH,Medical Supplies,Vendor,PHP,2026-01-07T10:45:00
+Grant,DTI_WALLET,0xE42a91,500000,DTI,SME Grant,Organization,PHP,2026-01-07T13:20:00
+Grant,DTI_WALLET,0xE42a91,500000,DTI,SME Grant,Organization,PHP,2026-01-07T13:22:30
+Tax,BIR_WALLET,0xC55d77,120000,BIR,Income Tax,Individual,PHP,2026-01-08T08:05:00
+Social Welfare,DSWD_WALLET,0xA91f3c,9000,DSWD,4Ps,Individual,PHP,2026-01-08T08:06:10

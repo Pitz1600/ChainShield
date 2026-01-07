@@ -12,24 +12,29 @@ function Login({ onLogin, onNavigate }) {
     setLoading(true);
 
     try {
-      // Simulate API call
-      if (formData.email && formData.password) {
-        const mockUser = {
-          id: '1',
-          username: formData.email.split('@')[0],
+      const response = await fetch('http://localhost:5000/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
           email: formData.email,
-          role: 'admin',
-          department: 'Document Verification Unit'
-        };
-        setTimeout(() => {
-          onLogin('mock-token-12345', mockUser);
-        }, 1000);
+          password: formData.password
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Successful login
+        onLogin(data.token, data.user);
       } else {
-        setError('Please fill in all fields');
-        setLoading(false);
+        // Login failed
+        setError(data.error || 'Login failed. Please check your credentials.');
       }
     } catch (err) {
-      setError('Login failed. Please check your credentials.');
+      setError('Unable to connect to server. Please make sure the backend is running.');
+    } finally {
       setLoading(false);
     }
   };
@@ -85,7 +90,7 @@ function Login({ onLogin, onNavigate }) {
               <input
                 type="email"
                 value={formData.email}
-                onChange={(e) => setFormData({...formData, email: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 className="field-input"
                 placeholder="your.email@gov.ph"
                 required
@@ -101,7 +106,7 @@ function Login({ onLogin, onNavigate }) {
               <input
                 type="password"
                 value={formData.password}
-                onChange={(e) => setFormData({...formData, password: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 className="field-input"
                 placeholder="Enter your password"
                 required

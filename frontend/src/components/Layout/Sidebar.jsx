@@ -6,7 +6,8 @@ function Sidebar({ activeView, setActiveView, onLogout }) {
     { id: 'dashboard', icon: '🏠', label: 'Dashboard' },
     { id: 'alerts', icon: '⚠️', label: 'Document Alerts' },
     { id: 'cases', icon: '📁', label: 'Fraud Cases' },
-    { id: 'analytics', icon: '📊', label: 'Analytics' },
+    { id: 'csvimport', icon: '📊', label: 'CSV Import' },
+    { id: 'analytics', icon: '📈', label: 'Analytics' },
     { id: 'profile', icon: '👤', label: 'My Profile' },
   ];
 

@@ -1,1 +1,63 @@
+# Dependencies
 node_modules/
+jspm_packages/
+
+# Environment Variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.venv
+venv/
+ENV/
+
+# OS Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Build Outputs
+dist/
+build/
+out/
+*.log
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Blockchain
+truffle-config.js.secret
+.openzeppelin/
+
+# Miscellaneous
+uploads/
+temp/
+tmp/
