@@ -116,51 +116,41 @@ Monitors Philippine government transactions:
 
 **See [SETUP.md](./SETUP.md) for complete instructions**
 
-### 1. Install Dependencies
+### Option 1: Docker (Easiest!) 🐳
+
 ```bash
-# Backend
-cd backend && npm install
+# Install Docker Desktop first: https://www.docker.com/products/docker-desktop
 
-# Frontend
-cd frontend && npm install
+# Start entire system with ONE command:
+docker-compose up
 
-# ML Service
-cd ml_service && pip install -r requirements.txt
-
-# Graph Service
-cd graph_service && pip install -r requirements.txt
+# Or double-click: start.bat (Windows) or start.sh (Mac/Linux)
 ```
 
-### 2. Configure
-```bash
-cd backend
-# Edit .env file (see SETUP.md)
-```
-
-### 3. Run
-```bash
-# Terminal 1: MongoDB
-mongod
-
-# Terminal 2: Backend
-cd backend && npm run dev
-
-# Terminal 3: ML Service
-cd ml_service && python app.py
-
-# Terminal 4: Graph Service
-cd graph_service && python app.py
-
-# Terminal 5: Frontend
-cd frontend && npm run dev
-```
-
-### 4. Access
-Open: **http://localhost:5173**
+**Access:** http://localhost:5173
 
 **Login:**
 - Email: `admin@chainshield.gov.ph`
 - Password: `admin123`
+
+### Option 2: Manual Setup
+
+```bash
+# 1. Install Dependencies
+cd backend && npm install
+cd ../frontend && npm install
+cd ../ml_service && pip install -r requirements.txt
+cd ../graph_service && pip install -r requirements.txt
+
+# 2. Start Services (5 terminals)
+mongod                              # Terminal 1
+cd backend && npm run dev           # Terminal 2
+cd ml_service && python app.py      # Terminal 3
+cd graph_service && python app.py   # Terminal 4
+cd frontend && npm run dev          # Terminal 5
+```
+
+**Access:** http://localhost:5173
 
 ---
 

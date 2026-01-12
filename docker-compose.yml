@@ -1,0 +1,101 @@
+# Docker Compose for ChainShield
+# Run entire system with: docker-compose up
+
+services:
+  # MongoDB Database
+  mongodb:
+    image: mongo:7.0
+    container_name: chainshield-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: chainshield
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - chainshield-network
+
+  # Backend API (Node.js)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: chainshield-backend
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=development
+      - MONGODB_URI=mongodb://mongodb:27017/chainshield
+      - JWT_SECRET=your-secret-key-change-in-production
+      - ML_SERVICE_URL=http://ml-service:5001
+      - GRAPH_SERVICE_URL=http://graph-service:5002
+    depends_on:
+      - mongodb
+      - ml-service
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    networks:
+      - chainshield-network
+    command: npm run dev
+
+  # ML Service (Python)
+  ml-service:
+    build:
+      context: ./ml_service
+      dockerfile: Dockerfile
+    container_name: chainshield-ml-service
+    restart: unless-stopped
+    ports:
+      - "5001:5001"
+    volumes:
+      - ./ml_service:/app
+      - ml_models:/app/models
+      - ml_datasets:/app/datasets
+    networks:
+      - chainshield-network
+    command: python app.py
+
+  # Graph Service (Python)
+  graph-service:
+    build:
+      context: ./graph_service
+      dockerfile: Dockerfile
+    container_name: chainshield-graph-service
+    restart: unless-stopped
+    ports:
+      - "5002:5002"
+    volumes:
+      - ./graph_service:/app
+    networks:
+      - chainshield-network
+    command: python app.py
+
+  # Frontend (React + Vite)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: chainshield-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:5000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - chainshield-network
+    command: npm run dev
+
+networks:
+  chainshield-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+  ml_models:
+  ml_datasets:

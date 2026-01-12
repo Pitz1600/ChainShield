@@ -1,23 +1,66 @@
 # 🚀 ChainShield Setup Guide
 
-Complete installation and configuration guide for ChainShield.
+Complete installation and configuration guide for ChainShield with **Philippine Government Fraud Detection**.
 
 ---
 
 ## 📋 Prerequisites
 
-### Required:
+### Option 1: Docker (Easiest - Recommended!) 🐳
+- **Docker Desktop** ([Download](https://www.docker.com/products/docker-desktop))
+  - Includes Docker and Docker Compose
+  - Works on Windows, Mac, Linux
+
+### Option 2: Manual Setup
 - **Node.js** v16+ ([Download](https://nodejs.org/))
 - **Python** 3.8+ ([Download](https://www.python.org/))
 - **MongoDB** 5.0+ ([Download](https://www.mongodb.com/try/download/community))
 - **Git** ([Download](https://git-scm.com/))
 
-### Optional (for blockchain):
-- **Ganache** ([Download](https://trufflesuite.com/ganache/))
+---
+
+## ⚡ Quick Setup with Docker (1 Minute!)
+
+### 1. Install Docker Desktop
+Download and install from: https://www.docker.com/products/docker-desktop
+
+### 2. Start ChainShield
+Open terminal in project folder:
+
+```powershell
+# Start entire system with one command!
+docker-compose up
+```
+
+**That's it!** 🎉 Docker will:
+- Install all dependencies automatically
+- Start MongoDB
+- Start Backend API
+- Start ML Service (with Philippine fraud detection)
+- Start Graph Service
+- Start Frontend
+
+### 3. Access Application
+
+Open browser: **http://localhost:5173**
+
+**Default Admin Credentials:**
+- Email: `admin@chainshield.gov.ph`
+- Password: `admin123`
+
+### 4. Stop System
+
+```powershell
+# Press Ctrl+C in terminal
+# Or run:
+docker-compose down
+```
 
 ---
 
-## ⚡ Quick Setup (5 Minutes)
+## 🔧 Manual Setup (Alternative Method)
+
+If you prefer not to use Docker, follow these steps:
 
 ### 1. Install Dependencies
 
@@ -52,8 +95,7 @@ ML_SERVICE_URL=http://localhost:5001
 GRAPH_SERVICE_URL=http://localhost:5002
 
 # Blockchain (optional - set to 'none' to disable)
-BLOCKCHAIN_RPC_URL=http://127.0.0.1:8545
-CONTRACT_ADDRESS=0xE7536CB7CEc9e4a605eD274Eaf8700338a8Fa84e
+BLOCKCHAIN_RPC_URL=none
 ```
 
 ### 3. Create Admin User
@@ -62,10 +104,6 @@ CONTRACT_ADDRESS=0xE7536CB7CEc9e4a605eD274Eaf8700338a8Fa84e
 cd backend
 node seedAdmin.js
 ```
-
-**Admin Credentials:**
-- Email: `admin@chainshield.gov.ph`
-- Password: `admin123`
 
 ### 4. Start All Services
 
@@ -95,8 +133,6 @@ npm run dev
 ### 5. Access Application
 
 Open browser: **http://localhost:5173**
-
-Login with admin credentials above.
 
 ---
 
@@ -165,6 +201,33 @@ BLOCKCHAIN_RPC_URL=https://rpc.sepolia.org
 
 ---
 
+## 🇵🇭 Philippine Fraud Detection Features (NEW!)
+
+### What Makes This Special?
+
+ChainShield now includes **real Philippine government fraud detection**:
+
+✅ **No Template Required for CSV!**
+- Upload ANY budget CSV file
+- System auto-detects columns (amount, date, description, etc.)
+- Supports 40+ column name variations including Tagalog
+- Shows column mapping confidence score
+
+✅ **Philippine-Specific Fraud Patterns**
+- **Overpricing Detection**: Compares to PhilGEPS market prices
+- **Ghost Beneficiaries**: Verifies against PSA population data
+- **Circular Transactions**: Detects kickback schemes
+- **Transaction Splitting**: Identifies audit threshold evasion
+- **PDAF Patterns**: Flags pork barrel-like schemes
+- **Procurement Collusion**: Detects repeated contractor wins
+
+✅ **Government Database Verification**
+- PhilGEPS price comparison
+- PSA demographic checks
+- Real-time fraud pattern analysis
+
+---
+
 ## 📊 Testing the System
 
 ### 1. Upload Single Transaction
@@ -173,45 +236,57 @@ BLOCKCHAIN_RPC_URL=https://rpc.sepolia.org
 2. Click "Submit Transaction"
 3. Fill in details
 4. Click "Scan for Fraud"
-5. View results!
+5. View Philippine fraud detection results!
 
-### 2. CSV Bulk Import
+### 2. CSV Bulk Import (Works with ANY CSV!)
 
 1. Go to "CSV Import"
-2. Click "Download CSV Template"
-3. Fill with your data or use `sample_transactions.csv`
-4. Upload file
-5. View batch results!
+2. Upload ANY budget CSV file (no template needed!)
+3. System auto-detects columns
+4. View fraud analysis for all transactions!
 
-**CSV Format:**
+**Example CSV Formats Supported:**
 ```csv
-transactionType,fromAddress,toAddress,amount,agency,programName,beneficiaryType,currency,timestamp
-Social Welfare,DSWD_WALLET,0xA91f3c,9000,DSWD,4Ps,Individual,PHP,2026-01-05T09:15:00
+# Format 1: Standard
+amount,date,description,agency
+50000,2024-01-15,Office supplies,DSWD
+
+# Format 2: Tagalog
+halaga,petsa,detalye,ahensya
+50000,2024-01-15,Gamit sa opisina,DSWD
+
+# Format 3: Budget format
+total,transaction_date,particulars,department
+50000,2024-01-15,Procurement,DBM
 ```
 
-**Allowed Values:**
-- **transactionType**: Social Welfare, Procurement, Grant, Tax, Revenue, Other
-- **beneficiaryType**: Individual, Household, Organization, Government Entity, Vendor, Contractor
-- **currency**: PHP (default)
+**System Auto-Detects:**
+- Amount columns: amount, total, value, cost, budget, halaga
+- Date columns: date, timestamp, transaction_date, petsa
+- Type columns: type, category, purpose, classification
+- Agency columns: agency, department, office, ahensya
 
 ---
 
 ## 🎯 Features to Test
 
+### Philippine Fraud Detection (NEW!) 🇵🇭
+- **Overpricing**: Upload procurement >20% above market price
+- **Ghost Beneficiaries**: Try impossible beneficiary counts
+- **Circular Transactions**: Upload related transactions forming a loop
+- **Transaction Splitting**: Multiple transactions just below ₱50,000
+- **Fraud Type Classification**: See specific fraud types detected
+
 ### AI Fraud Detection
 - Upload transactions with varying amounts
 - System uses **ensemble ML model** (98-99% accuracy)
-- Check risk scores and explanations
+- Check risk scores and Philippine-specific explanations
 
-### Economic Context (NEW!)
-- System adjusts for **8% Philippine inflation**
-- **Seasonal patterns** (higher spending in Dec)
-- Try uploading same transaction in different months
-
-### Blockchain (if enabled)
-- Each transaction recorded on blockchain
-- Check Ganache for new blocks
-- Immutable audit trail
+### Flexible CSV Import (NEW!)
+- Upload ANY budget CSV format
+- No template required!
+- System auto-detects columns
+- See column mapping confidence
 
 ### Graph Analytics
 - Upload multiple related transactions

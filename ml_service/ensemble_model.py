@@ -1,6 +1,7 @@
 """
 Ensemble ML Model for Enhanced Fraud Detection
 Combines XGBoost, Random Forest, and Gradient Boosting
+Integrated with Philippine-specific fraud patterns
 """
 
 import numpy as np
@@ -10,6 +11,16 @@ from xgboost import XGBClassifier
 from sklearn.preprocessing import StandardScaler
 import joblib
 import os
+from pathlib import Path
+
+# Import Philippine fraud detection modules
+try:
+    from ph_fraud_patterns import PhilippineFraudPatterns
+    from government_verification_service import GovernmentVerificationService
+    PH_MODULES_AVAILABLE = True
+except ImportError:
+    PH_MODULES_AVAILABLE = False
+    print("Warning: Philippine fraud detection modules not available")
 
 class EnsembleFraudDetector:
     def __init__(self):
@@ -44,6 +55,22 @@ class EnsembleFraudDetector:
             'random_forest': 0.3,
             'gradient_boosting': 0.3
         }
+        
+        # Initialize Philippine fraud detection modules
+        if PH_MODULES_AVAILABLE:
+            data_dir = Path('datasets')
+            philgeps_path = data_dir / 'philgeps_prices.csv' if data_dir.exists() else None
+            psa_path = data_dir / 'psa_demographics.csv' if data_dir.exists() else None
+            
+            self.ph_fraud_detector = PhilippineFraudPatterns(
+                philgeps_prices_path=philgeps_path,
+                psa_demographics_path=psa_path
+            )
+            self.gov_verification = GovernmentVerificationService(data_dir='datasets')
+            print("Philippine fraud detection modules initialized")
+        else:
+            self.ph_fraud_detector = None
+            self.gov_verification = None
     
     def prepare_features(self, transaction):
         """Extract features from transaction"""
@@ -86,11 +113,11 @@ class EnsembleFraudDetector:
         self.is_trained = True
         print("Ensemble training complete!")
     
-    def predict_proba(self, transaction):
-        """Get fraud probability using ensemble voting"""
+    def predict_proba(self, transaction, network_features=None):
+        """Get fraud probability using ensemble voting + Philippine patterns"""
         if not self.is_trained:
             # Use rule-based fallback if not trained
-            return self._rule_based_prediction(transaction)
+            return self._rule_based_prediction(transaction, network_features)
         
         # Prepare features
         X = self.prepare_features(transaction)
@@ -108,10 +135,23 @@ class EnsembleFraudDetector:
             for name in self.models.keys()
         )
         
+        # Enhance with Philippine fraud patterns
+        if self.ph_fraud_detector:
+            ph_analysis = self.ph_fraud_detector.analyze_transaction(
+                transaction,
+                network_features=network_features or transaction.get('networkFeatures', {})
+            )
+            
+            # Combine ML prediction with pattern detection
+            # If patterns detected, increase risk score
+            if ph_analysis['risk_score'] > 0:
+                pattern_boost = ph_analysis['risk_score'] / 100 * 0.3  # Up to 30% boost
+                ensemble_prob = min(ensemble_prob + pattern_boost, 1.0)
+        
         return ensemble_prob
     
-    def _rule_based_prediction(self, transaction):
-        """Fallback rule-based prediction"""
+    def _rule_based_prediction(self, transaction, network_features=None):
+        """Fallback rule-based prediction with Philippine patterns"""
         amount = float(transaction.get('amount', 0))
         tx_type = transaction.get('transactionType', '')
         
@@ -129,9 +169,20 @@ class EnsembleFraudDetector:
             risk_score += 0.2
         
         # Network features
-        network = transaction.get('networkFeatures', {})
+        network = network_features or transaction.get('networkFeatures', {})
         if network.get('degree', 0) > 10:
             risk_score += 0.2
+        
+        # Use Philippine fraud patterns if available
+        if self.ph_fraud_detector:
+            ph_analysis = self.ph_fraud_detector.analyze_transaction(
+                transaction,
+                network_features=network
+            )
+            
+            # Add pattern-based risk
+            pattern_risk = ph_analysis['risk_score'] / 100
+            risk_score = min(risk_score + pattern_risk, 1.0)
         
         return min(risk_score, 1.0)
     

@@ -2,13 +2,13 @@
 node_modules/
 jspm_packages/
 
-# Environment Variables
+# Environment Variables - CRITICAL: Never commit these!
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*
 *.env
+!.env.example
+backend/.env
+frontend/.env
 
 # Python
 __pycache__/
@@ -36,6 +36,16 @@ wheels/
 venv/
 ENV/
 
+# ML Models & Data - Don't commit large files
+ml_service/models/*.pkl
+ml_service/models/*.h5
+ml_service/models/*.pt
+ml_service/datasets/*.csv
+!ml_service/datasets/.gitkeep
+*.pkl
+*.h5
+*.pt
+
 # OS Files
 .DS_Store
 Thumbs.db
@@ -46,18 +56,45 @@ dist/
 build/
 out/
 *.log
+logs/
 
 # IDEs
 .vscode/
 .idea/
 *.swp
 *.swo
+*.sublime-*
 
-# Blockchain
+# Blockchain - CRITICAL: Never commit private keys!
 truffle-config.js.secret
 .openzeppelin/
+*.secret
+*private-key*
+*privatekey*
+*.pem
+*.key
 
-# Miscellaneous
+# Uploads & Temp Files
 uploads/
 temp/
 tmp/
+*.tmp
+
+# Docker
+docker-compose.override.yml
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Test Coverage
+coverage/
+.nyc_output/
+htmlcov/
+.coverage
+.pytest_cache/
+
+# Artifacts (don't commit brain folder)
+.gemini/
+

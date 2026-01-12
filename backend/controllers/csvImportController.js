@@ -1,12 +1,13 @@
 const Transaction = require('../models/Transaction');
 const fraudDetectionService = require('../services/fraudDetection');
 const blockchainService = require('../services/blockchainService');
+const CSVColumnMapper = require('../utils/csvColumnMapper');
 const csv = require('csv-parser');
 const fs = require('fs');
 
 /**
- * Import transactions from CSV file
- * Processes each transaction and runs fraud detection
+ * Import transactions from ANY CSV file (no template required!)
+ * Intelligently detects columns and runs Philippine fraud detection
  */
 exports.importTransactions = async (req, res) => {
   try {
@@ -16,25 +17,45 @@ exports.importTransactions = async (req, res) => {
 
     const results = [];
     const errors = [];
-    const transactions = [];
+    const rawTransactions = [];
+    let headers = null;
+    let columnMappings = null;
+    const mapper = new CSVColumnMapper();
 
     // Parse CSV file
     fs.createReadStream(req.file.path)
       .pipe(csv())
-      .on('data', (data) => transactions.push(data))
+      .on('headers', (headerList) => {
+        headers = headerList;
+        // Auto-detect column mappings
+        columnMappings = mapper.detectColumns(headers);
+        const confidence = mapper.getConfidence(columnMappings);
+
+        console.log('📊 CSV Column Detection:');
+        console.log('  Headers:', headers);
+        console.log('  Mappings:', columnMappings);
+        console.log('  Confidence:', confidence + '%');
+      })
+      .on('data', (data) => rawTransactions.push(data))
       .on('end', async () => {
         try {
-          // Process each transaction
-          for (let i = 0; i < transactions.length; i++) {
-            try {
-              const txData = transactions[i];
+          console.log(`\n🔍 Processing ${rawTransactions.length} transactions...`);
 
-              // Validate required fields
-              if (!txData.transactionType || !txData.fromAddress || !txData.toAddress || !txData.amount) {
+          // Process each transaction
+          for (let i = 0; i < rawTransactions.length; i++) {
+            try {
+              const rawData = rawTransactions[i];
+
+              // Map CSV row to transaction object
+              const txData = mapper.mapRow(rawData, columnMappings);
+
+              // Validate mapped transaction
+              const validation = mapper.validate(txData);
+              if (!validation.isValid) {
                 errors.push({
-                  row: i + 1,
-                  error: 'Missing required fields (transactionType, fromAddress, toAddress, amount)',
-                  data: txData
+                  row: i + 2, // +2 because row 1 is headers, array is 0-indexed
+                  error: validation.errors.join(', '),
+                  data: rawData
                 });
                 continue;
               }
@@ -42,11 +63,8 @@ exports.importTransactions = async (req, res) => {
               // Helper function to pad addresses to valid Ethereum format
               const padAddress = (addr) => {
                 if (!addr) return addr;
-                // If it's already a valid length Ethereum address, return as is
                 if (addr.startsWith('0x') && addr.length === 42) return addr;
-                // If it doesn't start with 0x, add it
                 if (!addr.startsWith('0x')) addr = '0x' + addr;
-                // Pad to 42 characters (0x + 40 hex chars)
                 return addr.padEnd(42, '0');
               };
 
@@ -60,7 +78,8 @@ exports.importTransactions = async (req, res) => {
                 amount: parseFloat(txData.amount),
                 beneficiaryType: txData.beneficiaryType || 'Individual',
                 currency: txData.currency || 'PHP',
-                timestamp: txData.timestamp ? new Date(txData.timestamp) : new Date()
+                timestamp: txData.timestamp ? new Date(txData.timestamp) : new Date(),
+                description: txData.description || ''
               });
 
               // Generate transaction hash if not provided
@@ -68,7 +87,8 @@ exports.importTransactions = async (req, res) => {
                 transaction.txHash = blockchainService.generateTxHash(transaction);
               }
 
-              // Run fraud detection
+              // Run PHILIPPINE FRAUD DETECTION 🇵🇭
+              console.log(`  Row ${i + 2}: Analyzing with Philippine fraud patterns...`);
               const fraudAnalysis = await fraudDetectionService.analyzeTransaction(transaction);
 
               // Update transaction with fraud analysis
@@ -105,19 +125,28 @@ exports.importTransactions = async (req, res) => {
                 await fraudDetectionService.createAlert(transaction, fraudAnalysis);
               }
 
+              // Return enhanced results with Philippine fraud detection
               results.push({
-                row: i + 1,
+                row: i + 2,
                 transactionId: transaction.transactionId,
+                amount: transaction.amount,
+                transactionType: transaction.transactionType,
                 riskScore: transaction.riskScore,
                 riskLevel: transaction.riskLevel,
-                flagged: transaction.flagged
+                flagged: transaction.flagged,
+                fraudType: fraudAnalysis.fraudType,
+                reasons: fraudAnalysis.reasons || [],
+                // Philippine fraud detection specific
+                philippinePatterns: fraudAnalysis.graphPatterns || [],
+                networkFeatures: transaction.networkFeatures
               });
 
             } catch (error) {
+              console.error(`  Row ${i + 2}: Error -`, error.message);
               errors.push({
-                row: i + 1,
+                row: i + 2,
                 error: error.message,
-                data: transactions[i]
+                data: rawTransactions[i]
               });
             }
           }
@@ -125,17 +154,33 @@ exports.importTransactions = async (req, res) => {
           // Clean up uploaded file
           fs.unlinkSync(req.file.path);
 
-          // Return results
+          // Calculate statistics
+          const flaggedCount = results.filter(r => r.flagged).length;
+          const highRiskCount = results.filter(r => r.riskLevel === 'HIGH' || r.riskLevel === 'CRITICAL').length;
+
+          console.log(`\n✅ Import Complete:`);
+          console.log(`  Total: ${rawTransactions.length}`);
+          console.log(`  Imported: ${results.length}`);
+          console.log(`  Failed: ${errors.length}`);
+          console.log(`  Flagged as Fraud: ${flaggedCount}`);
+          console.log(`  High Risk: ${highRiskCount}`);
+
+          // Return enhanced results
           res.json({
             success: true,
-            message: `Processed ${transactions.length} transactions`,
+            message: `Processed ${rawTransactions.length} transactions with Philippine fraud detection`,
             imported: results.length,
             failed: errors.length,
+            flaggedCount,
+            highRiskCount,
+            columnMappings,
+            mappingConfidence: mapper.getConfidence(columnMappings),
             results,
             errors: errors.length > 0 ? errors : undefined
           });
 
         } catch (error) {
+          console.error('Processing Error:', error);
           // Clean up uploaded file
           if (fs.existsSync(req.file.path)) {
             fs.unlinkSync(req.file.path);
@@ -144,6 +189,7 @@ exports.importTransactions = async (req, res) => {
         }
       })
       .on('error', (error) => {
+        console.error('CSV Parse Error:', error);
         // Clean up uploaded file
         if (fs.existsSync(req.file.path)) {
           fs.unlinkSync(req.file.path);
@@ -158,7 +204,7 @@ exports.importTransactions = async (req, res) => {
 };
 
 /**
- * Generate CSV template for download
+ * Generate CSV template for download (optional - system works without it!)
  */
 exports.downloadTemplate = (req, res) => {
   const template = `transactionType,agency,programName,fromAddress,toAddress,amount,beneficiaryType,currency,timestamp
@@ -170,3 +216,4 @@ Tax,BIR,Income Tax,0x3456789012345678901234567890123456789012,0x7654321098765432
   res.setHeader('Content-Disposition', 'attachment; filename=transaction_import_template.csv');
   res.send(template);
 };
+
