@@ -1,8 +1,9 @@
-# Docker Compose for ChainShield
-# Run entire system with: docker-compose up
+version: "3.9"
 
 services:
+  # =========================
   # MongoDB Database
+  # =========================
   mongodb:
     image: mongo:7.0
     container_name: chainshield-mongodb
@@ -16,7 +17,9 @@ services:
     networks:
       - chainshield-network
 
+  # =========================
   # Backend API (Node.js)
+  # =========================
   backend:
     build:
       context: ./backend
@@ -26,14 +29,15 @@ services:
     ports:
       - "5000:5000"
     environment:
-      - NODE_ENV=development
-      - MONGODB_URI=mongodb://mongodb:27017/chainshield
-      - JWT_SECRET=your-secret-key-change-in-production
-      - ML_SERVICE_URL=http://ml-service:5001
-      - GRAPH_SERVICE_URL=http://graph-service:5002
+      NODE_ENV: development
+      MONGODB_URI: mongodb://mongodb:27017/chainshield
+      JWT_SECRET: your-secret-key-change-in-production
+      ML_SERVICE_URL: http://ml-service:5001
+      GRAPH_SERVICE_URL: http://graph-service:5002
     depends_on:
       - mongodb
       - ml-service
+      - graph-service
     volumes:
       - ./backend:/app
       - /app/node_modules
@@ -41,7 +45,9 @@ services:
       - chainshield-network
     command: npm run dev
 
+  # =========================
   # ML Service (Python)
+  # =========================
   ml-service:
     build:
       context: ./ml_service
@@ -58,7 +64,9 @@ services:
       - chainshield-network
     command: python app.py
 
+  # =========================
   # Graph Service (Python)
+  # =========================
   graph-service:
     build:
       context: ./graph_service
@@ -73,7 +81,9 @@ services:
       - chainshield-network
     command: python app.py
 
+  # =========================
   # Frontend (React + Vite)
+  # =========================
   frontend:
     build:
       context: ./frontend
@@ -83,18 +93,24 @@ services:
     ports:
       - "5173:5173"
     environment:
-      - VITE_API_URL=http://localhost:5000
+      VITE_API_URL: http://backend:5000
     volumes:
       - ./frontend:/app
       - /app/node_modules
     networks:
       - chainshield-network
-    command: npm run dev
+    command: npm run dev -- --host 0.0.0.0 --port 5173
 
+# =========================
+# Networks
+# =========================
 networks:
   chainshield-network:
     driver: bridge
 
+# =========================
+# Volumes
+# =========================
 volumes:
   mongodb_data:
   ml_models:
