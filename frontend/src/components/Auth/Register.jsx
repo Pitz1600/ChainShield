@@ -57,7 +57,7 @@ function Register({ onRegister, onNavigate }) {
 
         if (response.ok) {
           // Successful registration
-          onRegister(data.token, data.user);
+          onNavigate('welcome');
         } else {
           // Registration failed
           setError(data.error || 'Registration failed. Please try again.');
