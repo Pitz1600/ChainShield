@@ -13,7 +13,7 @@ class BlockchainService {
     this.contractAddress = process.env.CONTRACT_ADDRESS;
     this.account = process.env.BLOCKCHAIN_ACCOUNT;
     this.privateKey = process.env.BLOCKCHAIN_PRIVATE_KEY;
-    
+
     // Initialize Web3 only if RPC URL is provided
     if (this.rpcUrl && this.rpcUrl !== 'none') {
       try {
@@ -25,36 +25,36 @@ class BlockchainService {
     } else {
       this.web3 = null;
     }
-    
+
     // Initialize contract ABI (minimal)
     this.contractABI = [
       {
-        "inputs": [{"internalType": "bytes32", "name": "_txHash", "type": "bytes32"}],
+        "inputs": [{ "internalType": "bytes32", "name": "_txHash", "type": "bytes32" }],
         "name": "recordTransaction",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
       },
       {
-        "inputs": [{"internalType": "bytes32", "name": "_txHash", "type": "bytes32"}],
+        "inputs": [{ "internalType": "bytes32", "name": "_txHash", "type": "bytes32" }],
         "name": "verifyTransaction",
-        "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
+        "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
         "stateMutability": "view",
         "type": "function"
       },
       {
-        "inputs": [{"internalType": "bytes32", "name": "_txHash", "type": "bytes32"}],
+        "inputs": [{ "internalType": "bytes32", "name": "_txHash", "type": "bytes32" }],
         "name": "getTransaction",
         "outputs": [
-          {"internalType": "bytes32", "name": "", "type": "bytes32"},
-          {"internalType": "uint256", "name": "", "type": "uint256"},
-          {"internalType": "address", "name": "", "type": "address"}
+          { "internalType": "bytes32", "name": "", "type": "bytes32" },
+          { "internalType": "uint256", "name": "", "type": "uint256" },
+          { "internalType": "address", "name": "", "type": "address" }
         ],
         "stateMutability": "view",
         "type": "function"
       }
     ];
-    
+
     // Initialize contract instance if address is provided
     if (this.contractAddress && this.web3) {
       try {
@@ -98,26 +98,27 @@ class BlockchainService {
     try {
       // Convert hex string to bytes32 format
       const hashBytes32 = '0x' + txHash.padStart(64, '0').slice(0, 64);
-      
+
       // PRIORITY 1: Full blockchain implementation via smart contract
       if (this.contract && this.account && this.privateKey && this.web3) {
         try {
           console.log('Recording transaction hash on blockchain via smart contract...');
-          
+
           // Get gas price
           const gasPrice = await this.web3.eth.getGasPrice();
-          
+
           // Estimate gas
           const gasEstimate = await this.contract.methods.recordTransaction(hashBytes32).estimateGas({
             from: this.account
           });
-          
+
           // Create transaction
           const tx = this.contract.methods.recordTransaction(hashBytes32);
-          
+
           // Sign transaction
           const signedTx = await this.web3.eth.accounts.signTransaction(
             {
+              from: this.account,
               to: this.contractAddress,
               data: tx.encodeABI(),
               gas: gasEstimate,
@@ -125,20 +126,20 @@ class BlockchainService {
             },
             this.privateKey
           );
-          
+
           // Send transaction to blockchain
           const receipt = await this.web3.eth.sendSignedTransaction(signedTx.rawTransaction);
-          
+
           console.log(`Transaction recorded on blockchain: ${receipt.transactionHash}`);
           console.log(`Block number: ${receipt.blockNumber}`);
-          
+
           // Get block timestamp
           const block = await this.web3.eth.getBlock(receipt.blockNumber);
-          
+
           return {
             success: true,
             transactionHash: receipt.transactionHash,
-            blockNumber: receipt.blockNumber,
+            blockNumber: Number(receipt.blockNumber),
             blockHash: receipt.blockHash,
             timestamp: block.timestamp ? Number(block.timestamp) * 1000 : Date.now(),
             verifierId: this.account,
@@ -149,10 +150,12 @@ class BlockchainService {
           };
         } catch (contractError) {
           console.error('Smart contract recording failed:', contractError.message);
+          console.error('Full error:', contractError);
+          console.error('Error stack:', contractError.stack);
           throw new Error(`Failed to record on blockchain: ${contractError.message}`);
         }
       }
-      
+
       // PRIORITY 2: If contract not deployed, try direct transaction (advanced)
       if (this.web3 && this.account && this.privateKey) {
         try {
@@ -163,22 +166,22 @@ class BlockchainService {
           console.error('Direct transaction failed:', error.message);
         }
       }
-      
+
       // FALLBACK: If blockchain not available, throw error (don't silently fallback)
       if (!this.web3) {
         throw new Error('Blockchain connection not available. Please configure BLOCKCHAIN_RPC_URL.');
       }
-      
+
       if (!this.contractAddress) {
         throw new Error('Smart contract not deployed. Please deploy contract and set CONTRACT_ADDRESS.');
       }
-      
+
       if (!this.account || !this.privateKey) {
         throw new Error('Blockchain account not configured. Please set BLOCKCHAIN_ACCOUNT and BLOCKCHAIN_PRIVATE_KEY.');
       }
-      
+
       throw new Error('Blockchain recording failed. Please check configuration.');
-      
+
     } catch (error) {
       console.error('Blockchain recording error:', error.message);
       throw new Error(`Failed to record transaction on blockchain: ${error.message}`);
@@ -192,18 +195,18 @@ class BlockchainService {
   async verifyTransaction(txHash) {
     try {
       const hashBytes32 = '0x' + txHash.padStart(64, '0').slice(0, 64);
-      
+
       if (!this.contract) {
         throw new Error('Smart contract not initialized. Cannot verify transaction.');
       }
-      
+
       // Call smart contract to verify
       const verified = await this.contract.methods.verifyTransaction(hashBytes32).call();
-      
+
       if (verified) {
         // Get transaction details from contract
         const txData = await this.contract.methods.getTransaction(hashBytes32).call();
-        
+
         return {
           verified: true,
           blockNumber: txData[1] ? Number(txData[1]) : null,
@@ -252,11 +255,11 @@ class BlockchainService {
         note: 'Using hash-based storage (no blockchain connection needed)'
       };
     }
-    
+
     try {
       const blockNumber = await this.web3.eth.getBlockNumber();
       const networkId = await this.web3.eth.net.getId().catch(() => null);
-      
+
       return {
         connected: true,
         blockNumber,

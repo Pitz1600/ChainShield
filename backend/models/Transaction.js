@@ -100,7 +100,7 @@ const transactionSchema = new mongoose.Schema({
   fraudPatterns: [{
     type: {
       type: String,
-      enum: ['Fund Convergence', 'Circular Movement', 'Shell Wallet', 'Collusion', 'Other']
+      enum: ['Fund Convergence', 'Circular Movement', 'Shell Wallet', 'Collusion', 'Rapid Sequential Transactions', 'Unusual Amount', 'Suspicious Timing', 'Geographic Anomaly', 'Other']
     },
     severity: String,
     description: String

@@ -36,6 +36,7 @@ router.get('/template', auth, csvImportController.downloadTemplate);
 // Standard transaction routes
 router.post('/', auth, transactionController.createTransaction);
 router.get('/', auth, transactionController.getTransactions);
+router.get('/alerts', auth, transactionController.getAlerts);
 router.get('/:id', auth, transactionController.getTransactionById);
 
 module.exports = router;
