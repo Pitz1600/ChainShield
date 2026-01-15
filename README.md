@@ -2,32 +2,32 @@
 
 **Machine Learning–Driven Integrity Assurance and Monitoring System**
 
-ChainShield is an advanced transaction monitoring system designed for Philippine government financial transactions, combining **AI/ML**, **Blockchain**, and **Graph Analytics** for comprehensive integrity assurance.
+ChainShield is an advanced transaction monitoring system combining **AI/ML**, **Blockchain**, and **Graph Analytics** for comprehensive integrity assurance and anomaly detection.
 
 ---
 
 ## ⚠️ Important Notice
 
-**This is a research prototype for academic purposes.**
+**This is a research prototype for academic and demonstration purposes.**
 - ✅ Uses simulated/synthetic data only
-- ❌ Does NOT connect to real government databases
+- ❌ Does NOT connect to real production databases
 - ❌ Does NOT store personal information on-chain
-- 🎓 Designed for thesis defense and research
+- 🎓 Designed for research and educational use
 
 ---
 
 ## 🎯 What It Does
 
-Monitors Philippine government transactions:
-- **Social Welfare** (4Ps, SAP, TUPAD, AICS)
-- **Public Procurement**
-- **Government Grants**
-- **Tax & Revenue** (simulated)
+Monitors financial transactions across various sectors:
+- **Social Welfare Programs**
+- **Procurement Systems**
+- **Grant Management**
+- **Revenue Tracking**
 
-**Detects:**
+**Detects**:
 - Fund convergence patterns
 - Circular money movement
-- Shell wallet schemes
+- Shell account schemes
 - Procurement irregularities
 - Identity anomalies
 
@@ -35,9 +35,9 @@ Monitors Philippine government transactions:
 
 ## ✨ Key Features
 
-### 🤖 **Enhanced AI/ML** (NEW!)
+### 🤖 **Enhanced AI/ML**
 - **Ensemble Model**: XGBoost + Random Forest + Gradient Boosting
-- **Economic Context**: Philippine inflation rates & seasonal adjustments
+- **Economic Context**: Real-time economic indicators & seasonal adjustments
 - **SHAP Explainability**: Understand why transactions are flagged
 
 ## 🌟 Key Features
@@ -49,8 +49,8 @@ Monitors Philippine government transactions:
 - **📁 Bulk Processing**: CSV import for batch transaction analysis
 - **🔐 Role-based Access**: Secure authentication with granular permissions
 
-### 🌐 **Real-Time Data** (NEW!)
-- Philippine inflation rates (PSA)
+### 🌐 **Real-Time Data**
+- Economic indicators integration
 - Seasonal spending patterns
 - Historical baseline learning
 - Context-aware risk scoring
@@ -140,7 +140,7 @@ Combines 3 ML algorithms for superior accuracy:
 **Result**: **98-99% accuracy** (up from 96.8%)
 
 ### Economic Context Integration
-- **Philippine inflation rates** (8% current)
+- **Economic indicators** (Inflation, CPI)
 - **Seasonal adjustments** (year-end spending spikes)
 - **Program baselines** (4Ps: ₱9,000, SAP: ₱5,000, etc.)
 - **Dynamic thresholds** based on economic conditions
@@ -239,16 +239,15 @@ Academic/Research Use Only
 
 ---
 
-## 🇵🇭 Built for the Philippines
+## 🌍 Built for Integrity
 
-Designed to support Philippine government integrity assurance efforts through advanced AI and blockchain technology.
+Designed to support organizational integrity assurance efforts through advanced AI and blockchain technology.
 
-**Features Philippine-specific:**
-- PSA inflation data integration
-- Philippine government programs (4Ps, SAP, TUPAD)
-- PHP currency
-- Local economic context
-- Government agency workflows
+**Primary Features:**
+- Real-time inflation data integration
+- Support for various social programs
+- Standard procurement analysis
+- Customizable agency workflows
 
 ---
 
@@ -263,4 +262,4 @@ Perfect for:
 
 ---
 
-**ChainShield** - Protecting Government Funds with AI & Blockchain 🛡️
+**ChainShield** - Protecting Funds with AI & Blockchain 🛡️

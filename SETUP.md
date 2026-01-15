@@ -36,7 +36,7 @@ docker-compose up
 - Install all dependencies automatically
 - Start MongoDB
 - Start Backend API
-- Start ML Service (with Philippine integrity monitoring)
+- Start ML Service (with integrity monitoring)
 - Start Graph Service
 - Start Frontend
 
@@ -45,7 +45,7 @@ docker-compose up
 Open browser: **http://localhost:5173**
 
 **Default Admin Credentials:**
-- Email: `admin@chainshield.gov.ph`
+- Email: `admin@chainshield.com`
 - Password: `admin123`
 
 ### 4. Stop System
@@ -201,29 +201,29 @@ BLOCKCHAIN_RPC_URL=https://rpc.sepolia.org
 
 ---
 
-## 🇵🇭 Philippine Integrity Monitoring Features (NEW!)
+## 🌐 Context-Aware Integrity Monitoring Features (NEW!)
 
 ### What Makes This Special?
 
-ChainShield now includes **real Philippine government integrity monitoring**:
+ChainShield now includes **real-time context-aware integrity monitoring**:
 
 ✅ **No Template Required for CSV!**
 - Upload ANY budget CSV file
 - System auto-detects columns (amount, date, description, etc.)
-- Supports 40+ column name variations including Tagalog
+- Supports 40+ column name variations
 - Shows column mapping confidence score
 
-✅ **Philippine-Specific Risk Patterns**
-- **Overpricing Detection**: Compares to PhilGEPS market prices
-- **Beneficiary Verification**: Validates against PSA population data
+✅ **Context-Aware Risk Patterns**
+- **Anomaly Detection**: Compares to statistical baselines
+- **Entity Verification**: Validates against known entity lists
 - **Circular Transactions**: Detects unusual payment patterns
 - **Transaction Splitting**: Identifies audit threshold patterns
-- **PDAF Patterns**: Flags unusual allocation schemes
+- **Allocation Patterns**: Flags unusual allocation schemes
 - **Procurement Patterns**: Detects repeated contractor patterns
 
-✅ **Government Database Verification**
-- PhilGEPS price comparison
-- PSA demographic checks
+✅ **External Verification**
+- Market price comparison
+- Demographic checks
 - Real-time risk pattern analysis
 
 ---
@@ -236,7 +236,7 @@ ChainShield now includes **real Philippine government integrity monitoring**:
 2. Click "Submit Transaction"
 3. Fill in details
 4. Click "Analyze Transaction"
-5. View Philippine integrity analysis results!
+5. View integrity analysis results!
 
 ### 2. CSV Bulk Import (Works with ANY CSV!)
 
@@ -248,16 +248,16 @@ ChainShield now includes **real Philippine government integrity monitoring**:
 **Example CSV Formats Supported:**
 ```csv
 # Format 1: Standard
-amount,date,description,agency
-50000,2024-01-15,Office supplies,DSWD
+amount,date,description,department
+50000,2024-01-15,Office supplies,Operations
 
-# Format 2: Tagalog
-halaga,petsa,detalye,ahensya
-50000,2024-01-15,Gamit sa opisina,DSWD
+# Format 2: Localized
+amount,date,details,agency
+50000,2024-01-15,Office equipment,Logistics
 
 # Format 3: Budget format
 total,transaction_date,particulars,department
-50000,2024-01-15,Procurement,DBM
+50000,2024-01-15,Procurement,Finance
 ```
 
 **System Auto-Detects:**
@@ -270,17 +270,17 @@ total,transaction_date,particulars,department
 
 ## 🎯 Features to Test
 
-### Philippine Integrity Monitoring (NEW!) 🇵🇭
-- **Overpricing**: Upload procurement >20% above market price
-- **Beneficiary Verification**: Try unusual beneficiary counts
+### Integrity Monitoring Features (NEW!)
+- **Price Anomaly**: Upload procurement >20% above baseline price
+- **Entity Verification**: Try unusual entity counts
 - **Circular Transactions**: Upload related transactions forming a loop
-- **Transaction Splitting**: Multiple transactions just below ₱50,000
+- **Transaction Splitting**: Multiple transactions just below threshold
 - **Risk Type Classification**: See specific risk types detected
 
 ### AI Anomaly Detection
 - Upload transactions with varying amounts
-- System uses **ensemble ML model** (98-99% accuracy)
-- Check risk scores and Philippine-specific explanations
+- System uses **ensemble ML model** (High accuracy)
+- Check risk scores and context-aware explanations
 
 ### Flexible CSV Import (NEW!)
 - Upload ANY budget CSV format
@@ -349,7 +349,7 @@ pip install -r requirements.txt
 
 **Short addresses:**
 - System auto-pads addresses
-- `DSWD_WALLET` → `0xDSWD_WALLET000...`
+- `DEPT_WALLET` → `0xDEPT_WALLET000...`
 
 **Authentication Failed:**
 - Make sure you're logged in
