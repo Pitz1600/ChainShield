@@ -1,94 +1,121 @@
 .sidebar {
-  width: 260px;
-  background: var(--primary-blue);
-  color: white;
+  width: 280px;
+  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
   height: 100vh;
-  position: fixed;
-  left: 0;
-  top: 0;
   display: flex;
   flex-direction: column;
-  z-index: 50;
-  box-shadow: 4px 0 24px rgba(0,0,0,0.1);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  position: sticky;
+  top: 0;
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.12);
 }
 
 .sidebar-header {
-  padding: 1.5rem;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding: 2rem 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .sidebar-logo {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
 .logo-icon {
-  font-size: 1.75rem;
+  font-size: 2.5rem;
+  filter: drop-shadow(0 4px 8px rgba(99, 102, 241, 0.4));
+}
+
+.logo-text {
+  flex: 1;
 }
 
 .logo-title {
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   font-weight: 800;
-  letter-spacing: 0.5px;
-  line-height: 1;
-  color: white;
+  background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0;
+  letter-spacing: -0.02em;
 }
 
 .logo-subtitle {
-  font-size: 0.7rem;
-  color: rgba(255,255,255,0.5);
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0.25rem 0 0 0;
+  font-weight: 500;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-top: 2px;
 }
 
 .sidebar-nav {
-  padding: 1.5rem 1rem;
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  padding: 1.5rem 0.75rem;
+  overflow-y: auto;
 }
 
 .nav-item {
+  width: 100%;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.875rem 1rem;
-  width: 100%;
+  gap: 0.875rem;
+  padding: 0.875rem 0.75rem;
+  margin-bottom: 0.5rem;
   background: transparent;
   border: none;
-  color: #94a3b8;
-  font-size: 0.95rem;
-  font-weight: 500;
+  border-radius: 0.75rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9375rem;
+  font-weight: 600;
   cursor: pointer;
-  border-radius: var(--radius-md);
-  transition: all 0.2s ease;
-  text-align: left;
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, #6366f1 0%, #8b5cf6 100%);
+  transform: scaleY(0);
+  transition: transform 200ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .nav-item:hover {
-  background: rgba(255,255,255,0.05);
-  color: white;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.95);
+  transform: translateX(4px);
 }
 
 .nav-item.active {
-  background: var(--secondary-blue);
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%);
   color: white;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.nav-item.active::before {
+  transform: scaleY(1);
 }
 
 .nav-icon {
   font-size: 1.25rem;
-  width: 24px;
-  display: flex;
-  justify-content: center;
+  flex-shrink: 0;
+}
+
+.nav-label {
+  flex: 1;
+  text-align: left;
 }
 
 .sidebar-footer {
-  padding: 1.5rem;
-  border-top: 1px solid rgba(255,255,255,0.1);
+  padding: 1.5rem 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .logout-btn {
@@ -96,17 +123,39 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  background: rgba(255,255,255,0.1);
-  color: white;
-  border: 1px solid rgba(255,255,255,0.1);
-  padding: 0.75rem;
-  border-radius: var(--radius-md);
+  gap: 0.75rem;
+  padding: 0.875rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1.5px solid rgba(239, 68, 68, 0.3);
+  border-radius: 0.75rem;
+  color: #fca5a5;
+  font-size: 0.9375rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 200ms;
 }
 
 .logout-btn:hover {
-  background: #dc2626;
-  border-color: #dc2626;
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #fecaca;
+  transform: translateY(-2px);
+}
+
+/* Scrollbar for sidebar */
+.sidebar-nav::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-nav::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
 }

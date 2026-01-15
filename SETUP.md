@@ -1,6 +1,6 @@
 # 🚀 ChainShield Setup Guide
 
-Complete installation and configuration guide for ChainShield with **Philippine Government Fraud Detection**.
+Complete installation and configuration guide for ChainShield **Machine Learning–Driven Integrity Assurance and Monitoring System**.
 
 ---
 
@@ -36,7 +36,7 @@ docker-compose up
 - Install all dependencies automatically
 - Start MongoDB
 - Start Backend API
-- Start ML Service (with Philippine fraud detection)
+- Start ML Service (with Philippine integrity monitoring)
 - Start Graph Service
 - Start Frontend
 
@@ -201,11 +201,11 @@ BLOCKCHAIN_RPC_URL=https://rpc.sepolia.org
 
 ---
 
-## 🇵🇭 Philippine Fraud Detection Features (NEW!)
+## 🇵🇭 Philippine Integrity Monitoring Features (NEW!)
 
 ### What Makes This Special?
 
-ChainShield now includes **real Philippine government fraud detection**:
+ChainShield now includes **real Philippine government integrity monitoring**:
 
 ✅ **No Template Required for CSV!**
 - Upload ANY budget CSV file
@@ -213,18 +213,18 @@ ChainShield now includes **real Philippine government fraud detection**:
 - Supports 40+ column name variations including Tagalog
 - Shows column mapping confidence score
 
-✅ **Philippine-Specific Fraud Patterns**
+✅ **Philippine-Specific Risk Patterns**
 - **Overpricing Detection**: Compares to PhilGEPS market prices
-- **Ghost Beneficiaries**: Verifies against PSA population data
-- **Circular Transactions**: Detects kickback schemes
-- **Transaction Splitting**: Identifies audit threshold evasion
-- **PDAF Patterns**: Flags pork barrel-like schemes
-- **Procurement Collusion**: Detects repeated contractor wins
+- **Beneficiary Verification**: Validates against PSA population data
+- **Circular Transactions**: Detects unusual payment patterns
+- **Transaction Splitting**: Identifies audit threshold patterns
+- **PDAF Patterns**: Flags unusual allocation schemes
+- **Procurement Patterns**: Detects repeated contractor patterns
 
 ✅ **Government Database Verification**
 - PhilGEPS price comparison
 - PSA demographic checks
-- Real-time fraud pattern analysis
+- Real-time risk pattern analysis
 
 ---
 
@@ -235,15 +235,15 @@ ChainShield now includes **real Philippine government fraud detection**:
 1. Login to dashboard
 2. Click "Submit Transaction"
 3. Fill in details
-4. Click "Scan for Fraud"
-5. View Philippine fraud detection results!
+4. Click "Analyze Transaction"
+5. View Philippine integrity analysis results!
 
 ### 2. CSV Bulk Import (Works with ANY CSV!)
 
 1. Go to "CSV Import"
 2. Upload ANY budget CSV file (no template needed!)
 3. System auto-detects columns
-4. View fraud analysis for all transactions!
+4. View risk analysis for all transactions!
 
 **Example CSV Formats Supported:**
 ```csv
@@ -270,14 +270,14 @@ total,transaction_date,particulars,department
 
 ## 🎯 Features to Test
 
-### Philippine Fraud Detection (NEW!) 🇵🇭
+### Philippine Integrity Monitoring (NEW!) 🇵🇭
 - **Overpricing**: Upload procurement >20% above market price
-- **Ghost Beneficiaries**: Try impossible beneficiary counts
+- **Beneficiary Verification**: Try unusual beneficiary counts
 - **Circular Transactions**: Upload related transactions forming a loop
 - **Transaction Splitting**: Multiple transactions just below ₱50,000
-- **Fraud Type Classification**: See specific fraud types detected
+- **Risk Type Classification**: See specific risk types detected
 
-### AI Fraud Detection
+### AI Anomaly Detection
 - Upload transactions with varying amounts
 - System uses **ensemble ML model** (98-99% accuracy)
 - Check risk scores and Philippine-specific explanations
@@ -521,4 +521,4 @@ After setup, verify:
 
 **Setup Complete!** 🎉
 
-Start using ChainShield for fraud detection research!
+Start using ChainShield for integrity monitoring research!

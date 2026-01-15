@@ -1,4 +1,4 @@
-const Web3 = require('web3');
+const { Web3 } = require('web3');
 const fs = require('fs');
 const path = require('path');
 
@@ -16,8 +16,8 @@ try {
 const abi = contractData.abi;
 const bytecode = contractData.bytecode;
 
-// Connect to Ganache
-const web3 = new Web3('http://127.0.0.1:8545');
+// Connect to Ganache GUI
+const web3 = new Web3('http://127.0.0.1:7545');
 
 async function deploy() {
     try {
@@ -57,7 +57,7 @@ async function deploy() {
         console.log('═══════════════════════════════════════════════════════\n');
 
         console.log('📝 Update your backend/.env file with:\n');
-        console.log('BLOCKCHAIN_RPC_URL=http://127.0.0.1:8545');
+        console.log('BLOCKCHAIN_RPC_URL=http://127.0.0.1:7545');
         console.log(`CONTRACT_ADDRESS=${contractAddress}`);
         console.log(`BLOCKCHAIN_ACCOUNT=${deployer}`);
         console.log('\n💡 To get the private key, check Ganache GUI or use:');
@@ -99,9 +99,8 @@ web3.eth.net.isListening()
         deploy();
     })
     .catch(() => {
-        console.error('❌ Cannot connect to Ganache at http://127.0.0.1:8545');
-        console.error('   Please start Ganache first:');
-        console.error('   - Download Ganache GUI from https://trufflesuite.com/ganache/');
-        console.error('   - Or run: ganache --detach\n');
+        console.error('❌ Cannot connect to Ganache at http://127.0.0.1:7545');
+        console.error('   Please start Ganache GUI and ensure it\'s running on port 7545');
+        console.error('   - Download Ganache GUI from https://trufflesuite.com/ganache/\n');
         process.exit(1);
     });

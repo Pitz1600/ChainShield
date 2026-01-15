@@ -1,8 +1,8 @@
 # 🛡️ ChainShield
 
-**AI-Powered Philippine Government Fraud Detection System**
+**Machine Learning–Driven Integrity Assurance and Monitoring System**
 
-ChainShield is an advanced fraud detection system designed for Philippine government financial transactions, combining **AI/ML**, **Blockchain**, and **Graph Analytics** for comprehensive fraud prevention.
+ChainShield is an advanced transaction monitoring system designed for Philippine government financial transactions, combining **AI/ML**, **Blockchain**, and **Graph Analytics** for comprehensive integrity assurance.
 
 ---
 
@@ -25,11 +25,11 @@ Monitors Philippine government transactions:
 - **Tax & Revenue** (simulated)
 
 **Detects:**
-- Fund convergence fraud
+- Fund convergence patterns
 - Circular money movement
 - Shell wallet schemes
-- Procurement fraud
-- Identity fraud
+- Procurement irregularities
+- Identity anomalies
 
 ---
 
@@ -37,27 +37,23 @@ Monitors Philippine government transactions:
 
 ### 🤖 **Enhanced AI/ML** (NEW!)
 - **Ensemble Model**: XGBoost + Random Forest + Gradient Boosting
-- **98-99% Accuracy** (upgraded from 96.8%)
 - **Economic Context**: Philippine inflation rates & seasonal adjustments
 - **SHAP Explainability**: Understand why transactions are flagged
 
-### ⛓️ **Blockchain Integration**
-- Immutable transaction records
-- Smart contract verification
-- Tamper-proof audit trail
-- Ganache (local) or Sepolia (testnet) support
+## 🌟 Key Features
 
-### 📊 **Graph Analytics**
-- Network pattern detection
-- Relationship analysis
-- Community fraud detection
-- Shell wallet identification
+- **🤖 Machine Learning Detection**: Advanced ensemble models for pattern recognition
+- **⛓️ Blockchain Verification**: Immutable audit trail using Ethereum smart contracts
+- **📊 Real-time Analytics**: Interactive dashboards for monitoring and insights
+- **🔍 Graph Analysis**: Network relationship mapping for complex pattern detection
+- **📁 Bulk Processing**: CSV import for batch transaction analysis
+- **🔐 Role-based Access**: Secure authentication with granular permissions
 
 ### 🌐 **Real-Time Data** (NEW!)
 - Philippine inflation rates (PSA)
 - Seasonal spending patterns
 - Historical baseline learning
-- Context-aware fraud scoring
+- Context-aware risk scoring
 
 ---
 
@@ -116,27 +112,6 @@ Monitors Philippine government transactions:
 
 **See [SETUP.md](./SETUP.md) for complete instructions**
 
-### Option 1: Docker (Easiest!) 🐳
-
-```bash
-# Install Docker Desktop first: https://www.docker.com/products/docker-desktop
-
-# Start entire system with ONE command:
-docker-compose up
-
-# Or double-click: start.bat (Windows) or start.sh (Mac/Linux)
-```
-
-**Access:** http://localhost:5173
-
-**Login:**
-- Email: `admin@chainshield.gov.ph`
-- Password: `admin123`
-
-### Option 2: Manual Setup
-
-```bash
-# 1. Install Dependencies
 cd backend && npm install
 cd ../frontend && npm install
 cd ../ml_service && pip install -r requirements.txt
@@ -206,7 +181,7 @@ ChainShield/
 ### For Users:
 - ✅ Single transaction scanning
 - ✅ CSV bulk import
-- ✅ Real-time fraud detection
+- ✅ Real-time anomaly detection
 - ✅ Detailed risk explanations
 - ✅ Dashboard analytics
 - ✅ Alert management
@@ -266,7 +241,7 @@ Academic/Research Use Only
 
 ## 🇵🇭 Built for the Philippines
 
-Designed to support Philippine government anti-fraud efforts through advanced AI and blockchain technology.
+Designed to support Philippine government integrity assurance efforts through advanced AI and blockchain technology.
 
 **Features Philippine-specific:**
 - PSA inflation data integration
@@ -281,7 +256,7 @@ Designed to support Philippine government anti-fraud efforts through advanced AI
 
 Perfect for:
 - Computer Science thesis
-- Fraud detection research
+- Anomaly detection research
 - Blockchain applications
 - AI/ML projects
 - Government tech solutions

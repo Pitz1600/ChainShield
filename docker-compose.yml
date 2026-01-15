@@ -31,9 +31,13 @@ services:
     environment:
       NODE_ENV: development
       MONGODB_URI: mongodb://mongodb:27017/chainshield
-      JWT_SECRET: your-secret-key-change-in-production
+      JWT_SECRET: ${JWT_SECRET}
       ML_SERVICE_URL: http://ml-service:5001
       GRAPH_SERVICE_URL: http://graph-service:5002
+      BLOCKCHAIN_RPC_URL: ${BLOCKCHAIN_RPC_URL}
+      CONTRACT_ADDRESS: ${CONTRACT_ADDRESS}
+      BLOCKCHAIN_ACCOUNT: ${BLOCKCHAIN_ACCOUNT}
+      BLOCKCHAIN_PRIVATE_KEY: ${BLOCKCHAIN_PRIVATE_KEY}
     depends_on:
       - mongodb
       - ml-service
@@ -100,6 +104,25 @@ services:
     networks:
       - chainshield-network
     command: npm run dev -- --host 0.0.0.0 --port 5173
+
+  # =========================
+  # Ganache Blockchain (Local Ethereum)
+  # =========================
+  ganache:
+    image: trufflesuite/ganache:latest
+    container_name: chainshield-ganache
+    restart: unless-stopped
+    ports:
+      - "${GANACHE_PORT:-7545}:8545"
+    command: >
+      --mnemonic "${GANACHE_MNEMONIC}"
+      --networkId ${GANACHE_NETWORK_ID:-1337}
+      --accounts 10
+      --defaultBalanceEther 1000
+      --gasLimit 10000000
+      --gasPrice 20000000000
+    networks:
+      - chainshield-network
 
 # =========================
 # Networks

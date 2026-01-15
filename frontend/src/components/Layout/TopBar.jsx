@@ -6,7 +6,7 @@ function TopBar({ user }) {
     <header className="top-bar">
       <div className="top-bar-content">
         <div className="top-bar-brand">
-          <h1 className="page-title">Document Fraud Detection Portal</h1>
+          <h1 className="page-title">Transaction Integrity Monitoring Portal</h1>
           <span className="security-badge">SECURE // ENCRYPTED</span>
         </div>
         <div className="top-bar-actions">

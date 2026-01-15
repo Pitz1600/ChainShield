@@ -4,8 +4,7 @@ import '../../styles/Sidebar.css';
 function Sidebar({ activeView, setActiveView, onLogout }) {
   const menuItems = [
     { id: 'dashboard', icon: '🏠', label: 'Dashboard' },
-    { id: 'alerts', icon: '⚠️', label: 'Document Alerts' },
-    { id: 'cases', icon: '📁', label: 'Fraud Cases' },
+    { id: 'alerts', icon: '⚠️', label: 'Transaction Alerts' },
     { id: 'csvimport', icon: '📊', label: 'CSV Import' },
     { id: 'analytics', icon: '📈', label: 'Analytics' },
     { id: 'profile', icon: '👤', label: 'My Profile' },

@@ -6,7 +6,6 @@ import '../../styles/MainLayout.css';
 // Lazy load components for better performance and Firefox compatibility
 const Dashboard = lazy(() => import('../Dashboard/Dashboard'));
 const AlertsManagement = lazy(() => import('../Alerts/AlertsManagement'));
-const CaseManagement = lazy(() => import('../Cases/CaseManagement'));
 const Analytics = lazy(() => import('../Analytics/Analytics'));
 const Profile = lazy(() => import('../Profile/Profile'));
 const CSVImport = lazy(() => import('../CSVImport/CSVImport'));
@@ -30,7 +29,6 @@ function MainLayout({ user, onLogout }) {
           }>
             {activeView === 'dashboard' && <Dashboard user={user} />}
             {activeView === 'alerts' && <AlertsManagement />}
-            {activeView === 'cases' && <CaseManagement />}
             {activeView === 'analytics' && <Analytics />}
             {activeView === 'csvimport' && <CSVImport />}
             {activeView === 'profile' && <Profile user={user} />}

@@ -1,14 +1,20 @@
 # Dependencies
 node_modules/
-jspm_packages/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
 # Environment Variables - CRITICAL: Never commit these!
 .env
-.env.*
+.env.local
+.env.development
+.env.test
+.env.production
 *.env
-!.env.example
 backend/.env
 frontend/.env
+ml_service/.env
+graph_service/.env
 
 # Python
 __pycache__/
@@ -16,85 +22,59 @@ __pycache__/
 *$py.class
 *.so
 .Python
-env/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-.venv
 venv/
 ENV/
+env/
+.venv
 
-# ML Models & Data - Don't commit large files
+# ML Models and Data
 ml_service/models/*.pkl
 ml_service/models/*.h5
-ml_service/models/*.pt
-ml_service/datasets/*.csv
-!ml_service/datasets/.gitkeep
-*.pkl
-*.h5
-*.pt
-
-# OS Files
-.DS_Store
-Thumbs.db
-desktop.ini
-
-# Build Outputs
-dist/
-build/
-out/
-*.log
-logs/
-
-# IDEs
-.vscode/
-.idea/
-*.swp
-*.swo
-*.sublime-*
-
-# Blockchain - CRITICAL: Never commit private keys!
-truffle-config.js.secret
-.openzeppelin/
-*.secret
-*private-key*
-*privatekey*
-*.pem
-*.key
-
-# Uploads & Temp Files
-uploads/
-temp/
-tmp/
-*.tmp
-
-# Docker
-docker-compose.override.yml
+ml_service/data/*.csv
+!ml_service/data/sample_transactions.csv
 
 # Database
 *.db
 *.sqlite
 *.sqlite3
 
-# Test Coverage
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDE
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Build outputs
+dist/
+build/
+*.tsbuildinfo
+
+# Docker
+docker-compose.override.yml
+
+# Blockchain
+contracts/build/
+.secret
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Coverage
 coverage/
 .nyc_output/
-htmlcov/
-.coverage
-.pytest_cache/
-
-# Artifacts (don't commit brain folder)
-.gemini/
-

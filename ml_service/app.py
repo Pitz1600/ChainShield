@@ -120,7 +120,7 @@ def health():
     return jsonify({
         "status": "healthy",
         "models_loaded": fraud_model is not None and anomaly_model is not None,
-        "datasets_present": list(DATASETS_DIR.iterdir())
+        "datasets_present": [str(f) for f in DATASETS_DIR.iterdir()]
     })
 
 # =========================
@@ -135,7 +135,8 @@ def predict():
         features = extract_features(data)
 
         ensemble = get_ensemble_detector()
-        ensemble_prob = ensemble.predict_proba(data)
+        network_features = data.get('networkFeatures', {})
+        ensemble_prob = ensemble.predict_proba(data, network_features)
         risk_score = int(ensemble_prob * 100)
 
         anomaly_score = anomaly_model.decision_function([features])[0]
@@ -166,16 +167,20 @@ def predict():
             "transaction_type": data.get("transactionType", "Other"),
             "risk_score": risk_score,
             "risk_level": risk_level,
-            "isFraudulent": risk_score >= 60,
+            "isFraudulent": bool(risk_score >= 60),
             "fraudType": fraud_type,
             "explanation": explanations,
-            "shapValues": dict(zip(feature_names, shap_values.tolist())),
+            "shapValues": dict(zip(feature_names, [float(v) for v in shap_values.tolist()])),
             "anomalyScore": float(anomaly_score),
-            "isAnomaly": is_anomaly
+            "isAnomaly": bool(is_anomaly)
         })
 
     except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
         print(f"[ERROR] Prediction failed: {e}")
+        print(f"[ERROR] Traceback: {error_details}")
+        print(f"[ERROR] Request data keys: {list(data.keys()) if data else 'None'}")
         return jsonify({
             "error": str(e),
             "risk_score": 0,
@@ -188,12 +193,12 @@ def predict():
 # =========================
 
 def extract_features(data):
-    amount = float(data.get("amount", 0))
-    frequency = float(data.get("frequency", 0))
-    time_diff = float(data.get("time_diff", 86400))
-    address_degree = float(data.get("address_degree", 0))
-    convergence_score = float(data.get("convergence_score", 0))
-    circular_pattern = float(data.get("circular_pattern", 0))
+    amount = float(data.get("amount") or 0)
+    frequency = float(data.get("frequency") or 0)
+    time_diff = float(data.get("time_diff") or 86400)
+    address_degree = float(data.get("address_degree") or 0)
+    convergence_score = float(data.get("convergence_score") or 0)
+    circular_pattern = float(data.get("circular_pattern") or 0)
 
     return [
         min(amount / 1_000_000, 1.0),
