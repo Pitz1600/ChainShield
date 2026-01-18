@@ -1,18 +1,23 @@
 import React from 'react';
 import '../../styles/Sidebar.css';
 
-function Sidebar({ activeView, setActiveView, onLogout }) {
+function Sidebar({ activeView, setActiveView, onLogout, isOpen, toggleSidebar }) {
   const menuItems = [
     { id: 'dashboard', icon: '🏠', label: 'Dashboard' },
-    { id: 'alerts', icon: '⚠️', label: 'Transaction Alerts' },
-    { id: 'csvimport', icon: '📊', label: 'CSV Import' },
-    { id: 'analytics', icon: '📈', label: 'Analytics' },
+    { id: 'alerts', icon: '⚠️', label: 'Document Alerts' },
+    { id: 'cases', icon: '📁', label: 'Fraud Cases' },
+    { id: 'analytics', icon: '📊', label: 'Analytics' },
     { id: 'profile', icon: '👤', label: 'My Profile' },
   ];
 
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar ${isOpen ? 'open' : 'closed'}`}>
       <div className="sidebar-header">
+        {isOpen && (
+          <button className="back-btn" onClick={toggleSidebar} title="Close Sidebar">
+            ← Back
+          </button>
+        )}
         <div className="sidebar-logo">
           <div className="logo-icon">🛡️</div>
           <div className="logo-text">

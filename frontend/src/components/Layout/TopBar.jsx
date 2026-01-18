@@ -1,12 +1,15 @@
 import React from 'react';
 import '../../styles/TopBar.css';
 
-function TopBar({ user }) {
+function TopBar({ user, toggleSidebar }) {
   return (
     <header className="top-bar">
       <div className="top-bar-content">
+        <button className="hamburger-btn" onClick={toggleSidebar} title="Toggle Sidebar">
+          ☰
+        </button>
         <div className="top-bar-brand">
-          <h1 className="page-title">Transaction Integrity Monitoring Portal</h1>
+          <h1 className="page-title">Document Fraud Detection Portal</h1>
           <span className="security-badge">SECURE // ENCRYPTED</span>
         </div>
         <div className="top-bar-actions">

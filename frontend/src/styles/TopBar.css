@@ -1,22 +1,43 @@
 .top-bar {
   background: white;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--border-color);
   padding: 0 2rem;
+  height: 70px;
+  display: flex;
+  align-items: center;
   position: sticky;
   top: 0;
-  z-index: 100;
-  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05);
-  backdrop-filter: blur(10px);
-  background: rgba(255, 255, 255, 0.95);
+  z-index: 40;
 }
 
 .top-bar-content {
+  width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: 72px;
-  max-width: 1400px;
-  margin: 0 auto;
+}
+
+.hamburger-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  color: var(--primary-blue);
+  display: none; /* Hide by default, show on mobile or when needed */
+}
+
+@media (max-width: 768px) {
+  .hamburger-btn {
+    display: block;
+  }
+}
+
+.page-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--primary-blue);
+  margin-right: 1rem;
 }
 
 .top-bar-brand {
@@ -25,122 +46,118 @@
   gap: 1rem;
 }
 
-.page-title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin: 0;
-}
-
 .security-badge {
-  font-size: 0.75rem;
+  font-size: 0.65rem;
+  background: #ecfdf5;
+  color: #059669;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid #a7f3d0;
   font-weight: 700;
-  color: #10b981;
-  background: #d1fae5;
-  padding: 0.375rem 0.75rem;
-  border-radius: 0.5rem;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.5px;
 }
 
 .top-bar-actions {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 1.5rem;
 }
 
 .icon-btn {
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   background: transparent;
   border: none;
-  border-radius: 0.75rem;
   font-size: 1.25rem;
   cursor: pointer;
-  transition: all 200ms;
+  color: var(--text-secondary);
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: background 0.2s;
   position: relative;
 }
 
 .icon-btn:hover {
-  background: #f8fafc;
-}
-
-.icon-btn.notification {
-  position: relative;
+  background: var(--bg-main);
+  color: var(--primary-blue);
 }
 
 .notification-dot {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: 6px;
+  right: 6px;
   width: 8px;
   height: 8px;
-  background: #ef4444;
+  background: var(--gov-red);
   border-radius: 50%;
   border: 2px solid white;
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-
-  0%,
-  100% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0.5;
-  }
 }
 
 .user-profile {
   display: flex;
   align-items: center;
-  gap: 0.875rem;
-  padding: 0.5rem 0.75rem;
-  border-radius: 0.75rem;
-  cursor: pointer;
-  transition: all 200ms;
-}
-
-.user-profile:hover {
-  background: #f8fafc;
+  gap: 0.75rem;
+  padding-left: 1.5rem;
+  border-left: 1px solid var(--border-color);
 }
 
 .user-info {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+  text-align: right;
 }
 
 .user-name {
+  display: block;
   font-size: 0.875rem;
   font-weight: 600;
-  color: #1e293b;
-  line-height: 1.2;
+  color: var(--text-primary);
 }
 
 .user-role {
+  display: block;
   font-size: 0.75rem;
-  color: #64748b;
+  color: var(--text-secondary);
   text-transform: capitalize;
 }
 
 .user-avatar {
   width: 40px;
   height: 40px;
+  background: var(--primary-blue);
+  color: white;
   border-radius: 50%;
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  font-weight: 700;
-  font-size: 1rem;
-  box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.3);
+  font-weight: 600;
+  border: 2px solid #e2e8f0;
+}
+
+@media (max-width: 768px) {
+  .top-bar {
+    padding: 0 1rem;
+    height: 60px;
+  }
+
+  .page-title {
+    font-size: 1rem;
+  }
+
+  .security-badge {
+    display: none;
+  }
+
+  .user-info {
+    display: none;
+  }
+
+  .user-profile {
+    padding-left: 1rem;
+  }
+
+  .top-bar-actions {
+    gap: 1rem;
+  }
+
+  .icon-btn {
+    font-size: 1rem;
+    padding: 0.25rem;
+  }
 }
