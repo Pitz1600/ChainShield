@@ -12,12 +12,28 @@ const CSVImport = lazy(() => import('../CSVImport/CSVImport'));
 
 function MainLayout({ user, onLogout }) {
   const [activeView, setActiveView] = useState('dashboard');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const handleViewChange = (view) => {
+    setActiveView(view);
+    setIsMobileMenuOpen(false); // Close mobile menu when navigating
+  };
 
   return (
     <div className="app-layout">
-      <Sidebar activeView={activeView} setActiveView={setActiveView} onLogout={onLogout} />
+      <Sidebar
+        activeView={activeView}
+        setActiveView={handleViewChange}
+        onLogout={onLogout}
+        isMobileMenuOpen={isMobileMenuOpen}
+        toggleMobileMenu={toggleMobileMenu}
+      />
       <div className="main-content">
-        <TopBar user={user} />
+        <TopBar user={user} toggleMobileMenu={toggleMobileMenu} />
         <div className="content-area">
           <Suspense fallback={
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '400px' }}>

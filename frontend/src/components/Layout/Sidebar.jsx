@@ -1,7 +1,7 @@
 import React from 'react';
 import '../../styles/Sidebar.css';
 
-function Sidebar({ activeView, setActiveView, onLogout }) {
+function Sidebar({ activeView, setActiveView, onLogout, isMobileMenuOpen, toggleMobileMenu }) {
   const menuItems = [
     { id: 'dashboard', icon: '🏠', label: 'Dashboard' },
     { id: 'alerts', icon: '⚠️', label: 'Transaction Alerts' },
@@ -11,37 +11,48 @@ function Sidebar({ activeView, setActiveView, onLogout }) {
   ];
 
   return (
-    <aside className="sidebar">
-      <div className="sidebar-header">
-        <div className="sidebar-logo">
-          <div className="logo-icon">🛡️</div>
-          <div className="logo-text">
-            <h2 className="logo-title">CHAINSHIELD</h2>
-            <p className="logo-subtitle">Government Portal</p>
+    <>
+      {/* Mobile overlay */}
+      {isMobileMenuOpen && (
+        <div className="sidebar-overlay" onClick={toggleMobileMenu}></div>
+      )}
+
+      <aside className={`sidebar ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
+        <div className="sidebar-header">
+          <div className="sidebar-logo">
+            <div className="logo-icon">🛡️</div>
+            <div className="logo-text">
+              <h2 className="logo-title">CHAINSHIELD</h2>
+              <p className="logo-subtitle">Government Portal</p>
+            </div>
           </div>
-        </div>
-      </div>
-
-      <nav className="sidebar-nav">
-        {menuItems.map(item => (
-          <button
-            key={item.id}
-            className={`nav-item ${activeView === item.id ? 'active' : ''}`}
-            onClick={() => setActiveView(item.id)}
-          >
-            <span className="nav-icon">{item.icon}</span>
-            <span className="nav-label">{item.label}</span>
+          {/* Mobile close button */}
+          <button className="mobile-close-btn" onClick={toggleMobileMenu}>
+            ✕
           </button>
-        ))}
-      </nav>
+        </div>
 
-      <div className="sidebar-footer">
-        <button onClick={onLogout} className="logout-btn">
-          <span>🚪</span>
-          <span>Logout Portal</span>
-        </button>
-      </div>
-    </aside>
+        <nav className="sidebar-nav">
+          {menuItems.map(item => (
+            <button
+              key={item.id}
+              className={`nav-item ${activeView === item.id ? 'active' : ''}`}
+              onClick={() => setActiveView(item.id)}
+            >
+              <span className="nav-icon">{item.icon}</span>
+              <span className="nav-label">{item.label}</span>
+            </button>
+          ))}
+        </nav>
+
+        <div className="sidebar-footer">
+          <button onClick={onLogout} className="logout-btn">
+            <span>🚪</span>
+            <span>Logout Portal</span>
+          </button>
+        </div>
+      </aside>
+    </>
   );
 }
 

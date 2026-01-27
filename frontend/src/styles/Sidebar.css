@@ -8,11 +8,24 @@
   position: sticky;
   top: 0;
   box-shadow: 4px 0 24px rgba(0, 0, 0, 0.12);
+  transition: transform 0.3s ease-in-out;
+}
+
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  display: none;
 }
 
 .sidebar-header {
   padding: 2rem 1.5rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
 }
 
 .sidebar-logo {
@@ -48,6 +61,26 @@
   font-weight: 500;
   letter-spacing: 0.05em;
   text-transform: uppercase;
+}
+
+.mobile-close-btn {
+  display: none;
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  transition: all 200ms;
+}
+
+.mobile-close-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
 }
 
 .sidebar-nav {
@@ -158,4 +191,94 @@
 
 .sidebar-nav::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.3);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  /* Tablet adjustments */
+  .sidebar {
+    width: 240px;
+  }
+
+  .sidebar-header {
+    padding: 1.5rem 1.25rem;
+  }
+
+  .logo-icon {
+    font-size: 2rem;
+  }
+
+  .logo-title {
+    font-size: 1.25rem;
+  }
+
+  .logo-subtitle {
+    font-size: 0.7rem;
+  }
+
+  .nav-item {
+    padding: 0.75rem 0.625rem;
+    font-size: 0.875rem;
+  }
+
+  .nav-icon {
+    font-size: 1.125rem;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Mobile adjustments */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    width: 280px;
+    transform: translateX(-100%);
+  }
+
+  .sidebar.mobile-open {
+    transform: translateX(0);
+  }
+
+  .sidebar-overlay {
+    display: block;
+  }
+
+  .sidebar-header {
+    padding: 1.5rem 1.25rem;
+  }
+
+  .mobile-close-btn {
+    display: block;
+  }
+
+  .logo-icon {
+    font-size: 2rem;
+  }
+
+  .logo-title {
+    font-size: 1.25rem;
+  }
+
+  .logo-subtitle {
+    font-size: 0.7rem;
+  }
+
+  .sidebar-nav {
+    padding: 1rem 0.75rem;
+  }
+
+  .nav-item {
+    padding: 0.875rem 0.75rem;
+    font-size: 0.9375rem;
+  }
+
+  .nav-icon {
+    font-size: 1.25rem;
+  }
+
+  .sidebar-footer {
+    padding: 1.25rem 1rem;
+  }
 }
