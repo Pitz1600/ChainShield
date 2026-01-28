@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import '../../styles/Register.css';
+import api from '../../services/api';
 
 function Register({ onRegister, onNavigate }) {
   const [formData, setFormData] = useState({
     username: '',
     email: '',
-    department: '',
-    role: 'analyst',
+    role: 'resident',
+    position: '',
+    customPosition: '',
+    department: '', // kept for compatibility if needed, but unused in UI
     password: '',
     confirmPassword: ''
   });
@@ -19,9 +22,19 @@ function Register({ onRegister, onNavigate }) {
     setError('');
 
     if (step === 1) {
-      if (!formData.username || !formData.email || !formData.department) {
+      if (!formData.username || !formData.email || !formData.role) {
         setError('Please fill in all required fields');
         return;
+      }
+      if (formData.role === 'barangay_official') {
+        if (!formData.position) {
+          setError('Please select a position');
+          return;
+        }
+        if (formData.position === 'Others' && !formData.customPosition) {
+          setError('Please specify your position');
+          return;
+        }
       }
       setStep(2);
       return;
@@ -39,18 +52,24 @@ function Register({ onRegister, onNavigate }) {
 
       setLoading(true);
       try {
-        const mockUser = {
-          id: Date.now().toString(),
+        const finalPosition = formData.position === 'Others' ? formData.customPosition : formData.position;
+        const res = await api.post('/auth/register', {
           username: formData.username,
           email: formData.email,
+          password: formData.password,
           role: formData.role,
+          position: finalPosition,
           department: formData.department
-        };
-        setTimeout(() => {
-          onRegister('mock-token-' + Date.now(), mockUser);
-        }, 1500);
+        });
+
+        // Save token for verification API calls
+        localStorage.setItem('token', res.data.token);
+
+        // Navigate to email verification
+        onNavigate('email-verify', res.data.user);
+
       } catch (err) {
-        setError('Registration failed. Please try again.');
+        setError(err.response?.data?.error || 'Registration failed. Please try again.');
         setLoading(false);
       }
     }
@@ -78,27 +97,27 @@ function Register({ onRegister, onNavigate }) {
             </p>
 
             <div className="role-info">
-              <h4 className="role-info-title">Available Roles:</h4>
+              <h4 className="role-info-title">Account Types:</h4>
               <ul className="role-list">
                 <li className="role-item">
-                  <span className="role-icon">👤</span>
+                  <span className="role-icon">🏠</span>
                   <div>
-                    <strong>Analyst</strong>
-                    <span className="role-desc">View and analyze document alerts</span>
+                    <strong>Resident</strong>
+                    <span className="role-desc">Access barangay services</span>
                   </div>
                 </li>
                 <li className="role-item">
-                  <span className="role-icon">🔍</span>
+                  <span className="role-icon">👔</span>
                   <div>
-                    <strong>Investigator</strong>
-                    <span className="role-desc">Manage fraud cases</span>
+                    <strong>Barangay Official</strong>
+                    <span className="role-desc">Manage records and requests</span>
                   </div>
                 </li>
                 <li className="role-item">
                   <span className="role-icon">⚙️</span>
                   <div>
                     <strong>Administrator</strong>
-                    <span className="role-desc">Full system access</span>
+                    <span className="role-desc">System configuration</span>
                   </div>
                 </li>
               </ul>
@@ -149,7 +168,7 @@ function Register({ onRegister, onNavigate }) {
                   <input
                     type="text"
                     value={formData.username}
-                    onChange={(e) => setFormData({...formData, username: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                     className="field-input"
                     placeholder="Juan Dela Cruz"
                     required
@@ -166,29 +185,12 @@ function Register({ onRegister, onNavigate }) {
                   <input
                     type="email"
                     value={formData.email}
-                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className="field-input"
                     placeholder="juan.delacruz@gov.ph"
                     required
                   />
                   <span className="field-hint">Official government email only</span>
-                </div>
-
-                <div className="form-field">
-                  <label className="field-label">
-                    <span className="label-icon">🏢</span>
-                    <span>Department/Agency</span>
-                    <span className="required">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.department}
-                    onChange={(e) => setFormData({...formData, department: e.target.value})}
-                    className="field-input"
-                    placeholder="e.g., Document Verification Unit, LTO, NSO"
-                    required
-                  />
-                  <span className="field-hint">Your organizational unit</span>
                 </div>
 
                 <div className="form-field">
@@ -199,17 +201,58 @@ function Register({ onRegister, onNavigate }) {
                   </label>
                   <select
                     value={formData.role}
-                    onChange={(e) => setFormData({...formData, role: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, role: e.target.value, position: '', customPosition: '' })}
                     className="field-input"
                     required
                   >
-                    <option value="analyst">Analyst - View and analyze fraud alerts</option>
-                    <option value="investigator">Investigator - Manage cases and investigations</option>
-                    <option value="admin">Administrator - Full system access</option>
-                    <option value="viewer">Viewer - Read-only access</option>
+                    <option value="resident">Resident</option>
+                    <option value="barangay_official">Barangay Official</option>
+                    <option value="admin">Administrator</option>
                   </select>
                   <span className="field-hint">Select your access level</span>
                 </div>
+
+                {formData.role === 'barangay_official' && (
+                  <div className="form-field">
+                    <label className="field-label">
+                      <span className="label-icon">👔</span>
+                      <span>Position</span>
+                      <span className="required">*</span>
+                    </label>
+                    <select
+                      value={formData.position}
+                      onChange={(e) => setFormData({ ...formData, position: e.target.value, customPosition: '' })}
+                      className="field-input"
+                      required
+                    >
+                      <option value="">Select Position</option>
+                      <option value="Captain">Captain</option>
+                      <option value="Secretary">Secretary</option>
+                      <option value="Treasurer">Treasurer</option>
+                      <option value="Kagawad">Kagawad</option>
+                      <option value="SK Chairman">SK Chairman</option>
+                      <option value="Others">Others</option>
+                    </select>
+                    <span className="field-hint">Official Barangay Position</span>
+                  </div>
+                )}
+
+                {formData.role === 'barangay_official' && formData.position === 'Others' && (
+                  <div className="form-field">
+                    <label className="field-label">
+                      <span>Specify Position</span>
+                      <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.customPosition}
+                      onChange={(e) => setFormData({ ...formData, customPosition: e.target.value })}
+                      className="field-input"
+                      placeholder="Enter your position"
+                      required
+                    />
+                  </div>
+                )}
               </>
             )}
 
@@ -224,7 +267,7 @@ function Register({ onRegister, onNavigate }) {
                   <input
                     type="password"
                     value={formData.password}
-                    onChange={(e) => setFormData({...formData, password: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                     className="field-input"
                     placeholder="Create a strong password"
                     required
@@ -241,7 +284,7 @@ function Register({ onRegister, onNavigate }) {
                   <input
                     type="password"
                     value={formData.confirmPassword}
-                    onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                     className="field-input"
                     placeholder="Re-enter your password"
                     required

@@ -3,14 +3,23 @@ const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
   username: {
-    type: String,
-    required: true,
-    unique: true
+    type: String, // Full Name
+    required: true
   },
   email: {
     type: String,
     required: true,
     unique: true
+  },
+  isVerified: {
+    type: Boolean,
+    default: false
+  },
+  otp: {
+    type: String
+  },
+  otpExpires: {
+    type: Date
   },
   password: {
     type: String,
@@ -18,23 +27,23 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['admin', 'investigator', 'analyst', 'viewer'],
-    default: 'analyst'
+    enum: ['resident', 'barangay_official', 'admin', 'investigator', 'analyst', 'viewer'], // Added new roles, kept old for safety
+    default: 'resident'
   },
-  department: String,
+  position: String,
   isActive: {
     type: Boolean,
     default: true
   }
 }, { timestamps: true });
 
-userSchema.pre('save', async function(next) {
+userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
   this.password = await bcrypt.hash(this.password, 10);
   next();
 });
 
-userSchema.methods.comparePassword = async function(candidatePassword) {
+userSchema.methods.comparePassword = async function (candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
 

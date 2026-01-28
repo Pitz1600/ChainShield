@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import Welcome from './components/Auth/Welcome';
 import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
+import EmailVerify from './components/Auth/EmailVerify';
 import MainLayout from './components/Layout/MainLayout';
 
 function App() {
   const [view, setView] = useState('welcome');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(null); // Authenticated user
+  const [pendingUser, setPendingUser] = useState(null); // User for verification
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -15,7 +17,7 @@ function App() {
     const checkAuth = () => {
       const token = localStorage.getItem('token');
       const userData = localStorage.getItem('user');
-      
+
       if (token && userData) {
         try {
           const parsedUser = JSON.parse(userData);
@@ -46,7 +48,15 @@ function App() {
     localStorage.removeItem('user');
     setIsAuthenticated(false);
     setUser(null);
+    setPendingUser(null);
     setView('welcome');
+  };
+
+  const handleNavigate = (newView, data = null) => {
+    if (data) {
+      setPendingUser(data);
+    }
+    setView(newView);
   };
 
   // Show loading state while checking authentication
@@ -59,12 +69,13 @@ function App() {
     );
   }
 
-  if (view === 'welcome') return <Welcome onNavigate={setView} />;
-  if (view === 'login') return <Login onLogin={handleLogin} onNavigate={setView} />;
-  if (view === 'register') return <Register onRegister={handleLogin} onNavigate={setView} />;
-  if (isAuthenticated && view === 'dashboard') return <MainLayout user={user} onLogout={handleLogout} />;
-  
-  return <Welcome onNavigate={setView} />;
+  if (view === 'welcome') return <Welcome onNavigate={handleNavigate} />;
+  if (view === 'login') return <Login onLogin={handleLogin} onNavigate={handleNavigate} />;
+  if (view === 'register') return <Register onRegister={handleLogin} onNavigate={handleNavigate} />;
+  if (view === 'email-verify') return <EmailVerify user={pendingUser} onNavigate={handleNavigate} onLogin={handleLogin} />;
+  if (isAuthenticated && view === 'dashboard') return <MainLayout user={user} onLogout={handleLogout} onNavigate={handleNavigate} />;
+
+  return <Welcome onNavigate={handleNavigate} />;
 }
 
 export default App;

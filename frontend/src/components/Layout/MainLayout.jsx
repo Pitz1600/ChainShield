@@ -8,16 +8,16 @@ import Analytics from '../Analytics/Analytics';
 import Profile from '../Profile/Profile';
 import '../../styles/MainLayout.css';
 
-function MainLayout({ user, onLogout }) {
+function MainLayout({ user, onLogout, onNavigate }) {
   const [activeView, setActiveView] = useState('dashboard');
 
   return (
     <div className="app-layout">
-      <Sidebar activeView={activeView} setActiveView={setActiveView} onLogout={onLogout} />
+      <Sidebar activeView={activeView} setActiveView={setActiveView} onLogout={onLogout} user={user} />
       <div className="main-content">
         <TopBar user={user} />
         <div className="content-area">
-          {activeView === 'dashboard' && <Dashboard user={user} />}
+          {activeView === 'dashboard' && <Dashboard user={user} onNavigate={onNavigate} />}
           {activeView === 'alerts' && <AlertsManagement />}
           {activeView === 'cases' && <CaseManagement />}
           {activeView === 'analytics' && <Analytics />}

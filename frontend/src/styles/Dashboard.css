@@ -62,7 +62,7 @@
 }
 
 .hero-stat {
-  background: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.1);
   padding: 1rem 1.5rem;
   border-radius: var(--radius-md);
   text-align: center;
@@ -216,9 +216,20 @@
   border-radius: 50%;
 }
 
-.severity-dot.critical { background: var(--gov-red); box-shadow: 0 0 0 3px #fee2e2; }
-.severity-dot.high { background: #f97316; box-shadow: 0 0 0 3px #ffedd5; }
-.severity-dot.medium { background: #eab308; box-shadow: 0 0 0 3px #fef3c7; }
+.severity-dot.critical {
+  background: var(--gov-red);
+  box-shadow: 0 0 0 3px #fee2e2;
+}
+
+.severity-dot.high {
+  background: #f97316;
+  box-shadow: 0 0 0 3px #ffedd5;
+}
+
+.severity-dot.medium {
+  background: #eab308;
+  box-shadow: 0 0 0 3px #fef3c7;
+}
 
 .alert-type {
   font-weight: 600;
@@ -235,8 +246,14 @@
   font-weight: 700;
   font-size: 0.875rem;
 }
-.alert-score.critical { color: var(--gov-red); }
-.alert-score.high { color: #f97316; }
+
+.alert-score.critical {
+  color: var(--gov-red);
+}
+
+.alert-score.high {
+  color: #f97316;
+}
 
 /* Risk Snapshot */
 .risk-bars {
@@ -267,9 +284,18 @@
   height: 8px;
   border-radius: 50%;
 }
-.risk-dot.critical { background: var(--gov-red); }
-.risk-dot.medium { background: #eab308; }
-.risk-dot.low { background: #22c55e; }
+
+.risk-dot.critical {
+  background: var(--gov-red);
+}
+
+.risk-dot.medium {
+  background: #eab308;
+}
+
+.risk-dot.low {
+  background: #22c55e;
+}
 
 .progress-bg {
   height: 8px;
@@ -282,9 +308,18 @@
   height: 100%;
   border-radius: 4px;
 }
-.progress-fill.critical { background: var(--gov-red); }
-.progress-fill.medium { background: #eab308; }
-.progress-fill.low { background: #22c55e; }
+
+.progress-fill.critical {
+  background: var(--gov-red);
+}
+
+.progress-fill.medium {
+  background: #eab308;
+}
+
+.progress-fill.low {
+  background: #22c55e;
+}
 
 .risk-count {
   font-size: 0.875rem;

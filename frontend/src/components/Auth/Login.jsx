@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import '../../styles/Login.css';
+import api from '../../services/api';
 
 function Login({ onLogin, onNavigate }) {
   const [formData, setFormData] = useState({ email: '', password: '' });
@@ -12,24 +13,20 @@ function Login({ onLogin, onNavigate }) {
     setLoading(true);
 
     try {
-      // Simulate API call
-      if (formData.email && formData.password) {
-        const mockUser = {
-          id: '1',
-          username: formData.email.split('@')[0],
-          email: formData.email,
-          role: 'admin',
-          department: 'Document Verification Unit'
-        };
-        setTimeout(() => {
-          onLogin('mock-token-12345', mockUser);
-        }, 1000);
-      } else {
+      const { email, password } = formData;
+      if (!email || !password) {
         setError('Please fill in all fields');
         setLoading(false);
+        return;
+      }
+
+      const res = await api.post('/auth/login', { email, password });
+
+      if (res.data.token && res.data.user) {
+        onLogin(res.data.token, res.data.user);
       }
     } catch (err) {
-      setError('Login failed. Please check your credentials.');
+      setError(err.response?.data?.error || 'Login failed. Please check your credentials.');
       setLoading(false);
     }
   };
@@ -85,7 +82,7 @@ function Login({ onLogin, onNavigate }) {
               <input
                 type="email"
                 value={formData.email}
-                onChange={(e) => setFormData({...formData, email: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 className="field-input"
                 placeholder="your.email@gov.ph"
                 required
@@ -101,7 +98,7 @@ function Login({ onLogin, onNavigate }) {
               <input
                 type="password"
                 value={formData.password}
-                onChange={(e) => setFormData({...formData, password: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 className="field-input"
                 placeholder="Enter your password"
                 required

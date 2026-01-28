@@ -1,7 +1,7 @@
 import React from 'react';
 import '../../styles/Sidebar.css';
 
-function Sidebar({ activeView, setActiveView, onLogout }) {
+function Sidebar({ activeView, setActiveView, onLogout, user }) {
   const menuItems = [
     { id: 'dashboard', icon: '🏠', label: 'Dashboard' },
     { id: 'alerts', icon: '⚠️', label: 'Document Alerts' },
@@ -9,6 +9,8 @@ function Sidebar({ activeView, setActiveView, onLogout }) {
     { id: 'analytics', icon: '📊', label: 'Analytics' },
     { id: 'profile', icon: '👤', label: 'My Profile' },
   ];
+
+  const showNav = user?.isVerified;
 
   return (
     <aside className="sidebar">
@@ -23,7 +25,7 @@ function Sidebar({ activeView, setActiveView, onLogout }) {
       </div>
 
       <nav className="sidebar-nav">
-        {menuItems.map(item => (
+        {showNav && menuItems.map(item => (
           <button
             key={item.id}
             className={`nav-item ${activeView === item.id ? 'active' : ''}`}
@@ -33,6 +35,11 @@ function Sidebar({ activeView, setActiveView, onLogout }) {
             <span className="nav-label">{item.label}</span>
           </button>
         ))}
+        {!showNav && (
+          <div style={{ padding: '1rem', color: '#9ca3af', textAlign: 'center', fontSize: '0.9rem' }}>
+            Pending Verification
+          </div>
+        )}
       </nav>
 
       <div className="sidebar-footer">
