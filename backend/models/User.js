@@ -3,8 +3,9 @@ const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
   username: {
-    type: String, // Full Name
+    type: String,
     required: true
+    // Removed unique: true as this is now Full Name
   },
   email: {
     type: String,
@@ -27,7 +28,7 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['resident', 'barangay_official', 'admin', 'investigator', 'analyst', 'viewer'], // Added new roles, kept old for safety
+    enum: ['resident', 'barangay_official', 'admin', 'analyst', 'investigator', 'viewer'], // Added new roles, kept old for compatibility
     default: 'resident'
   },
   position: String,

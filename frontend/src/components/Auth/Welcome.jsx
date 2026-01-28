@@ -11,7 +11,7 @@ function Welcome({ onNavigate }) {
               <div className="logo-shield">🛡️</div>
             </div>
             <h1 className="brand-name">ChainShield</h1>
-            <p className="brand-tagline">Government Document Fraud Detection System</p>
+            <p className="brand-tagline">Government Transaction Integrity Monitoring System</p>
           </div>
 
           <div className="features-section">
@@ -27,7 +27,7 @@ function Welcome({ onNavigate }) {
               <div className="feature-icon">🎯</div>
               <div className="feature-content">
                 <h3 className="feature-title">AI-Powered Detection</h3>
-                <p className="feature-description">Identify fraudulent document patterns and anomalies</p>
+                <p className="feature-description">Identify suspicious patterns and transaction anomalies</p>
               </div>
             </div>
 
@@ -53,7 +53,7 @@ function Welcome({ onNavigate }) {
             <div className="footer-stats">
               <div className="stat-item">
                 <div className="stat-value">₱2.4B</div>
-                <div className="stat-label">Fraud Prevented</div>
+                <div className="stat-label">Risks Prevented</div>
               </div>
               <div className="stat-item">
                 <div className="stat-value">15K+</div>
@@ -68,10 +68,10 @@ function Welcome({ onNavigate }) {
         <div className="welcome-content">
           <div className="welcome-header">
             <span className="welcome-badge">Government Portal</span>
-            <h2 className="welcome-title">Protecting Government Documents Through Blockchain</h2>
+            <h2 className="welcome-title">Protecting Government Transactions Through Blockchain</h2>
             <p className="welcome-description">
-              Secure document tracking system using blockchain technology. Monitor permits, licenses, 
-              certificates, and official transactions to prevent forgery and unauthorized modifications.
+              Secure transaction tracking system using blockchain technology. Monitor financial flows,
+              disbursements, and official transactions to ensure integrity and prevent irregularities.
             </p>
           </div>
 
@@ -101,8 +101,8 @@ function Welcome({ onNavigate }) {
 
             <div className="info-card">
               <div className="info-card-icon orange">⚠️</div>
-              <h4 className="info-card-title">Fraud Detection</h4>
-              <p className="info-card-text">Identify suspicious patterns and unauthorized document changes</p>
+              <h4 className="info-card-title">Anomaly Detection</h4>
+              <p className="info-card-text">Identify suspicious patterns and unusual transaction activity</p>
             </div>
           </div>
 

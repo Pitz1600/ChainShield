@@ -314,3 +314,50 @@
     font-size: 36px;
   }
 }
+
+@media (max-width: 768px) {
+  .welcome-sidebar {
+    padding: 24px;
+  }
+
+  .welcome-main {
+    padding: 24px;
+  }
+
+  .welcome-title {
+    font-size: 28px;
+  }
+
+  .welcome-description {
+    font-size: 16px;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .btn-primary, .btn-secondary {
+    padding: 14px 24px;
+    font-size: 15px;
+  }
+
+  .btn-icon {
+    font-size: 18px;
+  }
+
+  .info-cards {
+    gap: 16px;
+  }
+
+  .info-card {
+    padding: 20px;
+  }
+
+  .info-card-icon {
+    width: 48px;
+    height: 48px;
+    font-size: 24px;
+  }
+}

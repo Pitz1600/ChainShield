@@ -1,0 +1,140 @@
+version: "3.9"
+
+services:
+  # =========================
+  # MongoDB Database
+  # =========================
+  mongodb:
+    image: mongo:7.0
+    container_name: chainshield-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: chainshield
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - chainshield-network
+
+  # =========================
+  # Backend API (Node.js)
+  # =========================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: chainshield-backend
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      NODE_ENV: development
+      MONGODB_URI: mongodb://mongodb:27017/chainshield
+      JWT_SECRET: ${JWT_SECRET}
+      ML_SERVICE_URL: http://ml-service:5001
+      GRAPH_SERVICE_URL: http://graph-service:5002
+      BLOCKCHAIN_RPC_URL: ${BLOCKCHAIN_RPC_URL}
+      CONTRACT_ADDRESS: ${CONTRACT_ADDRESS}
+      BLOCKCHAIN_ACCOUNT: ${BLOCKCHAIN_ACCOUNT}
+      BLOCKCHAIN_PRIVATE_KEY: ${BLOCKCHAIN_PRIVATE_KEY}
+    depends_on:
+      - mongodb
+      - ml-service
+      - graph-service
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    networks:
+      - chainshield-network
+    command: npm run dev
+
+  # =========================
+  # ML Service (Python)
+  # =========================
+  ml-service:
+    build:
+      context: ./ml_service
+      dockerfile: Dockerfile
+    container_name: chainshield-ml-service
+    restart: unless-stopped
+    ports:
+      - "5001:5001"
+    volumes:
+      - ./ml_service:/app
+      - ml_models:/app/models
+      - ml_datasets:/app/datasets
+    networks:
+      - chainshield-network
+    command: python app.py
+
+  # =========================
+  # Graph Service (Python)
+  # =========================
+  graph-service:
+    build:
+      context: ./graph_service
+      dockerfile: Dockerfile
+    container_name: chainshield-graph-service
+    restart: unless-stopped
+    ports:
+      - "5002:5002"
+    volumes:
+      - ./graph_service:/app
+    networks:
+      - chainshield-network
+    command: python app.py
+
+  # =========================
+  # Frontend (React + Vite)
+  # =========================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: chainshield-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_URL: http://backend:5000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - chainshield-network
+    command: npm run dev -- --host 0.0.0.0 --port 5173
+
+  # =========================
+  # Ganache Blockchain (Local Ethereum)
+  # =========================
+  ganache:
+    image: trufflesuite/ganache:latest
+    container_name: chainshield-ganache
+    restart: unless-stopped
+    ports:
+      - "${GANACHE_PORT:-7545}:8545"
+    command: >
+      --mnemonic "${GANACHE_MNEMONIC}"
+      --networkId ${GANACHE_NETWORK_ID:-1337}
+      --accounts 10
+      --defaultBalanceEther 1000
+      --gasLimit 10000000
+      --gasPrice 20000000000
+    networks:
+      - chainshield-network
+
+# =========================
+# Networks
+# =========================
+networks:
+  chainshield-network:
+    driver: bridge
+
+# =========================
+# Volumes
+# =========================
+volumes:
+  mongodb_data:
+  ml_models:
+  ml_datasets:

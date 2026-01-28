@@ -13,20 +13,29 @@ function Login({ onLogin, onNavigate }) {
     setLoading(true);
 
     try {
-      const { email, password } = formData;
-      if (!email || !password) {
-        setError('Please fill in all fields');
-        setLoading(false);
-        return;
-      }
+      const response = await fetch('http://localhost:5000/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password
+        })
+      });
 
-      const res = await api.post('/auth/login', { email, password });
+      const data = await response.json();
 
-      if (res.data.token && res.data.user) {
-        onLogin(res.data.token, res.data.user);
+      if (response.ok) {
+        // Successful login
+        onLogin(data.token, data.user);
+      } else {
+        // Login failed
+        setError(data.error || 'Login failed. Please check your credentials.');
       }
     } catch (err) {
-      setError(err.response?.data?.error || 'Login failed. Please check your credentials.');
+      setError('Unable to connect to server. Please make sure the backend is running.');
+    } finally {
       setLoading(false);
     }
   };

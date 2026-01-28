@@ -1,9 +1,19 @@
-import api from '../../services/api';
-import HeroCard from './HeroCard';
-import StatsCard from './StatsCard';
+import React, { useState, useEffect } from 'react';
+import api from '../../services/api'; // Ensure api is imported
 import '../../styles/Dashboard.css';
 
-function Dashboard({ user, onNavigate }) {
+function Dashboard({ user, onNavigate }) { // Ensure onNavigate is destructured
+  const [stats, setStats] = useState({
+    total: 0,
+    critical: 0,
+    high: 0,
+    medium: 0
+  });
+  const [recentAlerts, setRecentAlerts] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const alertsPerPage = 5;
+
+  // Add handleVerificationClick logic
   const handleVerificationClick = async () => {
     try {
       await api.post('/auth/resend-otp');
@@ -14,7 +24,8 @@ function Dashboard({ user, onNavigate }) {
     onNavigate('email-verify', user);
   };
 
-  if (!user.isVerified) {
+  // Add unverified user barrier
+  if (!user?.isVerified) {
     return (
       <div className="dashboard-container" style={{ alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
         <div style={{ textAlign: 'center', padding: '3rem', background: 'white', borderRadius: '12px', boxShadow: 'var(--shadow-md)', maxWidth: '500px' }}>
@@ -27,9 +38,22 @@ function Dashboard({ user, onNavigate }) {
             We sent a code to <strong style={{ color: 'var(--text-primary)' }}>{user.email}</strong>.
           </p>
           <button
-            className="btn-primary"
+            className="btn-primary" // Assuming btn-primary exists or inline styles needed
             onClick={handleVerificationClick}
-            style={{ width: '100%', justifyContent: 'center' }}
+            style={{
+              width: '100%',
+              justifyContent: 'center',
+              display: 'inline-flex',
+              alignItems: 'center',
+              padding: '0.75rem 1.5rem',
+              backgroundColor: '#3b82f6',
+              color: 'white',
+              border: 'none',
+              borderRadius: '0.5rem',
+              fontSize: '1rem',
+              fontWeight: '600',
+              cursor: 'pointer'
+            }}
           >
             Go to Verification Page
           </button>
@@ -38,90 +62,204 @@ function Dashboard({ user, onNavigate }) {
     );
   }
 
-  const statsData = [
-    { icon: '⚠️', label: 'Total Alerts', value: '1,247', subtitle: 'Document anomalies detected', color: '#ef4444' },
-    { icon: '🔴', label: 'Critical Cases', value: '23', subtitle: 'Requires immediate action', color: '#f97316' },
-    { icon: '📈', label: 'Under Review', value: '156', subtitle: 'Being investigated', color: '#eab308' },
-    { icon: '✅', label: 'Resolved', value: '1,068', subtitle: 'Successfully closed', color: '#22c55e' },
-  ];
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
 
-  const recentAlerts = [
-    { id: 1, severity: 'critical', type: 'Forged Birth Certificate', docType: 'PSA Document', score: 92, time: '2 minutes ago' },
-    { id: 2, severity: 'high', type: 'Duplicate Driver License', docType: 'LTO Record', score: 78, time: '1 hour ago' },
-    { id: 3, severity: 'medium', type: 'Modified Land Title', docType: 'Registry Document', score: 65, time: '3 hours ago' },
-  ];
+  const fetchDashboardData = async () => {
+    try {
+      const token = localStorage.getItem('token');
+
+      const response = await fetch('http://localhost:5000/api/transactions/alerts?limit=20', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const formattedAlerts = data.alerts.map(alert => ({
+          id: alert._id,
+          severity: getSeverity(alert.riskScore),
+          type: alert.fraudPatterns?.[0]?.type || 'Risk Detected',
+          transactionType: alert.transactionType,
+          agency: alert.agency,
+          score: alert.riskScore,
+          time: getTimeAgo(alert.timestamp)
+        }));
+        setRecentAlerts(formattedAlerts);
+
+        const critical = data.alerts.filter(a => a.riskScore >= 80).length;
+        const high = data.alerts.filter(a => a.riskScore >= 60 && a.riskScore < 80).length;
+        const medium = data.alerts.filter(a => a.riskScore >= 40 && a.riskScore < 60).length;
+
+        setStats({
+          total: data.count || 0,
+          critical,
+          high,
+          medium
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    }
+  };
+
+  const getSeverity = (riskScore) => {
+    if (riskScore >= 80) return 'critical';
+    if (riskScore >= 60) return 'high';
+    if (riskScore >= 40) return 'medium';
+    return 'low';
+  };
+
+  const getTimeAgo = (timestamp) => {
+    const now = new Date();
+    const then = new Date(timestamp);
+    const diffMs = now - then;
+    const diffMins = Math.floor(diffMs / 60000);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+
+    const diffDays = Math.floor(diffHours / 24);
+    return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+  };
+
+  // Pagination logic
+  const indexOfLastAlert = currentPage * alertsPerPage;
+  const indexOfFirstAlert = indexOfLastAlert - alertsPerPage;
+  const currentAlerts = recentAlerts.slice(indexOfFirstAlert, indexOfLastAlert);
+  const totalPages = Math.ceil(recentAlerts.length / alertsPerPage);
 
   return (
     <div className="dashboard-container">
-      <HeroCard
-        title={`Welcome back, ${user.username}!`}
-        subtitle="Monitor document transactions, investigate fraud cases, and maintain the integrity of government records."
-        stats={[
-          { label: 'Active Alerts', value: '23' },
-          { label: 'Open Cases', value: '8' }
-        ]}
-      />
+      {/* Hero Banner with Integrated Stats */}
+      <div className="dashboard-hero">
+        <div className="hero-content">
+          <span className="hero-tag">INTEGRITY MONITORING WORKSPACE</span>
+          <h2 className="hero-title">Welcome back, {user.username}!</h2>
+          <p className="hero-subtitle">Monitor Philippine government financial transactions, detect anomaly patterns, and maintain transparent audit trails using AI and blockchain technology.</p>
+        </div>
 
-      <div className="stats-grid">
-        {statsData.map((stat, index) => (
-          <StatsCard key={index} {...stat} />
-        ))}
+        <div className="hero-stats-grid">
+          <div className="hero-stat-card total">
+            <div className="stat-icon">⚠️</div>
+            <div className="stat-content">
+              <div className="stat-value">{stats.total}</div>
+              <div className="stat-label">Total Alerts</div>
+            </div>
+          </div>
+
+          <div className="hero-stat-card critical">
+            <div className="stat-icon">🔴</div>
+            <div className="stat-content">
+              <div className="stat-value">{stats.critical}</div>
+              <div className="stat-label">Critical</div>
+            </div>
+          </div>
+
+          <div className="hero-stat-card high">
+            <div className="stat-icon">📈</div>
+            <div className="stat-content">
+              <div className="stat-value">{stats.high}</div>
+              <div className="stat-label">High Risk</div>
+            </div>
+          </div>
+
+          <div className="hero-stat-card medium">
+            <div className="stat-icon">✅</div>
+            <div className="stat-content">
+              <div className="stat-value">{stats.medium}</div>
+              <div className="stat-label">Medium Risk</div>
+            </div>
+          </div>
+        </div>
       </div>
 
+      {/* Dashboard Cards */}
       <div className="dashboard-cards">
         <div className="dashboard-card">
           <div className="card-header">
             <div>
               <h3 className="card-title">Recent Alerts</h3>
-              <p className="card-subtitle">Latest document fraud alerts requiring attention</p>
+              <p className="card-subtitle">Latest risk alerts from government transactions</p>
             </div>
-            <button className="btn-link">View All</button>
           </div>
           <div className="alerts-list">
-            {recentAlerts.map(alert => (
-              <div key={alert.id} className="alert-item">
-                <div className="alert-info">
-                  <span className={`severity-dot ${alert.severity}`}></span>
-                  <div>
-                    <div className="alert-type">{alert.type}</div>
-                    <div className="alert-time">{alert.docType} • {alert.time}</div>
+            {currentAlerts.length === 0 ? (
+              <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>
+                <p>No recent alerts</p>
+              </div>
+            ) : (
+              currentAlerts.map(alert => (
+                <div key={alert.id} className="alert-item">
+                  <div className="alert-info">
+                    <span className={`severity-dot ${alert.severity}`}></span>
+                    <div className="alert-text-content">
+                      <div className="alert-type">{alert.type}</div>
+                      <div className="alert-time">{alert.transactionType} • {alert.agency} • {alert.time}</div>
+                    </div>
+                  </div>
+                  <div className="alert-meta">
+                    <div className={`alert-score ${alert.severity}`}>{alert.score} Risk Score</div>
                   </div>
                 </div>
-                <div className="alert-meta">
-                  <div className={`alert-score ${alert.severity}`}>{alert.score} Risk Score</div>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
+
+          {/* Pagination for Recent Alerts */}
+          {totalPages > 1 && (
+            <div className="dashboard-pagination">
+              <button
+                className="pagination-btn-small"
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+              >
+                ←
+              </button>
+              <span className="pagination-text-small">
+                {currentPage} / {totalPages}
+              </span>
+              <button
+                className="pagination-btn-small"
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+              >
+                →
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="dashboard-card">
           <h3 className="card-title">Risk Snapshot</h3>
-          <p className="card-subtitle">Current fraud risk distribution</p>
+          <p className="card-subtitle">Current risk distribution</p>
           <div className="risk-bars">
             <div className="risk-bar-item">
               <div className="risk-bar-label">
                 <span className="risk-dot critical"></span>
-                <span>High Risk</span>
+                <span>Critical</span>
               </div>
-              <div className="progress-bg"><div style={{ width: '15%' }} className="progress-fill critical"></div></div>
-              <span className="risk-count">23</span>
+              <div className="progress-bg"><div style={{ width: `${stats.total > 0 ? (stats.critical / stats.total * 100) : 0}%` }} className="progress-fill critical"></div></div>
+              <span className="risk-count">{stats.critical}</span>
             </div>
             <div className="risk-bar-item">
               <div className="risk-bar-label">
                 <span className="risk-dot medium"></span>
-                <span>Medium Risk</span>
+                <span>High Risk</span>
               </div>
-              <div className="progress-bg"><div style={{ width: '45%' }} className="progress-fill medium"></div></div>
-              <span className="risk-count">156</span>
+              <div className="progress-bg"><div style={{ width: `${stats.total > 0 ? (stats.high / stats.total * 100) : 0}%` }} className="progress-fill medium"></div></div>
+              <span className="risk-count">{stats.high}</span>
             </div>
             <div className="risk-bar-item">
               <div className="risk-bar-label">
                 <span className="risk-dot low"></span>
-                <span>Low Risk</span>
+                <span>Medium Risk</span>
               </div>
-              <div className="progress-bg"><div style={{ width: '30%' }} className="progress-fill low"></div></div>
-              <span className="risk-count">89</span>
+              <div className="progress-bg"><div style={{ width: `${stats.total > 0 ? (stats.medium / stats.total * 100) : 0}%` }} className="progress-fill low"></div></div>
+              <span className="risk-count">{stats.medium}</span>
             </div>
           </div>
         </div>

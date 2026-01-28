@@ -10,10 +10,9 @@ exports.register = async (req, res) => {
   try {
     const { username, email, password, role, position } = req.body;
 
-    // Check if email already exists (username/fullname can be duplicate)
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ error: 'Email already registered' });
+      return res.status(400).json({ error: 'User with this email already exists' });
     }
 
     // Generate OTP
@@ -21,7 +20,7 @@ exports.register = async (req, res) => {
     const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
     const user = new User({
-      username,
+      username, // Now Full Name
       email,
       password,
       role,
@@ -45,7 +44,6 @@ exports.register = async (req, res) => {
         username: user.username,
         email: user.email,
         role: user.role,
-        position: user.position,
         isVerified: user.isVerified
       }
     });
@@ -72,7 +70,6 @@ exports.login = async (req, res) => {
         username: user.username,
         email: user.email,
         role: user.role,
-        position: user.position,
         isVerified: user.isVerified
       }
     });

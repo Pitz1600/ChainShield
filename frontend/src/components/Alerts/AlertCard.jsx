@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 
-function AlertCard({ alert }) {
+function AlertCard({ alert, onInvestigate }) {
   const severityColors = {
     critical: { bg: '#fef2f2', border: '#fecaca', text: '#991b1b' },
     high: { bg: '#fff7ed', border: '#fed7aa', text: '#9a3412' },
@@ -27,15 +27,21 @@ function AlertCard({ alert }) {
       <div className="alert-hash">{alert.documentId}</div>
       <div className="alert-meta-info">
         <div className="meta-row">
-          <span className="meta-label">Document Type:</span>
+          <span className="meta-label">Transaction Type:</span>
           <span className="meta-value">{alert.documentType}</span>
         </div>
         <div className="meta-row">
-          <span className="meta-label">Issuing Agency:</span>
+          <span className="meta-label">Agency:</span>
           <span className="meta-value">{alert.issuer}</span>
         </div>
+        {alert.amount && (
+          <div className="meta-row">
+            <span className="meta-label">Amount:</span>
+            <span className="meta-value">₱{alert.amount.toLocaleString()}</span>
+          </div>
+        )}
       </div>
-      <button className="investigate-btn">👁️ Investigate</button>
+      <button className="investigate-btn" onClick={() => onInvestigate(alert)}>👁️ Investigate</button>
     </div>
   );
 }

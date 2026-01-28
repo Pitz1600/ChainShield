@@ -7,9 +7,8 @@ function Register({ onRegister, onNavigate }) {
     username: '',
     email: '',
     role: 'resident',
-    position: '',
+    position: 'Kagawad',
     customPosition: '',
-    department: '', // kept for compatibility if needed, but unused in UI
     password: '',
     confirmPassword: ''
   });
@@ -22,7 +21,7 @@ function Register({ onRegister, onNavigate }) {
     setError('');
 
     if (step === 1) {
-      if (!formData.username || !formData.email || !formData.role) {
+      if (!formData.username || !formData.email) {
         setError('Please fill in all required fields');
         return;
       }
@@ -53,13 +52,13 @@ function Register({ onRegister, onNavigate }) {
       setLoading(true);
       try {
         const finalPosition = formData.position === 'Others' ? formData.customPosition : formData.position;
+
         const res = await api.post('/auth/register', {
           username: formData.username,
           email: formData.email,
           password: formData.password,
           role: formData.role,
-          position: finalPosition,
-          department: formData.department
+          position: formData.role === 'barangay_official' ? finalPosition : undefined
         });
 
         // Save token for verification API calls
@@ -97,17 +96,17 @@ function Register({ onRegister, onNavigate }) {
             </p>
 
             <div className="role-info">
-              <h4 className="role-info-title">Account Types:</h4>
+              <h4 className="role-info-title">Available Roles:</h4>
               <ul className="role-list">
                 <li className="role-item">
-                  <span className="role-icon">🏠</span>
+                  <span className="role-icon">👤</span>
                   <div>
                     <strong>Resident</strong>
-                    <span className="role-desc">Access barangay services</span>
+                    <span className="role-desc">Access to public services</span>
                   </div>
                 </li>
                 <li className="role-item">
-                  <span className="role-icon">👔</span>
+                  <span className="role-icon">🔍</span>
                   <div>
                     <strong>Barangay Official</strong>
                     <span className="role-desc">Manage records and requests</span>
@@ -195,13 +194,13 @@ function Register({ onRegister, onNavigate }) {
 
                 <div className="form-field">
                   <label className="field-label">
-                    <span className="label-icon">🎯</span>
+                    <span className="label-icon">👤</span>
                     <span>Role</span>
                     <span className="required">*</span>
                   </label>
                   <select
                     value={formData.role}
-                    onChange={(e) => setFormData({ ...formData, role: e.target.value, position: '', customPosition: '' })}
+                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                     className="field-input"
                     required
                   >
@@ -213,45 +212,43 @@ function Register({ onRegister, onNavigate }) {
                 </div>
 
                 {formData.role === 'barangay_official' && (
-                  <div className="form-field">
-                    <label className="field-label">
-                      <span className="label-icon">👔</span>
-                      <span>Position</span>
-                      <span className="required">*</span>
-                    </label>
-                    <select
-                      value={formData.position}
-                      onChange={(e) => setFormData({ ...formData, position: e.target.value, customPosition: '' })}
-                      className="field-input"
-                      required
-                    >
-                      <option value="">Select Position</option>
-                      <option value="Captain">Captain</option>
-                      <option value="Secretary">Secretary</option>
-                      <option value="Treasurer">Treasurer</option>
-                      <option value="Kagawad">Kagawad</option>
-                      <option value="SK Chairman">SK Chairman</option>
-                      <option value="Others">Others</option>
-                    </select>
-                    <span className="field-hint">Official Barangay Position</span>
-                  </div>
-                )}
+                  <>
+                    <div className="form-field">
+                      <label className="field-label">
+                        <span className="label-icon">👔</span>
+                        <span>Position</span>
+                        <span className="required">*</span>
+                      </label>
+                      <select
+                        value={formData.position}
+                        onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+                        className="field-input"
+                        required
+                      >
+                        {['Captain', 'Secretary', 'Treasurer', 'Kagawad', 'SK Chairman', 'Others'].map(pos => (
+                          <option key={pos} value={pos}>{pos}</option>
+                        ))}
+                      </select>
+                      <span className="field-hint">Your official position</span>
+                    </div>
 
-                {formData.role === 'barangay_official' && formData.position === 'Others' && (
-                  <div className="form-field">
-                    <label className="field-label">
-                      <span>Specify Position</span>
-                      <span className="required">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.customPosition}
-                      onChange={(e) => setFormData({ ...formData, customPosition: e.target.value })}
-                      className="field-input"
-                      placeholder="Enter your position"
-                      required
-                    />
-                  </div>
+                    {formData.position === 'Others' && (
+                      <div className="form-field">
+                        <label className="field-label">
+                          <span>Specify Position</span>
+                          <span className="required">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.customPosition}
+                          onChange={(e) => setFormData({ ...formData, customPosition: e.target.value })}
+                          className="field-input"
+                          placeholder="Enter your position"
+                          required
+                        />
+                      </div>
+                    )}
+                  </>
                 )}
               </>
             )}
