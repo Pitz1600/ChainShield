@@ -95,7 +95,7 @@ const CSVImport = () => {
     return (
         <div className="csv-import-container">
             <div className="csv-import-header">
-                <h2>📊 Bulk Transaction Import with Philippine Fraud Detection</h2>
+                <h2>📊 Bulk Transaction Import with Localized Transaction Monitoring</h2>
                 <p>Upload ANY budget CSV file - no template required! Our system auto-detects columns.</p>
             </div>
 
@@ -127,7 +127,7 @@ const CSVImport = () => {
                     onClick={handleUpload}
                     disabled={!file || uploading}
                 >
-                    {uploading ? '⏳ Analyzing with Philippine Fraud Detection...' : '🚀 Upload & Scan for Fraud'}
+                    {uploading ? '⏳ Analyzing with Philippine Fraud Detection...' : '🚀 Upload & Scan for budgets'}
                 </button>
             </div>
 
@@ -296,10 +296,11 @@ const CSVImport = () => {
                 <h4>🎯 How It Works</h4>
                 <ul>
                     <li>✅ <strong>No Template Required!</strong> Upload ANY budget CSV file</li>
-                    <li>🤖 <strong>Smart Column Detection:</strong> Auto-detects amount, date, description, etc.</li>
-                    <li>🇵🇭 <strong>Philippine Fraud Detection:</strong> Checks for overpricing, ghost beneficiaries, circular transactions</li>
-                    <li>📊 <strong>Government Verification:</strong> Compares against PhilGEPS prices & PSA demographics</li>
-                    <li>⚡ <strong>Instant Analysis:</strong> Each transaction analyzed in real-time</li>
+                    <li>🤖 <strong>Smart Column Detection:</strong> Automatically detects amount, date, description, and more</li>
+                    <li>🇵🇭 <strong>Philippine Transaction Risk Analysis:</strong> Identifies overpricing patterns, irregular beneficiaries, and circular transaction behavior</li>
+                    <li>📊 <strong>Barangay Data Verification:</strong> Compares against PhilGEPS pricing and PSA demographic data</li>
+                    <li>⚡ <strong>Instant Analysis:</strong> Each transaction is analyzed in real time</li>
+
                 </ul>
 
                 <h4>📋 Supported Column Names (Auto-Detected)</h4>

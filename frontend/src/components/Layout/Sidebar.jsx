@@ -17,7 +17,7 @@ function Sidebar({ activeView, setActiveView, onLogout }) {
           <div className="logo-icon">🛡️</div>
           <div className="logo-text">
             <h2 className="logo-title">CHAINSHIELD</h2>
-            <p className="logo-subtitle">Government Portal</p>
+            <p className="logo-subtitle">Barangay Portal</p>
           </div>
         </div>
       </div>

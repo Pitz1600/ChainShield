@@ -42,7 +42,7 @@ docker-compose up
 
 ### 3. Access Application
 
-Open browser: **http://localhost:5173**
+Open browser: **http://localhos t:5173**
 
 **Default Admin Credentials:**
 - Email: `admin@chainshield.com`
