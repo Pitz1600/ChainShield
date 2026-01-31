@@ -122,9 +122,10 @@ function SubmitComplaint({ user }) {
 
     return (
         <div className="submit-complaint">
-            <div className="complaint-header">
-                <h1>📝 Submit Report or Complaint</h1>
-                <p>Report issues, concerns, or irregularities to barangay officials</p>
+            <div className="page-hero complaint-hero">
+                <span className="hero-tag">CITIZEN FEEDBACK</span>
+                <h1 className="hero-title">Submit Report</h1>
+                <p className="hero-subtitle">Report issues, concerns, or irregularities directly to barangay officials.</p>
             </div>
 
             {success && (

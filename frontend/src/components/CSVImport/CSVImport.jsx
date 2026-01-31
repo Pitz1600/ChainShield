@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Lock, Upload, AlertCircle, CheckCircle, Clock, FileText, AlertTriangle, TrendingUp, Shield, BarChart, Info, Settings, Zap } from 'lucide-react';
+import { Lock, Upload, AlertCircle, CheckCircle, Clock, FileText, AlertTriangle, TrendingUp, Shield, BarChart, Info, Settings, Zap, Download } from 'lucide-react';
 import { isOfficial } from '../../utils/permissions';
 import '../../styles/CSVImport.css';
 
@@ -118,39 +118,40 @@ const CSVImport = ({ user }) => {
                 <span className="hero-tag">CSV IMPORT</span>
                 <h2 className="hero-title">Bulk Transaction Import</h2>
                 <p className="hero-subtitle">Upload CSV files to import multiple transactions at once with automatic fraud detection and risk analysis.</p>
-                {/* Actions moved to main content */}
+
+                <div className="hero-features-grid">
+                    <div className="hero-feature-card">
+                        <div className="feature-icon"><CheckCircle size={20} color="#34d399" /></div>
+                        <div className="feature-text">
+                            <strong>No Template Needed</strong>
+                            <p>Upload ANY budget CSV</p>
+                        </div>
+                    </div>
+                    <div className="hero-feature-card">
+                        <div className="feature-icon"><Settings size={20} color="#818cf8" /></div>
+                        <div className="feature-text">
+                            <strong>Smart Detection</strong>
+                            <p>Auto-maps columns</p>
+                        </div>
+                    </div>
+                    <div className="hero-feature-card">
+                        <div className="feature-icon"><Shield size={20} color="#fbbf24" /></div>
+                        <div className="feature-text">
+                            <strong>Risk Analysis</strong>
+                            <p>Detects fraud instantly</p>
+                        </div>
+                    </div>
+                    <div className="hero-feature-card">
+                        <div className="feature-icon"><BarChart size={20} color="#60a5fa" /></div>
+                        <div className="feature-text">
+                            <strong>Verified</strong>
+                            <p>Checks PhilGEPS & PSA</p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div className="csv-content">
-                <div className="csv-import-actions" style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'center' }}>
-                    <button
-                        className="btn-download-template"
-                        onClick={handleDownloadTemplate}
-                        style={{
-                            background: 'white',
-                            border: '1px solid #e2e8f0',
-                            color: '#475569',
-                            padding: '1rem 2rem',
-                            borderRadius: '12px',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.75rem',
-                            fontWeight: '600',
-                            fontSize: '1rem',
-                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                            transition: 'all 0.2s'
-                        }}
-                    >
-                        <FileText size={20} color="#3b82f6" />
-                        <div>
-                            <div style={{ textAlign: 'left', color: '#1e293b' }}>Download Sample Template</div>
-                            <div style={{ fontSize: '0.8rem', fontWeight: 'normal', textAlign: 'left' }}>Use this to format your CSV correctly</div>
-                        </div>
-                        <Download size={20} style={{ marginLeft: 'auto', opacity: 0.5 }} />
-                    </button>
-                </div>
-
                 <div className="csv-upload-section">
                     <div className="file-input-wrapper">
                         <input
@@ -160,22 +161,42 @@ const CSVImport = ({ user }) => {
                             onChange={handleFileChange}
                             disabled={uploading}
                         />
-                        <label htmlFor="csvFileInput" className="file-input-label">
-                            {file ? file.name : 'Choose ANY CSV file...'}
-                        </label>
+                        <div className="file-input-content">
+                            <Upload size={48} color="#cbd5e1" style={{ marginBottom: '1rem' }} />
+                            <span className="file-name">{file ? file.name : 'Click to upload or drag and drop CSV'}</span>
+                            <span className="file-limit">Maximum file size: 10MB</span>
+
+                            <div className="template-download-container">
+                                <span className="separator">or</span>
+                                <button
+                                    className="btn-link-template"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation(); // Prevent opening file dialog
+                                        handleDownloadTemplate();
+                                    }}
+                                    type="button"
+                                >
+                                    <Download size={16} />
+                                    <span>Download Sample Template</span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
-                    <button
-                        className="btn-upload"
-                        onClick={handleUpload}
-                        disabled={!file || uploading}
-                    >
-                        {uploading ? (
-                            <><Clock size={20} style={{ marginRight: '8px' }} /> Analyzing Transactions...</>
-                        ) : (
-                            <><Upload size={20} style={{ marginRight: '8px' }} /> Upload & Analyze</>
-                        )}
-                    </button>
+                    <div className="upload-actions-footer">
+                        <button
+                            className="btn-upload"
+                            onClick={handleUpload}
+                            disabled={!file || uploading}
+                        >
+                            {uploading ? (
+                                <><Clock size={20} style={{ marginRight: '8px' }} /> Analyzing Transactions...</>
+                            ) : (
+                                <><Upload size={20} style={{ marginRight: '8px' }} /> Upload & Analyze</>
+                            )}
+                        </button>
+                    </div>
                 </div>
 
                 {error && (
@@ -339,23 +360,21 @@ const CSVImport = ({ user }) => {
                     </div>
                 )}
 
-                <div className="csv-import-info">
-                    <h4><Info size={20} style={{ display: 'inline', marginRight: '8px', color: '#1d4ed8' }} /> How It Works</h4>
-                    <ul>
-                        <li><CheckCircle size={18} style={{ display: 'inline', marginRight: '8px', color: '#10b981' }} /> <strong>No Template Required!</strong> Upload ANY budget CSV file</li>
-                        <li><Settings size={18} style={{ display: 'inline', marginRight: '8px', color: '#6366f1' }} /> <strong>Smart Column Detection:</strong> Auto-detects amount, date, description, etc.</li>
-                        <li><Shield size={18} style={{ display: 'inline', marginRight: '8px', color: '#f59e0b' }} /> <strong>Risk Detection:</strong> Checks for overpricing, unusual patterns, circular transactions</li>
-                        <li><BarChart size={18} style={{ display: 'inline', marginRight: '8px', color: '#3b82f6' }} /> <strong>Government Verification:</strong> Compares against PhilGEPS prices & PSA demographics</li>
-                        <li><Zap size={18} style={{ display: 'inline', marginRight: '8px', color: '#8b5cf6' }} /> <strong>Instant Analysis:</strong> Each transaction analyzed in real-time</li>
-                    </ul>
-
-                    <h4><FileText size={20} style={{ display: 'inline', marginRight: '8px', color: '#64748b' }} /> Supported Column Names (Auto-Detected)</h4>
+                <div className="supported-columns-section" style={{ borderRadius: '16px', border: '1px solid #e2e8f0', background: 'white' }}>
+                    <h4><FileText size={18} /> Supported Column Names (Auto-Detected)</h4>
                     <div className="supported-columns">
-                        <div><strong>Amount:</strong> amount, total, value, cost, budget, halaga</div>
-                        <div><strong>Type:</strong> type, category, purpose, classification</div>
-                        <div><strong>Date:</strong> date, timestamp, transaction_date, petsa</div>
-                        <div><strong>Description:</strong> description, details, particulars, notes</div>
-                        <div><strong>Agency:</strong> agency, department, office, ahensya</div>
+                        <div className="column-pill">
+                            <strong>Amount:</strong> amount, total, cost, budget, halaga
+                        </div>
+                        <div className="column-pill">
+                            <strong>Type:</strong> type, category, purpose, classification
+                        </div>
+                        <div className="column-pill">
+                            <strong>Date:</strong> date, timestamp, transaction_date, petsa
+                        </div>
+                        <div className="column-pill">
+                            <strong>Agency:</strong> agency, dept, office, barangay
+                        </div>
                     </div>
                 </div>
             </div>

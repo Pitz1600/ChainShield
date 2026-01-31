@@ -151,8 +151,12 @@ exports.importTransactions = async (req, res) => {
             }
           }
 
-          // Clean up uploaded file
-          fs.unlinkSync(req.file.path);
+          // Clean up uploaded file with retry for Windows
+          try {
+            if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+          } catch (err) {
+            console.warn('Warning: Could not delete temp file (Windows lock?):', err.message);
+          }
 
           // Calculate statistics
           const flaggedCount = results.filter(r => r.flagged).length;
@@ -182,18 +186,20 @@ exports.importTransactions = async (req, res) => {
         } catch (error) {
           console.error('Processing Error:', error);
           // Clean up uploaded file
-          if (fs.existsSync(req.file.path)) {
-            fs.unlinkSync(req.file.path);
-          }
+          try {
+            if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+          } catch (e) { /* ignore */ }
+
           res.status(500).json({ error: error.message });
         }
       })
       .on('error', (error) => {
         console.error('CSV Parse Error:', error);
         // Clean up uploaded file
-        if (fs.existsSync(req.file.path)) {
-          fs.unlinkSync(req.file.path);
-        }
+        try {
+          if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+        } catch (e) { /* ignore */ }
+
         res.status(500).json({ error: 'Error parsing CSV file: ' + error.message });
       });
 

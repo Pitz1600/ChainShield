@@ -1,6 +1,6 @@
 import React from 'react';
 import { Home, AlertTriangle, List, Upload, BarChart3, Search, Settings, User, Shield, LogOut } from 'lucide-react';
-import { isAdmin, isOfficial, canAccessCases } from '../../utils/permissions';
+import { isAdmin, isOfficial } from '../../utils/permissions';
 import '../../styles/Sidebar.css';
 
 function Sidebar({ user, activeView, setActiveView, onLogout, isMobileMenuOpen, toggleMobileMenu }) {
@@ -36,7 +36,6 @@ function Sidebar({ user, activeView, setActiveView, onLogout, isMobileMenuOpen, 
 
   // Admin-only menu items
   const adminMenuItems = [
-    { id: 'cases', icon: 'search', label: 'Flagged Cases', roles: ['administrator', 'analyst', 'investigator'] },
     { id: 'admin', icon: 'settings', label: 'Admin Panel', roles: ['administrator'] },
   ];
 
@@ -58,9 +57,6 @@ function Sidebar({ user, activeView, setActiveView, onLogout, isMobileMenuOpen, 
     // Add admin items if user is admin
     if (isAdmin(user)) {
       items = [...items, ...adminMenuItems];
-    } else if (canAccessCases(user)) {
-      // Add only cases for analysts/investigators
-      items = [...items, adminMenuItems.find(item => item.id === 'cases')];
     }
 
     // Add profile at the end

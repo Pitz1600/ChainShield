@@ -46,6 +46,15 @@ This document tracks the major updates, feature enhancements, and bug fixes appl
     *   Deleted unused root files (`sample_transactions.csv`, `package-lock.json`).
 *   **Documentation**: Updated `README.md` to reflect the specific "Barangay Integrity System" use case.
 
+### 📉 Feature Deprecation
+
+*   **Flagged Cases Removal**:
+    *   **Reason**: Feature deemed redundant and replaced by improved Transaction Monitoring and Alerts.
+    *   **Action**: Completely removed the "Flagged Cases" module.
+        *   Deleted `Cases.jsx` and styling.
+        *   Removed `Case` model and backend routes.
+        *   Cleaned up Sidebar navigation and permissions.
+
 ---
 
 ## 🔮 Future Roadmap

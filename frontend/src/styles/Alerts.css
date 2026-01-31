@@ -5,14 +5,17 @@
 }
 
 /* Modern Hero Banner for Alerts */
+/* Modern Hero Banner for Alerts */
 .alerts-hero {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 2rem 2.5rem;
+  padding: 3rem 2rem;
   border-radius: 1.5rem;
   margin-bottom: 2rem;
   position: relative;
   overflow: hidden;
   box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+  text-align: left;
+  /* Ensure Left Alignment matches Dashboard */
 }
 
 .alerts-hero::before {

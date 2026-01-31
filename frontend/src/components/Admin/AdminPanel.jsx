@@ -22,19 +22,16 @@ function AdminPanel({ user }) {
         );
     }
 
-    const [activeTab, setActiveTab] = useState('users');
     const [users, setUsers] = useState([]);
     const [stats, setStats] = useState({ totalUsers: 0, activeUsers: 0, pendingVerification: 0 });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        if (activeTab === 'users') {
-            fetchUsers();
-        } else if (activeTab === 'stats') {
-            fetchStats();
-        }
-    }, [activeTab]);
+        // Load everything on mount
+        fetchUsers();
+        fetchStats();
+    }, []);
 
     const fetchUsers = async () => {
         try {
@@ -73,7 +70,7 @@ function AdminPanel({ user }) {
 
             if (response.ok) {
                 const data = await response.json();
-                setStats(data);
+                setStats(data.stats); // Fix: Access the stats property
             } else {
                 setError('Failed to load statistics');
             }
@@ -150,28 +147,28 @@ function AdminPanel({ user }) {
     return (
         <div className="admin-panel">
             <div className="page-hero admin-hero">
-                <span className="hero-tag">ADMIN PANEL</span>
-                <h2 className="hero-title">System Administration</h2>
-                <p className="hero-subtitle">Manage users, roles, permissions, and monitor system statistics.</p>
+                <div>
+                    <span className="hero-tag">ADMIN PANEL</span>
+                    <h2 className="hero-title">System Administration</h2>
+                    <p className="hero-subtitle">Manage users, roles, permissions, and monitor system statistics.</p>
+                </div>
+                <div className="hero-stats">
+                    <div className="hero-stat-item">
+                        <span className="hero-stat-value">{stats.totalUsers || 0}</span>
+                        <span className="hero-stat-label">Total Users</span>
+                    </div>
+                    <div className="hero-stat-item">
+                        <span className="hero-stat-value">{stats.activeUsers || 0}</span>
+                        <span className="hero-stat-label">Active</span>
+                    </div>
+                    <div className="hero-stat-item">
+                        <span className="hero-stat-value">{stats.pendingVerification || 0}</span>
+                        <span className="hero-stat-label">Pending</span>
+                    </div>
+                </div>
             </div>
 
             <div className="admin-content-wrapper">
-
-                <div className="admin-tabs">
-                    <button
-                        className={`tab-button ${activeTab === 'users' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('users')}
-                    >
-                        <Users size={20} style={{ marginRight: '8px' }} /> User Management
-                    </button>
-                    <button
-                        className={`tab-button ${activeTab === 'stats' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('stats')}
-                    >
-                        <BarChart3 size={20} style={{ marginRight: '8px' }} /> System Statistics
-                    </button>
-                </div>
-
                 <div className="admin-content">
                     {loading && (
                         <div style={{ padding: '3rem', textAlign: 'center' }}>
@@ -186,8 +183,12 @@ function AdminPanel({ user }) {
                         </div>
                     )}
 
-                    {!loading && !error && activeTab === 'users' && (
+                    {!loading && !error && (
                         <div className="users-table-container">
+                            <h3 style={{ margin: '0 0 1.5rem', color: '#334155', fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <Users size={24} className="text-blue-500" />
+                                User Management
+                            </h3>
                             <div className="user-card-header" style={{ display: 'grid', gridTemplateColumns: '2fr 2.5fr 1.5fr 1fr 1fr auto', padding: '0 1.25rem 0.5rem', fontWeight: '600', color: '#64748b', fontSize: '0.85rem', textTransform: 'uppercase' }}>
                                 <div>User</div>
                                 <div>Contact</div>
@@ -269,37 +270,7 @@ function AdminPanel({ user }) {
 
                     )}
 
-                    {!loading && !error && activeTab === 'stats' && (
-                        <div className="stats-grid">
-                            <div className="stat-card blue-gradient">
-                                <div className="stat-icon-wrapper">
-                                    <Users size={32} />
-                                </div>
-                                <div className="stat-info">
-                                    <div className="stat-value">{stats.totalUsers || 0}</div>
-                                    <div className="stat-label">Total Users</div>
-                                </div>
-                            </div>
-                            <div className="stat-card green-gradient">
-                                <div className="stat-icon-wrapper">
-                                    <CheckCircle size={32} />
-                                </div>
-                                <div className="stat-info">
-                                    <div className="stat-value">{stats.activeUsers || 0}</div>
-                                    <div className="stat-label">Active Users</div>
-                                </div>
-                            </div>
-                            <div className="stat-card orange-gradient">
-                                <div className="stat-icon-wrapper">
-                                    <Clock size={32} />
-                                </div>
-                                <div className="stat-info">
-                                    <div className="stat-value">{stats.pendingVerification || 0}</div>
-                                    <div className="stat-label">Pending Verification</div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
+
                 </div>
             </div>
 

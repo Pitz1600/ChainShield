@@ -9,7 +9,6 @@ const AlertsManagement = lazy(() => import('../Alerts/AlertsManagement'));
 const Analytics = lazy(() => import('../Analytics/Analytics'));
 const Profile = lazy(() => import('../Profile/Profile'));
 const CSVImport = lazy(() => import('../CSVImport/CSVImport'));
-const Cases = lazy(() => import('../Cases/Cases'));
 const AdminPanel = lazy(() => import('../Admin/AdminPanel'));
 const DocumentVerification = lazy(() => import('../DocumentVerification/DocumentVerification'));
 const MyTransactions = lazy(() => import('../Transactions/MyTransactions'));
@@ -54,7 +53,6 @@ function MainLayout({ user, onLogout, onNavigate }) {
             {activeView === 'transaction-history' && <MyTransactions user={user} />}
             {activeView === 'analytics' && <Analytics user={user} />}
             {activeView === 'csvimport' && <CSVImport user={user} />}
-            {activeView === 'cases' && <Cases user={user} />}
             {activeView === 'admin' && <AdminPanel user={user} />}
             {activeView === 'profile' && <Profile user={user} />}
           </Suspense>

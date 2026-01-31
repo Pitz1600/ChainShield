@@ -26,7 +26,7 @@ class CSVColumnMapper {
             ],
             agency: [
                 'agency', 'department', 'office', 'organization', 'org', 'ministry',
-                'bureau', 'unit', 'ahensya', 'kagawaran'
+                'bureau', 'unit', 'ahensya', 'kagawaran', 'barangay', 'lgu'
             ],
             programName: [
                 'program', 'program_name', 'project', 'project_name', 'initiative',

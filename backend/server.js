@@ -88,7 +88,6 @@ app.use('/api/', apiLimiter);
 // ========================================
 app.use('/api/transactions', require('./routes/transactions'));
 app.use('/api/alerts', require('./routes/alerts'));
-app.use('/api/cases', require('./routes/cases'));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/evaluation', require('./routes/evaluation'));

@@ -89,9 +89,10 @@ function DocumentVerification({ user }) {
 
     return (
         <div className="document-verification">
-            <div className="verification-header">
-                <h1>📄 Document Verification</h1>
-                <p>Verify the authenticity of government-issued documents</p>
+            <div className="page-hero doc-verify-hero">
+                <span className="hero-tag">OFFICIAL VERIFICATION</span>
+                <h1 className="hero-title">Document Verification</h1>
+                <p className="hero-subtitle">Verify the authenticity of government-issued documents using blockchain technology.</p>
             </div>
 
             <div className="verification-container">

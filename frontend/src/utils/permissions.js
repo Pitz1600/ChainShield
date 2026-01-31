@@ -47,7 +47,7 @@ export const PERMISSIONS = {
         'override_records',
         'generate_reports',
         'manage_security',
-        'view_fraud_cases',
+        'manage_security',
     ],
 };
 
@@ -95,14 +95,7 @@ export const isOfficial = (user) => {
     return canAccess(user, ['barangay_official', 'administrator']);
 };
 
-/**
- * Check if user can access fraud/flagged cases
- * @param {Object} user - User object with role property
- * @returns {Boolean}
- */
-export const canAccessCases = (user) => {
-    return canAccess(user, ['administrator', 'analyst', 'investigator']);
-};
+
 
 /**
  * Get user-friendly role name
