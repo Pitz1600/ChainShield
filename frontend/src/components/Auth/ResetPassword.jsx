@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Shield, Mail, AlertCircle } from 'lucide-react';
 import '../../styles/ResetPassword.css';
 
 function ResetPassword({ onNavigate, onResetRequest }) {
@@ -46,9 +47,9 @@ function ResetPassword({ onNavigate, onResetRequest }) {
       <div className="auth-sidebar reset-sidebar">
         <div className="auth-sidebar-content">
           <div className="sidebar-brand" onClick={() => onNavigate('welcome')} style={{ cursor: 'pointer' }}>
-            <div className="sidebar-logo">🛡️</div>
+            <div className="sidebar-logo"><Shield size={48} /></div>
             <h2 className="sidebar-title">ChainShield</h2>
-            <p className="sidebar-subtitle">Document Fraud Detection</p>
+            <p className="sidebar-subtitle">Transaction Verification System</p>
           </div>
 
           <div className="sidebar-illustration">
@@ -80,7 +81,7 @@ function ResetPassword({ onNavigate, onResetRequest }) {
 
           {error && (
             <div className="alert-box error">
-              <span className="alert-icon">⚠️</span>
+              <span className="alert-icon"><AlertCircle size={20} /></span>
               <span className="alert-message">{error}</span>
             </div>
           )}
@@ -105,7 +106,7 @@ function ResetPassword({ onNavigate, onResetRequest }) {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="field-input"
-                placeholder="your.email@gov.ph"
+                placeholder="your.email@example.com"
                 required
               />
               <span className="field-hint">Enter the email associated with your account</span>

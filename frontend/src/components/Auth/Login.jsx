@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Shield, Lock, Mail, AlertCircle, Info, ArrowRight } from 'lucide-react';
 import '../../styles/Login.css';
 import api from '../../services/api';
 
@@ -45,20 +46,20 @@ function Login({ onLogin, onNavigate }) {
       <div className="auth-sidebar">
         <div className="auth-sidebar-content">
           <div className="sidebar-brand" onClick={() => onNavigate('welcome')} style={{ cursor: 'pointer' }}>
-            <div className="sidebar-logo">🛡️</div>
+            <div className="sidebar-logo"><Shield size={48} /></div>
             <h2 className="sidebar-title">ChainShield</h2>
-            <p className="sidebar-subtitle">Document Fraud Detection</p>
+            <p className="sidebar-subtitle">Transaction Verification System</p>
           </div>
 
           <div className="sidebar-illustration">
             <div className="illustration-circle"></div>
-            <div className="illustration-icon">🔐</div>
+            <div className="illustration-icon"><Lock size={64} /></div>
           </div>
 
           <div className="sidebar-info">
             <h3 className="sidebar-info-title">Secure Access</h3>
             <p className="sidebar-info-text">
-              Sign in to access document verification tools, investigate fraud cases, and monitor suspicious transactions.
+              Sign in to access authorized digital services and monitor system activity.
             </p>
           </div>
         </div>
@@ -77,7 +78,7 @@ function Login({ onLogin, onNavigate }) {
 
           {error && (
             <div className="alert-box error">
-              <span className="alert-icon">⚠️</span>
+              <span className="alert-icon"><AlertCircle size={20} /></span>
               <span className="alert-message">{error}</span>
             </div>
           )}
@@ -85,7 +86,7 @@ function Login({ onLogin, onNavigate }) {
           <form onSubmit={handleSubmit} className="auth-form">
             <div className="form-field">
               <label className="field-label">
-                <span className="label-icon">📧</span>
+                <span className="label-icon"><Mail size={18} /></span>
                 <span>Email Address</span>
               </label>
               <input
@@ -93,15 +94,15 @@ function Login({ onLogin, onNavigate }) {
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 className="field-input"
-                placeholder="your.email@gov.ph"
+                placeholder="your.email@example.com"
                 required
               />
-              <span className="field-hint">Use your government email address</span>
+              <span className="field-hint">Enter your registered email address</span>
             </div>
 
             <div className="form-field">
               <label className="field-label">
-                <span className="label-icon">🔒</span>
+                <span className="label-icon"><Lock size={18} /></span>
                 <span>Password</span>
               </label>
               <input
@@ -132,7 +133,7 @@ function Login({ onLogin, onNavigate }) {
               ) : (
                 <>
                   <span>Sign In</span>
-                  <span className="button-icon">→</span>
+                  <span className="button-icon"><ArrowRight size={18} /></span>
                 </>
               )}
             </button>
@@ -140,11 +141,11 @@ function Login({ onLogin, onNavigate }) {
 
           <div className="demo-credentials">
             <div className="demo-header">
-              <span className="demo-icon">ℹ️</span>
+              <span className="demo-icon"><Info size={18} /></span>
               <span className="demo-title">Demo Credentials</span>
             </div>
             <div className="demo-info">
-              <code className="demo-code">admin@chainshield.gov.ph</code>
+              <code className="demo-code">admin@chainshield.local</code>
               <code className="demo-code">admin123</code>
             </div>
           </div>

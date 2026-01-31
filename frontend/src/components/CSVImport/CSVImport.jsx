@@ -1,7 +1,27 @@
 import React, { useState } from 'react';
+import { Lock, Upload, AlertCircle, CheckCircle, Clock, FileText, AlertTriangle, TrendingUp, Shield, BarChart, Info, Settings, Zap } from 'lucide-react';
+import { isOfficial } from '../../utils/permissions';
 import '../../styles/CSVImport.css';
 
-const CSVImport = () => {
+const CSVImport = ({ user }) => {
+    // Permission check - only officials and admins can import
+    if (!isOfficial(user)) {
+        return (
+            <div style={{ padding: '2rem', textAlign: 'center' }}>
+                <div style={{ maxWidth: '500px', margin: '0 auto', padding: '2rem', background: '#fef2f2', borderRadius: '8px', border: '1px solid #fecaca' }}>
+                    <div style={{ fontSize: '3rem', marginBottom: '1rem' }}><Lock size={48} color="#991b1b" /></div>
+                    <h2 style={{ color: '#991b1b', marginBottom: '0.5rem' }}>Access Denied</h2>
+                    <p style={{ color: '#7f1d1d' }}>
+                        CSV Import is only available to Barangay Officials and Administrators.
+                    </p>
+                    <p style={{ color: '#991b1b', fontSize: '0.875rem', marginTop: '1rem' }}>
+                        Your role: <strong>{user?.role || 'Unknown'}</strong>
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
     const [file, setFile] = useState(null);
     const [uploading, setUploading] = useState(false);
     const [results, setResults] = useState(null);
@@ -94,221 +114,249 @@ const CSVImport = () => {
 
     return (
         <div className="csv-import-container">
-            <div className="csv-import-header">
-                <h2>📊 Bulk Transaction Import with Philippine Fraud Detection</h2>
-                <p>Upload ANY budget CSV file - no template required! Our system auto-detects columns.</p>
+            <div className="page-hero csv-hero">
+                <span className="hero-tag">CSV IMPORT</span>
+                <h2 className="hero-title">Bulk Transaction Import</h2>
+                <p className="hero-subtitle">Upload CSV files to import multiple transactions at once with automatic fraud detection and risk analysis.</p>
+                {/* Actions moved to main content */}
             </div>
 
-            <div className="csv-import-actions">
-                <button
-                    className="btn-download-template"
-                    onClick={handleDownloadTemplate}
-                >
-                    📥 Download Sample Template (Optional)
-                </button>
-            </div>
-
-            <div className="csv-upload-section">
-                <div className="file-input-wrapper">
-                    <input
-                        id="csvFileInput"
-                        type="file"
-                        accept=".csv"
-                        onChange={handleFileChange}
-                        disabled={uploading}
-                    />
-                    <label htmlFor="csvFileInput" className="file-input-label">
-                        {file ? file.name : 'Choose ANY CSV file...'}
-                    </label>
+            <div className="csv-content">
+                <div className="csv-import-actions" style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'center' }}>
+                    <button
+                        className="btn-download-template"
+                        onClick={handleDownloadTemplate}
+                        style={{
+                            background: 'white',
+                            border: '1px solid #e2e8f0',
+                            color: '#475569',
+                            padding: '1rem 2rem',
+                            borderRadius: '12px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.75rem',
+                            fontWeight: '600',
+                            fontSize: '1rem',
+                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                            transition: 'all 0.2s'
+                        }}
+                    >
+                        <FileText size={20} color="#3b82f6" />
+                        <div>
+                            <div style={{ textAlign: 'left', color: '#1e293b' }}>Download Sample Template</div>
+                            <div style={{ fontSize: '0.8rem', fontWeight: 'normal', textAlign: 'left' }}>Use this to format your CSV correctly</div>
+                        </div>
+                        <Download size={20} style={{ marginLeft: 'auto', opacity: 0.5 }} />
+                    </button>
                 </div>
 
-                <button
-                    className="btn-upload"
-                    onClick={handleUpload}
-                    disabled={!file || uploading}
-                >
-                    {uploading ? '⏳ Analyzing with Philippine Fraud Detection...' : '🚀 Upload & Scan for Fraud'}
-                </button>
-            </div>
+                <div className="csv-upload-section">
+                    <div className="file-input-wrapper">
+                        <input
+                            id="csvFileInput"
+                            type="file"
+                            accept=".csv"
+                            onChange={handleFileChange}
+                            disabled={uploading}
+                        />
+                        <label htmlFor="csvFileInput" className="file-input-label">
+                            {file ? file.name : 'Choose ANY CSV file...'}
+                        </label>
+                    </div>
 
-            {error && (
-                <div className="alert alert-error">
-                    <span className="alert-icon">⚠️</span>
-                    <span>{error}</span>
+                    <button
+                        className="btn-upload"
+                        onClick={handleUpload}
+                        disabled={!file || uploading}
+                    >
+                        {uploading ? (
+                            <><Clock size={20} style={{ marginRight: '8px' }} /> Analyzing Transactions...</>
+                        ) : (
+                            <><Upload size={20} style={{ marginRight: '8px' }} /> Upload & Analyze</>
+                        )}
+                    </button>
                 </div>
-            )}
 
-            {results && (
-                <div className="results-container">
-                    <div className="results-header">
-                        <h3>✅ Import Complete with Philippine Fraud Detection</h3>
-                        <p>{results.message}</p>
-                        {results.mappingConfidence && (
-                            <p className="mapping-confidence">
-                                📊 Column Detection Confidence: <strong>{results.mappingConfidence}%</strong>
-                            </p>
-                        )}
+                {error && (
+                    <div className="alert alert-error">
+                        <span className="alert-icon"><AlertCircle size={20} /></span>
+                        <span>{error}</span>
                     </div>
+                )}
 
-                    <div className="results-stats">
-                        <div className="stat-card success">
-                            <div className="stat-value">{results.imported}</div>
-                            <div className="stat-label">Successfully Imported</div>
+                {results && (
+                    <div className="results-container">
+                        <div className="results-header">
+                            <h3><CheckCircle size={24} style={{ display: 'inline', marginRight: '8px', color: '#10b981' }} /> Import Complete with Risk Analysis</h3>
+                            <p>{results.message}</p>
+                            {results.mappingConfidence && (
+                                <p className="mapping-confidence">
+                                    📊 Column Detection Confidence: <strong>{results.mappingConfidence}%</strong>
+                                </p>
+                            )}
                         </div>
-                        {results.flaggedCount > 0 && (
-                            <div className="stat-card danger">
-                                <div className="stat-value">{results.flaggedCount}</div>
-                                <div className="stat-label">🚨 Flagged as Fraud</div>
-                            </div>
-                        )}
-                        {results.highRiskCount > 0 && (
-                            <div className="stat-card warning">
-                                <div className="stat-value">{results.highRiskCount}</div>
-                                <div className="stat-label">⚠️ High Risk</div>
-                            </div>
-                        )}
-                        {results.failed > 0 && (
-                            <div className="stat-card error">
-                                <div className="stat-value">{results.failed}</div>
-                                <div className="stat-label">Failed</div>
-                            </div>
-                        )}
-                    </div>
 
-                    {results.columnMappings && (
-                        <div className="column-mappings">
-                            <h4>📋 Detected Column Mappings</h4>
-                            <div className="mappings-grid">
-                                {Object.entries(results.columnMappings).map(([field, column]) => (
-                                    <div key={field} className="mapping-item">
-                                        <span className="field-name">{field}</span>
-                                        <span className="arrow">→</span>
-                                        <span className="column-name">{column}</span>
-                                    </div>
-                                ))}
+                        <div className="results-stats">
+                            <div className="stat-card success">
+                                <div className="stat-value">{results.imported}</div>
+                                <div className="stat-label">Successfully Imported</div>
                             </div>
+                            {results.flaggedCount > 0 && (
+                                <div className="stat-card danger">
+                                    <div className="stat-value">{results.flaggedCount}</div>
+                                    <div className="stat-label">🚨 Flagged for Review</div>
+                                </div>
+                            )}
+                            {results.highRiskCount > 0 && (
+                                <div className="stat-card warning">
+                                    <div className="stat-value">{results.highRiskCount}</div>
+                                    <div className="stat-label"><AlertTriangle size={18} style={{ marginRight: '4px' }} /> High Risk</div>
+                                </div>
+                            )}
+                            {results.failed > 0 && (
+                                <div className="stat-card error">
+                                    <div className="stat-value">{results.failed}</div>
+                                    <div className="stat-label">Failed</div>
+                                </div>
+                            )}
                         </div>
-                    )}
 
-                    {results.results && results.results.length > 0 && (
-                        <div className="results-table-container">
-                            <h4>Imported Transactions with Fraud Analysis</h4>
-                            <table className="results-table">
-                                <thead>
-                                    <tr>
-                                        <th>Row</th>
-                                        <th>Transaction ID</th>
-                                        <th>Type</th>
-                                        <th>Amount</th>
-                                        <th>Risk Score</th>
-                                        <th>Risk Level</th>
-                                        <th>Fraud Type</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {results.results.map((result, idx) => (
-                                        <tr key={idx} className={result.flagged ? 'flagged-row' : ''}>
-                                            <td>{result.row}</td>
-                                            <td className="transaction-id">{result.transactionId}</td>
-                                            <td>{result.transactionType}</td>
-                                            <td className="amount">₱{result.amount?.toLocaleString()}</td>
-                                            <td>
-                                                <span className={`risk-score risk-${result.riskLevel?.toLowerCase()}`}>
-                                                    {result.riskScore}
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <span className={`badge badge-${result.riskLevel?.toLowerCase()}`}>
-                                                    {result.riskLevel}
-                                                </span>
-                                            </td>
-                                            <td>
-                                                {result.fraudType && result.fraudType !== 'Other' ? (
-                                                    <span className="fraud-type">{result.fraudType}</span>
-                                                ) : (
-                                                    <span className="no-fraud">-</span>
-                                                )}
-                                            </td>
-                                            <td>
-                                                {result.flagged ? (
-                                                    <span className="badge badge-danger">🚨 FRAUD</span>
-                                                ) : (
-                                                    <span className="badge badge-success">✅ Clean</span>
-                                                )}
-                                            </td>
-                                        </tr>
+                        {results.columnMappings && (
+                            <div className="column-mappings">
+                                <h4>📋 Detected Column Mappings</h4>
+                                <div className="mappings-grid">
+                                    {Object.entries(results.columnMappings).map(([field, column]) => (
+                                        <div key={field} className="mapping-item">
+                                            <span className="field-name">{field}</span>
+                                            <span className="arrow">→</span>
+                                            <span className="column-name">{column}</span>
+                                        </div>
                                     ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
+                                </div>
+                            </div>
+                        )}
 
-                    {results.results && results.results.some(r => r.reasons && r.reasons.length > 0) && (
-                        <div className="fraud-details">
-                            <h4>🔍 Philippine Fraud Detection Details</h4>
-                            {results.results.filter(r => r.reasons && r.reasons.length > 0).map((result, idx) => (
-                                <div key={idx} className="fraud-detail-card">
-                                    <div className="fraud-detail-header">
-                                        <strong>Row {result.row}</strong> - {result.transactionId}
-                                        <span className={`badge badge-${result.riskLevel?.toLowerCase()}`}>
-                                            {result.riskLevel}
-                                        </span>
-                                    </div>
-                                    <div className="fraud-reasons">
-                                        {result.reasons.map((reason, rIdx) => (
-                                            <div key={rIdx} className="reason-item">
-                                                • {reason}
-                                            </div>
+                        {results.results && results.results.length > 0 && (
+                            <div className="results-table-container">
+                                <h4>Imported Transactions with Risk Assessment</h4>
+                                <table className="results-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Row</th>
+                                            <th>Transaction ID</th>
+                                            <th>Type</th>
+                                            <th>Amount</th>
+                                            <th>Risk Score</th>
+                                            <th>Risk Level</th>
+                                            <th>Risk Category</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {results.results.map((result, idx) => (
+                                            <tr key={idx} className={result.flagged ? 'flagged-row' : ''}>
+                                                <td>{result.row}</td>
+                                                <td className="transaction-id">{result.transactionId}</td>
+                                                <td>{result.transactionType}</td>
+                                                <td className="amount">₱{result.amount?.toLocaleString()}</td>
+                                                <td>
+                                                    <span className={`risk-score risk-${result.riskLevel?.toLowerCase()}`}>
+                                                        {result.riskScore}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <span className={`badge badge-${result.riskLevel?.toLowerCase()}`}>
+                                                        {result.riskLevel}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    {result.fraudType && result.fraudType !== 'Other' ? (
+                                                        <span className="fraud-type">{result.fraudType}</span>
+                                                    ) : (
+                                                        <span className="no-fraud">-</span>
+                                                    )}
+                                                </td>
+                                                <td>
+                                                    {result.flagged ? (
+                                                        <span className="badge badge-danger">🚨 FLAGGED</span>
+                                                    ) : (
+                                                        <span className="badge badge-success"><CheckCircle size={14} style={{ marginRight: '4px' }} /> Clean</span>
+                                                    )}
+                                                </td>
+                                            </tr>
                                         ))}
-                                    </div>
-                                    {result.philippinePatterns && result.philippinePatterns.length > 0 && (
-                                        <div className="ph-patterns">
-                                            <strong>Philippine Patterns Detected:</strong>
-                                            {result.philippinePatterns.map((pattern, pIdx) => (
-                                                <span key={pIdx} className="pattern-badge">
-                                                    {pattern.type}
-                                                </span>
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+
+                        {results.results && results.results.some(r => r.reasons && r.reasons.length > 0) && (
+                            <div className="fraud-details">
+                                <h4>🔍 Risk Detection Details</h4>
+                                {results.results.filter(r => r.reasons && r.reasons.length > 0).map((result, idx) => (
+                                    <div key={idx} className="fraud-detail-card">
+                                        <div className="fraud-detail-header">
+                                            <strong>Row {result.row}</strong> - {result.transactionId}
+                                            <span className={`badge badge-${result.riskLevel?.toLowerCase()}`}>
+                                                {result.riskLevel}
+                                            </span>
+                                        </div>
+                                        <div className="fraud-reasons">
+                                            {result.reasons.map((reason, rIdx) => (
+                                                <div key={rIdx} className="reason-item">
+                                                    • {reason}
+                                                </div>
                                             ))}
                                         </div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    )}
-
-                    {results.errors && results.errors.length > 0 && (
-                        <div className="errors-container">
-                            <h4>⚠️ Errors ({results.errors.length})</h4>
-                            <div className="errors-list">
-                                {results.errors.map((err, idx) => (
-                                    <div key={idx} className="error-item">
-                                        <strong>Row {err.row}:</strong> {err.error}
+                                        {result.philippinePatterns && result.philippinePatterns.length > 0 && (
+                                            <div className="ph-patterns">
+                                                <strong>Philippine Patterns Detected:</strong>
+                                                {result.philippinePatterns.map((pattern, pIdx) => (
+                                                    <span key={pIdx} className="pattern-badge">
+                                                        {pattern.type}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                 ))}
                             </div>
-                        </div>
-                    )}
-                </div>
-            )}
+                        )}
 
-            <div className="csv-import-info">
-                <h4>🎯 How It Works</h4>
-                <ul>
-                    <li>✅ <strong>No Template Required!</strong> Upload ANY budget CSV file</li>
-                    <li>🤖 <strong>Smart Column Detection:</strong> Auto-detects amount, date, description, etc.</li>
-                    <li>🇵🇭 <strong>Philippine Fraud Detection:</strong> Checks for overpricing, ghost beneficiaries, circular transactions</li>
-                    <li>📊 <strong>Government Verification:</strong> Compares against PhilGEPS prices & PSA demographics</li>
-                    <li>⚡ <strong>Instant Analysis:</strong> Each transaction analyzed in real-time</li>
-                </ul>
+                        {results.errors && results.errors.length > 0 && (
+                            <div className="errors-container">
+                                <h4><AlertTriangle size={20} style={{ display: 'inline', marginRight: '8px', color: '#ef4444' }} /> Errors ({results.errors.length})</h4>
+                                <div className="errors-list">
+                                    {results.errors.map((err, idx) => (
+                                        <div key={idx} className="error-item">
+                                            <strong>Row {err.row}:</strong> {err.error}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
 
-                <h4>📋 Supported Column Names (Auto-Detected)</h4>
-                <div className="supported-columns">
-                    <div><strong>Amount:</strong> amount, total, value, cost, budget, halaga</div>
-                    <div><strong>Type:</strong> type, category, purpose, classification</div>
-                    <div><strong>Date:</strong> date, timestamp, transaction_date, petsa</div>
-                    <div><strong>Description:</strong> description, details, particulars, notes</div>
-                    <div><strong>Agency:</strong> agency, department, office, ahensya</div>
+                <div className="csv-import-info">
+                    <h4><Info size={20} style={{ display: 'inline', marginRight: '8px', color: '#1d4ed8' }} /> How It Works</h4>
+                    <ul>
+                        <li><CheckCircle size={18} style={{ display: 'inline', marginRight: '8px', color: '#10b981' }} /> <strong>No Template Required!</strong> Upload ANY budget CSV file</li>
+                        <li><Settings size={18} style={{ display: 'inline', marginRight: '8px', color: '#6366f1' }} /> <strong>Smart Column Detection:</strong> Auto-detects amount, date, description, etc.</li>
+                        <li><Shield size={18} style={{ display: 'inline', marginRight: '8px', color: '#f59e0b' }} /> <strong>Risk Detection:</strong> Checks for overpricing, unusual patterns, circular transactions</li>
+                        <li><BarChart size={18} style={{ display: 'inline', marginRight: '8px', color: '#3b82f6' }} /> <strong>Government Verification:</strong> Compares against PhilGEPS prices & PSA demographics</li>
+                        <li><Zap size={18} style={{ display: 'inline', marginRight: '8px', color: '#8b5cf6' }} /> <strong>Instant Analysis:</strong> Each transaction analyzed in real-time</li>
+                    </ul>
+
+                    <h4><FileText size={20} style={{ display: 'inline', marginRight: '8px', color: '#64748b' }} /> Supported Column Names (Auto-Detected)</h4>
+                    <div className="supported-columns">
+                        <div><strong>Amount:</strong> amount, total, value, cost, budget, halaga</div>
+                        <div><strong>Type:</strong> type, category, purpose, classification</div>
+                        <div><strong>Date:</strong> date, timestamp, transaction_date, petsa</div>
+                        <div><strong>Description:</strong> description, details, particulars, notes</div>
+                        <div><strong>Agency:</strong> agency, department, office, ahensya</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -316,4 +364,3 @@ const CSVImport = () => {
 };
 
 export default CSVImport;
-

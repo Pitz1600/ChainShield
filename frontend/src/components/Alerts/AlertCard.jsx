@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Eye } from 'lucide-react';
 
 function AlertCard({ alert, onInvestigate }) {
   const severityColors = {
@@ -41,7 +42,7 @@ function AlertCard({ alert, onInvestigate }) {
           </div>
         )}
       </div>
-      <button className="investigate-btn" onClick={() => onInvestigate(alert)}>👁️ Investigate</button>
+      <button className="investigate-btn" onClick={() => onInvestigate(alert)}><Eye size={16} style={{ marginRight: '6px', display: 'inline' }} /> Investigate</button>
     </div>
   );
 }

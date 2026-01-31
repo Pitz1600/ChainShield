@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import api from '../../services/api'; // Ensure api is imported
+import { Mail, AlertTriangle, AlertCircle, TrendingUp, CheckCircle } from 'lucide-react';
+import api from '../../services/api';
 import '../../styles/Dashboard.css';
+import '../../styles/ColorfulIcons.css';
 
 function Dashboard({ user, onNavigate }) { // Ensure onNavigate is destructured
   const [stats, setStats] = useState({
@@ -29,7 +31,7 @@ function Dashboard({ user, onNavigate }) { // Ensure onNavigate is destructured
     return (
       <div className="dashboard-container" style={{ alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
         <div style={{ textAlign: 'center', padding: '3rem', background: 'white', borderRadius: '12px', boxShadow: 'var(--shadow-md)', maxWidth: '500px' }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📧</div>
+          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}><Mail size={48} color="#3b82f6" /></div>
           <h2 style={{ fontSize: '1.5rem', fontWeight: '700', color: 'var(--primary-blue)', marginBottom: '0.5rem' }}>
             Verify Your Email
           </h2>
@@ -144,7 +146,7 @@ function Dashboard({ user, onNavigate }) { // Ensure onNavigate is destructured
 
         <div className="hero-stats-grid">
           <div className="hero-stat-card total">
-            <div className="stat-icon">⚠️</div>
+            <div className="stat-icon"><AlertTriangle size={24} /></div>
             <div className="stat-content">
               <div className="stat-value">{stats.total}</div>
               <div className="stat-label">Total Alerts</div>
@@ -152,7 +154,7 @@ function Dashboard({ user, onNavigate }) { // Ensure onNavigate is destructured
           </div>
 
           <div className="hero-stat-card critical">
-            <div className="stat-icon">🔴</div>
+            <div className="stat-icon"><AlertCircle size={24} /></div>
             <div className="stat-content">
               <div className="stat-value">{stats.critical}</div>
               <div className="stat-label">Critical</div>
@@ -160,7 +162,7 @@ function Dashboard({ user, onNavigate }) { // Ensure onNavigate is destructured
           </div>
 
           <div className="hero-stat-card high">
-            <div className="stat-icon">📈</div>
+            <div className="stat-icon"><TrendingUp size={24} /></div>
             <div className="stat-content">
               <div className="stat-value">{stats.high}</div>
               <div className="stat-label">High Risk</div>
@@ -168,7 +170,7 @@ function Dashboard({ user, onNavigate }) { // Ensure onNavigate is destructured
           </div>
 
           <div className="hero-stat-card medium">
-            <div className="stat-icon">✅</div>
+            <div className="stat-icon"><CheckCircle size={24} /></div>
             <div className="stat-content">
               <div className="stat-value">{stats.medium}</div>
               <div className="stat-label">Medium Risk</div>

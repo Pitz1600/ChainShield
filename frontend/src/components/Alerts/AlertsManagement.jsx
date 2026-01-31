@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Search, AlertTriangle, CheckCircle, AlertOctagon, Download, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import AlertCard from './AlertCard';
 import '../../styles/Alerts.css';
 
@@ -172,7 +173,7 @@ function AlertsManagement() {
 
       <div className="filters-bar">
         <div className="search-box">
-          <span className="search-icon">🔍</span>
+          <span className="search-icon"><Search size={18} color="#64748b" /></span>
           <input
             type="text"
             placeholder="Search by transaction ID, agency, or risk type..."
@@ -191,13 +192,13 @@ function AlertsManagement() {
               {f.charAt(0).toUpperCase() + f.slice(1)}
             </button>
           ))}
-          <button className="export-btn" onClick={handleExportReport}>📥 Export Report</button>
+          <button className="export-btn" onClick={handleExportReport}><Download size={16} style={{ marginRight: '8px', display: 'inline' }} /> Export Report</button>
         </div>
       </div>
 
       {filteredAlerts.length === 0 ? (
         <div style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>
-          <p style={{ fontSize: '3rem', marginBottom: '1rem' }}>✅</p>
+          <p style={{ fontSize: '3rem', marginBottom: '1rem' }}><CheckCircle size={48} color="#10b981" /></p>
           <h3 style={{ marginBottom: '0.5rem' }}>No alerts found</h3>
           <p>All transactions are within normal parameters</p>
         </div>
@@ -217,7 +218,7 @@ function AlertsManagement() {
                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}
               >
-                ← Previous
+                <ChevronLeft size={16} style={{ marginRight: '4px', display: 'inline' }} /> Previous
               </button>
 
               <div className="pagination-info">
@@ -254,7 +255,7 @@ function AlertsManagement() {
                 onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                 disabled={currentPage === totalPages}
               >
-                Next →
+                Next <ChevronRight size={16} style={{ marginLeft: '4px', display: 'inline' }} />
               </button>
             </div>
           )}
@@ -266,8 +267,8 @@ function AlertsManagement() {
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>🔍 Alert Investigation</h2>
-              <button className="modal-close" onClick={() => setShowModal(false)}>✕</button>
+              <h2><Search size={24} style={{ marginRight: '8px', display: 'inline', color: '#3b82f6' }} /> Alert Investigation</h2>
+              <button className="modal-close" onClick={() => setShowModal(false)}><X size={24} /></button>
             </div>
             <div className="modal-body">
               <div className="investigation-section">
@@ -324,7 +325,7 @@ function AlertsManagement() {
                     {selectedAlert.fraudPatterns.map((pattern, idx) => (
                       <div key={idx} className="pattern-item">
                         <div className="pattern-header">
-                          <span className="pattern-type">⚠️ {pattern.type}</span>
+                          <span className="pattern-type"><AlertTriangle size={16} style={{ marginRight: '6px', color: '#f59e0b' }} /> {pattern.type}</span>
                           <span className={`pattern-severity ${pattern.severity}`}>{pattern.severity}</span>
                         </div>
                         {pattern.description && (
@@ -352,247 +353,11 @@ function AlertsManagement() {
             </div>
             <div className="modal-footer">
               <button className="btn-secondary" onClick={() => setShowModal(false)}>Close</button>
-              <button className="btn-primary">Mark as Reviewed</button>
             </div>
           </div>
         </div>
       )}
 
-      <style jsx>{`
-        .modal-overlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: rgba(0, 0, 0, 0.5);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 1000;
-        }
-
-        .modal-content {
-          background: white;
-          border-radius: 12px;
-          width: 90%;
-          max-width: 800px;
-          max-height: 90vh;
-          overflow-y: auto;
-          box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-        }
-
-        .modal-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 1.5rem;
-          border-bottom: 1px solid #e2e8f0;
-        }
-
-        .modal-header h2 {
-          margin: 0;
-          font-size: 1.5rem;
-          color: #1e293b;
-        }
-
-        .modal-close {
-          background: none;
-          border: none;
-          font-size: 1.5rem;
-          cursor: pointer;
-          color: #64748b;
-          padding: 0.5rem;
-        }
-
-        .modal-close:hover {
-          color: #1e293b;
-        }
-
-        .modal-body {
-          padding: 1.5rem;
-        }
-
-        .investigation-section {
-          margin-bottom: 2rem;
-        }
-
-        .investigation-section h3 {
-          font-size: 1.125rem;
-          color: #1e293b;
-          margin-bottom: 1rem;
-          padding-bottom: 0.5rem;
-          border-bottom: 2px solid #e2e8f0;
-        }
-
-        .detail-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-          gap: 1rem;
-        }
-
-        .detail-item {
-          display: flex;
-          flex-direction: column;
-          gap: 0.25rem;
-        }
-
-        .detail-label {
-          font-size: 0.875rem;
-          color: #64748b;
-          font-weight: 500;
-        }
-
-        .detail-value {
-          font-size: 1rem;
-          color: #1e293b;
-        }
-
-        .detail-value.mono {
-          font-family: monospace;
-          font-size: 0.875rem;
-          word-break: break-all;
-        }
-
-        .risk-assessment {
-          display: flex;
-          justify-content: center;
-          padding: 1rem;
-        }
-
-        .risk-score-large {
-          text-align: center;
-        }
-
-        .score-circle {
-          width: 150px;
-          height: 150px;
-          border: 8px solid;
-          border-radius: 50%;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          margin: 0 auto 1rem;
-        }
-
-        .score-number {
-          font-size: 3rem;
-          font-weight: bold;
-          color: #1e293b;
-        }
-
-        .score-label {
-          font-size: 0.875rem;
-          color: #64748b;
-        }
-
-        .level-badge {
-          display: inline-block;
-          padding: 0.5rem 1rem;
-          border-radius: 6px;
-          font-weight: 600;
-          font-size: 0.875rem;
-        }
-
-        .level-badge.critical {
-          background: #fef2f2;
-          color: #991b1b;
-        }
-
-        .level-badge.high {
-          background: #fff7ed;
-          color: #9a3412;
-        }
-
-        .level-badge.medium {
-          background: #fefce8;
-          color: #854d0e;
-        }
-
-        .patterns-list {
-          display: flex;
-          flex-direction: column;
-          gap: 1rem;
-        }
-
-        .pattern-item {
-          background: #f8fafc;
-          border: 1px solid #e2e8f0;
-          border-radius: 8px;
-          padding: 1rem;
-        }
-
-        .pattern-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 0.5rem;
-        }
-
-        .pattern-type {
-          font-weight: 600;
-          color: #1e293b;
-        }
-
-        .pattern-severity {
-          padding: 0.25rem 0.75rem;
-          border-radius: 4px;
-          font-size: 0.75rem;
-          font-weight: 600;
-          text-transform: uppercase;
-        }
-
-        .pattern-severity.high {
-          background: #fff7ed;
-          color: #9a3412;
-        }
-
-        .pattern-severity.medium {
-          background: #fefce8;
-          color: #854d0e;
-        }
-
-        .pattern-description {
-          color: #64748b;
-          font-size: 0.875rem;
-          margin: 0;
-        }
-
-        .modal-footer {
-          display: flex;
-          justify-content: flex-end;
-          gap: 1rem;
-          padding: 1.5rem;
-          border-top: 1px solid #e2e8f0;
-        }
-
-        .btn-primary, .btn-secondary {
-          padding: 0.75rem 1.5rem;
-          border-radius: 6px;
-          font-weight: 600;
-          cursor: pointer;
-          border: none;
-        }
-
-        .btn-primary {
-          background: #3b82f6;
-          color: white;
-        }
-
-        .btn-primary:hover {
-          background: #2563eb;
-        }
-
-        .btn-secondary {
-          background: #f1f5f9;
-          color: #475569;
-        }
-
-        .btn-secondary:hover {
-          background: #e2e8f0;
-        }
-      `}</style>
     </div>
   );
 }

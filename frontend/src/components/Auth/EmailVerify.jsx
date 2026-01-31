@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { Shield, AlertCircle, CheckCircle } from 'lucide-react';
 import api from "../../services/api";
 import "../../styles/EmailVerify.css";
 
@@ -80,9 +81,9 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
       <div className="auth-sidebar">
         <div className="auth-sidebar-content">
           <div className="sidebar-brand">
-            <div className="sidebar-logo">🛡️</div>
+            <div className="sidebar-logo"><Shield size={48} /></div>
             <h2 className="sidebar-title">ChainShield</h2>
-            <p className="sidebar-subtitle">Document Fraud Detection</p>
+            <p className="sidebar-subtitle">Transaction Verification System</p>
           </div>
 
           <div className="sidebar-illustration">
@@ -115,14 +116,14 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
 
           {error && (
             <div className="alert-box error">
-              <span className="alert-icon">⚠️</span>
+              <span className="alert-icon"><AlertCircle size={20} /></span>
               <span className="alert-message">{error}</span>
             </div>
           )}
 
           {success && (
             <div className="alert-box success">
-              <span className="alert-icon">✅</span>
+              <span className="alert-icon"><CheckCircle size={20} /></span>
               <span className="alert-message">{success}</span>
             </div>
           )}

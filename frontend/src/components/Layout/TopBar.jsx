@@ -1,5 +1,7 @@
 import React from 'react';
+import { Menu, Search, Bell } from 'lucide-react';
 import '../../styles/TopBar.css';
+import '../../styles/ColorfulIcons.css';
 
 function TopBar({ user, toggleMobileMenu }) {
   return (
@@ -11,7 +13,7 @@ function TopBar({ user, toggleMobileMenu }) {
             onClick={toggleMobileMenu}
             aria-label="Open navigation menu"
           >
-            ☰
+            <Menu size={28} />
           </button>
           <div className="top-bar-brand">
             <h1
@@ -36,14 +38,14 @@ function TopBar({ user, toggleMobileMenu }) {
             title="Search"
             aria-label="Search"
           >
-            🔍
+            <Search size={24} />
           </button>
           <button
             className="icon-btn notification"
             title="Alerts"
             aria-label="View alerts"
           >
-            🔔 <span className="notification-dot"></span>
+            <Bell size={24} /> <span className="notification-dot"></span>
           </button>
           <div
             className="user-profile"

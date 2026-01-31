@@ -158,3 +158,72 @@ exports.getAlerts = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+// NEW: Get current user's transactions only
+exports.getMyTransactions = async (req, res) => {
+  try {
+    const {
+      page = 1,
+      limit = 20,
+      type,
+      status,
+      dateFrom,
+      dateTo
+    } = req.query;
+
+    // Build query to only show user's transactions
+    const query = {
+      $or: [
+        { userId: req.user.userId },
+        { fromAddress: req.user.email },
+        { toAddress: req.user.email }
+      ]
+    };
+
+    // Apply filters
+    if (type && type !== 'all') {
+      query.transactionType = type;
+    }
+
+    if (status && status !== 'all') {
+      query.status = status;
+    }
+
+    if (dateFrom || dateTo) {
+      query.timestamp = {};
+      if (dateFrom) query.timestamp.$gte = new Date(dateFrom);
+      if (dateTo) query.timestamp.$lte = new Date(dateTo);
+    }
+
+    const transactions = await Transaction.find(query)
+      .sort({ timestamp: -1 })
+      .limit(limit * 1)
+      .skip((page - 1) * limit)
+      .select('transactionId transactionType amount status timestamp blockchainTxId riskScore');
+
+    const count = await Transaction.countDocuments(query);
+
+    // Format transactions for frontend
+    const formattedTransactions = transactions.map(txn => ({
+      _id: txn._id,
+      transactionId: txn.transactionId,
+      type: txn.transactionType,
+      amount: txn.amount,
+      status: txn.status || 'completed',
+      date: txn.timestamp,
+      blockchainHash: txn.blockchainTxId,
+      riskScore: txn.riskScore
+    }));
+
+    res.json({
+      success: true,
+      transactions: formattedTransactions,
+      totalPages: Math.ceil(count / limit),
+      currentPage: parseInt(page),
+      count
+    });
+  } catch (error) {
+    console.error('Get my transactions error:', error);
+    res.status(500).json({ error: error.message });
+  }
+};

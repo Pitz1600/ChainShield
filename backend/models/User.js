@@ -22,13 +22,27 @@ const userSchema = new mongoose.Schema({
   otpExpires: {
     type: Date
   },
+  otpAttempts: {
+    type: Number,
+    default: 0
+  },
+  inviteToken: {
+    type: String
+  },
+  inviteExpires: {
+    type: Date
+  },
+  invitedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
   password: {
     type: String,
     required: true
   },
   role: {
     type: String,
-    enum: ['resident', 'barangay_official', 'admin', 'analyst', 'investigator', 'viewer'], // Added new roles, kept old for compatibility
+    enum: ['resident', 'barangay_official', 'administrator', 'analyst', 'investigator'], // Kept analyst/investigator for backward compatibility
     default: 'resident'
   },
   position: String,

@@ -1,7 +1,27 @@
 import React, { useState, useEffect } from 'react';
+import { Lock, BarChart, Target, Zap, DollarSign, ChevronLeft, ChevronRight } from 'lucide-react';
+import { isOfficial } from '../../utils/permissions';
 import '../../styles/Analytics.css';
 
-function Analytics() {
+function Analytics({ user }) {
+  // Permission check - only officials and admins can view analytics
+  if (!isOfficial(user)) {
+    return (
+      <div style={{ padding: '2rem', textAlign: 'center' }}>
+        <div style={{ maxWidth: '500px', margin: '0 auto', padding: '2rem', background: '#fef2f2', borderRadius: '8px', border: '1px solid #fecaca' }}>
+          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}><Lock size={48} color="#991b1b" /></div>
+          <h2 style={{ color: '#991b1b', marginBottom: '0.5rem' }}>Access Denied</h2>
+          <p style={{ color: '#7f1d1d' }}>
+            Analytics Dashboard is only available to Barangay Officials and Administrators.
+          </p>
+          <p style={{ color: '#991b1b', fontSize: '0.875rem', marginTop: '1rem' }}>
+            Your role: <strong>{user?.role || 'Unknown'}</strong>
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   const [stats, setStats] = useState({
     total: 0,
     critical: 0,
@@ -61,7 +81,7 @@ function Analytics() {
 
         <div className="hero-stats-grid">
           <div className="hero-stat-card">
-            <div className="stat-icon">📊</div>
+            <div className="stat-icon"><BarChart size={24} color="#3b82f6" /></div>
             <div className="stat-content">
               <div className="stat-value">{stats.total}</div>
               <div className="stat-label">Transactions Analyzed</div>
@@ -69,7 +89,7 @@ function Analytics() {
           </div>
 
           <div className="hero-stat-card">
-            <div className="stat-icon">🎯</div>
+            <div className="stat-icon"><Target size={24} color="#10b981" /></div>
             <div className="stat-content">
               <div className="stat-value">98.5%</div>
               <div className="stat-label">Detection Accuracy</div>
@@ -77,7 +97,7 @@ function Analytics() {
           </div>
 
           <div className="hero-stat-card">
-            <div className="stat-icon">⚡</div>
+            <div className="stat-icon"><Zap size={24} color="#f59e0b" /></div>
             <div className="stat-content">
               <div className="stat-value">0.8s</div>
               <div className="stat-label">Avg Response Time</div>
@@ -85,7 +105,7 @@ function Analytics() {
           </div>
 
           <div className="hero-stat-card">
-            <div className="stat-icon">💰</div>
+            <div className="stat-icon"><DollarSign size={24} color="#8b5cf6" /></div>
             <div className="stat-content">
               <div className="stat-value">₱2.4B</div>
               <div className="stat-label">Risks Prevented</div>
@@ -225,7 +245,7 @@ function Analytics() {
                   onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                   disabled={currentPage === 1}
                 >
-                  ←
+                  <ChevronLeft size={16} />
                 </button>
                 <span className="pagination-text-small">
                   Page {currentPage} of {totalPages}
@@ -235,7 +255,7 @@ function Analytics() {
                   onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                   disabled={currentPage === totalPages}
                 >
-                  →
+                  <ChevronRight size={16} />
                 </button>
               </div>
             )}

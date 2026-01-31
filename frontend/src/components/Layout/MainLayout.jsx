@@ -9,6 +9,11 @@ const AlertsManagement = lazy(() => import('../Alerts/AlertsManagement'));
 const Analytics = lazy(() => import('../Analytics/Analytics'));
 const Profile = lazy(() => import('../Profile/Profile'));
 const CSVImport = lazy(() => import('../CSVImport/CSVImport'));
+const Cases = lazy(() => import('../Cases/Cases'));
+const AdminPanel = lazy(() => import('../Admin/AdminPanel'));
+const DocumentVerification = lazy(() => import('../DocumentVerification/DocumentVerification'));
+const MyTransactions = lazy(() => import('../Transactions/MyTransactions'));
+const SubmitComplaint = lazy(() => import('../Complaints/SubmitComplaint'));
 
 function MainLayout({ user, onLogout, onNavigate }) {
   const [activeView, setActiveView] = useState('dashboard');
@@ -46,8 +51,11 @@ function MainLayout({ user, onLogout, onNavigate }) {
           }>
             {activeView === 'dashboard' && <Dashboard user={user} onNavigate={onNavigate} />}
             {activeView === 'alerts' && <AlertsManagement />}
-            {activeView === 'analytics' && <Analytics />}
-            {activeView === 'csvimport' && <CSVImport />}
+            {activeView === 'transaction-history' && <MyTransactions user={user} />}
+            {activeView === 'analytics' && <Analytics user={user} />}
+            {activeView === 'csvimport' && <CSVImport user={user} />}
+            {activeView === 'cases' && <Cases user={user} />}
+            {activeView === 'admin' && <AdminPanel user={user} />}
             {activeView === 'profile' && <Profile user={user} />}
           </Suspense>
         </div>

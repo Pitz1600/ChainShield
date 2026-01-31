@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Shield, User, Mail, Lock, AlertCircle, Building } from 'lucide-react';
 import '../../styles/Register.css';
 import api from '../../services/api';
 
@@ -25,23 +26,31 @@ function Register({ onRegister, onNavigate }) {
         setError('Please fill in all required fields');
         return;
       }
-      if (formData.role === 'barangay_official') {
-        if (!formData.position) {
-          setError('Please select a position');
-          return;
-        }
-        if (formData.position === 'Others' && !formData.customPosition) {
-          setError('Please specify your position');
-          return;
-        }
-      }
+
       setStep(2);
       return;
     }
 
     if (step === 2) {
-      if (formData.password.length < 6) {
-        setError('Password must be at least 6 characters');
+      // Strong password validation
+      if (formData.password.length < 8) {
+        setError('Password must be at least 8 characters');
+        return;
+      }
+      if (!/[a-z]/.test(formData.password)) {
+        setError('Password must contain at least one lowercase letter');
+        return;
+      }
+      if (!/[A-Z]/.test(formData.password)) {
+        setError('Password must contain at least one uppercase letter');
+        return;
+      }
+      if (!/[0-9]/.test(formData.password)) {
+        setError('Password must contain at least one number');
+        return;
+      }
+      if (!/[!@#$%^&*(),.?":{}|<>]/.test(formData.password)) {
+        setError('Password must contain at least one special character (!@#$%^&*(),.?":{}|<>)');
         return;
       }
       if (formData.password !== formData.confirmPassword) {
@@ -51,14 +60,11 @@ function Register({ onRegister, onNavigate }) {
 
       setLoading(true);
       try {
-        const finalPosition = formData.position === 'Others' ? formData.customPosition : formData.position;
-
         const res = await api.post('/auth/register', {
           username: formData.username,
           email: formData.email,
           password: formData.password,
-          role: formData.role,
-          position: formData.role === 'barangay_official' ? finalPosition : undefined
+          role: 'resident'
         });
 
         // Save token for verification API calls
@@ -79,9 +85,9 @@ function Register({ onRegister, onNavigate }) {
       <div className="auth-sidebar register-sidebar">
         <div className="auth-sidebar-content">
           <div className="sidebar-brand" onClick={() => onNavigate('welcome')} style={{ cursor: 'pointer' }}>
-            <div className="sidebar-logo">🛡️</div>
+            <div className="sidebar-logo"><Shield size={48} /></div>
             <h2 className="sidebar-title">ChainShield</h2>
-            <p className="sidebar-subtitle">Document Fraud Detection</p>
+            <p className="sidebar-subtitle">Transaction Verification System</p>
           </div>
 
           <div className="sidebar-illustration">
@@ -92,35 +98,10 @@ function Register({ onRegister, onNavigate }) {
           <div className="sidebar-info">
             <h3 className="sidebar-info-title">Join ChainShield</h3>
             <p className="sidebar-info-text">
-              Create your account to access document verification tools and help protect government records.
+              Create your account to access digital tools and help ensure system integrity.
             </p>
 
-            <div className="role-info">
-              <h4 className="role-info-title">Available Roles:</h4>
-              <ul className="role-list">
-                <li className="role-item">
-                  <span className="role-icon">👤</span>
-                  <div>
-                    <strong>Resident</strong>
-                    <span className="role-desc">Access to public services</span>
-                  </div>
-                </li>
-                <li className="role-item">
-                  <span className="role-icon">🔍</span>
-                  <div>
-                    <strong>Barangay Official</strong>
-                    <span className="role-desc">Manage records and requests</span>
-                  </div>
-                </li>
-                <li className="role-item">
-                  <span className="role-icon">⚙️</span>
-                  <div>
-                    <strong>Administrator</strong>
-                    <span className="role-desc">System configuration</span>
-                  </div>
-                </li>
-              </ul>
-            </div>
+
           </div>
         </div>
       </div>
@@ -150,7 +131,7 @@ function Register({ onRegister, onNavigate }) {
 
           {error && (
             <div className="alert-box error">
-              <span className="alert-icon">⚠️</span>
+              <span className="alert-icon"><AlertCircle size={20} /></span>
               <span className="alert-message">{error}</span>
             </div>
           )}
@@ -160,7 +141,7 @@ function Register({ onRegister, onNavigate }) {
               <>
                 <div className="form-field">
                   <label className="field-label">
-                    <span className="label-icon">👤</span>
+                    <span className="label-icon"><User size={18} /></span>
                     <span>Full Name</span>
                     <span className="required">*</span>
                   </label>
@@ -177,8 +158,8 @@ function Register({ onRegister, onNavigate }) {
 
                 <div className="form-field">
                   <label className="field-label">
-                    <span className="label-icon">📧</span>
-                    <span>Government Email</span>
+                    <span className="label-icon"><Mail size={18} /></span>
+                    <span>Email Address</span>
                     <span className="required">*</span>
                   </label>
                   <input
@@ -186,70 +167,13 @@ function Register({ onRegister, onNavigate }) {
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className="field-input"
-                    placeholder="juan.delacruz@gov.ph"
+                    placeholder="juan.delacruz@example.com"
                     required
                   />
-                  <span className="field-hint">Official government email only</span>
+                  <span className="field-hint">We'll send a verification code to this email</span>
                 </div>
 
-                <div className="form-field">
-                  <label className="field-label">
-                    <span className="label-icon">👤</span>
-                    <span>Role</span>
-                    <span className="required">*</span>
-                  </label>
-                  <select
-                    value={formData.role}
-                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                    className="field-input"
-                    required
-                  >
-                    <option value="resident">Resident</option>
-                    <option value="barangay_official">Barangay Official</option>
-                    <option value="admin">Administrator</option>
-                  </select>
-                  <span className="field-hint">Select your access level</span>
-                </div>
 
-                {formData.role === 'barangay_official' && (
-                  <>
-                    <div className="form-field">
-                      <label className="field-label">
-                        <span className="label-icon">👔</span>
-                        <span>Position</span>
-                        <span className="required">*</span>
-                      </label>
-                      <select
-                        value={formData.position}
-                        onChange={(e) => setFormData({ ...formData, position: e.target.value })}
-                        className="field-input"
-                        required
-                      >
-                        {['Captain', 'Secretary', 'Treasurer', 'Kagawad', 'SK Chairman', 'Others'].map(pos => (
-                          <option key={pos} value={pos}>{pos}</option>
-                        ))}
-                      </select>
-                      <span className="field-hint">Your official position</span>
-                    </div>
-
-                    {formData.position === 'Others' && (
-                      <div className="form-field">
-                        <label className="field-label">
-                          <span>Specify Position</span>
-                          <span className="required">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          value={formData.customPosition}
-                          onChange={(e) => setFormData({ ...formData, customPosition: e.target.value })}
-                          className="field-input"
-                          placeholder="Enter your position"
-                          required
-                        />
-                      </div>
-                    )}
-                  </>
-                )}
               </>
             )}
 
@@ -257,9 +181,8 @@ function Register({ onRegister, onNavigate }) {
               <>
                 <div className="form-field">
                   <label className="field-label">
-                    <span className="label-icon">🔒</span>
+                    <span className="label-icon"><Lock size={18} /></span>
                     <span>Password</span>
-                    <span className="required">*</span>
                   </label>
                   <input
                     type="password"
@@ -269,7 +192,7 @@ function Register({ onRegister, onNavigate }) {
                     placeholder="Create a strong password"
                     required
                   />
-                  <span className="field-hint">Minimum 6 characters, include letters and numbers</span>
+                  <span className="field-hint">Minimum 8 characters with uppercase, lowercase, number, and special character</span>
                 </div>
 
                 <div className="form-field">
@@ -326,7 +249,7 @@ function Register({ onRegister, onNavigate }) {
           </div>
         </div>
       </div>
-    </div>
+    </div >
   );
 }
 

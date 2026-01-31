@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { Shield, Lock, AlertCircle, Info } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import '../../styles/NewPassword.css';
 
 function NewPassword({ resetToken, userEmail, onNavigate, onPasswordReset }) {
@@ -63,9 +65,9 @@ function NewPassword({ resetToken, userEmail, onNavigate, onPasswordReset }) {
       <div className="auth-sidebar new-password-sidebar">
         <div className="auth-sidebar-content">
           <div className="sidebar-brand" onClick={() => onNavigate('welcome')} style={{ cursor: 'pointer' }}>
-            <div className="sidebar-logo">🛡️</div>
+            <div className="sidebar-logo"><Shield size={48} /></div>
             <h2 className="sidebar-title">ChainShield</h2>
-            <p className="sidebar-subtitle">Document Fraud Detection</p>
+            <p className="sidebar-subtitle">Transaction Verification System</p>
           </div>
 
           <div className="sidebar-illustration">
@@ -97,7 +99,7 @@ function NewPassword({ resetToken, userEmail, onNavigate, onPasswordReset }) {
 
           {error && (
             <div className="alert-box error">
-              <span className="alert-icon">⚠️</span>
+              <span className="alert-icon"><AlertCircle size={20} /></span>
               <span className="alert-message">{error}</span>
             </div>
           )}
@@ -148,7 +150,7 @@ function NewPassword({ resetToken, userEmail, onNavigate, onPasswordReset }) {
 
             <div className="password-requirements">
               <div className="requirements-header">
-                <span className="requirements-icon">ℹ️</span>
+                <span className="requirements-icon"><Info size={18} /></span>
                 <span className="requirements-title">Password Requirements:</span>
               </div>
               <ul className="requirements-list">
