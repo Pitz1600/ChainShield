@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { User, Edit, Lock, Mail, Building, Target, Send } from 'lucide-react';
+import { User, Edit, Lock, Mail, Building, Target, Send, X } from 'lucide-react';
 import api from '../../services/api';
 import '../../styles/Profile.css';
 import '../../styles/ColorfulIcons.css';
 
 function Profile({ user }) {
-  const [isEditing, setIsEditing] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+
   const [editForm, setEditForm] = useState({
     username: user.username,
     email: user.email,
@@ -24,8 +26,8 @@ function Profile({ user }) {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
-  const handleEditToggle = () => {
-    setIsEditing(!isEditing);
+  const handleOpenEditModal = () => {
+    setShowEditModal(true);
     setEditOtpSent(false);
     setMessage('');
     setError('');
@@ -34,6 +36,33 @@ function Profile({ user }) {
       email: user.email,
       otp: ''
     });
+  };
+
+  const handleCloseEditModal = () => {
+    setShowEditModal(false);
+    setEditOtpSent(false);
+    setMessage('');
+    setError('');
+  };
+
+  const handleOpenPasswordModal = () => {
+    setShowPasswordModal(true);
+    setPasswordOtpSent(false);
+    setMessage('');
+    setError('');
+    setPasswordForm({
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+      otp: ''
+    });
+  };
+
+  const handleClosePasswordModal = () => {
+    setShowPasswordModal(false);
+    setPasswordOtpSent(false);
+    setMessage('');
+    setError('');
   };
 
   const handleSendEditOTP = async () => {
@@ -58,9 +87,11 @@ function Profile({ user }) {
     try {
       const response = await api.put('/auth/update-profile', editForm);
       setMessage('Profile updated successfully!');
-      setIsEditing(false);
-      setEditOtpSent(false);
-      setTimeout(() => window.location.reload(), 1500);
+      setError('');
+      setTimeout(() => {
+        handleCloseEditModal();
+        window.location.reload();
+      }, 1500);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to update profile');
     }
@@ -103,9 +134,10 @@ function Profile({ user }) {
       });
 
       setMessage('Password changed successfully!');
-      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '', otp: '' });
-      setPasswordOtpSent(false);
       setError('');
+      setTimeout(() => {
+        handleClosePasswordModal();
+      }, 1500);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to change password');
     }
@@ -140,9 +172,6 @@ function Profile({ user }) {
           </div>
         </div>
       </div>
-
-      {message && <div className="success-banner">{message}</div>}
-      {error && <div className="error-banner">{error}</div>}
 
       <div className="profile-cards">
         <div className="profile-info-card">
@@ -193,151 +222,187 @@ function Profile({ user }) {
       <div className="profile-section">
         <div className="section-header">
           <h3 className="section-title">Contact Information</h3>
-          <button className="edit-btn" onClick={handleEditToggle}>
-            <Edit size={16} /> {isEditing ? 'Cancel' : 'Edit details'}
+          <button className="edit-btn" onClick={handleOpenEditModal}>
+            <Edit size={16} /> Edit details
           </button>
         </div>
 
-        {isEditing ? (
-          <form onSubmit={handleEditSubmit} className="edit-form">
-            <div className="form-group">
-              <label className="form-label">Full Name</label>
-              <input
-                type="text"
-                className="form-input"
-                value={editForm.username}
-                onChange={(e) => setEditForm({ ...editForm, username: e.target.value })}
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Email Address</label>
-              <input
-                type="email"
-                className="form-input"
-                value={editForm.email}
-                onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                required
-              />
-            </div>
-
-            <div className="otp-section">
-              <div className="form-group">
-                <label className="form-label">OTP Verification</label>
-                <div className="otp-input-group">
-                  <input
-                    type="text"
-                    className="form-input"
-                    placeholder="Enter OTP from email"
-                    value={editForm.otp}
-                    onChange={(e) => setEditForm({ ...editForm, otp: e.target.value })}
-                    required
-                    disabled={!editOtpSent}
-                  />
-                  <button
-                    type="button"
-                    className="otp-btn"
-                    onClick={handleSendEditOTP}
-                    disabled={editOtpSent}
-                  >
-                    <Send size={16} /> {editOtpSent ? 'OTP Sent' : 'Send OTP'}
-                  </button>
-                </div>
-                <p className="security-hint">OTP required to update profile information</p>
-              </div>
-            </div>
-
-            <button type="submit" className="update-btn">
-              <Edit size={16} /> Save Changes
-            </button>
-          </form>
-        ) : (
-          <div className="contact-info">
-            <div className="contact-row">
-              <span className="contact-label">Full Name</span>
-              <span className="contact-value">{user.username}</span>
-            </div>
-            <div className="contact-row">
-              <span className="contact-label">Email Address</span>
-              <span className="contact-value">{user.email}</span>
-            </div>
-            <div className="contact-row">
-              <span className="contact-label">User Reference ID</span>
-              <span className="contact-value">USR{user.id}20250101</span>
-            </div>
+        <div className="contact-info">
+          <div className="contact-row">
+            <span className="contact-label">Full Name</span>
+            <span className="contact-value">{user.username}</span>
           </div>
-        )}
+          <div className="contact-row">
+            <span className="contact-label">Email Address</span>
+            <span className="contact-value">{user.email}</span>
+          </div>
+          <div className="contact-row">
+            <span className="contact-label">User Reference ID</span>
+            <span className="contact-value">USR{user.id}20250101</span>
+          </div>
+        </div>
       </div>
 
       <div className="profile-section">
         <h3 className="section-title">Security</h3>
         <p className="section-subtitle">Change your password to keep your account secure. OTP verification required.</p>
-        <form onSubmit={handlePasswordChange} className="security-form">
-          <div className="form-group">
-            <label className="form-label">Current Password</label>
-            <input
-              type="password"
-              className="form-input"
-              placeholder="Enter current password"
-              value={passwordForm.currentPassword}
-              onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label className="form-label">New Password</label>
-            <input
-              type="password"
-              className="form-input"
-              placeholder="Enter new password"
-              value={passwordForm.newPassword}
-              onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label className="form-label">Confirm New Password</label>
-            <input
-              type="password"
-              className="form-input"
-              placeholder="Confirm new password"
-              value={passwordForm.confirmPassword}
-              onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
-              required
-            />
-          </div>
+        <button className="edit-btn" onClick={handleOpenPasswordModal}>
+          <Lock size={16} /> Change Password
+        </button>
+      </div>
 
-          <div className="otp-section">
-            <div className="form-group">
-              <label className="form-label">OTP Code</label>
-              <div className="otp-input-group">
+      {/* Edit Profile Modal */}
+      {showEditModal && (
+        <div className="modal-overlay" onClick={handleCloseEditModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="modal-title">Edit Profile</h3>
+              <button className="modal-close" onClick={handleCloseEditModal}>
+                <X size={20} />
+              </button>
+            </div>
+
+            {message && <div className="success-banner">{message}</div>}
+            {error && <div className="error-banner">{error}</div>}
+
+            <form onSubmit={handleEditSubmit} className="modal-form">
+              <div className="form-group">
+                <label className="form-label">Full Name</label>
                 <input
                   type="text"
                   className="form-input"
-                  placeholder="Enter OTP from email"
-                  value={passwordForm.otp}
-                  onChange={(e) => setPasswordForm({ ...passwordForm, otp: e.target.value })}
+                  value={editForm.username}
+                  onChange={(e) => setEditForm({ ...editForm, username: e.target.value })}
                   required
-                  disabled={!passwordOtpSent}
                 />
-                <button
-                  type="button"
-                  className="otp-btn"
-                  onClick={handleSendPasswordOTP}
-                  disabled={passwordOtpSent}
-                >
-                  <Send size={16} /> {passwordOtpSent ? 'OTP Sent' : 'Send OTP'}
-                </button>
               </div>
-            </div>
-          </div>
+              <div className="form-group">
+                <label className="form-label">Email Address</label>
+                <input
+                  type="email"
+                  className="form-input"
+                  value={editForm.email}
+                  onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                  required
+                />
+              </div>
 
-          <button type="submit" className="update-btn">
-            <Lock size={16} /> Update Password
-          </button>
-          <p className="security-hint">Passwords must be at least 6 characters long. Avoid reusing old passwords for better security.</p>
-        </form>
-      </div>
+              <div className="otp-section">
+                <div className="form-group">
+                  <label className="form-label">OTP Verification</label>
+                  <div className="otp-input-group">
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="Enter OTP from email"
+                      value={editForm.otp}
+                      onChange={(e) => setEditForm({ ...editForm, otp: e.target.value })}
+                      required
+                      disabled={!editOtpSent}
+                    />
+                    <button
+                      type="button"
+                      className="otp-btn"
+                      onClick={handleSendEditOTP}
+                      disabled={editOtpSent}
+                    >
+                      <Send size={16} /> {editOtpSent ? 'OTP Sent' : 'Send OTP'}
+                    </button>
+                  </div>
+                  <p className="security-hint">OTP required to update profile information</p>
+                </div>
+              </div>
+
+              <button type="submit" className="update-btn">
+                <Edit size={16} /> Save Changes
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Change Password Modal */}
+      {showPasswordModal && (
+        <div className="modal-overlay" onClick={handleClosePasswordModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="modal-title">Change Password</h3>
+              <button className="modal-close" onClick={handleClosePasswordModal}>
+                <X size={20} />
+              </button>
+            </div>
+
+            {message && <div className="success-banner">{message}</div>}
+            {error && <div className="error-banner">{error}</div>}
+
+            <form onSubmit={handlePasswordChange} className="modal-form">
+              <div className="form-group">
+                <label className="form-label">Current Password</label>
+                <input
+                  type="password"
+                  className="form-input"
+                  placeholder="Enter current password"
+                  value={passwordForm.currentPassword}
+                  onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label">New Password</label>
+                <input
+                  type="password"
+                  className="form-input"
+                  placeholder="Enter new password"
+                  value={passwordForm.newPassword}
+                  onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Confirm New Password</label>
+                <input
+                  type="password"
+                  className="form-input"
+                  placeholder="Confirm new password"
+                  value={passwordForm.confirmPassword}
+                  onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="otp-section">
+                <div className="form-group">
+                  <label className="form-label">OTP Code</label>
+                  <div className="otp-input-group">
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="Enter OTP from email"
+                      value={passwordForm.otp}
+                      onChange={(e) => setPasswordForm({ ...passwordForm, otp: e.target.value })}
+                      required
+                      disabled={!passwordOtpSent}
+                    />
+                    <button
+                      type="button"
+                      className="otp-btn"
+                      onClick={handleSendPasswordOTP}
+                      disabled={passwordOtpSent}
+                    >
+                      <Send size={16} /> {passwordOtpSent ? 'OTP Sent' : 'Send OTP'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <button type="submit" className="update-btn">
+                <Lock size={16} /> Update Password
+              </button>
+              <p className="security-hint">Passwords must be at least 6 characters long. Avoid reusing old passwords for better security.</p>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

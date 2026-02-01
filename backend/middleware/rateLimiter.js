@@ -5,10 +5,10 @@ const rateLimit = require('express-rate-limit');
  * Protects against brute force and abuse
  */
 
-// Login rate limiter - 5 attempts per 15 minutes
+// Login rate limiter - 20 attempts per 15 minutes
 const loginLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 5, // 5 requests per window
+    max: 20, // 20 requests per window
     message: {
         error: 'Too many login attempts. Please try again in 15 minutes.',
         retryAfter: '15 minutes'
@@ -18,10 +18,10 @@ const loginLimiter = rateLimit({
     skipSuccessfulRequests: true, // Don't count successful logins
 });
 
-// OTP verification limiter - 3 attempts per 10 minutes
+// OTP verification limiter - 10 attempts per 10 minutes
 const otpVerificationLimiter = rateLimit({
     windowMs: 10 * 60 * 1000, // 10 minutes
-    max: 3, // 3 requests per window
+    max: 10, // 10 requests per window
     message: {
         error: 'Too many verification attempts. Please request a new OTP.',
         retryAfter: '10 minutes'
@@ -30,10 +30,10 @@ const otpVerificationLimiter = rateLimit({
     legacyHeaders: false,
 });
 
-// OTP resend limiter - 3 resends per hour
+// OTP resend limiter - 10 resends per hour
 const otpResendLimiter = rateLimit({
     windowMs: 60 * 60 * 1000, // 1 hour
-    max: 3, // 3 requests per window
+    max: 10, // 10 requests per window
     message: {
         error: 'Too many OTP requests. Please wait before requesting another code.',
         retryAfter: '1 hour'
@@ -42,10 +42,10 @@ const otpResendLimiter = rateLimit({
     legacyHeaders: false,
 });
 
-// Registration limiter - 3 registrations per hour per IP
+// Registration limiter - 10 registrations per hour per IP
 const registrationLimiter = rateLimit({
     windowMs: 60 * 60 * 1000, // 1 hour
-    max: 3, // 3 requests per window
+    max: 10, // 10 requests per window
     message: {
         error: 'Too many registration attempts. Please try again later.',
         retryAfter: '1 hour'
@@ -54,22 +54,23 @@ const registrationLimiter = rateLimit({
     legacyHeaders: false,
 });
 
-// General API limiter - 100 requests per 15 minutes
+// General API limiter - 5000 requests per 15 minutes (only counts errors)
 const apiLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // 100 requests per window
+    max: 5000, // 5000 requests per window
     message: {
         error: 'Too many requests. Please slow down.',
         retryAfter: '15 minutes'
     },
     standardHeaders: true,
     legacyHeaders: false,
+    skipSuccessfulRequests: true, // Only count failed requests
 });
 
-// Strict limiter for sensitive operations - 10 per hour
+// Strict limiter for sensitive operations - 50 per hour
 const strictLimiter = rateLimit({
     windowMs: 60 * 60 * 1000, // 1 hour
-    max: 10, // 10 requests per window
+    max: 50, // 50 requests per window
     message: {
         error: 'Rate limit exceeded for this operation.',
         retryAfter: '1 hour'

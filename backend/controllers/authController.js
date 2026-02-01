@@ -120,7 +120,7 @@ exports.verifyEmail = async (req, res) => {
     }
 
     // Check if OTP attempts exceeded
-    if (user.otpAttempts >= 3) {
+    if (user.otpAttempts >= 10) {
       return res.status(429).json({
         message: 'Too many failed attempts. Please request a new OTP.',
         action: 'resend_required'
@@ -144,7 +144,7 @@ exports.verifyEmail = async (req, res) => {
       user.otpAttempts += 1;
       await user.save();
 
-      const remainingAttempts = 3 - user.otpAttempts;
+      const remainingAttempts = 10 - user.otpAttempts;
       return res.status(400).json({
         message: `Invalid OTP. ${remainingAttempts} attempt(s) remaining.`,
         remainingAttempts
@@ -211,3 +211,185 @@ exports.getProfile = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+// Send OTP for profile update
+exports.sendProfileOtp = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    // Generate new OTP
+    const otp = generateOTP();
+    user.otp = otp;
+    user.otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    user.otpAttempts = 0;
+    await user.save();
+
+    // Send OTP via email
+    try {
+      await emailService.sendOTPEmail(user.email, otp, user.username);
+      res.json({ success: true, message: 'OTP sent to your email for profile update verification.' });
+    } catch (emailError) {
+      console.error('Failed to send profile OTP email:', emailError);
+      res.status(500).json({ message: 'Failed to send email. Please try again later.' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Send OTP for password change
+exports.sendPasswordOtp = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    // Generate new OTP
+    const otp = generateOTP();
+    user.otp = otp;
+    user.otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    user.otpAttempts = 0;
+    await user.save();
+
+    // Send OTP via email
+    try {
+      await emailService.sendOTPEmail(user.email, otp, user.username);
+      res.json({ success: true, message: 'OTP sent to your email for password change verification.' });
+    } catch (emailError) {
+      console.error('Failed to send password OTP email:', emailError);
+      res.status(500).json({ message: 'Failed to send email. Please try again later.' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Update profile with OTP verification
+exports.updateProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { username, email, otp } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    // Check if OTP attempts exceeded
+    if (user.otpAttempts >= 10) {
+      return res.status(429).json({
+        message: 'Too many failed attempts. Please request a new OTP.',
+        action: 'resend_required'
+      });
+    }
+
+    // Check OTP validity
+    if (!user.otp || !user.otpExpires) {
+      return res.status(400).json({ message: 'No OTP found. Please request a new one.' });
+    }
+
+    if (user.otpExpires < Date.now()) {
+      return res.status(400).json({
+        message: 'OTP has expired. Please request a new one.',
+        action: 'resend_required'
+      });
+    }
+
+    if (user.otp !== otp) {
+      // Increment failed attempts
+      user.otpAttempts += 1;
+      await user.save();
+
+      const remainingAttempts = 10 - user.otpAttempts;
+      return res.status(400).json({
+        message: `Invalid OTP. ${remainingAttempts} attempt(s) remaining.`,
+        remainingAttempts
+      });
+    }
+
+    // Check if email is being changed and if it's already taken
+    if (email && email !== user.email) {
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        return res.status(400).json({ message: 'Email already in use by another account.' });
+      }
+      user.email = email;
+    }
+
+    // Update username if provided
+    if (username) {
+      user.username = username;
+    }
+
+    // Clear OTP after successful verification
+    user.otp = undefined;
+    user.otpExpires = undefined;
+    user.otpAttempts = 0;
+    await user.save();
+
+    res.json({ success: true, message: 'Profile updated successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Change password with OTP verification
+exports.changePassword = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { currentPassword, newPassword, otp } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    // Verify current password
+    const isPasswordValid = await user.comparePassword(currentPassword);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: 'Current password is incorrect' });
+    }
+
+    // Check if OTP attempts exceeded
+    if (user.otpAttempts >= 10) {
+      return res.status(429).json({
+        message: 'Too many failed attempts. Please request a new OTP.',
+        action: 'resend_required'
+      });
+    }
+
+    // Check OTP validity
+    if (!user.otp || !user.otpExpires) {
+      return res.status(400).json({ message: 'No OTP found. Please request a new one.' });
+    }
+
+    if (user.otpExpires < Date.now()) {
+      return res.status(400).json({
+        message: 'OTP has expired. Please request a new one.',
+        action: 'resend_required'
+      });
+    }
+
+    if (user.otp !== otp) {
+      // Increment failed attempts
+      user.otpAttempts += 1;
+      await user.save();
+
+      const remainingAttempts = 10 - user.otpAttempts;
+      return res.status(400).json({
+        message: `Invalid OTP. ${remainingAttempts} attempt(s) remaining.`,
+        remainingAttempts
+      });
+    }
+
+    // Update password
+    user.password = newPassword;
+    user.otp = undefined;
+    user.otpExpires = undefined;
+    user.otpAttempts = 0;
+    await user.save();
+
+    res.json({ success: true, message: 'Password changed successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
