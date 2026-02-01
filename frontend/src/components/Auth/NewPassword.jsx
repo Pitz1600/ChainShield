@@ -65,7 +65,7 @@ function NewPassword({ resetToken, userEmail, onNavigate, onPasswordReset }) {
       <div className="auth-sidebar new-password-sidebar">
         <div className="auth-sidebar-content">
           <div className="sidebar-brand" onClick={() => onNavigate('welcome')} style={{ cursor: 'pointer' }}>
-            <div className="sidebar-logo"><Shield size={48} /></div>
+            <div className="sidebar-logo"><img src="/ChainShield_logo.png" alt="ChainShield Logo" className="logo-image" /></div>
             <h2 className="sidebar-title">ChainShield</h2>
             <p className="sidebar-subtitle">Transaction Verification System</p>
           </div>

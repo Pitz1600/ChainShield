@@ -9,7 +9,7 @@ function Welcome({ onNavigate }) {
         <div className="sidebar-content">
           <div className="brand-section">
             <div className="brand-logo">
-              <div className="logo-shield"><Shield size={64} /></div>
+              <div className="logo-shield"><img src="/ChainShield_logo.png" alt="ChainShield Logo" className="logo-welcome" /></div>
             </div>
             <h1 className="brand-name">ChainShield</h1>
             <p className="brand-tagline">Barangay Transaction Integrity Monitoring System</p>
