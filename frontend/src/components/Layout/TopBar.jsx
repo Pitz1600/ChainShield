@@ -4,16 +4,24 @@ import '../../styles/TopBar.css';
 import '../../styles/ColorfulIcons.css';
 
 function TopBar({ user, toggleMobileMenu }) {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
+
+  const handleMenuToggle = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+    toggleMobileMenu();
+  };
+
   return (
     <header className="top-bar">
       <div className="top-bar-content">
         <div className="top-bar-left">
           <button
             className="mobile-menu-btn"
-            onClick={toggleMobileMenu}
+            onClick={handleMenuToggle}
             aria-label="Open navigation menu"
+            aria-expanded={isMobileMenuOpen}
           >
-            <Menu size={28} />
+            <Menu size={24} />
           </button>
           <div className="top-bar-brand">
             <h1
