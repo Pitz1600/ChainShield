@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Lock, Settings, Users, User, BarChart3, CheckCircle, Clock, UserCheck, Edit2, X, Shield, Activity, Mail } from 'lucide-react';
 import { isAdmin } from '../../utils/permissions';
+import SecurityLogs from './SecurityLogs';
 import '../../styles/AdminPanel.css';
 
 function AdminPanel({ user }) {
@@ -26,6 +27,7 @@ function AdminPanel({ user }) {
     const [stats, setStats] = useState({ totalUsers: 0, activeUsers: 0, pendingVerification: 0 });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [activeTab, setActiveTab] = useState('security');
 
     useEffect(() => {
         // Load everything on mount
@@ -169,26 +171,65 @@ function AdminPanel({ user }) {
             </div>
 
             <div className="admin-content-wrapper">
+                <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', borderBottom: '2px solid #e5e7eb' }}>
+                    <button
+                        onClick={() => setActiveTab('security')}
+                        style={{
+                            padding: '0.75rem 1.5rem',
+                            background: 'none',
+                            border: 'none',
+                            borderBottom: activeTab === 'security' ? '2px solid #667eea' : '2px solid transparent',
+                            color: activeTab === 'security' ? '#667eea' : '#6b7280',
+                            fontWeight: '600',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            fontSize: '0.95rem'
+                        }}
+                    >
+                        <Shield size={18} style={{ display: 'inline-block', marginRight: '0.5rem', verticalAlign: 'text-bottom' }} />
+                        Security Logs
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('users')}
+                        style={{
+                            padding: '0.75rem 1.5rem',
+                            background: 'none',
+                            border: 'none',
+                            borderBottom: activeTab === 'users' ? '2px solid #667eea' : '2px solid transparent',
+                            color: activeTab === 'users' ? '#667eea' : '#6b7280',
+                            fontWeight: '600',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            fontSize: '0.95rem'
+                        }}
+                    >
+                        <Users size={18} style={{ display: 'inline-block', marginRight: '0.5rem', verticalAlign: 'text-bottom' }} />
+                        User Management
+                    </button>
+                </div>
+
                 <div className="admin-content">
-                    {loading && (
-                        <div style={{ padding: '3rem', textAlign: 'center' }}>
-                            <div style={{ width: '40px', height: '40px', border: '4px solid #e2e8f0', borderTopColor: '#3b82f6', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto' }}></div>
-                            <p style={{ marginTop: '1rem', color: '#64748b' }}>Loading...</p>
-                        </div>
-                    )}
+                    {activeTab === 'users' && (
+                        <>
+                            {loading && (
+                                <div style={{ padding: '3rem', textAlign: 'center' }}>
+                                    <div style={{ width: '40px', height: '40px', border: '4px solid #e2e8f0', borderTopColor: '#3b82f6', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto' }}></div>
+                                    <p style={{ marginTop: '1rem', color: '#64748b' }}>Loading...</p>
+                                </div>
+                            )}
 
-                    {error && (
-                        <div style={{ padding: '2rem', textAlign: 'center', color: '#dc2626' }}>
-                            {error}
-                        </div>
-                    )}
+                            {error && (
+                                <div style={{ padding: '2rem', textAlign: 'center', color: '#dc2626' }}>
+                                    {error}
+                                </div>
+                            )}
 
-                    {!loading && !error && (
-                        <div className="users-table-container">
-                            <h3 style={{ margin: '0 0 1.5rem', color: '#334155', fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <Users size={24} className="text-blue-500" />
-                                User Management
-                            </h3>
+                            {!loading && !error && (
+                                <div className="users-table-container">
+                                    <h3 style={{ margin: '0 0 1.5rem', color: '#334155', fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <Users size={24} className="text-blue-500" />
+                                        User Management
+                                    </h3>
                             <div className="user-card-header" style={{ display: 'grid', gridTemplateColumns: '2fr 2.5fr 1.5fr 1fr 1fr auto', padding: '0 1.25rem 0.5rem', fontWeight: '600', color: '#64748b', fontSize: '0.85rem', textTransform: 'uppercase' }}>
                                 <div>User</div>
                                 <div>Contact</div>
@@ -269,8 +310,12 @@ function AdminPanel({ user }) {
                         </div>
 
                     )}
+                        </>
+                    )}
 
-
+                    {activeTab === 'security' && (
+                        <SecurityLogs />
+                    )}
                 </div>
             </div>
 
