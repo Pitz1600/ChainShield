@@ -83,6 +83,10 @@ app.use(mongoSanitize());
 // Apply general rate limiting to all routes
 app.use('/api/', apiLimiter);
 
+// Audit Logging
+const auditLog = require('./middleware/auditLog');
+app.use(auditLog);
+
 // ========================================
 // ROUTES
 // ========================================

@@ -4,6 +4,7 @@ import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
 import EmailVerify from './components/Auth/EmailVerify';
 import MainLayout from './components/Layout/MainLayout';
+import { authAPI } from './services/api';
 
 function App() {
   const [view, setView] = useState('welcome');
@@ -43,13 +44,31 @@ function App() {
     setView('dashboard');
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setIsAuthenticated(false);
-    setUser(null);
-    setPendingUser(null);
-    setView('welcome');
+  const handleLogout = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      // Use direct fetch to ensure token is sent even if api interceptor has issues
+      // and to ensure we wait for it properly.
+      if (token) {
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+        await fetch(`${API_URL}/auth/logout`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Logout failed:', error);
+    } finally {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      setIsAuthenticated(false);
+      setUser(null);
+      setPendingUser(null);
+      setView('welcome');
+    }
   };
 
   const handleNavigate = (newView, data = null) => {
