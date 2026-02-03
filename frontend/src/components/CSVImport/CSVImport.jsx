@@ -117,7 +117,7 @@ const CSVImport = ({ user }) => {
             <div className="page-hero csv-hero">
                 <span className="hero-tag">CSV IMPORT</span>
                 <h2 className="hero-title">Bulk Transaction Import</h2>
-                <p className="hero-subtitle">Upload CSV files to import multiple transactions at once with automatic fraud detection and risk analysis.</p>
+                <p className="hero-subtitle">Upload CSV files to import multiple transactions at once with automatic risk assessment and anomaly detection.</p>
 
                 <div className="hero-features-grid">
                     <div className="hero-feature-card">
@@ -138,7 +138,7 @@ const CSVImport = ({ user }) => {
                         <div className="feature-icon"><Shield size={20} color="#fbbf24" /></div>
                         <div className="feature-text">
                             <strong>Risk Analysis</strong>
-                            <p>Detects fraud instantly</p>
+                            <p>Detects anomalies instantly</p>
                         </div>
                     </div>
                     <div className="hero-feature-card">
@@ -292,8 +292,8 @@ const CSVImport = ({ user }) => {
                                                     </span>
                                                 </td>
                                                 <td>
-                                                    {result.fraudType && result.fraudType !== 'Other' ? (
-                                                        <span className="fraud-type">{result.fraudType}</span>
+                                                    {result.anomalyCategory && result.anomalyCategory !== 'Other' ? (
+                                                        <span className="fraud-type">{result.anomalyCategory}</span>
                                                     ) : (
                                                         <span className="no-fraud">-</span>
                                                     )}
@@ -330,10 +330,10 @@ const CSVImport = ({ user }) => {
                                                 </div>
                                             ))}
                                         </div>
-                                        {result.philippinePatterns && result.philippinePatterns.length > 0 && (
+                                        {result.anomalyPatterns && result.anomalyPatterns.length > 0 && (
                                             <div className="ph-patterns">
-                                                <strong>Philippine Patterns Detected:</strong>
-                                                {result.philippinePatterns.map((pattern, pIdx) => (
+                                                <strong>Anomaly Patterns Detected:</strong>
+                                                {result.anomalyPatterns.map((pattern, pIdx) => (
                                                     <span key={pIdx} className="pattern-badge">
                                                         {pattern.type}
                                                     </span>

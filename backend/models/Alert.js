@@ -15,9 +15,9 @@ const alertSchema = new mongoose.Schema({
     enum: ['low', 'medium', 'high', 'critical'],
     required: true
   },
-  fraudType: {
+  anomalyCategory: {
     type: String,
-    enum: ['Procurement Fraud', 'Tax Evasion', 'Welfare Fraud', 'Identity Fraud', 'Money Laundering', 'Other'],
+    enum: ['Procurement Anomaly', 'Tax Anomaly', 'Welfare Anomaly', 'Identity Anomaly', 'Money Laundering Anomaly', 'Other'],
     required: true
   },
   riskScore: {

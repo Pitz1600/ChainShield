@@ -3,8 +3,9 @@ const Transaction = require('../models/Transaction');
 const axios = require('axios');
 const blockchainService = require('./blockchainService');
 const economicDataService = require('./economicDataService');
+const ModelVersion = require('../models/ModelVersion');
 
-class FraudDetectionService {
+class RiskAssessmentService {
   constructor() {
     // Support free ML APIs or local service
     // Options:
@@ -20,10 +21,14 @@ class FraudDetectionService {
   }
 
   /**
-   * Comprehensive fraud analysis integrating ML, blockchain, and graph analytics
+   * Comprehensive risk assessment integrating ML, blockchain, and graph analytics
    */
   async analyzeTransaction(transaction) {
     try {
+      // Get active model version
+      const activeModel = await ModelVersion.getActiveModel();
+      const modelVersion = activeModel ? activeModel.version : 'v1.0.0-static';
+
       // Step 1: Get graph analytics
       const graphAnalysis = await this.getGraphAnalysis(transaction);
 
@@ -44,22 +49,35 @@ class FraudDetectionService {
       );
 
       // Step 5: Combine all analysis results
-      return {
+      const analysis = {
         riskScore: mlResponse.riskScore,
         riskLevel: mlResponse.riskLevel,
-        isFraudulent: mlResponse.isFraudulent,
-        fraudType: mlResponse.fraudType,
+        requiresReview: mlResponse.riskScore >= 60,
+        anomalyCategory: this.classifyAnomalyCategory(transaction, mlResponse.explanation || mlResponse.reasons || []),
         reasons: mlResponse.explanation || mlResponse.reasons || [],
         shapValues: mlResponse.shapValues || {},
-        graphPatterns: graphAnalysis.fraudPatterns || [],
+        anomalyPatterns: graphAnalysis.fraudPatterns || [],
         networkFeatures: graphAnalysis.networkFeatures || {},
         blockchainTxId: blockchainReceipt.transactionHash,
         blockchainBlockNumber: blockchainReceipt.blockNumber,
         anomalyScore: mlResponse.anomalyScore,
-        isAnomaly: mlResponse.isAnomaly
+        isAnomaly: mlResponse.isAnomaly,
+        modelVersion // Include model version in response
       };
+
+      // Store prediction data for potential feedback
+      if (transaction._id) {
+        transaction.predictionMetadata = {
+          modelVersion,
+          features: mlFeatures,
+          predictedAt: new Date()
+        };
+      }
+
+      return analysis;
     } catch (error) {
-      console.error('Fraud Detection Error:', error.message);
+      console.error('Risk Assessment Error:', error.message);
+      console.error('Stack:', error.stack);
       // Fallback to rule-based detection
       return this.ruleBasedDetection(transaction);
     }
@@ -251,7 +269,7 @@ class FraudDetectionService {
   }
 
   /**
-   * Rule-based fraud detection (fallback)
+   * Rule-based risk detection (fallback)
    * Philippine government context-specific rules
    */
   ruleBasedDetection(transaction) {
@@ -272,7 +290,7 @@ class FraudDetectionService {
       }
     }
 
-    // Rule 3: Procurement fraud indicators
+    // Rule 3: Procurement anomaly indicators
     if (transaction.transactionType === 'Procurement' && transaction.amount > 500000) {
       riskScore += 35;
       reasons.push('High-value procurement transaction - requires review');
@@ -286,11 +304,11 @@ class FraudDetectionService {
     return {
       riskScore,
       riskLevel,
-      isFraudulent: riskScore >= 60,
-      fraudType: this.classifyFraudType(transaction, reasons),
+      requiresReview: riskScore >= 60,
+      anomalyCategory: this.classifyAnomalyCategory(transaction, reasons),
       reasons,
       shapValues: {},
-      graphPatterns: [],
+      anomalyPatterns: [],
       networkFeatures: {},
       blockchainTxId: null,
       blockchainBlockNumber: null,
@@ -300,19 +318,19 @@ class FraudDetectionService {
   }
 
   /**
-   * Classify fraud type based on transaction and reasons
+   * Classify anomaly category based on transaction and reasons
    */
-  classifyFraudType(transaction, reasons) {
+  classifyAnomalyCategory(transaction, reasons) {
     const reasonsStr = reasons.join(' ').toLowerCase();
 
     if (reasonsStr.includes('welfare') || transaction.transactionType === 'Social Welfare') {
-      return 'Welfare Fraud';
+      return 'Welfare Anomaly';
     }
     if (reasonsStr.includes('procurement') || transaction.transactionType === 'Procurement') {
-      return 'Procurement Fraud';
+      return 'Procurement Anomaly';
     }
     if (reasonsStr.includes('tax') || transaction.transactionType === 'Tax') {
-      return 'Tax Evasion';
+      return 'Tax Anomaly';
     }
 
     return 'Other';
@@ -329,23 +347,23 @@ class FraudDetectionService {
   }
 
   /**
-   * Create alert for fraudulent transaction
+   * Create alert for high-risk transaction
    */
-  async createAlert(transaction, fraudAnalysis) {
-    const severity = this.calculateSeverity(fraudAnalysis.riskScore);
+  async createAlert(transaction, riskAnalysis) {
+    const severity = this.calculateSeverity(riskAnalysis.riskScore);
 
     const alert = new Alert({
       transactionId: transaction._id,
       txHash: transaction.txHash,
       severity,
-      fraudType: fraudAnalysis.fraudType,
-      riskScore: fraudAnalysis.riskScore,
-      reasons: fraudAnalysis.reasons,
-      shapValues: fraudAnalysis.shapValues,
+      anomalyCategory: riskAnalysis.anomalyCategory,
+      riskScore: riskAnalysis.riskScore,
+      reasons: riskAnalysis.reasons,
+      shapValues: riskAnalysis.shapValues,
       features: {
-        networkFeatures: fraudAnalysis.networkFeatures,
-        graphPatterns: fraudAnalysis.graphPatterns,
-        blockchainTxId: fraudAnalysis.blockchainTxId
+        networkFeatures: riskAnalysis.networkFeatures,
+        anomalyPatterns: riskAnalysis.anomalyPatterns,
+        blockchainTxId: riskAnalysis.blockchainTxId
       },
       status: 'open'
     });
@@ -365,4 +383,4 @@ class FraudDetectionService {
   }
 }
 
-module.exports = new FraudDetectionService();
+module.exports = new RiskAssessmentService();
