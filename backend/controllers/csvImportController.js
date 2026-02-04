@@ -1,5 +1,5 @@
 const Transaction = require('../models/Transaction');
-const fraudDetectionService = require('../services/fraudDetection');
+const riskAssessmentService = require('../services/fraudDetection');
 const blockchainService = require('../services/blockchainService');
 const CSVColumnMapper = require('../utils/csvColumnMapper');
 const csv = require('csv-parser');
@@ -7,7 +7,7 @@ const fs = require('fs');
 
 /**
  * Import transactions from ANY CSV file (no template required!)
- * Intelligently detects columns and runs Philippine fraud detection
+ * Intelligently detects columns and runs Philippine risk assessment
  */
 exports.importTransactions = async (req, res) => {
   try {
@@ -87,31 +87,31 @@ exports.importTransactions = async (req, res) => {
                 transaction.txHash = blockchainService.generateTxHash(transaction);
               }
 
-              // Run PHILIPPINE FRAUD DETECTION 🇵🇭
-              console.log(`  Row ${i + 2}: Analyzing with Philippine fraud patterns...`);
-              const fraudAnalysis = await fraudDetectionService.analyzeTransaction(transaction);
+              // Run PHILIPPINE RISK ASSESSMENT 🇵🇭
+              console.log(`  Row ${i + 2}: Analyzing with Philippine risk patterns...`);
+              const riskAnalysis = await riskAssessmentService.analyzeTransaction(transaction);
 
-              // Update transaction with fraud analysis
-              transaction.riskScore = fraudAnalysis.riskScore;
-              transaction.riskLevel = fraudAnalysis.riskLevel;
-              transaction.flagged = fraudAnalysis.isFraudulent;
-              transaction.blockchainTxId = fraudAnalysis.blockchainTxId;
-              transaction.blockNumber = fraudAnalysis.blockchainBlockNumber;
+              // Update transaction with risk analysis
+              transaction.riskScore = riskAnalysis.riskScore;
+              transaction.riskLevel = riskAnalysis.riskLevel;
+              transaction.flagged = riskAnalysis.requiresReview;
+              transaction.blockchainTxId = riskAnalysis.blockchainTxId;
+              transaction.blockNumber = riskAnalysis.blockchainBlockNumber;
 
               // Store network features
-              if (fraudAnalysis.networkFeatures) {
+              if (riskAnalysis.networkFeatures) {
                 transaction.networkFeatures = {
-                  degree: fraudAnalysis.networkFeatures.degree || 0,
-                  inDegree: fraudAnalysis.networkFeatures.inDegree || 0,
-                  outDegree: fraudAnalysis.networkFeatures.outDegree || 0,
-                  clusteringCoefficient: fraudAnalysis.networkFeatures.clusteringCoefficient || 0,
-                  betweennessCentrality: fraudAnalysis.networkFeatures.betweennessCentrality || 0
+                  degree: riskAnalysis.networkFeatures.degree || 0,
+                  inDegree: riskAnalysis.networkFeatures.inDegree || 0,
+                  outDegree: riskAnalysis.networkFeatures.outDegree || 0,
+                  clusteringCoefficient: riskAnalysis.networkFeatures.clusteringCoefficient || 0,
+                  betweennessCentrality: riskAnalysis.networkFeatures.betweennessCentrality || 0
                 };
               }
 
-              // Store fraud patterns
-              if (fraudAnalysis.graphPatterns && fraudAnalysis.graphPatterns.length > 0) {
-                transaction.fraudPatterns = fraudAnalysis.graphPatterns.map(pattern => ({
+              // Store anomaly patterns
+              if (riskAnalysis.anomalyPatterns && riskAnalysis.anomalyPatterns.length > 0) {
+                transaction.fraudPatterns = riskAnalysis.anomalyPatterns.map(pattern => ({
                   type: pattern.type,
                   severity: pattern.severity,
                   description: pattern.description
@@ -121,11 +121,11 @@ exports.importTransactions = async (req, res) => {
               await transaction.save();
 
               // Create alert if flagged
-              if (fraudAnalysis.isFraudulent) {
-                await fraudDetectionService.createAlert(transaction, fraudAnalysis);
+              if (riskAnalysis.requiresReview) {
+                await riskAssessmentService.createAlert(transaction, riskAnalysis);
               }
 
-              // Return enhanced results with Philippine fraud detection
+              // Return enhanced results with Philippine risk assessment
               results.push({
                 row: i + 2,
                 transactionId: transaction.transactionId,
@@ -134,10 +134,10 @@ exports.importTransactions = async (req, res) => {
                 riskScore: transaction.riskScore,
                 riskLevel: transaction.riskLevel,
                 flagged: transaction.flagged,
-                fraudType: fraudAnalysis.fraudType,
-                reasons: fraudAnalysis.reasons || [],
-                // Philippine fraud detection specific
-                philippinePatterns: fraudAnalysis.graphPatterns || [],
+                anomalyCategory: riskAnalysis.anomalyCategory,
+                reasons: riskAnalysis.reasons || [],
+                // Philippine risk assessment specific
+                anomalyPatterns: riskAnalysis.anomalyPatterns || [],
                 networkFeatures: transaction.networkFeatures
               });
 
@@ -166,13 +166,13 @@ exports.importTransactions = async (req, res) => {
           console.log(`  Total: ${rawTransactions.length}`);
           console.log(`  Imported: ${results.length}`);
           console.log(`  Failed: ${errors.length}`);
-          console.log(`  Flagged as Fraud: ${flaggedCount}`);
+          console.log(`  Flagged for Review: ${flaggedCount}`);
           console.log(`  High Risk: ${highRiskCount}`);
 
           // Return enhanced results
           res.json({
             success: true,
-            message: `Processed ${rawTransactions.length} transactions with Philippine fraud detection`,
+            message: `Processed ${rawTransactions.length} transactions with Philippine risk assessment`,
             imported: results.length,
             failed: errors.length,
             flaggedCount,
@@ -211,12 +211,15 @@ exports.importTransactions = async (req, res) => {
 
 /**
  * Generate CSV template for download (optional - system works without it!)
+ * Shows flexible format with debit/credit columns
  */
 exports.downloadTemplate = (req, res) => {
-  const template = `transactionType,agency,programName,fromAddress,toAddress,amount,beneficiaryType,currency,timestamp
-Social Welfare,DSWD,4Ps,0x1234567890123456789012345678901234567890,0x0987654321098765432109876543210987654321,5000,Household,PHP,2024-01-15T10:30:00Z
-Procurement,DBM,Infrastructure,0x2345678901234567890123456789012345678901,0x8765432109876543210987654321098765432109,500000,Contractor,PHP,2024-01-15T11:00:00Z
-Tax,BIR,Income Tax,0x3456789012345678901234567890123456789012,0x7654321098765432109876543210987654321098,25000,Individual,PHP,2024-01-15T12:00:00Z`;
+  const template = `record_id,post_date,payer_name,payee_name,debit_amount,credit_amount,currency,description_raw
+TX-001,2024-01-15,Barangay Pantal,Dagupan City Treasury,6407.55,0,PHP,Check Encashment - Office Supplies
+TX-002,2024-01-16,DSWD,Juan Dela Cruz,0,5000,PHP,4Ps Cash Assistance - January 2024
+TX-003,2024-01-17,Barangay Pantal,ABC Construction,15000,0,PHP,Procurement - Construction Materials
+TX-004,2024-01-18,DOH,Maria Santos,0,3000,PHP,Medical Assistance - Emergency Fund
+TX-005,2024-01-19,Barangay Pantal,City Treasury,8500,0,PHP,Tax Payment - Business Permit`;
 
   res.setHeader('Content-Type', 'text/csv');
   res.setHeader('Content-Disposition', 'attachment; filename=transaction_import_template.csv');

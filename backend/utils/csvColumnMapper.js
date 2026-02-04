@@ -12,17 +12,33 @@ class CSVColumnMapper {
                 'disbursement', 'payment', 'sum', 'total_amount', 'transaction_amount',
                 'net_amount', 'gross_amount', 'halaga', 'bayad'
             ],
+            // Separate debit/credit columns (will be handled specially)
+            debit_amount: [
+                'debit_amount', 'debit', 'debit_amt', 'dr', 'dr_amount', 'debit_value',
+                'withdrawal', 'outflow', 'expense_amount'
+            ],
+            credit_amount: [
+                'credit_amount', 'credit', 'credit_amt', 'cr', 'cr_amount', 'credit_value',
+                'deposit', 'inflow', 'income_amount'
+            ],
             transactionType: [
                 'type', 'transaction_type', 'category', 'transaction_category',
-                'purpose', 'classification', 'uri', 'klase'
+                'purpose', 'classification', 'uri', 'klase',
+                // ✅ ADD THESE
+                'transaction_code', 'trans_code', 'code', 'txn_type', 'txn_code'
             ],
             fromAddress: [
                 'from', 'from_address', 'sender', 'source', 'payer', 'from_account',
-                'originator', 'debtor', 'nagbayad', 'pinagmulan'
+                'originator', 'debtor', 'nagbayad', 'pinagmulan',
+                // ✅ ADD THESE
+                'payer_name', 'paid_by', 'debtor_name', 'from_entity', 'from_name'
             ],
             toAddress: [
                 'to', 'to_address', 'recipient', 'receiver', 'payee', 'to_account',
-                'beneficiary', 'creditor', 'tumanggap', 'destinasyon'
+                'beneficiary', 'creditor', 'tumanggap', 'destinasyon',
+                // ✅ ADD THESE
+                'payee_name', 'paid_to', 'creditor_name', 'to_entity', 'to_name',
+                'encashed_by', 'received_by'
             ],
             agency: [
                 'agency', 'department', 'office', 'organization', 'org', 'ministry',
@@ -38,15 +54,22 @@ class CSVColumnMapper {
             ],
             description: [
                 'description', 'details', 'particulars', 'notes', 'remarks',
-                'memo', 'narrative', 'paglalarawan', 'detalye'
+                'memo', 'narrative', 'paglalarawan', 'detalye',
+                // ✅ ADD THESE
+                'description_raw', 'desc', 'comment', 'purpose'
             ],
             timestamp: [
                 'date', 'timestamp', 'transaction_date', 'payment_date', 'disbursement_date',
-                'created_at', 'datetime', 'petsa'
+                'created_at', 'datetime', 'petsa',
+                // ✅ ADD THESE
+                'post_date', 'posting_date', 'effective_date', 'value_date', 'trans_date',
+                'txn_date', 'date_posted'
             ],
             transactionId: [
                 'id', 'transaction_id', 'reference', 'ref_no', 'reference_number',
-                'voucher_no', 'check_no', 'receipt_no'
+                'voucher_no', 'check_no', 'receipt_no',
+                // ✅ ADD THESE
+                'record_id', 'txn_id', 'transaction_ref'
             ]
         };
     }
@@ -94,13 +117,62 @@ class CSVColumnMapper {
     }
 
     /**
+     * Intelligently detect and extract amount from debit/credit columns
+     */
+    detectAmountColumns(row, mappings) {
+        const debitCol = mappings.debit_amount;
+        const creditCol = mappings.credit_amount;
+
+        // If we have separate debit/credit columns
+        if (debitCol && creditCol) {
+            const debit = parseFloat(row[debitCol]) || 0;
+            const credit = parseFloat(row[creditCol]) || 0;
+
+            // Use whichever is non-zero
+            // If both are non-zero, prefer debit (expense/outflow)
+            if (debit > 0) return debit;
+            if (credit > 0) return credit;
+
+            // Both are zero or invalid
+            return 0;
+        }
+
+        // If only debit column exists
+        if (debitCol && row[debitCol]) {
+            return parseFloat(row[debitCol]) || 0;
+        }
+
+        // If only credit column exists
+        if (creditCol && row[creditCol]) {
+            return parseFloat(row[creditCol]) || 0;
+        }
+
+        // Fall back to regular amount column
+        if (mappings.amount && row[mappings.amount]) {
+            return parseFloat(row[mappings.amount]) || 0;
+        }
+
+        return 0;
+    }
+
+    /**
      * Map CSV row to transaction object using detected mappings
      */
     mapRow(row, mappings) {
         const transaction = {};
 
-        // Map each field
+        // Special handling for amount (debit/credit)
+        const amount = this.detectAmountColumns(row, mappings);
+        if (amount > 0) {
+            transaction.amount = amount;
+        }
+
+        // Map each field (skip amount fields as we handled them above)
         for (const [field, columnName] of Object.entries(mappings)) {
+            if (field === 'debit_amount' || field === 'credit_amount') {
+                continue; // Already handled
+            }
+
             if (row[columnName] !== undefined && row[columnName] !== '') {
                 transaction[field] = row[columnName];
             }
@@ -198,11 +270,18 @@ class CSVColumnMapper {
         // Check for amount
         if (!transaction.amount || isNaN(parseFloat(transaction.amount))) {
             errors.push('Invalid or missing amount');
-        }
+        } else {
+            const amount = parseFloat(transaction.amount);
 
-        // Amount should be positive
-        if (transaction.amount && parseFloat(transaction.amount) <= 0) {
-            errors.push('Amount must be positive');
+            // ✅ SECURITY: Prevent NaN, Infinity, and unrealistic values
+            if (!Number.isFinite(amount)) {
+                errors.push('Amount must be a finite number');
+            } else if (amount <= 0) {
+                errors.push('Amount must be positive');
+            } else if (amount > 1e12) {
+                // Prevent unrealistic amounts (> 1 trillion)
+                errors.push('Amount exceeds maximum allowed value');
+            }
         }
 
         return {
