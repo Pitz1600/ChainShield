@@ -89,6 +89,9 @@ exports.login = async (req, res) => {
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
+    // Attach user to request for Audit Log middleware
+    req.user = user;
+
     res.json({
       token,
       user: {
@@ -102,6 +105,16 @@ exports.login = async (req, res) => {
         updatedAt: user.updatedAt || user._id.getTimestamp()
       }
     });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.logout = async (req, res) => {
+  try {
+    // The actual token invalidation happens on client side
+    // This endpoint exists solely for audit logging purposes
+    res.json({ message: 'Logged out successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
