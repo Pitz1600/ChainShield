@@ -3,7 +3,7 @@ import { Search, AlertTriangle, CheckCircle, AlertOctagon, Download, ChevronLeft
 import AlertCard from './AlertCard';
 import '../../styles/Alerts.css';
 
-function AlertsManagement() {
+function AlertsManagement({ embedded = false }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState('all');
   const [alerts, setAlerts] = useState([]);
@@ -165,11 +165,13 @@ function AlertsManagement() {
 
   return (
     <div className="alerts-container">
-      <div className="page-hero alerts-hero">
-        <span className="hero-tag">TRANSACTION ALERTS MANAGEMENT</span>
-        <h2 className="hero-title">Monitor flagged transactions</h2>
-        <p className="hero-subtitle">Search, filter, and investigate suspicious transactions flagged by the system.</p>
-      </div>
+      {!embedded && (
+        <div className="page-hero alerts-hero">
+          <span className="hero-tag">TRANSACTION ALERTS MANAGEMENT</span>
+          <h2 className="hero-title">Monitor flagged transactions</h2>
+          <p className="hero-subtitle">Search, filter, and investigate suspicious transactions flagged by the system.</p>
+        </div>
+      )}
 
       <div className="filters-bar">
         <div className="search-box">

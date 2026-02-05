@@ -24,4 +24,17 @@ router.get('/stats', feedbackController.getFeedbackStats);
 // Get analyst's own feedback
 router.get('/my-feedback', feedbackController.getMyFeedback);
 
+// Audit logs (admin only)
+router.get('/audit-logs', feedbackController.getAuditLogs);
+
+// Flag feedback as malicious (admin only)
+router.post('/:id/flag', feedbackController.flagFeedback);
+
+// Get rate limit status
+router.get('/rate-limit-status', feedbackController.getRateLimitStatus);
+
+// Reset user's rate limit (admin only)
+router.post('/reset-rate-limit/:userId', feedbackController.resetRateLimit);
+
 module.exports = router;
+

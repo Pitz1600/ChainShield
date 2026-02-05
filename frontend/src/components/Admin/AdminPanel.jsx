@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Users, MessageSquare } from 'lucide-react';
+import { Users, FileText } from 'lucide-react';
 import { isAdmin } from '../../utils/permissions';
 import UserManagement from './UserManagement';
-import FeedbackReview from './FeedbackReview';
+import AuditLogViewer from './AuditLogViewer';
 import '../../styles/AdminPanel.css';
 
 function AdminPanel({ user }) {
@@ -39,20 +39,21 @@ function AdminPanel({ user }) {
                     User Management
                 </button>
                 <button
-                    className={`tab-button ${activeTab === 'feedback' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('feedback')}
+                    className={`tab-button ${activeTab === 'audit' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('audit')}
                     style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
                 >
-                    <MessageSquare size={18} />
-                    Feedback Review
+                    <FileText size={18} />
+                    Audit Logs
                 </button>
             </div>
 
             {/* Tab Content */}
             {activeTab === 'users' && <UserManagement user={user} />}
-            {activeTab === 'feedback' && <FeedbackReview user={user} />}
+            {activeTab === 'audit' && <AuditLogViewer user={user} />}
         </div>
     );
 }
 
 export default AdminPanel;
+
