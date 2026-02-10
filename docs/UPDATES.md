@@ -2,6 +2,15 @@
 
 This document tracks the major updates, feature enhancements, and bug fixes applied to the ChainShield system.
 
+## 📅 Latest Updates (February 10, 2026)
+
+### 🔧 Security Fix: JWT Secret Environment Variable
+
+- **Issue**: Backend was failing with "secretOrPrivateKey must have a value" when signing JWTs.
+- **Fix**: Added a project-level `.env` with a secure `JWT_SECRET` and ensured `docker-compose.yml` passes `JWT_SECRET` into the `backend` service. See `.env` at project root for local development.
+
+---
+
 ## 📅 Latest Updates (February 5, 2026)
 
 ### 🎨 Transactions Page UI Overhaul
