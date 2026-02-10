@@ -116,7 +116,7 @@ class DataGovPhService {
   extractAmount(record) {
     // Try common field names
     const amountFields = ['amount', 'value', 'total', 'budget', 'allocation', 'disbursement'];
-    
+
     for (const field of amountFields) {
       if (record[field]) {
         const value = parseFloat(record[field]);
@@ -136,7 +136,7 @@ class DataGovPhService {
   extractAgency(record, metadata) {
     // Try common field names
     const agencyFields = ['agency', 'department', 'organization', 'office'];
-    
+
     for (const field of agencyFields) {
       if (record[field]) {
         return record[field];
@@ -177,7 +177,7 @@ class DataGovPhService {
    */
   extractProgram(record, metadata) {
     const programFields = ['program', 'project', 'initiative', 'scheme'];
-    
+
     for (const field of programFields) {
       if (record[field]) {
         return record[field];
@@ -210,7 +210,7 @@ class DataGovPhService {
    */
   determineTransactionType(record, metadata) {
     const text = JSON.stringify(record).toLowerCase();
-    
+
     if (text.includes('welfare') || text.includes('benefit') || text.includes('aid') || text.includes('assistance')) {
       return 'Social Welfare';
     }
@@ -223,7 +223,7 @@ class DataGovPhService {
     if (text.includes('tax') || text.includes('revenue')) {
       return 'Tax';
     }
-    
+
     return 'Other';
   }
 
@@ -232,7 +232,7 @@ class DataGovPhService {
    */
   determineBeneficiaryType(record) {
     const text = JSON.stringify(record).toLowerCase();
-    
+
     if (text.includes('household') || text.includes('family')) {
       return 'Household';
     }
@@ -240,9 +240,9 @@ class DataGovPhService {
       return 'Organization';
     }
     if (text.includes('government') || text.includes('agency')) {
-      return 'Government Entity';
+      return 'Barangay Office';
     }
-    
+
     return 'Individual';
   }
 
@@ -251,7 +251,7 @@ class DataGovPhService {
    */
   extractTimestamp(record) {
     const dateFields = ['date', 'timestamp', 'created', 'modified', 'disbursement_date'];
-    
+
     for (const field of dateFields) {
       if (record[field]) {
         const date = new Date(record[field]);
@@ -285,7 +285,7 @@ class DataGovPhService {
 
     try {
       console.log(`Scanning data.gov.ph for: ${query}`);
-      
+
       // Search for datasets
       const datasets = await this.searchDatasets(query, limit);
       console.log(`Found ${datasets.length} datasets`);
@@ -297,19 +297,19 @@ class DataGovPhService {
         try {
           // Get dataset details to find resources
           const datasetDetails = await this.getDatasetDetails(dataset.id);
-          
+
           if (datasetDetails && datasetDetails.resources) {
             for (const resource of datasetDetails.resources.slice(0, 3)) { // Limit to 3 resources per dataset
               try {
                 const records = await this.getResourceData(resource.id, resourceLimit);
-                
+
                 for (const record of records) {
                   const transaction = this.convertToTransaction(record, {
                     resourceId: resource.id,
                     datasetId: dataset.id,
                     organization: dataset.organization
                   });
-                  
+
                   transactions.push(transaction);
                 }
               } catch (error) {

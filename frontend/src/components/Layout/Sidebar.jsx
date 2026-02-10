@@ -83,7 +83,7 @@ function Sidebar({ user, activeView, setActiveView, onLogout, isMobileMenuOpen, 
             </div>
             <div className="logo-text">
               <h2 className="logo-title">CHAINSHIELD</h2>
-              <p className="logo-subtitle">Government Portal</p>
+              <p className="logo-subtitle">Barangay Portal</p>
             </div>
           </div>
           {/* Mobile close button */}

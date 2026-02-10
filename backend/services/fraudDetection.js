@@ -3,6 +3,7 @@ const Transaction = require('../models/Transaction');
 const axios = require('axios');
 const blockchainService = require('./blockchainService');
 const economicDataService = require('./economicDataService');
+const inflationService = require('./inflationService');
 const ModelVersion = require('../models/ModelVersion');
 
 class RiskAssessmentService {
@@ -35,7 +36,7 @@ class RiskAssessmentService {
       // Step 2: Prepare ML features with graph data
       const mlFeatures = await this.prepareMLFeatures(transaction, graphAnalysis);
 
-      // Step 3: Call ML service for fraud prediction
+      // Step 3: Call ML service for risk prediction
       const mlResponse = await this.callMLService(transaction, mlFeatures);
 
       // Step 4: Record transaction hash on blockchain
@@ -49,21 +50,47 @@ class RiskAssessmentService {
       );
 
       // Step 5: Combine all analysis results
+      // ML service may return snake_case or camelCase keys
+      const riskScore = mlResponse.riskScore ?? mlResponse.risk_score ?? 0;
+      const riskLevel = mlResponse.riskLevel ?? mlResponse.risk_level ?? this.getRiskLevel(riskScore);
+      const reasons = mlResponse.reasons || mlResponse.explanation || [];
+
       const analysis = {
-        riskScore: mlResponse.riskScore,
-        riskLevel: mlResponse.riskLevel,
-        requiresReview: mlResponse.riskScore >= 60,
-        anomalyCategory: this.classifyAnomalyCategory(transaction, mlResponse.explanation || mlResponse.reasons || []),
-        reasons: mlResponse.explanation || mlResponse.reasons || [],
+        riskScore,
+        riskLevel,
+        requiresReview: riskScore >= 60,
+        anomalyCategory: this.classifyAnomalyCategory(transaction, reasons),
+        reasons,
         shapValues: mlResponse.shapValues || {},
         anomalyPatterns: graphAnalysis.fraudPatterns || [],
         networkFeatures: graphAnalysis.networkFeatures || {},
         blockchainTxId: blockchainReceipt.transactionHash,
         blockchainBlockNumber: blockchainReceipt.blockNumber,
-        anomalyScore: mlResponse.anomalyScore,
-        isAnomaly: mlResponse.isAnomaly,
+        anomalyScore: mlResponse.anomalyScore ?? mlResponse.anomaly_score ?? 0,
+        isAnomaly: mlResponse.isAnomaly ?? mlResponse.is_anomaly ?? false,
         modelVersion // Include model version in response
       };
+
+      // Log AI prediction result
+      const levelIcon = { CRITICAL: '🔴', HIGH: '🟠', MEDIUM: '🟡', LOW: '🟢' }[riskLevel] || '⚪';
+      console.log(`\n${'═'.repeat(60)}`);
+      console.log(`🤖 AI RISK ASSESSMENT COMPLETE`);
+      console.log(`${'═'.repeat(60)}`);
+      console.log(`  📋 Transaction:  ${transaction.transactionId || transaction.txHash}`);
+      console.log(`  💰 Amount:       ₱${(transaction.amount || 0).toLocaleString()}`);
+      console.log(`  📁 Type:         ${transaction.transactionType || 'Unknown'}`);
+      console.log(`  ${levelIcon} Risk Score:   ${riskScore}/100 (${riskLevel})`);
+      console.log(`  📂 Category:     ${analysis.anomalyCategory}`);
+      console.log(`  🔗 Blockchain:   ${blockchainReceipt.transactionHash ? '✅ Recorded' : '❌ Not recorded'}`);
+      if (blockchainReceipt.transactionHash) {
+        console.log(`     Hash:         ${blockchainReceipt.transactionHash.substring(0, 20)}...`);
+      }
+      console.log(`  📌 Decision:     ${analysis.requiresReview ? '🚨 FLAGGED for review' : '✅ CLEAN'}`);
+      if (reasons.length > 0) {
+        console.log(`  💡 Reasons:`);
+        reasons.forEach(r => console.log(`     • ${r}`));
+      }
+      console.log(`${'═'.repeat(60)}\n`);
 
       // Store prediction data for potential feedback
       if (transaction._id) {
@@ -122,7 +149,7 @@ class RiskAssessmentService {
   }
 
   /**
-   * Prepare ML features including graph analytics and transaction history
+   * Prepare ML features including graph analytics, transaction history, and inflation data
    */
   async prepareMLFeatures(transaction, graphAnalysis) {
     try {
@@ -148,6 +175,27 @@ class RiskAssessmentService {
         timeDiff = (new Date(transaction.timestamp || Date.now()) - new Date(lastTransaction.timestamp)) / 1000;
       }
 
+      // Get current inflation rate
+      const inflationRate = await inflationService.getCurrentRate();
+
+      // Calculate inflation-adjusted amount
+      const inflationAdjustedAmount = inflationService.adjustForInflation(
+        transaction.amount,
+        inflationRate
+      );
+
+      // Calculate historical average for this transaction type
+      const avgAmount = await Transaction.aggregate([
+        { $match: { transactionType: transaction.transactionType } },
+        { $group: { _id: null, avg: { $avg: '$amount' } } }
+      ]);
+      const historicalAvg = avgAmount.length > 0 ? avgAmount[0].avg : transaction.amount;
+
+      // Calculate inflation-adjusted deviation score
+      const inflationAdjustedDeviation = Math.abs(
+        (inflationAdjustedAmount - historicalAvg) / historicalAvg
+      );
+
       // Extract network features from graph analysis
       const networkFeatures = graphAnalysis.networkFeatures || {};
 
@@ -161,7 +209,12 @@ class RiskAssessmentService {
         convergence_score: Math.min(convergenceCount / 100, 1.0), // Normalized
         address_degree: networkFeatures.degree || 0,
         circular_pattern: hasCircularPattern,
-        time_diff: Math.max(timeDiff, 0)
+        time_diff: Math.max(timeDiff, 0),
+        // New inflation-based features
+        inflation_rate: inflationRate,
+        inflation_adjusted_amount: inflationAdjustedAmount,
+        inflation_deviation_score: Math.min(inflationAdjustedDeviation, 1.0), // Normalized
+        economic_context_risk: this.calculateEconomicContextRisk(inflationRate, inflationAdjustedDeviation)
       };
     } catch (error) {
       console.error('Error preparing ML features:', error.message);
@@ -170,13 +223,28 @@ class RiskAssessmentService {
         convergence_score: 0,
         address_degree: 0,
         circular_pattern: 0,
-        time_diff: 86400
+        time_diff: 86400,
+        inflation_rate: 3.5, // Default fallback
+        inflation_adjusted_amount: transaction.amount,
+        inflation_deviation_score: 0,
+        economic_context_risk: 0
       };
     }
   }
 
   /**
-   * Call ML service for fraud prediction
+   * Calculate economic context risk based on inflation and deviation
+   */
+  calculateEconomicContextRisk(inflationRate, deviation) {
+    // Higher inflation = more tolerance for price variations
+    // Lower inflation = stricter anomaly detection
+    const inflationFactor = Math.max(0, (10 - inflationRate) / 10); // Normalize to 0-1
+    const economicRisk = deviation * inflationFactor;
+    return Math.min(economicRisk, 1.0);
+  }
+
+  /**
+   * Call ML service for risk prediction
    * Supports local Python service or free ML APIs
    */
   async callMLService(transaction, mlFeatures) {
@@ -256,7 +324,7 @@ class RiskAssessmentService {
         riskScore: Math.round(riskScore),
         riskLevel: this.getRiskLevel(riskScore),
         isFraudulent: riskScore >= 60,
-        fraudType: this.classifyFraudType(transaction, []),
+        anomalyCategory: this.classifyFraudType(transaction, []),
         explanation: ['ML prediction from free API'],
         shapValues: {},
         anomalyScore: 0,

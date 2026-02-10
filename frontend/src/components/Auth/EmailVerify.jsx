@@ -94,7 +94,7 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
           <div className="sidebar-info">
             <h3 className="sidebar-info-title">Verify Your Account</h3>
             <p className="sidebar-info-text">
-              We need to verify your email address to ensure the security of your account and government records.
+              We need to verify your email address to ensure the security of your account and barangay records.
             </p>
           </div>
         </div>

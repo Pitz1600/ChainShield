@@ -88,7 +88,7 @@ function AlertsManagement({ embedded = false }) {
     fromAddress: transaction.fromAddress,
     toAddress: transaction.toAddress,
     timestamp: transaction.timestamp,
-    fraudPatterns: transaction.fraudPatterns || [],
+    riskPatterns: transaction.fraudPatterns || [],
     riskLevel: transaction.riskLevel
   });
 

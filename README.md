@@ -1,8 +1,8 @@
-# 🛡️ ChainShield: Barangay Integrity System
+# 🛡️ ChainShield
 
-**AI-Powered Audit & Transaction Monitoring for Local Government Units**
+**AI-Powered Audit & Transaction Monitoring for Barangays**
 
-ChainShield is a next-generation integrity assurance system designed specifically for **Barangays** and **Local Government Units (LGUs)**. It combines **Artificial Intelligence**, **Blockchain**, and **Graph Analytics** to ensure transparency, detect irregularities in fund usage, and empower citizens.
+ChainShield is a next-generation integrity assurance system designed specifically for **Barangays** (local communities in the Philippines). It combines **Artificial Intelligence**, **Blockchain**, and **Graph Analytics** to ensure transparency, detect irregularities in fund usage, and empower citizens.
 
 ---
 

@@ -247,7 +247,7 @@ function AuditLogViewer() {
                                         {log.details && (
                                             <div className="log-details">
                                                 {log.details.actualFraud !== undefined && (
-                                                    <span>Decision: {log.details.actualFraud ? '❌ Fraud' : '✅ Not Fraud'}</span>
+                                                    <span>Decision: {log.details.actualFraud ? '❌ Irregular' : '✅ Regular'}</span>
                                                 )}
                                                 {log.details.confidence && (
                                                     <span>Confidence: {'⭐'.repeat(log.details.confidence)}</span>

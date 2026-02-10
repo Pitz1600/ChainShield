@@ -195,7 +195,7 @@ function DocumentVerification({ user }) {
                                 <ul>
                                     <li>Document ID is incorrect</li>
                                     <li>Document has not been registered</li>
-                                    <li>Document may be fraudulent</li>
+                                    <li>Document may be irregular or altered</li>
                                 </ul>
                             </div>
                         )}

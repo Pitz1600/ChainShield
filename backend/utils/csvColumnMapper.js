@@ -193,7 +193,7 @@ class CSVColumnMapper {
 
         // Generate addresses if missing
         if (!transaction.fromAddress) {
-            transaction.fromAddress = this.generateAddress(transaction.agency || 'Government');
+            transaction.fromAddress = this.generateAddress(transaction.agency || 'Barangay');
         }
         if (!transaction.toAddress) {
             transaction.toAddress = this.generateAddress(transaction.beneficiaryType || 'Beneficiary');
