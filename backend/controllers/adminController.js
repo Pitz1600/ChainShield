@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const AuditLog = require('../models/AuditLog');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const emailService = require('../services/emailService');
@@ -264,6 +265,82 @@ exports.getSystemStats = async (req, res) => {
             }
         });
     } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+/**
+ * Get audit logs (admin only)
+ */
+exports.getAuditLogs = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+        const skip = (page - 1) * limit;
+
+        const query = {};
+
+        // Filter by action
+        if (req.query.action) {
+            query.action = req.query.action;
+        }
+
+        // Filter by suspicious
+        if (req.query.suspicious === 'true') {
+            query.isSuspicious = true;
+        }
+
+        // Filter by date range (days)
+        if (req.query.days) {
+            const days = parseInt(req.query.days);
+            const date = new Date();
+            date.setDate(date.getDate() - days);
+            query.createdAt = { $gte: date };
+        }
+
+        // Execute query
+        const logs = await AuditLog.find(query)
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
+            .populate('userId', 'username email role');
+
+        const total = await AuditLog.countDocuments(query);
+
+        // Map logs to match frontend expectations if necessary
+        // Frontend expects: log.user (obj), log.action, log.details, log.ip, log.timestamp (or createdAt)
+        const formattedLogs = logs.map(log => ({
+            _id: log._id,
+            action: log.action,
+            details: log.details && typeof log.details === 'object' ?
+                JSON.stringify(log.details) :
+                (log.details || ''), // Frontend expects string or needs adjustment
+            ip: log.ipAddress,
+            timestamp: log.createdAt,
+            createdAt: log.createdAt,
+            isSuspicious: log.isSuspicious,
+            suspiciousReason: log.suspiciousReason,
+            user: log.userId ? {
+                username: log.userId.username,
+                email: log.userId.email,
+                role: log.userId.role
+            } : null,
+            userId: log.userId, // Keep original populated field just in case
+            userRole: log.userRole
+        }));
+
+        res.json({
+            success: true,
+            logs: formattedLogs,
+            pagination: {
+                page,
+                limit,
+                total,
+                pages: Math.ceil(total / limit)
+            }
+        });
+    } catch (error) {
+        console.error('Get Audit Logs Error:', error);
         res.status(500).json({ error: error.message });
     }
 };

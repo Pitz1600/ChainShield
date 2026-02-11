@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const AuditLog = require('../models/AuditLog');
 const jwt = require('jsonwebtoken');
 const emailService = require('../services/emailService');
 
@@ -68,6 +69,15 @@ exports.register = async (req, res) => {
         updatedAt: user.updatedAt
       }
     });
+    await AuditLog.logAction({
+      action: 'user_register',
+      userId: user._id,
+      userRole: user.role,
+      username: user.username,
+      ipAddress: req.ip,
+      userAgent: req.get('User-Agent'),
+      details: { email }
+    });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -101,6 +111,17 @@ exports.login = async (req, res) => {
         createdAt: user.createdAt || user._id.getTimestamp(),
         updatedAt: user.updatedAt || user._id.getTimestamp()
       }
+    });
+
+    // Log successful login
+    await AuditLog.logAction({
+      action: 'user_login',
+      userId: user._id,
+      userRole: user.role,
+      username: user.username,
+      ipAddress: req.ip,
+      userAgent: req.get('User-Agent'),
+      details: { email }
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -159,6 +180,16 @@ exports.verifyEmail = async (req, res) => {
     await user.save();
 
     res.json({ success: true, message: 'Email verified successfully' });
+
+    await AuditLog.logAction({
+      action: 'user_verified',
+      userId: user._id,
+      userRole: user.role,
+      username: user.username,
+      ipAddress: req.ip,
+      userAgent: req.get('User-Agent'),
+      details: { method: 'otp' }
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

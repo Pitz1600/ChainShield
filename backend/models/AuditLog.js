@@ -14,7 +14,17 @@ const auditLogSchema = new mongoose.Schema({
             'feedback_flagged',
             'feedback_removed',
             'model_retrained',
-            'analyst_rate_limited'
+            'analyst_rate_limited',
+            // User Actions
+            'user_login',
+            'user_register',
+            'user_verified',
+            // Admin Actions
+            'admin_invite',
+            'admin_update_user_role',
+            'admin_deactivate_user',
+            'admin_activate_user',
+            'admin_update_user'
         ],
         required: true,
         index: true
