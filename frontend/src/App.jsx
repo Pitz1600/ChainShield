@@ -4,6 +4,7 @@ import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
 import EmailVerify from './components/Auth/EmailVerify';
 import MainLayout from './components/Layout/MainLayout';
+import IdleTimer from './components/Auth/IdleTimer';
 
 function App() {
   const [view, setView] = useState('welcome');
@@ -21,9 +22,18 @@ function App() {
       if (token && userData) {
         try {
           const parsedUser = JSON.parse(userData);
-          setIsAuthenticated(true);
-          setUser(parsedUser);
-          setView('dashboard');
+
+          // Check if user is verified
+          if (!parsedUser.isVerified) {
+            // User is not verified - redirect to email verification
+            setPendingUser(parsedUser);
+            setView('email-verify');
+          } else {
+            // User is verified - proceed to dashboard
+            setIsAuthenticated(true);
+            setUser(parsedUser);
+            setView('dashboard');
+          }
         } catch (error) {
           console.error('Error parsing user data:', error);
           localStorage.removeItem('token');
@@ -73,7 +83,17 @@ function App() {
   if (view === 'login') return <Login onLogin={handleLogin} onNavigate={handleNavigate} />;
   if (view === 'register') return <Register onRegister={handleLogin} onNavigate={handleNavigate} />;
   if (view === 'email-verify') return <EmailVerify user={pendingUser} onNavigate={handleNavigate} onLogin={handleLogin} />;
-  if (isAuthenticated && view === 'dashboard') return <MainLayout user={user} onLogout={handleLogout} onNavigate={handleNavigate} />;
+  if (isAuthenticated && view === 'dashboard') {
+    return (
+      <>
+        <IdleTimer onIdle={() => {
+          alert('Session expired due to inactivity.');
+          handleLogout();
+        }} />
+        <MainLayout user={user} onLogout={handleLogout} onNavigate={handleNavigate} />
+      </>
+    );
+  }
 
   return <Welcome onNavigate={handleNavigate} />;
 }

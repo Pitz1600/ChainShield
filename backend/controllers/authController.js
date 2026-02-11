@@ -10,7 +10,7 @@ const generateOTP = () => {
 
 exports.register = async (req, res) => {
   try {
-    const { username, email, password, role, position } = req.body;
+    const { firstName, lastName, birthday, email, password, role, position } = req.body;
 
     // SECURITY: Block admin registration via public endpoint
     if (role === 'admin' || role === 'administrator') {
@@ -29,7 +29,9 @@ exports.register = async (req, res) => {
     const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
     const user = new User({
-      username, // Full Name
+      firstName,
+      lastName,
+      birthday: birthday || null,
       email,
       password,
       role,
@@ -37,34 +39,31 @@ exports.register = async (req, res) => {
       isVerified: false,
       otp,
       otpExpires,
-      otpAttempts: 0, // Track failed OTP attempts
+      otpAttempts: 0,
     });
 
     await user.save();
 
     // Send OTP via email
     try {
-      await emailService.sendOTPEmail(email, otp, username);
+      await emailService.sendOTPEmail(email, otp, user.username);
     } catch (emailError) {
       console.error('Failed to send OTP email:', emailError);
-      // Don't fail registration if email fails, but log it
-      // In production, you might want to handle this differently
     }
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '24h' });
 
     res.status(201).json({
       token,
       user: {
         id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
         username: user.username,
+        birthday: user.birthday,
         email: user.email,
         role: user.role,
-        role: user.role,
-        role: user.role,
         isVerified: user.isVerified,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt
       }
@@ -79,6 +78,7 @@ exports.register = async (req, res) => {
       details: { email }
     });
   } catch (error) {
+    console.error('[Registration Error]', error.message);
     res.status(400).json({ error: error.message });
   }
 };
@@ -97,8 +97,8 @@ exports.login = async (req, res) => {
       return res.status(403).json({ error: 'Account has been deactivated. Please contact an administrator.' });
     }
 
-    // Check for Admin or Barangay Official role for OTP
-    if (['administrator', 'barangay_official'].includes(user.role)) {
+    // Check for Barangay Official role for OTP (administrators skip OTP)
+    if (user.role === 'barangay_official') {
       // Generate OTP
       const otp = generateOTP();
       const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
@@ -126,7 +126,7 @@ exports.login = async (req, res) => {
       });
     }
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '24h' });
 
     res.json({
       token,
@@ -204,7 +204,7 @@ exports.verifyLoginOtp = async (req, res) => {
     user.otpAttempts = 0;
     await user.save();
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '24h' });
 
     res.json({
       token,
@@ -409,7 +409,7 @@ exports.sendPasswordOtp = async (req, res) => {
 exports.updateProfile = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { username, email, otp } = req.body;
+    const { firstName, lastName, birthday, email, otp } = req.body;
 
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: 'User not found' });
@@ -455,10 +455,10 @@ exports.updateProfile = async (req, res) => {
       user.email = email;
     }
 
-    // Update username if provided
-    if (username) {
-      user.username = username;
-    }
+    // Update name fields if provided
+    if (firstName) user.firstName = firstName;
+    if (lastName) user.lastName = lastName;
+    if (birthday !== undefined) user.birthday = birthday || null;
 
     // Clear OTP after successful verification
     user.otp = undefined;

@@ -275,7 +275,7 @@ exports.getSystemStats = async (req, res) => {
 exports.getAuditLogs = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 20;
+        const limit = parseInt(req.query.limit) || 10;
         const skip = (page - 1) * limit;
 
         const query = {};
@@ -303,7 +303,7 @@ exports.getAuditLogs = async (req, res) => {
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit)
-            .populate('userId', 'username email role');
+            .populate('userId', 'firstName lastName email role');
 
         const total = await AuditLog.countDocuments(query);
 
@@ -337,10 +337,126 @@ exports.getAuditLogs = async (req, res) => {
                 limit,
                 total,
                 pages: Math.ceil(total / limit)
+            },
+            summary: {
+                suspiciousLast7Days: await AuditLog.countDocuments({
+                    isSuspicious: true,
+                    createdAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) }
+                })
             }
         });
     } catch (error) {
         console.error('Get Audit Logs Error:', error);
         res.status(500).json({ error: error.message });
+    }
+};
+/**
+ * Create a new user (admin only)
+ */
+exports.createUser = async (req, res) => {
+    try {
+        const { firstName, lastName, email, password, role, position } = req.body;
+
+        // Basic validation
+        if (!firstName || !lastName || !email || !password || !role) {
+            return res.status(400).json({ error: 'All fields are required' });
+        }
+
+        // Check for existing user
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ error: 'User with this email already exists' });
+        }
+
+        // Create user with isVerified: false
+        const user = new User({
+            firstName,
+            lastName,
+            email,
+            password, // Hook will hash
+            role,
+            position,
+            isVerified: false,
+            isActive: true
+        });
+
+        await user.save();
+
+        // Log action
+        await AuditLog.create({
+            action: 'admin_create_user',
+            userId: req.user._id,
+            userRole: req.user.role,
+            username: req.user.username,
+            details: {
+                createdUserId: user._id,
+                createdUserEmail: user.email,
+                role: user.role
+            },
+            ipAddress: req.ip,
+            userAgent: req.headers['user-agent']
+        });
+
+        res.status(201).json({
+            success: true,
+            message: 'User created successfully',
+            user: {
+                id: user._id,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                email: user.email,
+                role: user.role,
+                isVerified: user.isVerified
+            }
+        });
+
+    } catch (error) {
+        console.error('Create user error:', error);
+        res.status(500).json({ error: 'Failed to create user' });
+    }
+};
+
+/**
+ * Delete a user (admin only)
+ */
+exports.deleteUser = async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        // Prevent self-deletion
+        if (userId === req.user._id.toString()) {
+            return res.status(400).json({ error: 'You cannot delete your own account' });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        await User.findByIdAndDelete(userId);
+
+        // Log action
+        await AuditLog.create({
+            action: 'admin_delete_user',
+            userId: req.user._id,
+            userRole: req.user.role,
+            username: req.user.username,
+            details: {
+                deletedUserId: userId,
+                deletedUserEmail: user.email,
+                deletedUserRole: user.role
+            },
+            ipAddress: req.ip,
+            userAgent: req.headers['user-agent']
+        });
+
+        res.json({
+            success: true,
+            message: 'User deleted successfully'
+        });
+
+    } catch (error) {
+        console.error('Delete user error:', error);
+        res.status(500).json({ error: 'Failed to delete user' });
     }
 };

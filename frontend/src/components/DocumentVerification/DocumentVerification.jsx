@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AlertTriangle, CheckCircle, XCircle, Info, FileText } from 'lucide-react';
+import { AlertTriangle, CheckCircle, XCircle, Info, FileText, Paperclip } from 'lucide-react';
 import { isOfficial } from '../../utils/permissions';
 import '../../styles/DocumentVerification.css';
 
@@ -122,7 +122,7 @@ function DocumentVerification({ user }) {
                         />
                         {file && (
                             <div className="file-info">
-                                <span>📎 {file.name}</span>
+                                <span><Paperclip size={16} /> {file.name}</span>
                                 <span className="file-size">({(file.size / 1024).toFixed(2)} KB)</span>
                             </div>
                         )}

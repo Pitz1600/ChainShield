@@ -2,10 +2,17 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
-  username: {
+  firstName: {
     type: String,
     required: true
-    // Removed unique: true as this is now Full Name
+  },
+  lastName: {
+    type: String,
+    required: true
+  },
+  birthday: {
+    type: Date,
+    required: false
   },
   email: {
     type: String,
@@ -42,7 +49,7 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['resident', 'barangay_official', 'administrator', 'analyst', 'investigator'], // Kept analyst/investigator for backward compatibility
+    enum: ['resident', 'barangay_official', 'administrator', 'analyst', 'investigator'],
     default: 'resident'
   },
   position: String,
@@ -51,6 +58,15 @@ const userSchema = new mongoose.Schema({
     default: true
   }
 }, { timestamps: true });
+
+// Virtual property for backward compatibility
+userSchema.virtual('username').get(function () {
+  return `${this.firstName} ${this.lastName}`;
+});
+
+// Ensure virtuals are included when converting to JSON
+userSchema.set('toJSON', { virtuals: true });
+userSchema.set('toObject', { virtuals: true });
 
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Lock, Upload, AlertCircle, CheckCircle, Clock, FileText, AlertTriangle, TrendingUp, Shield, BarChart, Info, Settings, Zap, Download, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Lock, Upload, AlertCircle, CheckCircle, Clock, FileText, AlertTriangle, TrendingUp, Shield, BarChart, Info, Settings, Zap, Download, ChevronLeft, ChevronRight, Link, Clipboard, Circle } from 'lucide-react';
 import { isOfficial } from '../../utils/permissions';
 import '../../styles/CSVImport.css';
 
@@ -219,7 +219,7 @@ const CSVImport = ({ user }) => {
                             <p>{results.message}</p>
                             {results.mappingConfidence && (
                                 <p className="mapping-confidence">
-                                    📊 Column Detection Confidence: <strong>{results.mappingConfidence}%</strong>
+                                    <BarChart size={16} style={{ marginRight: '4px', verticalAlign: 'text-bottom' }} /> Column Detection Confidence: <strong>{results.mappingConfidence}%</strong>
                                 </p>
                             )}
                         </div>
@@ -232,7 +232,7 @@ const CSVImport = ({ user }) => {
                             {results.flaggedCount > 0 && (
                                 <div className="stat-card danger">
                                     <div className="stat-value">{results.flaggedCount}</div>
-                                    <div className="stat-label">🚨 Flagged for Review</div>
+                                    <div className="stat-label"><AlertTriangle size={18} style={{ marginRight: '4px' }} /> Flagged for Review</div>
                                 </div>
                             )}
                             {results.highRiskCount > 0 && (
@@ -251,7 +251,7 @@ const CSVImport = ({ user }) => {
                                 <div className="stat-card" style={{ background: 'linear-gradient(135deg, #059669 0%, #047857 100%)', color: 'white' }}>
                                     <div className="stat-value">{results.blockchainVerified}</div>
                                     <div className="stat-label" style={{ color: 'rgba(255,255,255,0.9)' }}>
-                                        ⛓️ Verified on Blockchain
+                                        <Shield size={18} style={{ marginRight: '4px' }} /> Verified on Blockchain
                                     </div>
                                 </div>
                             )}
@@ -259,7 +259,7 @@ const CSVImport = ({ user }) => {
 
                         {results.columnMappings && (
                             <div className="column-mappings">
-                                <h4>📋 Detected Column Mappings</h4>
+                                <h4><Clipboard size={18} style={{ marginRight: '4px', verticalAlign: 'text-bottom' }} /> Detected Column Mappings</h4>
                                 <div className="mappings-grid">
                                     {Object.entries(results.columnMappings).map(([field, column]) => (
                                         <div key={field} className="mapping-item">
@@ -326,7 +326,7 @@ const CSVImport = ({ user }) => {
                                                         {result.blockchainTxId ? (
                                                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                                                 <span style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: '#059669' }} title={result.blockchainTxId}>
-                                                                    🔗 {result.blockchainTxId.substring(0, 10)}...
+                                                                    <Link size={12} style={{ marginRight: '4px' }} /> {result.blockchainTxId.substring(0, 10)}...
                                                                 </span>
                                                                 <button
                                                                     onClick={() => {
@@ -342,7 +342,7 @@ const CSVImport = ({ user }) => {
                                                                     }}
                                                                     title="Copy blockchain hash"
                                                                 >
-                                                                    📋
+                                                                    <Clipboard size={14} />
                                                                 </button>
                                                             </div>
                                                         ) : (
@@ -351,7 +351,7 @@ const CSVImport = ({ user }) => {
                                                     </td>
                                                     <td>
                                                         {result.flagged ? (
-                                                            <span className="badge badge-danger">🚨 FLAGGED</span>
+                                                            <span className="badge badge-danger"><AlertTriangle size={14} style={{ marginRight: '4px' }} /> FLAGGED</span>
                                                         ) : (
                                                             <span className="badge badge-success"><CheckCircle size={14} style={{ marginRight: '4px' }} /> Clean</span>
                                                         )}
@@ -472,11 +472,11 @@ const CSVImport = ({ user }) => {
                                                             result.riskLevel === 'MEDIUM' ? '#ca8a04' :
                                                                 '#16a34a'
                                                 }}>
-                                                    {result.riskLevel === 'CRITICAL' && '🔴 CRITICAL'}
-                                                    {result.riskLevel === 'HIGH' && '🟠 HIGH'}
-                                                    {result.riskLevel === 'MEDIUM' && '🟡 MEDIUM'}
-                                                    {result.riskLevel === 'LOW' && '🟢 LOW'}
-                                                    {!result.riskLevel && '⚪ N/A'}
+                                                    {result.riskLevel === 'CRITICAL' && <><Circle size={10} fill="currentColor" style={{ marginRight: '4px' }} /> CRITICAL</>}
+                                                    {result.riskLevel === 'HIGH' && <><Circle size={10} fill="currentColor" style={{ marginRight: '4px' }} /> HIGH</>}
+                                                    {result.riskLevel === 'MEDIUM' && <><Circle size={10} fill="currentColor" style={{ marginRight: '4px' }} /> MEDIUM</>}
+                                                    {result.riskLevel === 'LOW' && <><Circle size={10} fill="currentColor" style={{ marginRight: '4px' }} /> LOW</>}
+                                                    {!result.riskLevel && <><Circle size={10} style={{ marginRight: '4px' }} /> N/A</>}
                                                 </span>
                                             </div>
                                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>

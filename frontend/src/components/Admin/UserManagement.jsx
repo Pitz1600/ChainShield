@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, User, CheckCircle, Clock, Edit2, X, Shield, Activity, Mail } from 'lucide-react';
+import { Users, User, CheckCircle, Clock, Edit2, X, Shield, Activity, Mail, Trash2 } from 'lucide-react';
 import '../../styles/AdminPanel.css';
 
 function UserManagement() {
@@ -18,6 +18,16 @@ function UserManagement() {
         isActive: true,
         isVerified: false
     });
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [createFormData, setCreateFormData] = useState({
+        firstName: '',
+        lastName: '',
+        email: '',
+        password: '',
+        role: 'resident',
+        position: ''
+    });
+    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
 
     useEffect(() => {
         fetchUsers();
@@ -114,6 +124,75 @@ function UserManagement() {
         }
     };
 
+    const handleCreateUserClick = () => {
+        setCreateFormData({
+            firstName: '',
+            lastName: '',
+            email: '',
+            password: '',
+            role: 'resident',
+            position: ''
+        });
+        setIsCreateModalOpen(true);
+    };
+
+    const handleCreateUserSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('http://localhost:5000/api/admin/users', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(createFormData)
+            });
+
+            if (response.ok) {
+                await fetchUsers();
+                await fetchStats();
+                setIsCreateModalOpen(false);
+                alert('User created successfully. They can now login with the provided credentials.');
+            } else {
+                const data = await response.json();
+                alert(data.error || 'Failed to create user');
+            }
+        } catch (err) {
+            alert('Error creating user: ' + err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDeleteUser = async (userId) => {
+        if (!window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`http://localhost:5000/api/admin/users/${userId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                await fetchUsers();
+                await fetchStats();
+                // alert('User deleted successfully'); // Optional, removed for smoother flow
+            } else {
+                const data = await response.json();
+                alert(data.error || 'Failed to delete user');
+            }
+        } catch (err) {
+            alert('Error deleting user: ' + err.message);
+        }
+    };
+
     return (
         <>
             <div className="page-hero admin-hero">
@@ -155,10 +234,31 @@ function UserManagement() {
 
                     {!loading && !error && (
                         <div className="users-table-container">
-                            <h3 style={{ margin: '0 0 1.5rem', color: '#334155', fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <Users size={24} className="text-blue-500" />
-                                User Management
-                            </h3>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                                <h3 style={{ margin: 0, color: '#334155', fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <Users size={24} className="text-blue-500" />
+                                    User Management
+                                </h3>
+                                <button
+                                    onClick={handleCreateUserClick}
+                                    style={{
+                                        background: '#3b82f6',
+                                        color: '#fff',
+                                        border: 'none',
+                                        padding: '0.5rem 1rem',
+                                        borderRadius: '0.375rem',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem',
+                                        fontSize: '0.875rem',
+                                        fontWeight: '500'
+                                    }}
+                                >
+                                    <Users size={16} />
+                                    Create User
+                                </button>
+                            </div>
                             <div className="user-card-header" style={{ display: 'grid', gridTemplateColumns: '2fr 2.5fr 1.5fr 1fr 1fr auto', padding: '0 1.25rem 0.5rem', fontWeight: '600', color: '#64748b', fontSize: '0.85rem', textTransform: 'uppercase' }}>
                                 <div>User</div>
                                 <div>Contact</div>
@@ -232,6 +332,22 @@ function UserManagement() {
                                             onClick={() => handleEditUser(u)}
                                         >
                                             <Edit2 size={16} style={{ marginRight: '6px' }} /> Edit
+                                        </button>
+                                        <button
+                                            className="action-button"
+                                            style={{
+                                                background: 'none',
+                                                border: '1px solid #fee2e2',
+                                                color: '#ef4444',
+                                                marginLeft: '0.5rem',
+                                                opacity: u._id === currentUser._id ? 0.5 : 1,
+                                                cursor: u._id === currentUser._id ? 'not-allowed' : 'pointer'
+                                            }}
+                                            onClick={() => u._id !== currentUser._id && handleDeleteUser(u._id)}
+                                            disabled={u._id === currentUser._id}
+                                            title={u._id === currentUser._id ? "You cannot delete yourself" : "Delete User"}
+                                        >
+                                            <Trash2 size={16} style={{ marginRight: '6px' }} /> Delete
                                         </button>
                                     </div>
                                 </div>
@@ -327,6 +443,105 @@ function UserManagement() {
                             <div className="modal-footer">
                                 <button type="button" className="btn-cancel" onClick={() => setIsEditModalOpen(false)}>Cancel</button>
                                 <button type="submit" className="btn-save">Save Changes</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* CREATE USER MODAL */}
+            {isCreateModalOpen && (
+                <div className="modal-overlay" onClick={() => setIsCreateModalOpen(false)}>
+                    <div className="edit-modal" onClick={e => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h3>Create New User</h3>
+                            <button className="close-modal-btn" onClick={() => setIsCreateModalOpen(false)}>
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleCreateUserSubmit}>
+                            <div className="modal-content">
+                                <div className="form-grid">
+                                    <div className="form-group">
+                                        <label className="form-label">First Name</label>
+                                        <input
+                                            type="text"
+                                            className="form-input"
+                                            value={createFormData.firstName}
+                                            onChange={(e) => setCreateFormData({ ...createFormData, firstName: e.target.value })}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label">Last Name</label>
+                                        <input
+                                            type="text"
+                                            className="form-input"
+                                            value={createFormData.lastName}
+                                            onChange={(e) => setCreateFormData({ ...createFormData, lastName: e.target.value })}
+                                            required
+                                        />
+                                    </div>
+
+                                    <div className="form-group full-width">
+                                        <label className="form-label">Email Address</label>
+                                        <input
+                                            type="email"
+                                            className="form-input"
+                                            value={createFormData.email}
+                                            onChange={(e) => setCreateFormData({ ...createFormData, email: e.target.value })}
+                                            required
+                                        />
+                                    </div>
+
+                                    <div className="form-group full-width">
+                                        <label className="form-label">Password</label>
+                                        <input
+                                            type="password"
+                                            className="form-input"
+                                            value={createFormData.password}
+                                            onChange={(e) => setCreateFormData({ ...createFormData, password: e.target.value })}
+                                            required
+                                            minLength={6}
+                                            placeholder="Min. 6 characters"
+                                        />
+                                        <small style={{ color: '#64748b', display: 'block', marginTop: '4px' }}>
+                                            Provide this password to the user. They will be required to verify via OTP on first login.
+                                        </small>
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label className="form-label">Role</label>
+                                        <select
+                                            className="form-select"
+                                            value={createFormData.role}
+                                            onChange={(e) => setCreateFormData({ ...createFormData, role: e.target.value })}
+                                        >
+                                            <option value="resident">Resident</option>
+                                            <option value="analyst">Analyst</option>
+                                            <option value="senior_analyst">Senior Analyst</option>
+                                            <option value="investigator">Investigator</option>
+                                            <option value="administrator">Administrator</option>
+                                            <option value="barangay_official">Barangay Official</option>
+                                        </select>
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label className="form-label">Position (Optional)</label>
+                                        <input
+                                            type="text"
+                                            className="form-input"
+                                            value={createFormData.position}
+                                            onChange={(e) => setCreateFormData({ ...createFormData, position: e.target.value })}
+                                            placeholder="e.g. Lead Investigator"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="modal-footer">
+                                <button type="button" className="btn-cancel" onClick={() => setIsCreateModalOpen(false)}>Cancel</button>
+                                <button type="submit" className="btn-save">Create User</button>
                             </div>
                         </form>
                     </div>

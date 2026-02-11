@@ -10,7 +10,7 @@ function AuditLogViewer() {
         suspicious: false,
         days: 7,
         page: 1,
-        limit: 20
+        limit: 10
     });
     const [pagination, setPagination] = useState({});
     const [summary, setSummary] = useState({});
@@ -34,7 +34,7 @@ function AuditLogViewer() {
                 ...(filters.suspicious && { suspicious: 'true' })
             });
 
-            const response = await fetch(`http://localhost:5000/api/feedback/audit-logs?${queryParams}`, {
+            const response = await fetch(`http://localhost:5000/api/admin/audit-logs?${queryParams}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
@@ -42,7 +42,7 @@ function AuditLogViewer() {
                 const data = await response.json();
                 setLogs(data.logs);
                 setPagination(data.pagination);
-                setSummary(data.summary);
+                setSummary(data.summary || {});
             }
         } catch (error) {
             console.error('Error fetching audit logs:', error);
@@ -103,6 +103,17 @@ function AuditLogViewer() {
             case 'analyst_rate_limited': return '#f59e0b';
             case 'model_retrained': return '#8b5cf6';
             default: return '#6b7280';
+        }
+    };
+
+    const getRoleStyle = (role) => {
+        switch (role) {
+            case 'administrator': return { backgroundColor: '#ede9fe', color: '#7c3aed', border: '1px solid #ddd6fe' }; // Purple
+            case 'barangay_official': return { backgroundColor: '#dbeafe', color: '#2563eb', border: '1px solid #bfdbfe' }; // Blue
+            case 'analyst': return { backgroundColor: '#fef3c7', color: '#d97706', border: '1px solid #fde68a' }; // Amber
+            case 'investigator': return { backgroundColor: '#ccfbf1', color: '#0f766e', border: '1px solid #99f6e4' }; // Teal
+            case 'resident': return { backgroundColor: '#f3f4f6', color: '#4b5563', border: '1px solid #e5e7eb' }; // Gray
+            default: return { backgroundColor: '#f3f4f6', color: '#6b7280', border: '1px solid #e5e7eb' };
         }
     };
 
@@ -233,8 +244,8 @@ function AuditLogViewer() {
 
                                     <div className="log-body">
                                         <div className="log-user">
-                                            <strong>{log.userId?.username || 'Unknown'}</strong>
-                                            <span className="role-badge">{log.userRole}</span>
+                                            <strong>{log.userId?.username || log.username || 'Unknown'}</strong>
+                                            <span className="role-badge" style={getRoleStyle(log.userRole)}>{log.userRole?.replace(/_/g, ' ').toUpperCase()}</span>
                                         </div>
 
                                         {log.isSuspicious && (

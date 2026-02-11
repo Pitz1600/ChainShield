@@ -13,11 +13,13 @@ router.use(requireAdmin);
 
 // User Management
 router.get('/users', adminController.getAllUsers);
+router.post('/users', strictLimiter, adminController.createUser);
 router.post('/users/invite', strictLimiter, validateAdminCreation, auditLogger('admin_invite', req => ({ email: req.body.email })), adminController.inviteAdmin);
 router.put('/users/:userId/role', auditLogger('admin_update_user_role'), adminController.updateUserRole);
 router.put('/users/:userId/deactivate', auditLogger('admin_deactivate_user'), adminController.deactivateUser);
 router.put('/users/:userId/activate', auditLogger('admin_activate_user'), adminController.activateUser);
 router.put('/users/:userId', auditLogger('admin_update_user'), adminController.updateUser);
+router.delete('/users/:userId', adminController.deleteUser);
 
 // Audit Logs
 router.get('/audit-logs', adminController.getAuditLogs);

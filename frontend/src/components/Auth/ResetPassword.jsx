@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Shield, Mail, AlertCircle } from 'lucide-react';
+import { Shield, Mail, AlertCircle, ChevronLeft, Check, ArrowRight, Key, Lightbulb } from 'lucide-react';
 import '../../styles/ResetPassword.css';
 
 function ResetPassword({ onNavigate, onResetRequest }) {
@@ -54,7 +54,7 @@ function ResetPassword({ onNavigate, onResetRequest }) {
 
           <div className="sidebar-illustration">
             <div className="illustration-circle purple"></div>
-            <div className="illustration-icon">🔑</div>
+            <div className="illustration-icon"><Key size={64} /></div>
           </div>
 
           <div className="sidebar-info">
@@ -69,7 +69,7 @@ function ResetPassword({ onNavigate, onResetRequest }) {
       <div className="auth-main">
         <div className="auth-content">
           <button className="back-button" onClick={() => onNavigate('login')}>
-            ← Back to Sign In
+            <ChevronLeft size={16} style={{ marginRight: '4px' }} /> Back to Sign In
           </button>
 
           <div className="auth-header">
@@ -98,7 +98,7 @@ function ResetPassword({ onNavigate, onResetRequest }) {
           <form onSubmit={handleSubmit} className="auth-form">
             <div className="form-field">
               <label className="field-label">
-                <span className="label-icon">📧</span>
+                <span className="label-icon"><Mail size={16} /></span>
                 <span>Email Address</span>
               </label>
               <input
@@ -121,12 +121,12 @@ function ResetPassword({ onNavigate, onResetRequest }) {
               ) : success ? (
                 <>
                   <span>Code Sent!</span>
-                  <span className="button-icon">✓</span>
+                  <span className="button-icon"><Check size={18} /></span>
                 </>
               ) : (
                 <>
                   <span>Send Reset Code</span>
-                  <span className="button-icon">→</span>
+                  <span className="button-icon"><ArrowRight size={18} /></span>
                 </>
               )}
             </button>
@@ -134,7 +134,7 @@ function ResetPassword({ onNavigate, onResetRequest }) {
 
           <div className="help-section">
             <div className="help-header">
-              <span className="help-icon">💡</span>
+              <span className="help-icon"><Lightbulb size={18} /></span>
               <span className="help-title">What happens next?</span>
             </div>
             <ul className="help-list">

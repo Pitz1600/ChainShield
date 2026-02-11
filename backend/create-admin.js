@@ -41,7 +41,9 @@ async function createAdmin() {
 
         // Create admin user
         const admin = new User({
-            username: 'System Administrator',
+            firstName: 'System',
+            lastName: 'Administrator',
+            birthday: null,
             email: 'admin@chainshield.local',
             password: hashedPassword,
             role: 'administrator',

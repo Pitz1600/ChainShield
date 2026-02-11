@@ -33,7 +33,7 @@ function TransactionsPage({ user }) {
             });
             if (historyResponse.ok) {
                 const historyData = await historyResponse.json();
-                setHistoryCount(historyData.transactions?.length || 0);
+                setHistoryCount(historyData.count || 0);
             }
         } catch (error) {
             console.error('Error fetching counts:', error);

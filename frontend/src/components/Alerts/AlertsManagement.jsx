@@ -24,7 +24,7 @@ function AlertsManagement({ embedded = false }) {
       setLoading(true);
       const token = localStorage.getItem('token');
 
-      let url = 'http://localhost:5000/api/transactions/alerts';
+      let url = 'http://localhost:5000/api/transactions/alerts?limit=5000';
       if (filter !== 'all') {
         url += `?severity=${filter}`;
       }

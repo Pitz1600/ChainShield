@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { CheckCircle, AlertTriangle, Paperclip, X, Info, Lightbulb } from 'lucide-react';
 import '../../styles/SubmitComplaint.css';
 
 function SubmitComplaint({ user }) {
@@ -130,13 +131,13 @@ function SubmitComplaint({ user }) {
 
             {success && (
                 <div className="success-banner">
-                    ✅ Your report has been submitted successfully! You will receive updates via email.
+                    <CheckCircle size={20} style={{ marginRight: '8px' }} /> Your report has been submitted successfully! You will receive updates via email.
                 </div>
             )}
 
             {error && (
                 <div className="error-banner">
-                    ⚠️ {error}
+                    <AlertTriangle size={20} style={{ marginRight: '8px' }} /> {error}
                 </div>
             )}
 
@@ -213,13 +214,13 @@ function SubmitComplaint({ user }) {
                             <div className="file-list">
                                 {files.map((file, index) => (
                                     <div key={index} className="file-item">
-                                        <span>📎 {file.name}</span>
+                                        <span><Paperclip size={16} /> {file.name}</span>
                                         <button
                                             type="button"
                                             onClick={() => removeFile(index)}
                                             className="remove-file"
                                         >
-                                            ✕
+                                            <X size={16} />
                                         </button>
                                     </div>
                                 ))}
@@ -251,7 +252,7 @@ function SubmitComplaint({ user }) {
                 </form>
 
                 <div className="complaint-info">
-                    <h3>ℹ️ What Happens Next?</h3>
+                    <h3><Info size={20} style={{ marginRight: '8px', marginLeft: 0, display: 'inline-block', verticalAlign: 'text-bottom' }} /> What Happens Next?</h3>
                     <ol>
                         <li>Your report is reviewed by barangay officials</li>
                         <li>You'll receive a confirmation email with a tracking number</li>

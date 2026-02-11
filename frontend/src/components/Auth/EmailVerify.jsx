@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Shield, AlertCircle, CheckCircle } from 'lucide-react';
+import { Shield, AlertCircle, CheckCircle, Mail, ChevronLeft } from 'lucide-react';
 import api from "../../services/api";
 import "../../styles/EmailVerify.css";
 
@@ -19,6 +19,27 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
     if (element.value && index < 5) {
       inputRefs.current[index + 1].focus();
     }
+  };
+
+  const handlePaste = (e) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData('text').trim();
+
+    // Only accept 6-digit numeric codes
+    if (!/^\d{6}$/.test(pastedData)) {
+      setError('Please paste a valid 6-digit code');
+      return;
+    }
+
+    // Distribute the pasted digits across all inputs
+    const digits = pastedData.split('');
+    setOtp(digits);
+
+    // Focus the last input
+    inputRefs.current[5].focus();
+
+    // Clear any previous errors
+    setError('');
   };
 
   const handleKeyDown = (e, index) => {
@@ -88,7 +109,7 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
 
           <div className="sidebar-illustration">
             <div className="illustration-circle"></div>
-            <div className="illustration-icon">📧</div>
+            <div className="illustration-icon"><Mail size={64} /></div>
           </div>
 
           <div className="sidebar-info">
@@ -104,7 +125,7 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
       <div className="auth-main">
         <div className="auth-content">
           <button className="back-button" onClick={() => onNavigate("welcome")}>
-            ← Back to Home
+            <ChevronLeft size={16} style={{ marginRight: '4px' }} /> Back to Home
           </button>
 
           <div className="auth-header">
@@ -146,6 +167,7 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
                   onChange={(e) => handleChange(e.target, index)}
                   onKeyDown={(e) => handleKeyDown(e, index)}
                   onFocus={(e) => e.target.select()}
+                  onPaste={index === 0 ? handlePaste : undefined}
                 />
               ))}
             </div>

@@ -28,8 +28,16 @@ function Login({ onLogin, onNavigate }) {
       const data = await response.json();
 
       if (response.ok) {
-        // Successful login
-        onLogin(data.token, data.user);
+        // Check if user is verified
+        if (!data.user.isVerified) {
+          // User is not verified - redirect to email verification
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('user', JSON.stringify(data.user));
+          onNavigate('email-verify', data.user);
+        } else {
+          // User is verified - proceed to dashboard
+          onLogin(data.token, data.user);
+        }
       } else {
         // Login failed
         setError(data.error || 'Login failed. Please check your credentials.');
@@ -139,16 +147,7 @@ function Login({ onLogin, onNavigate }) {
             </button>
           </form>
 
-          <div className="demo-credentials">
-            <div className="demo-header">
-              <span className="demo-icon"><Info size={18} /></span>
-              <span className="demo-title">Demo Credentials</span>
-            </div>
-            <div className="demo-info">
-              <code className="demo-code">admin@chainshield.local</code>
-              <code className="demo-code">admin123</code>
-            </div>
-          </div>
+
 
           <div className="auth-footer">
             <p className="footer-text">

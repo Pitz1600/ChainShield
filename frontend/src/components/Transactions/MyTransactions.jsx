@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AlertTriangle, CheckCircle, Clock, FileText, Search, Filter } from 'lucide-react';
+import { AlertTriangle, CheckCircle, Clock, FileText, Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 import '../../styles/MyTransactions.css';
 import '../../styles/ColorfulIcons.css';
 
@@ -32,7 +32,7 @@ function MyTransactions({ user, embedded = false }) {
             if (filters.dateFrom) params.append('dateFrom', filters.dateFrom);
             if (filters.dateTo) params.append('dateTo', filters.dateTo);
 
-            const response = await fetch(`http://localhost:5000/api/transactions/my-transactions?${params}`, {
+            const response = await fetch(`http://localhost:5000/api/transactions/my-transactions?limit=5000&${params}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -43,49 +43,20 @@ function MyTransactions({ user, embedded = false }) {
                 setTransactions(data.transactions || []);
             } else if (response.status === 404) {
                 // Endpoint doesn't exist yet, use mock data
-                setTransactions(getMockTransactions());
+                setTransactions([]);
             } else {
                 setError('Failed to load transactions');
             }
         } catch (err) {
-            // Use mock data for now
-            setTransactions(getMockTransactions());
+            console.error('Error fetching transactions:', err);
+            setError('Failed to load transactions. Please check your connection.');
+            setTransactions([]);
         } finally {
             setLoading(false);
         }
     };
 
-    const getMockTransactions = () => {
-        return [
-            {
-                _id: '1',
-                transactionId: 'TXN-2024-001',
-                type: 'Barangay Clearance',
-                amount: 50,
-                status: 'completed',
-                date: new Date('2024-01-15'),
-                blockchainHash: '0x1234567890abcdef...'
-            },
-            {
-                _id: '2',
-                transactionId: 'TXN-2024-002',
-                type: 'Business Permit',
-                amount: 500,
-                status: 'pending',
-                date: new Date('2024-01-20'),
-                blockchainHash: null
-            },
-            {
-                _id: '3',
-                transactionId: 'TXN-2024-003',
-                type: 'Cedula',
-                amount: 30,
-                status: 'completed',
-                date: new Date('2024-01-10'),
-                blockchainHash: '0xabcdef1234567890...'
-            }
-        ];
-    };
+
 
     const handleFilterChange = (key, value) => {
         setFilters(prev => ({ ...prev, [key]: value }));
@@ -223,7 +194,7 @@ function MyTransactions({ user, embedded = false }) {
 
             {transactions.length === 0 ? (
                 <div className="empty-state">
-                    <div className="empty-icon">📭</div>
+                    <div className="empty-icon"><FileText size={48} color="#94a3b8" /></div>
                     <h3>No Transactions Found</h3>
                     <p>You haven't made any transactions yet or no transactions match your filters.</p>
                 </div>
@@ -304,7 +275,7 @@ function MyTransactions({ user, embedded = false }) {
                                 disabled={currentPage === 1}
                                 className="pagination-btn"
                             >
-                                ← Previous
+                                <ChevronLeft size={16} /> Previous
                             </button>
                             <span className="pagination-info">
                                 Page {currentPage} of {totalPages}
@@ -314,7 +285,7 @@ function MyTransactions({ user, embedded = false }) {
                                 disabled={currentPage === totalPages}
                                 className="pagination-btn"
                             >
-                                Next →
+                                Next <ChevronRight size={16} />
                             </button>
                         </div>
                     )}

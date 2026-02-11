@@ -9,7 +9,9 @@ function Profile({ user }) {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
 
   const [editForm, setEditForm] = useState({
-    username: user.username,
+    firstName: user.firstName || '',
+    lastName: user.lastName || '',
+    birthday: user.birthday ? new Date(user.birthday).toISOString().split('T')[0] : '',
     email: user.email,
     otp: ''
   });
@@ -32,7 +34,9 @@ function Profile({ user }) {
     setMessage('');
     setError('');
     setEditForm({
-      username: user.username,
+      firstName: user.firstName || '',
+      lastName: user.lastName || '',
+      birthday: user.birthday ? new Date(user.birthday).toISOString().split('T')[0] : '',
       email: user.email,
       otp: ''
     });
@@ -229,9 +233,19 @@ function Profile({ user }) {
 
         <div className="contact-info">
           <div className="contact-row">
-            <span className="contact-label">Full Name</span>
-            <span className="contact-value">{user.username}</span>
+            <span className="contact-label">First Name</span>
+            <span className="contact-value">{user.firstName}</span>
           </div>
+          <div className="contact-row">
+            <span className="contact-label">Last Name</span>
+            <span className="contact-value">{user.lastName}</span>
+          </div>
+          {user.birthday && (
+            <div className="contact-row">
+              <span className="contact-label">Birthday</span>
+              <span className="contact-value">{new Date(user.birthday).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+            </div>
+          )}
           <div className="contact-row">
             <span className="contact-label">Email Address</span>
             <span className="contact-value">{user.email}</span>
@@ -267,13 +281,33 @@ function Profile({ user }) {
 
             <form onSubmit={handleEditSubmit} className="modal-form">
               <div className="form-group">
-                <label className="form-label">Full Name</label>
+                <label className="form-label">First Name</label>
                 <input
                   type="text"
                   className="form-input"
-                  value={editForm.username}
-                  onChange={(e) => setEditForm({ ...editForm, username: e.target.value })}
+                  value={editForm.firstName}
+                  onChange={(e) => setEditForm({ ...editForm, firstName: e.target.value })}
                   required
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Last Name</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  value={editForm.lastName}
+                  onChange={(e) => setEditForm({ ...editForm, lastName: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Birthday</label>
+                <input
+                  type="date"
+                  className="form-input"
+                  value={editForm.birthday}
+                  onChange={(e) => setEditForm({ ...editForm, birthday: e.target.value })}
+                  max={new Date().toISOString().split('T')[0]}
                 />
               </div>
               <div className="form-group">

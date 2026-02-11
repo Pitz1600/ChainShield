@@ -2,6 +2,47 @@
 
 This document tracks the major updates, feature enhancements, and bug fixes applied to the ChainShield system.
 
+## 📅 Latest Updates (February 11, 2026)
+
+### 👤 Admin User Management Enhancements
+
+#### 1. Account Creation
+- **Admin-Created Accounts**: Administrators can now manually create user accounts.
+  - *Security*: Accounts are created with `isVerified: false`.
+  - *Flow*: Admins set a temporary password. Users must verify their email via OTP upon first login.
+- **UI**: Added "Create User" button and modal in Admin Panel.
+
+#### 2. User Deletion
+  - *UI*: Added "Delete" button (Trash icon) with confirmation dialog.
+
+#### 3. Audit Log Improvements
+- **Visuals**: Added role-based color coding (Purple for Admins, Blue for Officials, etc.) to Audit Logs.
+- **Fixes**: Resolved validation errors for "Create User" actions by updating Audit Log schema enum and ensuring `username` is correctly logged.
+- **Pagination**: Reduced default page size to 10 for better readability.
+
+### 🔒 Security Enhancements
+
+#### Session Management
+- **Token Expiry**: Reduced JWT validity from 7 days to **24 hours** to minimize risk of stolen tokens.
+- **Idle Timeout**: Implemented automatic **15-minute inactivity logout**.
+  - Users inactive for 15 minutes are automatically logged out and redirected to the login screen.
+  - Monitors mouse movements, clicks, and keyboard activity.
+
+#### Files Modified
+- `backend/controllers/authController.js`: Reduced token expiry.
+- `frontend/src/components/Auth/IdleTimer.jsx`: New component.
+- `frontend/src/App.jsx`: Integrated idle timer.
+- `backend/controllers/adminController.js`: Added `createUser` and `deleteUser`.
+
+### 🎨 UI Refinements
+- **Professional Icons**: Replaced playful emojis in registration forms with standard Lucide icons (Calendar, FileText, Shield) for a more professional government-grade appearance.
+- `backend/models/AuditLog.js`: Updated enum list.
+- `backend/routes/admin.js`: Added `POST /users` and `DELETE /users/:userId`.
+- `frontend/src/components/Admin/UserManagement.jsx`: Added Create/Delete UI.
+- `frontend/src/components/Admin/AuditLogViewer.jsx`: Enhanced role styling.
+
+---
+
 ## 📅 Latest Updates (February 10, 2026)
 
 ### 🤖 Inflation-Based Anomaly Detection
