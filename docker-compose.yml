@@ -1,4 +1,3 @@
-version: "3.9"
 
 services:
   # =========================
@@ -113,7 +112,7 @@ services:
     container_name: chainshield-ganache
     restart: unless-stopped
     ports:
-      - "${GANACHE_PORT:-7545}:8545"
+      - "7546:8545"
     command: >
       --mnemonic "${GANACHE_MNEMONIC}"
       --networkId ${GANACHE_NETWORK_ID:-1337}
@@ -121,6 +120,9 @@ services:
       --defaultBalanceEther 1000
       --gasLimit 10000000
       --gasPrice 20000000000
+      --database.dbPath /ganache_data
+    volumes:
+      - ganache_data:/ganache_data
     networks:
       - chainshield-network
 
@@ -138,3 +140,4 @@ volumes:
   mongodb_data:
   ml_models:
   ml_datasets:
+  ganache_data:

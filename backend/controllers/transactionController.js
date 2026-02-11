@@ -1,5 +1,5 @@
 const Transaction = require('../models/Transaction');
-const fraudDetectionService = require('../services/fraudDetection');
+const riskDetectionService = require('../services/fraudDetection');
 const blockchainService = require('../services/blockchainService');
 
 exports.createTransaction = async (req, res) => {
@@ -11,21 +11,22 @@ exports.createTransaction = async (req, res) => {
       transaction.txHash = blockchainService.generateTxHash(transaction);
     }
 
-    // Run comprehensive fraud detection (includes blockchain recording)
-    const fraudAnalysis = await fraudDetectionService.analyzeTransaction(transaction);
+    // Run comprehensive risk assessment (includes blockchain recording)
+    const riskAnalysis = await riskDetectionService.analyzeTransaction(transaction);
 
-    // Update transaction with fraud analysis results
-    transaction.riskScore = fraudAnalysis.riskScore;
-    transaction.riskLevel = fraudAnalysis.riskLevel;
-    transaction.flagged = fraudAnalysis.isFraudulent;
-    transaction.blockchainTxId = fraudAnalysis.blockchainTxId;
-    transaction.blockNumber = fraudAnalysis.blockchainBlockNumber;
+    // Update transaction with risk analysis results
+    transaction.riskScore = riskAnalysis.riskScore;
+    transaction.riskLevel = riskAnalysis.riskLevel;
+    transaction.flagged = riskAnalysis.isFraudulent;
+    transaction.blockchainTxId = riskAnalysis.blockchainTxId;
+    transaction.blockNumber = riskAnalysis.blockchainBlockNumber;
+    transaction.gasUsed = riskAnalysis.gasUsed;
 
     // Store network features from graph analysis
-    if (fraudAnalysis.networkFeatures) {
-      transaction.networkFeatures = {
-        degree: fraudAnalysis.networkFeatures.degree || 0,
-        inDegree: fraudAnalysis.networkFeatures.inDegree || 0,
+    if (riskAnalysis.networkFeatures) {
+      transaction.networkAnalysis = {
+        degree: riskAnalysis.networkFeatures.degree || 0,
+        inDegree: riskAnalysis.networkFeatures.inDegree || 0,
         outDegree: fraudAnalysis.networkFeatures.outDegree || 0,
         clusteringCoefficient: fraudAnalysis.networkFeatures.clusteringCoefficient || 0,
         betweennessCentrality: fraudAnalysis.networkFeatures.betweennessCentrality || 0

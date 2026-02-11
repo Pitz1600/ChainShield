@@ -59,7 +59,15 @@ class BlockchainService {
     if (this.contractAddress && this.web3) {
       try {
         this.contract = new this.web3.eth.Contract(this.contractABI, this.contractAddress);
-        console.log(`✅ Smart contract initialized at: ${this.contractAddress}`);
+        console.log(`
+╔══════════════════════════════════════════════════════════════╗
+║  ✅ BLOCKCHAIN SMART CONTRACT INITIALIZED                   ║
+╠══════════════════════════════════════════════════════════════╣
+║  📄 Contract Address: ${this.contractAddress.padEnd(40)} ║
+║  🌐 RPC Endpoint: ${this.rpcUrl.substring(0, 40).padEnd(40)} ║
+║  ⛓️  Ready to record transactions on Ganache blockchain    ║
+╚══════════════════════════════════════════════════════════════╝
+`);
       } catch (error) {
         console.error('❌ Failed to initialize contract:', error.message);
         this.contract = null;
@@ -102,7 +110,11 @@ class BlockchainService {
       // PRIORITY 1: Full blockchain implementation via smart contract
       if (this.contract && this.account && this.privateKey && this.web3) {
         try {
-          console.log('Recording transaction hash on blockchain via smart contract...');
+          console.log(`
+⏳ Recording transaction on Ganache blockchain...
+   📝 Hash: ${txHash.substring(0, 20)}...
+   📡 Connecting to: ${this.rpcUrl}
+`);
 
           // Get gas price
           const gasPrice = await this.web3.eth.getGasPrice();
@@ -130,8 +142,19 @@ class BlockchainService {
           // Send transaction to blockchain
           const receipt = await this.web3.eth.sendSignedTransaction(signedTx.rawTransaction);
 
-          console.log(`Transaction recorded on blockchain: ${receipt.transactionHash}`);
-          console.log(`Block number: ${receipt.blockNumber}`);
+          console.log(`
+╔══════════════════════════════════════════════════════════════╗
+║  🔗 TRANSACTION RECORDED ON GANACHE BLOCKCHAIN               ║
+╠══════════════════════════════════════════════════════════════╣
+║  Transaction Hash:                                           ║
+║    ${receipt.transactionHash.padEnd(57)} ║
+║  📦 Block Number: ${String(receipt.blockNumber).padEnd(43)} ║
+║  ⛽ Gas Used: ${String(receipt.gasUsed).padEnd(48)} ║
+║  ⛓️  Block Hash:                                             ║
+║    ${receipt.blockHash.padEnd(57)} ║
+╚══════════════════════════════════════════════════════════════╝
+`);
+          console.log(`🎉 Blockchain recording successful! Transaction is immutable and verifiable.`);
 
           // Get block timestamp
           const block = await this.web3.eth.getBlock(receipt.blockNumber);
@@ -149,7 +172,11 @@ class BlockchainService {
             note: 'Transaction hash recorded on Ethereum blockchain via smart contract'
           };
         } catch (contractError) {
-          console.error('Smart contract recording failed:', contractError.message);
+          console.error(`
+❌ BLOCKCHAIN RECORDING FAILED
+   Error: ${contractError.message}
+   This transaction will NOT be recorded on Ganache blockchain.
+`);
           console.error('Full error:', contractError);
           console.error('Error stack:', contractError.stack);
           throw new Error(`Failed to record on blockchain: ${contractError.message}`);

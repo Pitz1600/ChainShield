@@ -138,7 +138,10 @@ exports.importTransactions = async (req, res) => {
                 reasons: riskAnalysis.reasons || [],
                 // Philippine risk assessment specific
                 anomalyPatterns: riskAnalysis.anomalyPatterns || [],
-                networkFeatures: transaction.networkFeatures
+                networkFeatures: transaction.networkFeatures,
+                // Blockchain verification info
+                blockchainTxId: transaction.blockchainTxId || null,
+                blockNumber: transaction.blockNumber || null
               });
 
             } catch (error) {
@@ -153,7 +156,8 @@ exports.importTransactions = async (req, res) => {
 
           // Clean up uploaded file with retry for Windows
           try {
-            if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+            // Keep CSV file for records (don't delete)
+            // if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
           } catch (err) {
             console.warn('Warning: Could not delete temp file (Windows lock?):', err.message);
           }
@@ -161,6 +165,7 @@ exports.importTransactions = async (req, res) => {
           // Calculate statistics
           const flaggedCount = results.filter(r => r.flagged).length;
           const highRiskCount = results.filter(r => r.riskLevel === 'HIGH' || r.riskLevel === 'CRITICAL').length;
+          const blockchainVerified = results.filter(r => r.blockchainTxId).length;
 
           console.log(`\n✅ Import Complete:`);
           console.log(`  Total: ${rawTransactions.length}`);
@@ -168,6 +173,7 @@ exports.importTransactions = async (req, res) => {
           console.log(`  Failed: ${errors.length}`);
           console.log(`  Flagged for Review: ${flaggedCount}`);
           console.log(`  High Risk: ${highRiskCount}`);
+          console.log(`  ⛓️  Blockchain Verified: ${blockchainVerified}`);
 
           // Return enhanced results
           res.json({
@@ -177,6 +183,7 @@ exports.importTransactions = async (req, res) => {
             failed: errors.length,
             flaggedCount,
             highRiskCount,
+            blockchainVerified,
             columnMappings,
             mappingConfidence: mapper.getConfidence(columnMappings),
             results,
@@ -187,7 +194,8 @@ exports.importTransactions = async (req, res) => {
           console.error('Processing Error:', error);
           // Clean up uploaded file
           try {
-            if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+            // Keep CSV file for records (don't delete)
+            // if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
           } catch (e) { /* ignore */ }
 
           res.status(500).json({ error: error.message });
@@ -197,7 +205,8 @@ exports.importTransactions = async (req, res) => {
         console.error('CSV Parse Error:', error);
         // Clean up uploaded file
         try {
-          if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+          // Keep CSV file for records (don't delete)
+          // if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
         } catch (e) { /* ignore */ }
 
         res.status(500).json({ error: 'Error parsing CSV file: ' + error.message });

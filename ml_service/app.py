@@ -132,19 +132,38 @@ def predict():
     try:
         data = request.json or {}
 
-        features = extract_features(data)
+        tx_id = data.get("transactionId", data.get("txHash", "UNKNOWN"))
+        tx_type = data.get("transactionType", "Other")
+        amount = float(data.get("amount") or 0)
 
+        print(f"\n{'='*60}")
+        print(f"🤖 AI PREDICTION REQUEST RECEIVED")
+        print(f"{'='*60}")
+        print(f"  📋 Transaction: {tx_id}")
+        print(f"  💰 Amount:      ₱{amount:,.2f}")
+        print(f"  📁 Type:        {tx_type}")
+
+        features = extract_features(data)
+        print(f"  🔢 Features:    {[round(f, 4) for f in features]}")
+
+        # --- Ensemble Model Prediction ---
         ensemble = get_ensemble_detector()
         network_features = data.get('networkFeatures', {})
         ensemble_prob = ensemble.predict_proba(data, network_features)
         risk_score = int(ensemble_prob * 100)
+        print(f"  📊 Ensemble:    probability={ensemble_prob:.4f} → score={risk_score}")
 
+        # --- Anomaly Detection (Isolation Forest) ---
         anomaly_score = anomaly_model.decision_function([features])[0]
         is_anomaly = anomaly_score < -0.1
+        print(f"  🔍 Anomaly:     score={anomaly_score:.4f}, is_anomaly={'⚠️  YES' if is_anomaly else '✅ NO'}")
 
         if is_anomaly and risk_score < 70:
+            old_score = risk_score
             risk_score = min(risk_score + 15, 100)
+            print(f"  📈 Boosted:     {old_score} → {risk_score} (anomaly detected)")
 
+        # --- SHAP Explainability ---
         shap_values = explainer.shap_values([features])[0]
         feature_names = [
             "amount_normalized",
@@ -162,15 +181,34 @@ def predict():
         fraud_type = classify_fraud_type(features, explanations, data)
         risk_level = get_risk_level(risk_score)
 
+        # --- SHAP Top Features ---
+        shap_dict = dict(zip(feature_names, [float(v) for v in shap_values.tolist()]))
+        sorted_shap = sorted(shap_dict.items(), key=lambda x: abs(x[1]), reverse=True)
+        print(f"  🧠 SHAP Top-3:")
+        for fname, fval in sorted_shap[:3]:
+            direction = "↑ risk" if fval > 0 else "↓ risk"
+            print(f"       • {fname}: {fval:+.4f} ({direction})")
+
+        # --- Final Prediction Summary ---
+        level_emoji = {"CRITICAL": "🔴", "HIGH": "🟠", "MEDIUM": "🟡", "LOW": "🟢"}.get(risk_level, "⚪")
+        print(f"\n  {'─'*50}")
+        print(f"  {level_emoji} PREDICTION RESULT:")
+        print(f"     Risk Score:  {risk_score}/100")
+        print(f"     Risk Level:  {risk_level}")
+        print(f"     Fraud Type:  {fraud_type}")
+        print(f"     Fraudulent:  {'🚨 YES' if risk_score >= 60 else '✅ NO'}")
+        print(f"     Reasons:     {'; '.join(explanations)}")
+        print(f"{'='*60}\n", flush=True)
+
         return jsonify({
-            "transaction_id": data.get("transactionId", data.get("txHash", "UNKNOWN")),
-            "transaction_type": data.get("transactionType", "Other"),
+            "transaction_id": tx_id,
+            "transaction_type": tx_type,
             "risk_score": risk_score,
             "risk_level": risk_level,
             "isFraudulent": bool(risk_score >= 60),
             "fraudType": fraud_type,
             "explanation": explanations,
-            "shapValues": dict(zip(feature_names, [float(v) for v in shap_values.tolist()])),
+            "shapValues": shap_dict,
             "anomalyScore": float(anomaly_score),
             "isAnomaly": bool(is_anomaly)
         })
@@ -178,9 +216,13 @@ def predict():
     except Exception as e:
         import traceback
         error_details = traceback.format_exc()
-        print(f"[ERROR] Prediction failed: {e}")
-        print(f"[ERROR] Traceback: {error_details}")
-        print(f"[ERROR] Request data keys: {list(data.keys()) if data else 'None'}")
+        print(f"\n{'='*60}")
+        print(f"❌ AI PREDICTION FAILED")
+        print(f"{'='*60}")
+        print(f"  Error:    {e}")
+        print(f"  Details:  {error_details}")
+        print(f"  Data:     {list(data.keys()) if data else 'None'}")
+        print(f"{'='*60}\n", flush=True)
         return jsonify({
             "error": str(e),
             "risk_score": 0,
@@ -214,12 +256,26 @@ def extract_features(data):
 # =========================
 
 def generate_explanations(shap_values, names, features, data):
+    # Map raw feature names to human-readable descriptions
+    feature_descriptions = {
+        "amount_normalized": "Unusually high transaction amount",
+        "frequency": "High transaction frequency detected",
+        "time_diff": "Rapid sequential transactions",
+        "address_degree": "Suspicious network connections",
+        "convergence_score": "Multiple sources converging to single recipient",
+        "circular_pattern": "Circular transaction pattern detected"
+    }
+
     reasons = []
     top = np.argsort(np.abs(shap_values))[-3:][::-1]
 
     for idx in top:
         if abs(shap_values[idx]) > 0.05:
-            reasons.append(f"High impact: {names[idx]}")
+            feature_name = names[idx] if idx < len(names) else f"feature_{idx}"
+            human_desc = feature_descriptions.get(feature_name, f"Anomalous pattern: {feature_name}")
+            # Add severity context based on SHAP value magnitude
+            severity = "High" if abs(shap_values[idx]) > 0.2 else "Moderate"
+            reasons.append(f"{human_desc} ({severity} impact)")
 
     if not reasons:
         reasons.append("Transaction appears normal")

@@ -2,6 +2,59 @@
 
 This document tracks the major updates, feature enhancements, and bug fixes applied to the ChainShield system.
 
+## 📅 Latest Updates (February 10, 2026)
+
+### 🤖 Inflation-Based Anomaly Detection
+
+#### Backend Enhancements
+- **Inflation Data Service**: Created `inflationService.js` with World Bank API integration
+  - Fetches Philippine inflation rate from World Bank API
+  - 30-day caching mechanism for API efficiency
+  - Historical inflation rate storage in MongoDB
+  - Fallback to default 3.5% if API unavailable
+
+- **Inflation Data Model**: New `InflationRate` model
+  - Stores monthly inflation rates with source tracking
+  - Helper methods: `getCurrentRate()`, `getRateForMonth()`
+  - Supports manual rate entry by administrators
+
+- **Enhanced Fraud Detection**: Updated `fraudDetection.js` with 4 new inflation-based features
+  - `inflation_rate`: Current Philippine inflation percentage
+  - `inflation_adjusted_amount`: Transaction amount normalized for inflation
+  - `inflation_deviation_score`: How much the inflation-adjusted amount deviates from historical average
+  - `economic_context_risk`: Combined risk score that increases tolerance during high inflation periods
+
+- **New API Endpoints** (`/api/analytics/...`):
+  - `GET /inflation/current` - Get current inflation rate
+  - `GET /inflation/history?limit=12` - Get historical rates
+  - `POST /inflation/manual` - Admin-only manual rate updates
+
+#### Frontend Enhancements
+- **Dashboard Inflation Display**: Added inflation rate card to hero stats
+  - Green gradient design to distinguish from alert metrics
+  - Displays current Philippine inflation rate with 1 decimal precision
+  - Auto-fetches on dashboard load with graceful fallback
+
+#### How It Works
+The system now considers economic context when detecting anomalies:
+1. Fetches latest Philippine inflation rate (monthly updates)
+2. Adjusts transaction amounts for inflation: `adjusted = amount / (1 + rate/100)`
+3. Compares adjusted amount against historical averages
+4. **Higher inflation = More tolerance** for price variations (reduces false positives)
+5. **Lower inflation = Stricter detection** (flags unusual amounts more aggressively)
+
+#### Files Modified/Created
+- **Backend**:
+  - `backend/models/InflationRate.js` (NEW)
+  - `backend/services/inflationService.js` (NEW)
+  - `backend/routes/analytics.js` (NEW)
+  - `backend/services/fraudDetection.js` (MODIFIED)
+  - `backend/server.js` (MODIFIED)
+- **Frontend**:
+  - `frontend/src/components/Dashboard/Dashboard.jsx` (MODIFIED)
+
+---
+
 ## 📅 Latest Updates (February 5, 2026)
 
 ### 🎨 Transactions Page UI Overhaul

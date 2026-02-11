@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const transactionSchema = new mongoose.Schema({
-  // Transaction ID (Philippine Government Format)
+  // Transaction ID (Barangay Transaction Format)
   transactionId: {
     type: String,
     unique: true,
@@ -20,7 +20,7 @@ const transactionSchema = new mongoose.Schema({
   blockchainTxId: String, // Ethereum transaction ID
   gasUsed: Number,
 
-  // Philippine Government Context
+  // Barangay Context
   transactionType: {
     type: String,
     enum: ['Social Welfare', 'Procurement', 'Grant', 'Tax', 'Revenue', 'Other'],
@@ -54,7 +54,7 @@ const transactionSchema = new mongoose.Schema({
   beneficiaryId: String, // Hashed/anonymized ID
   beneficiaryType: {
     type: String,
-    enum: ['Individual', 'Household', 'Organization', 'Government Entity', 'Vendor', 'Contractor']
+    enum: ['Individual', 'Household', 'Organization', 'Barangay Office', 'Vendor', 'Contractor']
   },
 
   // Metadata
@@ -68,7 +68,7 @@ const transactionSchema = new mongoose.Schema({
     of: mongoose.Schema.Types.Mixed
   },
 
-  // Fraud detection results
+  // Risk assessment results
   flagged: {
     type: Boolean,
     default: false,
@@ -96,7 +96,7 @@ const transactionSchema = new mongoose.Schema({
     betweennessCentrality: Number
   },
 
-  // Fraud patterns detected
+  // Risk patterns detected
   fraudPatterns: [{
     type: {
       type: String,

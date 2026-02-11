@@ -99,7 +99,7 @@ function Welcome({ onNavigate }) {
 
           <div className="security-notice">
             <span className="notice-icon"><Lock size={20} /></span>
-            <span className="notice-text">All document transactions are encrypted and stored on blockchain. This system complies with government security standards.</span>
+            <span className="notice-text">All document transactions are encrypted and stored on blockchain. This system complies with barangay security standards.</span>
           </div>
         </div>
       </div>

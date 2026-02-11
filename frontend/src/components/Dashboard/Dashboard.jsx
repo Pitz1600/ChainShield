@@ -11,6 +11,7 @@ function Dashboard({ user, onNavigate }) { // Ensure onNavigate is destructured
     high: 0,
     medium: 0
   });
+  const [inflationRate, setInflationRate] = useState(null);
   const [recentAlerts, setRecentAlerts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const alertsPerPage = 5;
@@ -66,6 +67,7 @@ function Dashboard({ user, onNavigate }) { // Ensure onNavigate is destructured
 
   useEffect(() => {
     fetchDashboardData();
+    fetchInflationRate();
   }, []);
 
   const fetchDashboardData = async () => {
@@ -105,6 +107,24 @@ function Dashboard({ user, onNavigate }) { // Ensure onNavigate is destructured
     }
   };
 
+  const fetchInflationRate = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:5000/api/analytics/inflation/current', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setInflationRate(data.data.rate);
+      }
+    } catch (error) {
+      console.error('Error fetching inflation rate:', error);
+      // Set default if API fails
+      setInflationRate(3.5);
+    }
+  };
+
   const getSeverity = (riskScore) => {
     if (riskScore >= 80) return 'critical';
     if (riskScore >= 60) return 'high';
@@ -141,7 +161,7 @@ function Dashboard({ user, onNavigate }) { // Ensure onNavigate is destructured
         <div className="hero-content">
           <span className="hero-tag">INTEGRITY MONITORING WORKSPACE</span>
           <h2 className="hero-title">Welcome back, {user.username}!</h2>
-          <p className="hero-subtitle">Monitor Philippine government financial transactions, detect anomaly patterns, and maintain transparent audit trails using AI and blockchain technology.</p>
+          <p className="hero-subtitle">Monitor barangay financial transactions, detect anomaly patterns, and maintain transparent audit trails using AI and blockchain technology.</p>
         </div>
 
         <div className="hero-stats-grid">
@@ -176,6 +196,20 @@ function Dashboard({ user, onNavigate }) { // Ensure onNavigate is destructured
               <div className="stat-label">Medium Risk</div>
             </div>
           </div>
+
+          {/* Inflation Rate Card */}
+          {inflationRate !== null && (
+            <div className="hero-stat-card inflation" style={{
+              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              gridColumn: 'span 2'
+            }}>
+              <div className="stat-icon"><TrendingUp size={24} /></div>
+              <div className="stat-content">
+                <div className="stat-value">{inflationRate.toFixed(1)}%</div>
+                <div className="stat-label">PH Inflation Rate</div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -185,7 +219,7 @@ function Dashboard({ user, onNavigate }) { // Ensure onNavigate is destructured
           <div className="card-header">
             <div>
               <h3 className="card-title">Recent Alerts</h3>
-              <p className="card-subtitle">Latest risk alerts from government transactions</p>
+              <p className="card-subtitle">Latest risk alerts from barangay transactions</p>
             </div>
           </div>
           <div className="alerts-list">

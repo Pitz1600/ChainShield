@@ -98,7 +98,7 @@ app.use('/api/evaluation', require('./routes/evaluation'));
 app.use('/api/blockchain', require('./routes/blockchain'));
 app.use('/api/datagovph', require('./routes/dataGovPh'));
 app.use('/api/complaints', require('./routes/complaints'));
-app.use('/api/feedback', require('./routes/feedback'));
+app.use('/api/analytics', require('./routes/analytics'));
 
 // Root endpoint
 app.get('/', (req, res) => {
