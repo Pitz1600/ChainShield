@@ -17,6 +17,7 @@ const {
 // Public routes with rate limiting and validation
 router.post('/register', registrationLimiter, validateRegistration, authController.register);
 router.post('/login', loginLimiter, validateLogin, authController.login);
+router.post('/verify-login-otp', loginLimiter, authController.verifyLoginOtp);
 router.post('/logout', authMiddleware, authController.logout);
 
 // Protected routes (require authentication)

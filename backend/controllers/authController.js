@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const AuditLog = require('../models/AuditLog');
 const jwt = require('jsonwebtoken');
 const emailService = require('../services/emailService');
 
@@ -68,6 +69,15 @@ exports.register = async (req, res) => {
         updatedAt: user.updatedAt
       }
     });
+    await AuditLog.logAction({
+      action: 'user_register',
+      userId: user._id,
+      userRole: user.role,
+      username: user.username,
+      ipAddress: req.ip,
+      userAgent: req.get('User-Agent'),
+      details: { email }
+    });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -85,6 +95,35 @@ exports.login = async (req, res) => {
     // Check if user account is active
     if (!user.isActive) {
       return res.status(403).json({ error: 'Account has been deactivated. Please contact an administrator.' });
+    }
+
+    // Check for Admin or Barangay Official role for OTP
+    if (['administrator', 'barangay_official'].includes(user.role)) {
+      // Generate OTP
+      const otp = generateOTP();
+      const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+      user.otp = otp;
+      user.otpExpires = otpExpires;
+      user.otpAttempts = 0;
+      await user.save();
+
+      // Log OTP to console for development/testing
+      console.log(`[OTP-DEBUG] OTP for ${user.email} (${user.role}): ${otp}`);
+
+      // Send OTP via email
+      try {
+        await emailService.sendOTPEmail(user.email, otp, user.username);
+      } catch (emailError) {
+        console.error('Failed to send OTP email:', emailError);
+        // Continue to allow login checking (OTP is logged to console)
+      }
+
+      return res.json({
+        otpRequired: true,
+        userId: user._id,
+        message: 'OTP sent to your email. Please verify to complete login.'
+      });
     }
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
@@ -105,6 +144,96 @@ exports.login = async (req, res) => {
         updatedAt: user.updatedAt || user._id.getTimestamp()
       }
     });
+
+    // Log successful login
+    await AuditLog.logAction({
+      action: 'user_login',
+      userId: user._id,
+      userRole: user.role,
+      username: user.username,
+      ipAddress: req.ip,
+      userAgent: req.get('User-Agent'),
+      details: { email }
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.verifyLoginOtp = async (req, res) => {
+  try {
+    const { userId, otp } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Check if OTP attempts exceeded
+    if (user.otpAttempts >= 10) {
+      return res.status(429).json({
+        error: 'Too many failed attempts. Please request a new OTP.',
+        action: 'resend_required'
+      });
+    }
+
+    // Check OTP validity
+    if (!user.otp || !user.otpExpires) {
+      return res.status(400).json({ error: 'No OTP found. Please request a new one.' });
+    }
+
+    if (user.otpExpires < Date.now()) {
+      return res.status(400).json({
+        error: 'OTP has expired. Please request a new one.',
+        action: 'resend_required'
+      });
+    }
+
+    if (user.otp !== otp) {
+      // Increment failed attempts
+      user.otpAttempts += 1;
+      await user.save();
+
+      const remainingAttempts = 10 - user.otpAttempts;
+      return res.status(400).json({
+        error: `Invalid OTP. ${remainingAttempts} attempt(s) remaining.`,
+        remainingAttempts
+      });
+    }
+
+    // OTP is valid - clear it and generate token
+    user.otp = undefined;
+    user.otpExpires = undefined;
+    user.otpAttempts = 0;
+    await user.save();
+
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+    res.json({
+      token,
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        isVerified: user.isVerified,
+        position: user.position,
+        createdAt: user.createdAt || user._id.getTimestamp(),
+        updatedAt: user.updatedAt || user._id.getTimestamp()
+      }
+    });
+
+    // Log successful login with OTP
+    await AuditLog.logAction({
+      action: 'user_login_otp',
+      userId: user._id,
+      userRole: user.role,
+      username: user.username,
+      ipAddress: req.ip,
+      userAgent: req.get('User-Agent'),
+      details: { email: user.email, method: 'otp' }
+    });
+
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -172,6 +301,16 @@ exports.verifyEmail = async (req, res) => {
     await user.save();
 
     res.json({ success: true, message: 'Email verified successfully' });
+
+    await AuditLog.logAction({
+      action: 'user_verified',
+      userId: user._id,
+      userRole: user.role,
+      username: user.username,
+      ipAddress: req.ip,
+      userAgent: req.get('User-Agent'),
+      details: { method: 'otp' }
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
