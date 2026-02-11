@@ -22,34 +22,34 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model('User', userSchema);
 
-async function createCustomAdmin() {
+async function createBarangayOfficial() {
     try {
-        const adminEmail = 'admin243@chainshield.local';
-        const adminUsername = 'Secondary asdfAdministrator';
+        const officialEmail = 'official@chainshield.local';
+        const officialUsername = 'Barangay Official';
 
-        // Check if admin already exists
-        const existingAdmin = await User.findOne({ email: adminEmail });
+        // Check if user already exists
+        const existingOfficial = await User.findOne({ email: officialEmail });
 
-        if (existingAdmin) {
-            console.log('⚠️  Admin account with this email already exists!');
-            console.log('Email:', adminEmail);
+        if (existingOfficial) {
+            console.log('⚠️  User account with this email already exists!');
+            console.log('Email:', officialEmail);
             mongoose.connection.close();
             return;
         }
 
         // Generate secure random password
-        const adminPassword = crypto.randomBytes(16).toString('hex');
+        const officialPassword = crypto.randomBytes(8).toString('hex'); // 8 bytes = 16 chars
 
         // Hash the password
-        const hashedPassword = await bcrypt.hash(adminPassword, 10);
+        const hashedPassword = await bcrypt.hash(officialPassword, 10);
 
-        // Create admin user
-        const admin = new User({
-            username: adminUsername,
-            email: adminEmail,
+        // Create user
+        const official = new User({
+            username: officialUsername,
+            email: officialEmail,
             password: hashedPassword,
-            role: 'administrator',
-            position: 'System Administrator',
+            role: 'barangay_official',
+            position: 'Barangay Captain',
             isVerified: true,
             isActive: true,
             otpAttempts: 0,
@@ -57,22 +57,22 @@ async function createCustomAdmin() {
             updatedAt: new Date()
         });
 
-        await admin.save();
+        await official.save();
 
-        console.log('✅ Admin account created successfully!');
+        console.log('✅ Barangay Official account created successfully!');
         console.log('');
-        console.log('📧 Email:', adminEmail);
-        console.log('👤 Username:', adminUsername);
-        console.log('🔒 Password:', adminPassword);
+        console.log('📧 Email:', officialEmail);
+        console.log('👤 Username:', officialUsername);
+        console.log('🔒 Password:', officialPassword);
         console.log('');
         console.log('⚠️  IMPORTANT: Save this password securely! It is generated randomly.');
         console.log('');
 
     } catch (error) {
-        console.error('❌ Error creating admin account:', error);
+        console.error('❌ Error creating official account:', error);
     } finally {
         mongoose.connection.close();
     }
 }
 
-createCustomAdmin();
+createBarangayOfficial();
