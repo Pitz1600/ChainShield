@@ -2,6 +2,31 @@
 
 This document tracks the major updates, feature enhancements, and bug fixes applied to the ChainShield system.
 
+## 📅 Latest Updates (February 5, 2026)
+
+### 🎨 Transactions Page UI Overhaul
+
+#### Layout Improvements
+- **Unified Hero Design**: Transactions page now matches the Admin Panel hero layout
+  - Stacked vertical layout: label badge → title → description → stats row
+  - 4-column glassmorphic stat cards in a single horizontal row
+  - Proper left-aligned text matching reference design
+  
+- **Centered Page Layout**: All components now centered with `max-width: 1200px`
+  - Hero section: Rounded corners with proper margins
+  - Tabs: Centered to match hero width
+  - Content area: Alert cards aligned with hero/tabs
+  
+- **Responsive Design**: Optimized for all screen sizes
+  - 4-column grid on desktop
+  - 2-column grid on tablets (< 1024px)
+  - Single column on mobile (< 480px)
+
+#### Files Modified
+- `frontend/src/styles/TransactionsPage.css` - Complete CSS rewrite for unified layout
+
+---
+
 ## 📅 Latest Updates (February 1, 2026 - Evening)
 
 ### 🔐 Rate Limiting & OTP System Overhaul

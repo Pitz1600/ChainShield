@@ -3,7 +3,7 @@ import { AlertTriangle, CheckCircle, Clock, FileText, Search, Filter } from 'luc
 import '../../styles/MyTransactions.css';
 import '../../styles/ColorfulIcons.css';
 
-function MyTransactions({ user }) {
+function MyTransactions({ user, embedded = false }) {
     const [transactions, setTransactions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -133,36 +133,38 @@ function MyTransactions({ user }) {
 
     return (
         <div className="my-transactions">
-            <div className="page-hero transactions-hero">
-                <div className="hero-content">
-                    <span className="hero-tag">TRANSACTION HISTORY</span>
-                    <h2 className="hero-title">View all barangay transactions</h2>
-                    <p className="hero-subtitle">Search, filter, and track transaction records with blockchain verification.</p>
+            {!embedded && (
+                <div className="page-hero transactions-hero">
+                    <div className="hero-content">
+                        <span className="hero-tag">TRANSACTION HISTORY</span>
+                        <h2 className="hero-title">View all barangay transactions</h2>
+                        <p className="hero-subtitle">Search, filter, and track transaction records with blockchain verification.</p>
+                    </div>
+                    <div className="hero-stats">
+                        <div className="stat-card">
+                            <div className="stat-icon"><FileText size={24} color="#3b82f6" /></div>
+                            <div className="stat-info">
+                                <div className="stat-value">{transactions.length}</div>
+                                <div className="stat-label">Total</div>
+                            </div>
+                        </div>
+                        <div className="stat-card">
+                            <div className="stat-icon"><CheckCircle size={24} color="#10b981" /></div>
+                            <div className="stat-info">
+                                <div className="stat-value">{transactions.filter(t => t.status === 'completed').length}</div>
+                                <div className="stat-label">Completed</div>
+                            </div>
+                        </div>
+                        <div className="stat-card">
+                            <div className="stat-icon"><Clock size={24} color="#f59e0b" /></div>
+                            <div className="stat-info">
+                                <div className="stat-value">{transactions.filter(t => t.status === 'pending').length}</div>
+                                <div className="stat-label">Pending</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div className="hero-stats">
-                    <div className="stat-card">
-                        <div className="stat-icon"><FileText size={24} color="#3b82f6" /></div>
-                        <div className="stat-info">
-                            <div className="stat-value">{transactions.length}</div>
-                            <div className="stat-label">Total</div>
-                        </div>
-                    </div>
-                    <div className="stat-card">
-                        <div className="stat-icon"><CheckCircle size={24} color="#10b981" /></div>
-                        <div className="stat-info">
-                            <div className="stat-value">{transactions.filter(t => t.status === 'completed').length}</div>
-                            <div className="stat-label">Completed</div>
-                        </div>
-                    </div>
-                    <div className="stat-card">
-                        <div className="stat-icon"><Clock size={24} color="#f59e0b" /></div>
-                        <div className="stat-info">
-                            <div className="stat-value">{transactions.filter(t => t.status === 'pending').length}</div>
-                            <div className="stat-label">Pending</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            )}
 
             <div className="filters-section">
                 <div className="filter-group">

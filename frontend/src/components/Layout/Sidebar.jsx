@@ -20,12 +20,12 @@ function Sidebar({ user, activeView, setActiveView, onLogout, isMobileMenuOpen, 
   // Base menu items for all users
   const baseMenuItems = [
     { id: 'dashboard', icon: 'home', label: 'Dashboard', roles: ['resident', 'barangay_official', 'administrator'] },
-    { id: 'alerts', icon: 'alert', label: 'Transaction Alerts', roles: ['resident', 'barangay_official', 'administrator'] },
+    { id: 'transactions', icon: 'history', label: 'Transactions', roles: ['resident', 'barangay_official', 'administrator'] },
   ];
 
   // Resident-specific menu items (view-only features)
   const residentMenuItems = [
-    { id: 'transaction-history', icon: 'history', label: 'Transaction History', roles: ['resident', 'barangay_official', 'administrator'] },
+    // Transaction history is now part of Transactions page
   ];
 
   // Official and admin menu items

@@ -11,7 +11,7 @@
 - [Philippine-Specific Patterns](#philippine-specific-patterns)
 - [Interpreting Results](#interpreting-results)
 - [Continuous Learning System](#continuous-learning-system)
-- [Why Manual Admin Review?](#why-manual-admin-review-not-automatic)
+- [Alternative: Manual Admin Review](#alternative-manual-admin-review-system)
 - [Best Practices](#best-practices)
 - [Troubleshooting](#troubleshooting)
 
@@ -362,7 +362,7 @@ The AI system now **learns from your feedback**! When analysts review transactio
 - Accuracy: **87%**
 - Status: Active
 
-### How Feedback Works
+### How Feedback Works (Automatic Approval)
 
 ```
 1. AI analyzes transaction → Risk Score: 75 (HIGH)
@@ -374,9 +374,12 @@ The AI system now **learns from your feedback**! When analysts review transactio
    - Confidence: 4/5
    - Notes: "Verified with agency"
    ↓
-4. Admin approves feedback
+4. ⚡ AUTOMATIC APPROVAL (Instant)
+   - Status: "approved" immediately
+   - No admin review needed
+   - Added to training dataset
    ↓
-5. When 100+ samples collected → Model retrains
+5. When 100+ samples collected → Model retrains automatically
    ↓
 6. New model deployed → Improved accuracy
 ```
@@ -397,6 +400,22 @@ POST /api/feedback
 }
 ```
 
+**Response:**
+```json
+{
+  "success": true,
+  "feedback": {
+    "_id": "...",
+    "status": "approved",
+    "approvedBy": "your_user_id",
+    "approvedAt": "2026-02-05T13:31:00Z"
+  },
+  "approvedCount": 100,
+  "shouldRetrain": true,
+  "message": "Feedback approved! 100 samples collected - automatic retraining will begin shortly."
+}
+```
+
 **Confidence Levels:**
 - **1** - Very uncertain
 - **2** - Somewhat uncertain
@@ -404,21 +423,37 @@ POST /api/feedback
 - **4** - Confident
 - **5** - Very confident
 
+### Automatic Approval System
+
+**How It Works:**
+- ✅ Feedback is **instantly approved** when submitted
+- ✅ No admin review required
+- ✅ Immediately added to training dataset
+- ✅ Faster AI improvement cycle
+
+**Benefits:**
+- ⚡ **Speed**: No waiting for admin approval
+- 📈 **Scalability**: No admin bottleneck
+- 🎯 **Simplicity**: Streamlined workflow
+- 🚀 **Faster Learning**: Model improves quickly
+
+**Security Measures:**
+- 🔒 Rate limiting: Max 50 feedback/day per analyst
+- 🔒 Anomaly detection: Flags unusual patterns
+- 🔒 2FA required: For analyst accounts
+- 🔒 Monitoring: Track analyst performance
+- 🔒 Audit logging: All submissions tracked
+
 ### Feedback Approval (For Admins)
 
-Admins must approve feedback before it's used for training:
+> **Note:** With automatic approval enabled, the admin approval endpoints are not used. Feedback is automatically approved upon submission.
+
+If you need to review feedback history or statistics:
 
 ```bash
-GET /api/feedback/pending  # View pending feedback
-POST /api/feedback/:id/approve  # Approve
-POST /api/feedback/:id/reject   # Reject
+GET /api/feedback/stats  # View feedback statistics
+GET /api/feedback        # View all feedback (approved)
 ```
-
-**Approval Criteria:**
-- ✅ Analyst is experienced and reliable
-- ✅ Confidence level is 3 or higher
-- ✅ Notes provide clear justification
-- ✅ No conflicts with other feedback
 
 ### Model Performance Tracking
 
@@ -516,7 +551,17 @@ This instantly reverts to the previous model version.
 
 ---
 
-## Why Manual Admin Review? (Not Automatic)
+## Alternative: Manual Admin Review System
+
+> **Note:** ChainShield currently uses **automatic approval** (see above). This section describes an alternative manual review approach that prioritizes security over speed.
+
+### Why Consider Manual Review?
+
+While automatic approval is faster and more scalable, manual admin review provides additional security and quality control. This approach may be preferred for:
+- High-security environments
+- Government/financial systems
+- Untrusted analyst teams
+- When quality > speed
 
 ### The Security Problem with Automatic Approval
 
