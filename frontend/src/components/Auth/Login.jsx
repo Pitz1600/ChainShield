@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Shield, Lock, Mail, AlertCircle, Info, ArrowRight } from 'lucide-react';
 import '../../styles/Login.css';
-import api from '../../services/api';
+import { authAPI } from '../../services/api';
 
 function Login({ onLogin, onNavigate }) {
   const [formData, setFormData] = useState({ email: '', password: '' });
@@ -14,36 +14,29 @@ function Login({ onLogin, onNavigate }) {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password
-        })
+      const response = await authAPI.login({
+        email: formData.email,
+        password: formData.password
       });
 
-      const data = await response.json();
+      const data = response.data;
 
-      if (response.ok) {
-        // Check if user is verified
-        if (!data.user.isVerified) {
-          // User is not verified - redirect to email verification
-          localStorage.setItem('token', data.token);
-          localStorage.setItem('user', JSON.stringify(data.user));
-          onNavigate('email-verify', data.user);
-        } else {
-          // User is verified - proceed to dashboard
-          onLogin(data.token, data.user);
-        }
+      // Check if user is verified
+      if (!data.user.isVerified) {
+        // User is not verified - redirect to email verification
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        onNavigate('email-verify', data.user);
       } else {
-        // Login failed
-        setError(data.error || 'Login failed. Please check your credentials.');
+        // User is verified - proceed to dashboard
+        onLogin(data.token, data.user);
       }
     } catch (err) {
-      setError('Unable to connect to server. Please make sure the backend is running.');
+      if (err.response && err.response.data && err.response.data.error) {
+        setError(err.response.data.error);
+      } else {
+        setError('Login failed. Please check your credentials or server status.');
+      }
     } finally {
       setLoading(false);
     }

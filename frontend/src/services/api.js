@@ -4,17 +4,44 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
 const api = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json'
   }
 });
 
-api.interceptors.request.use((config) => {
+let csrfToken = null; // Store token in memory
+
+api.interceptors.request.use(async (config) => {
   const token = localStorage.getItem('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
+  // Skip CSRF for safe methods
+  if (['get', 'head', 'options'].includes(config.method.toLowerCase())) {
+    return config;
+  }
+
+  // Fetch CSRF token if not present
+  if (!csrfToken) {
+    try {
+      // Use a separate axios instance or the same one but ensure we don't loop
+      // Since this is a GET request, it won't recursively try to fetch CSRF token again due to the check above
+      const response = await api.get('/csrf-token');
+      csrfToken = response.data.csrfToken;
+    } catch (error) {
+      console.error('Failed to fetch CSRF token:', error);
+    }
+  }
+
+  if (csrfToken) {
+    config.headers['X-CSRF-Token'] = csrfToken;
+  }
+
   return config;
+}, (error) => {
+  return Promise.reject(error);
 });
 
 export const alertsAPI = {
@@ -39,7 +66,10 @@ export const casesAPI = {
 
 export const authAPI = {
   login: (credentials) => api.post('/auth/login', credentials),
-  register: (userData) => api.post('/auth/register', userData)
+  register: (userData) => api.post('/auth/register', userData),
+  resetPassword: (data) => api.post('/auth/reset-password', data),
+  verifyEmail: (data) => api.post('/auth/verify-email', data),
+  resendOtp: () => api.post('/auth/resend-otp')
 };
 
 export const transactionsAPI = {

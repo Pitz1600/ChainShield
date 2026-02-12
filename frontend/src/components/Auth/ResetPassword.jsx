@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Shield, Mail, AlertCircle, ChevronLeft, Check, ArrowRight, Key, Lightbulb } from 'lucide-react';
 import '../../styles/ResetPassword.css';
+import { authAPI } from '../../services/api';
 
 function ResetPassword({ onNavigate, onResetRequest }) {
   const [email, setEmail] = useState('');
@@ -15,28 +16,20 @@ function ResetPassword({ onNavigate, onResetRequest }) {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/reset-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ email })
-      });
+      await authAPI.resetPassword({ email });
 
-      const data = await response.json();
-
-      if (response.ok) {
-        setSuccess(true);
-        // Pass the email to the parent and navigate to email verify
-        setTimeout(() => {
-          onResetRequest(email);
-          onNavigate('email-verify', { email, type: 'reset' });
-        }, 1500);
-      } else {
-        setError(data.error || 'Failed to send reset code. Please try again.');
-      }
+      setSuccess(true);
+      // Pass the email to the parent and navigate to email verify
+      setTimeout(() => {
+        onResetRequest(email);
+        onNavigate('email-verify', { email, type: 'reset' });
+      }, 1500);
     } catch (err) {
-      setError('Unable to connect to server. Please make sure the backend is running.');
+      if (err.response && err.response.data && err.response.data.error) {
+        setError(err.response.data.error);
+      } else {
+        setError('Failed to send reset code. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
