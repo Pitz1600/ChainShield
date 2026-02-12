@@ -84,6 +84,30 @@ app.use(mongoSanitize());
 app.use('/api/', apiLimiter);
 
 // ========================================
+// SECURITY ENHANCEMENTS
+// ========================================
+
+const cookieParser = require('cookie-parser');
+const csurf = require('csurf');
+
+// Parse cookies
+app.use(cookieParser());
+
+// CSRF Protection
+// Using double submit cookie pattern (safe for SPAs)
+const csrfProtection = csurf({ cookie: true });
+
+// Expose CSRF token endpoint
+app.get('/api/csrf-token', csrfProtection, (req, res) => {
+  res.json({ csrfToken: req.csrfToken() });
+});
+
+// Apply CSRF protection to all API routes (except read-only if configured, but here global)
+// Note: We'll apply it globally for safety, but we might need to exclude some webhooks if any.
+// Only Apply to mutating methods is handled by csurf default (POST, PUT, DELETE, PATCH)
+app.use(csrfProtection);
+
+// ========================================
 // ROUTES
 // ========================================
 app.use('/api/transactions', require('./routes/transactions'));

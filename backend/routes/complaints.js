@@ -33,15 +33,49 @@ const upload = multer({
     }
 });
 
+const { body, validationResult } = require('express-validator');
+const xss = require('xss');
+
+// Validation rules for complaint submission
+const validateComplaint = [
+    body('category')
+        .isIn([
+            'Infrastructure',
+            'Public Services',
+            'Health & Sanitation',
+            'Peace & Order',
+            'Environmental',
+            'Corruption/Irregularity',
+            'Other'
+        ])
+        .withMessage('Invalid category'),
+    body('subject')
+        .trim()
+        .notEmpty()
+        .withMessage('Subject is required')
+        .isLength({ max: 200 })
+        .withMessage('Subject must be less than 200 characters'),
+    body('description')
+        .trim()
+        .notEmpty()
+        .withMessage('Description is required')
+];
+
 // Submit a new complaint
-router.post('/', auth, upload.array('attachments', 5), async (req, res) => {
+router.post('/', auth, upload.array('attachments', 5), validateComplaint, async (req, res) => {
+    // Check for validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+
     try {
         const { category, subject, description, location, anonymous } = req.body;
 
-        // Validation
-        if (!category || !subject || !description) {
-            return res.status(400).json({ error: 'Category, subject, and description are required' });
-        }
+        // XSS Sanitization
+        const sanitizedSubject = xss(subject);
+        const sanitizedDescription = xss(description);
+        const sanitizedLocation = location ? xss(location) : '';
 
         // Get file paths
         const attachments = req.files ? req.files.map(file => file.path) : [];
@@ -50,9 +84,9 @@ router.post('/', auth, upload.array('attachments', 5), async (req, res) => {
             userId: anonymous === 'true' ? null : req.user.userId,
             userEmail: anonymous === 'true' ? null : req.user.email,
             category,
-            subject,
-            description,
-            location,
+            subject: sanitizedSubject,
+            description: sanitizedDescription,
+            location: sanitizedLocation,
             anonymous: anonymous === 'true',
             attachments,
             status: 'pending',
