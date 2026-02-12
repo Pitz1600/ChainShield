@@ -2,6 +2,134 @@
 
 This document tracks the major updates, feature enhancements, and bug fixes applied to the ChainShield system.
 
+## 📅 Latest Updates (February 12, 2026)
+
+### 🔧 Docker Environment Setup & Fixes
+
+#### Critical Issues Resolved
+
+##### 1. **JWT Secret Missing Error (500 Internal Server Error)**
+- **Issue**: Backend threw "secretOrPrivateKey must have a value" on `/api/auth/login`
+- **Root Cause**: Environment variable `JWT_SECRET` not provided to Docker Compose backend container
+- **Solution**: 
+  - Created root `.env` file with `JWT_SECRET=<secure-random-string>`
+  - Updated `docker-compose.yml` to read from root `.env`
+  - Backend container now receives JWT_SECRET on startup
+- **Verification**: Login endpoint now returns 400 (validation error) instead of 500
+
+##### 2. **Blockchain Funding Error (Insufficient Funds for Gas)**
+- **Issue**: Blockchain transactions failed with "insufficient funds for gas * price + value"
+- **Root Cause**: 
+  - Backend was using unfunded Ganache account
+  - Ganache persistent volume had zero balances from previous runs
+- **Solution**:
+  - Updated `.env` to use Ganache's default funded account (1000 ETH)
+    - `BLOCKCHAIN_ACCOUNT=0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266`
+    - `BLOCKCHAIN_PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80`
+  - Reset Ganache data volume to reinitialize with fresh funded accounts
+  - Verified backend has connectivity to Ganache: balance confirmed at 1000 ETH
+- **Result**: Blockchain recording now succeeds for test transactions
+
+##### 3. **ML Service Dataset Missing (PhilGEPS Prices)**
+- **Issue**: ML service crashed on predictions with `FileNotFoundError: datasets/philgeps_prices.csv`
+- **Root Cause**: 
+  - Reference datasets not included in repository
+  - ML service expected PhilGEPS market prices and PSA demographics for fraud pattern detection
+- **Solution**:
+  - Created minimal reference datasets:
+    - `ml_service/datasets/philgeps_prices.csv` - Market prices for common procurement items
+    - `ml_service/datasets/psa_demographics.csv` - Regional population/household data
+  - Copied datasets into running ML container
+  - Service now successfully loads reference data on initialization
+- **Result**: ML prediction endpoint `/api/predict` returns valid risk scores
+
+##### 4. **Admin User Not Created**
+- **Issue**: Admin endpoint returns 404 when login attempted
+- **Root Cause**: Default admin account not seeded in database
+- **Solution**:
+  - Created `backend/recreate-admin.js` script
+  - Generates random secure password for new admin
+  - Deletes existing admin and creates fresh account
+  - Executed inside container: `docker compose exec backend node recreate-admin.js`
+- **Result**: 
+  - Email: `admin@chainshield.local`
+  - Password: `22b9e95f495fa78a3c1fa8135876521f` (generated)
+  - Account verified and active
+
+#### Environment Configuration
+
+**Root `.env` Created** (do NOT commit to git):
+```env
+# JWT secret (development). Replace with a secure random string in production.
+JWT_SECRET=9f3b2e4d1a6c7f8e3b9d2a4f6c8e7d9f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7
+
+# Blockchain / Contract (local Ganache)
+BLOCKCHAIN_RPC_URL=http://ganache:8545
+CONTRACT_ADDRESS=0x397eb49822b175d440FB1f404a9019994ee5C10F
+BLOCKCHAIN_ACCOUNT=0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+BLOCKCHAIN_PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+
+# Optional: Ganache mnemonic (used by docker-compose ganache service)
+GANACHE_MNEMONIC=test test test test test test test test test test test junk
+```
+
+#### Files Modified/Created
+- **New Files**:
+  - `.env` (root - development only)
+  - `backend/recreate-admin.js` - Admin account creation script
+  - `ml_service/datasets/philgeps_prices.csv` - Market price reference
+  - `ml_service/datasets/psa_demographics.csv` - Demographics reference
+
+- **Modified Files**:
+  - `docker-compose.yml` - Already passes `JWT_SECRET` from root `.env`
+  - `.gitignore` - Already excludes `.env` files
+
+#### Quick Start Commands
+
+**1. Initialize the system**:
+```bash
+docker compose down
+docker compose up -d --build
+sleep 5
+```
+
+**2. Create admin account**:
+```bash
+docker compose exec backend node recreate-admin.js
+# Output includes generated password
+```
+
+**3. Verify services**:
+```bash
+# Backend health
+curl http://localhost:5000/health
+
+# ML Service health
+curl http://localhost:5001/health
+
+# Blockchain status (after login with admin token)
+curl -H "Authorization: Bearer <TOKEN>" http://localhost:5000/api/blockchain/status
+```
+
+**4. Test blockchain recording**:
+```bash
+curl -X POST http://localhost:5000/api/blockchain/test \
+  -H "Authorization: Bearer <TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+#### Production Recommendations
+- [ ] Generate a new, unique `JWT_SECRET` (min 32 characters, use: `openssl rand -hex 32`)
+- [ ] Deploy smart contract to testnet/mainnet and update `CONTRACT_ADDRESS`
+- [ ] Use a production Ethereum RPC (Infura, Alchemy) instead of local Ganache
+- [ ] Fund production blockchain account with actual ETH
+- [ ] Store private keys securely (use HashiCorp Vault, AWS Secrets Manager, etc.)
+- [ ] Enable HTTPS for all external-facing endpoints
+- [ ] Update ML datasets with real PhilGEPS/PSA data for production accuracy
+
+---
+
 ## 📅 Latest Updates (February 11, 2026)
 
 ### 👤 Admin User Management Enhancements

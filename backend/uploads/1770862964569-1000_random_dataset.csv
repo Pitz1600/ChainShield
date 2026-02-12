@@ -1,0 +1,1001 @@
+record_id,post_date,payer_name,payee_name,debit_amount,credit_amount,currency,description_raw
+TX-43295732,2025-07-25,Barangay Pantal,Software Services,36924,1743430,PHP,Training Expense
+TX-53337061,2024-06-10,Barangay Pantal,Construction Supply,89700,389974,PHP,Water Bill
+TX-92053177,2024-08-17,Barangay Pantal,Software Services,180512,661609,PHP,Public Service
+TX-71933575,2025-03-02,Barangay Pantal,Fuel Station,3333371,295921,PHP,Fuel Expense
+TX-69992179,2023-05-30,Barangay Pantal,Consulting Services,3783813,202569,PHP,Internet Bill
+TX-34379720,2024-09-27,Barangay Pantal,Catering Services,45856,28510,PHP,Maintenance
+TX-79220711,2025-07-27,Barangay Pantal,Software Services,371,3900,PHP,Equipment Purchase
+TX-78835873,2023-02-06,Barangay Pantal,Printing Services,1206991,3034,PHP,Public Service
+TX-63912898,2024-12-27,Barangay Pantal,ABC Construction,17730,3254,PHP,Utility Payment
+TX-91295752,2023-06-23,Barangay Pantal,Community Workers,2020839,37505,PHP,Electricity Payment
+TX-18019031,2023-11-01,Barangay Pantal,Repair Services,473694,4980934,PHP,Transport Expense
+TX-92681132,2025-02-06,Barangay Pantal,Rice Supplier,892965,3773935,PHP,Repair Expense
+TX-71019621,2023-05-03,Barangay Pantal,Cleaning Services,1244,1898378,PHP,Monthly Expense
+TX-10525476,2025-08-21,Barangay Pantal,Electric Provider,445525,4120,PHP,Medical Assistance
+TX-27220139,2023-06-25,Barangay Pantal,Pharmacy,586920,486543,PHP,Office Supplies
+TX-88315773,2025-09-03,Barangay Pantal,Community Workers,25688,492527,PHP,Monthly Expense
+TX-17588364,2023-12-21,Barangay Pantal,ABC Construction,3619217,49633,PHP,Office Supplies
+TX-65023698,2024-03-24,Barangay Pantal,Catering Services,552,46413,PHP,Monthly Expense
+TX-75118770,2025-06-09,Barangay Pantal,Electric Provider,3593474,14711,PHP,Training Expense
+TX-39356921,2023-11-11,Barangay Pantal,Electric Provider,3897,814,PHP,Community Support
+TX-79160335,2023-12-29,Barangay Pantal,Maintenance Team,2785,762810,PHP,Maintenance
+TX-21025352,2025-04-07,Barangay Pantal,Repair Services,2299497,2013,PHP,Equipment Purchase
+TX-57213516,2025-08-02,Barangay Pantal,City Treasury,589,13080,PHP,Medical Assistance
+TX-35036708,2023-06-14,Barangay Pantal,City Treasury,2470354,498,PHP,Maintenance
+TX-66197377,2024-02-01,Barangay Pantal,Maintenance Team,729,4618,PHP,Community Support
+TX-35427047,2025-04-12,Barangay Pantal,Repair Services,10482,122761,PHP,Utility Payment
+TX-50632209,2024-10-08,Barangay Pantal,Catering Services,2816,412224,PHP,Community Support
+TX-23102699,2023-10-23,Barangay Pantal,Water Services,53858,2841,PHP,Transport Expense
+TX-55768984,2023-12-27,Barangay Pantal,City Treasury,370594,609837,PHP,Operational Expense
+TX-93874256,2025-04-14,Barangay Pantal,Hardware Store,13548,4754460,PHP,Food Supplies
+TX-37017238,2025-08-24,Barangay Pantal,IT Services,2418158,1678,PHP,Operational Expense
+TX-40154879,2025-04-05,Barangay Pantal,Software Services,275753,1455525,PHP,Project Materials
+TX-75824321,2025-01-19,Barangay Pantal,Repair Services,2697180,2554806,PHP,Training Expense
+TX-65189317,2023-08-12,Barangay Pantal,Juan Dela Cruz,2051,48615,PHP,Construction Materials
+TX-94312647,2025-05-26,Barangay Pantal,Hardware Store,18546,1787,PHP,Community Program
+TX-89505289,2024-01-26,Barangay Pantal,Juan Dela Cruz,3292,1086778,PHP,Utility Payment
+TX-87885831,2024-03-14,Barangay Pantal,ABC Construction,3594,2761937,PHP,Project Materials
+TX-49457695,2023-05-18,Barangay Pantal,City Treasury,338187,486344,PHP,Community Program
+TX-16248138,2024-09-04,Barangay Pantal,Cleaning Services,2670523,4560284,PHP,Water Bill
+TX-73644055,2023-04-23,Barangay Pantal,Construction Supply,3367,1664214,PHP,Monthly Expense
+TX-50372860,2023-05-06,Barangay Pantal,Consulting Services,597,24296,PHP,Training Expense
+TX-33374863,2024-11-02,Barangay Pantal,Water Services,12264,1312,PHP,Water Bill
+TX-10988030,2023-10-10,Barangay Pantal,Hardware Store,30286,3096,PHP,Internet Bill
+TX-78554109,2024-09-22,Barangay Pantal,Hardware Store,1497721,3360,PHP,Community Program
+TX-21954886,2023-12-10,Barangay Pantal,Internet Provider,644610,2660629,PHP,Construction Materials
+TX-21299829,2024-04-24,Barangay Pantal,Event Services,3620308,68509,PHP,Utility Payment
+TX-68974376,2023-03-01,Barangay Pantal,IT Services,884949,37427,PHP,Barangay Event
+TX-69084883,2024-05-11,Barangay Pantal,Internet Provider,4644199,344497,PHP,Utility Payment
+TX-31533822,2024-11-02,Barangay Pantal,Logistics Services,249,1036,PHP,Barangay Event
+TX-33211927,2025-03-01,Barangay Pantal,Electric Provider,4724,65661,PHP,Monthly Expense
+TX-63708551,2023-12-20,Barangay Pantal,Logistics Services,1709,264358,PHP,Emergency Expense
+TX-45783519,2023-02-11,Barangay Pantal,Security Services,235657,2008591,PHP,Internet Bill
+TX-53421838,2023-07-03,Barangay Pantal,Juan Dela Cruz,271604,495013,PHP,Water Bill
+TX-46725961,2025-03-06,Barangay Pantal,Hardware Store,36179,2327870,PHP,Monthly Expense
+TX-32979463,2024-02-29,Barangay Pantal,Water Services,284230,4196,PHP,Internet Bill
+TX-25459601,2023-01-08,Barangay Pantal,Community Workers,162221,438,PHP,Public Service
+TX-77452554,2025-08-22,Barangay Pantal,Catering Services,245723,4420,PHP,Service Payment
+TX-99034089,2024-01-20,Barangay Pantal,Health Center,76710,192499,PHP,Community Program
+TX-77072848,2024-01-23,Barangay Pantal,School Supplies Store,201837,17739,PHP,Community Support
+TX-18075399,2023-11-19,Barangay Pantal,Vegetable Supplier,8095,69355,PHP,Project Materials
+TX-12646506,2025-09-03,Barangay Pantal,Water Services,446057,27790,PHP,Monthly Expense
+TX-65821948,2023-01-27,Barangay Pantal,Transport Services,365076,124382,PHP,Emergency Expense
+TX-79386693,2025-06-06,Barangay Pantal,Electric Provider,46150,4909,PHP,Road Repair
+TX-89412632,2025-04-09,Barangay Pantal,Security Services,2694214,143147,PHP,Fuel Expense
+TX-57128959,2025-02-17,Barangay Pantal,Maintenance Team,657,889178,PHP,Road Repair
+TX-12602693,2023-11-05,Barangay Pantal,Juan Dela Cruz,1562921,73597,PHP,Community Program
+TX-14021581,2023-11-29,Barangay Pantal,Event Services,1125,102348,PHP,Service Payment
+TX-38070001,2023-09-28,Barangay Pantal,School Supplies Store,147258,368,PHP,Transport Expense
+TX-97579409,2024-11-25,Barangay Pantal,Juan Dela Cruz,164,4899597,PHP,Medical Assistance
+TX-37034982,2023-04-21,Barangay Pantal,Printing Services,82129,4424,PHP,Community Program
+TX-13535867,2025-05-30,Barangay Pantal,Printing Services,2895633,2906218,PHP,Monthly Expense
+TX-11320728,2023-08-31,Barangay Pantal,Printing Services,122904,60441,PHP,Construction Materials
+TX-54581457,2024-07-30,Barangay Pantal,Rice Supplier,4307537,2876288,PHP,Equipment Purchase
+TX-48768464,2024-07-18,Barangay Pantal,Rice Supplier,346811,68734,PHP,Repair Expense
+TX-47831092,2023-05-11,Barangay Pantal,School Supplies Store,444833,84987,PHP,Electricity Payment
+TX-58000968,2024-06-09,Barangay Pantal,Cleaning Services,492504,346639,PHP,Road Repair
+TX-62014056,2023-01-24,Barangay Pantal,Catering Services,3505409,2503784,PHP,Public Service
+TX-87896250,2025-02-20,Barangay Pantal,Security Services,2833,79460,PHP,Water Bill
+TX-64717415,2025-02-11,Barangay Pantal,School Supplies Store,382743,72375,PHP,Medical Assistance
+TX-75632623,2023-11-04,Barangay Pantal,Logistics Services,106487,69818,PHP,Operational Expense
+TX-25735334,2025-05-12,Barangay Pantal,Internet Provider,419793,2750,PHP,Operational Expense
+TX-39977564,2024-03-05,Barangay Pantal,Logistics Services,25560,4413,PHP,Road Repair
+TX-87597443,2025-08-01,Barangay Pantal,Construction Supply,284367,2950,PHP,Medical Assistance
+TX-19992919,2025-09-26,Barangay Pantal,Community Workers,23526,3458414,PHP,Food Supplies
+TX-17442492,2023-10-08,Barangay Pantal,Printing Services,47750,76846,PHP,Electricity Payment
+TX-59513976,2024-10-23,Barangay Pantal,Cleaning Services,36664,4524,PHP,Project Materials
+TX-26077754,2025-09-22,Barangay Pantal,Community Workers,410480,24694,PHP,Internet Bill
+TX-31588325,2024-07-03,Barangay Pantal,Event Services,4011,40488,PHP,Electricity Payment
+TX-61071922,2025-03-14,Barangay Pantal,Maria Santos,2357555,1573804,PHP,Operational Expense
+TX-48301546,2024-01-05,Barangay Pantal,Rice Supplier,469692,671344,PHP,Transport Expense
+TX-93971863,2025-08-13,Barangay Pantal,Community Workers,452008,440630,PHP,Emergency Expense
+TX-49804264,2024-09-24,Barangay Pantal,Cleaning Services,483770,14552,PHP,Office Supplies
+TX-57258804,2024-12-21,Barangay Pantal,City Treasury,87908,846,PHP,Emergency Expense
+TX-68751036,2025-01-17,Barangay Pantal,Rice Supplier,4864377,16945,PHP,Utility Payment
+TX-21671238,2024-02-10,Barangay Pantal,ABC Construction,16882,389519,PHP,Repair Expense
+TX-76397938,2025-08-11,Barangay Pantal,School Supplies Store,202151,993,PHP,Fuel Expense
+TX-14089916,2024-11-28,Barangay Pantal,Rice Supplier,37238,2052,PHP,Transport Expense
+TX-20152813,2024-07-26,Barangay Pantal,Vegetable Supplier,3767221,3334552,PHP,Office Supplies
+TX-19885753,2025-04-26,Barangay Pantal,Juan Dela Cruz,3786199,1884732,PHP,Community Program
+TX-26780630,2023-12-03,Barangay Pantal,Maintenance Team,4582435,2919377,PHP,Maintenance
+TX-15182488,2024-06-24,Barangay Pantal,Health Center,4607429,10565,PHP,Public Service
+TX-74927071,2025-01-21,Barangay Pantal,Internet Provider,70861,10623,PHP,Service Payment
+TX-74412740,2025-06-26,Barangay Pantal,Hardware Store,6290,269053,PHP,Project Materials
+TX-41194526,2024-06-27,Barangay Pantal,Event Services,56333,351581,PHP,Public Service
+TX-46499535,2024-10-05,Barangay Pantal,Cleaning Services,4428,1755,PHP,Project Materials
+TX-37842558,2024-04-21,Barangay Pantal,Printing Services,442,50817,PHP,Utility Payment
+TX-83080037,2025-05-22,Barangay Pantal,Pharmacy,230343,9324,PHP,Construction Materials
+TX-73393895,2024-01-23,Barangay Pantal,Pharmacy,28361,3645526,PHP,Equipment Purchase
+TX-87910057,2023-08-21,Barangay Pantal,Transport Services,2565,496953,PHP,Community Program
+TX-27615176,2025-03-28,Barangay Pantal,Internet Provider,4333359,52057,PHP,Community Program
+TX-94614504,2025-02-27,Barangay Pantal,Community Workers,82835,2288831,PHP,Monthly Expense
+TX-16793997,2025-09-12,Barangay Pantal,Transport Services,42441,443147,PHP,Fuel Expense
+TX-55676341,2024-12-16,Barangay Pantal,Transport Services,2172,48460,PHP,Electricity Payment
+TX-63884267,2023-10-11,Barangay Pantal,Juan Dela Cruz,68042,4288947,PHP,Community Support
+TX-43429431,2025-09-21,Barangay Pantal,Fuel Station,4575,367662,PHP,Barangay Event
+TX-84762002,2024-01-08,Barangay Pantal,Water Services,1021463,1355,PHP,Training Expense
+TX-88491938,2025-02-22,Barangay Pantal,Security Services,62592,2356294,PHP,Office Supplies
+TX-24745265,2023-12-19,Barangay Pantal,Consulting Services,2888,373013,PHP,Barangay Event
+TX-82464107,2024-12-22,Barangay Pantal,Maria Santos,46415,4071,PHP,Internet Bill
+TX-86240669,2023-12-06,Barangay Pantal,Repair Services,255536,3895,PHP,Public Service
+TX-75739869,2024-07-27,Barangay Pantal,Security Services,3480618,2216007,PHP,Training Expense
+TX-88784529,2025-02-25,Barangay Pantal,Transport Services,60082,65843,PHP,Internet Bill
+TX-59407071,2024-01-02,Barangay Pantal,Community Workers,399042,433184,PHP,Maintenance
+TX-97414422,2025-02-03,Barangay Pantal,Printing Services,345411,1117,PHP,Office Supplies
+TX-75546989,2023-03-03,Barangay Pantal,Maria Santos,213,75654,PHP,Service Payment
+TX-88219764,2025-05-10,Barangay Pantal,School Supplies Store,418067,1864,PHP,Construction Materials
+TX-12333305,2024-11-30,Barangay Pantal,Water Services,467174,19170,PHP,Barangay Event
+TX-51645920,2025-06-12,Barangay Pantal,Event Services,1348953,261603,PHP,Electricity Payment
+TX-22349736,2025-05-02,Barangay Pantal,Electric Provider,3149098,4368,PHP,Water Bill
+TX-26208088,2024-02-25,Barangay Pantal,Maintenance Team,1370,1572196,PHP,Maintenance
+TX-73898586,2025-08-19,Barangay Pantal,Health Center,85125,385932,PHP,Medical Assistance
+TX-55842295,2024-11-07,Barangay Pantal,Logistics Services,1134173,1332,PHP,Internet Bill
+TX-89932682,2024-04-29,Barangay Pantal,Community Workers,3649,1954809,PHP,Operational Expense
+TX-91212572,2024-01-15,Barangay Pantal,Fuel Station,69105,1673748,PHP,Barangay Event
+TX-59348800,2025-07-04,Barangay Pantal,Event Services,188,69369,PHP,Public Service
+TX-30096192,2025-08-06,Barangay Pantal,Logistics Services,30193,972316,PHP,Food Supplies
+TX-19355574,2023-08-03,Barangay Pantal,Community Workers,2601,58235,PHP,Internet Bill
+TX-49103827,2023-01-19,Barangay Pantal,IT Services,452999,127957,PHP,Construction Materials
+TX-24978683,2024-04-07,Barangay Pantal,School Supplies Store,76596,631168,PHP,Transport Expense
+TX-77235965,2024-10-19,Barangay Pantal,Event Services,1894,1524,PHP,Road Repair
+TX-74312570,2023-01-10,Barangay Pantal,Internet Provider,1058135,2810416,PHP,Community Program
+TX-82182015,2024-03-19,Barangay Pantal,Maintenance Team,105880,1274907,PHP,Community Support
+TX-40770401,2024-08-16,Barangay Pantal,Security Services,3517747,642,PHP,Emergency Expense
+TX-50076290,2024-08-30,Barangay Pantal,Health Center,104,49353,PHP,Training Expense
+TX-86579767,2025-06-21,Barangay Pantal,Consulting Services,55695,412484,PHP,Public Service
+TX-82630112,2024-03-29,Barangay Pantal,Repair Services,4470142,234972,PHP,Community Support
+TX-97245083,2024-03-05,Barangay Pantal,Internet Provider,4362,2227723,PHP,Operational Expense
+TX-17395775,2025-02-25,Barangay Pantal,Catering Services,2226,2714,PHP,Water Bill
+TX-96260439,2025-02-09,Barangay Pantal,Construction Supply,2322,4248569,PHP,Emergency Expense
+TX-31114308,2024-06-03,Barangay Pantal,Transport Services,45350,470414,PHP,Project Materials
+TX-61311157,2023-05-16,Barangay Pantal,Event Services,3650,2596993,PHP,Utility Payment
+TX-81481189,2025-09-07,Barangay Pantal,Construction Supply,2454,29777,PHP,Service Payment
+TX-39715409,2023-07-16,Barangay Pantal,Logistics Services,367679,480188,PHP,Public Service
+TX-53987108,2025-08-16,Barangay Pantal,Hardware Store,39158,4717674,PHP,Food Supplies
+TX-76136602,2024-12-14,Barangay Pantal,IT Services,4932,1698874,PHP,Food Supplies
+TX-16870297,2025-06-28,Barangay Pantal,Transport Services,88945,329753,PHP,Food Supplies
+TX-74631555,2024-12-28,Barangay Pantal,Cleaning Services,2445054,33565,PHP,Road Repair
+TX-49268775,2023-08-14,Barangay Pantal,Repair Services,566051,123,PHP,Service Payment
+TX-98519150,2024-07-13,Barangay Pantal,City Treasury,7160,4923833,PHP,Fuel Expense
+TX-78980991,2024-08-13,Barangay Pantal,Repair Services,1735,45156,PHP,Service Payment
+TX-62242497,2023-04-11,Barangay Pantal,ABC Construction,43841,44476,PHP,Water Bill
+TX-61100874,2024-11-17,Barangay Pantal,Logistics Services,2649,3536758,PHP,Emergency Expense
+TX-56538252,2025-02-28,Barangay Pantal,Cleaning Services,746,4051,PHP,Emergency Expense
+TX-19342811,2024-05-26,Barangay Pantal,Juan Dela Cruz,3556,84902,PHP,Electricity Payment
+TX-84556367,2025-06-14,Barangay Pantal,Fuel Station,3894723,146537,PHP,Utility Payment
+TX-60384502,2023-04-05,Barangay Pantal,Cleaning Services,81768,3505,PHP,Transport Expense
+TX-63624802,2025-07-17,Barangay Pantal,Water Services,58377,24647,PHP,Water Bill
+TX-23435187,2023-03-06,Barangay Pantal,Transport Services,3584,2477,PHP,Equipment Purchase
+TX-44616240,2025-01-10,Barangay Pantal,Internet Provider,1989180,461963,PHP,Monthly Expense
+TX-12084250,2025-08-04,Barangay Pantal,Internet Provider,2838208,2965474,PHP,Repair Expense
+TX-25489561,2023-08-02,Barangay Pantal,Maintenance Team,2363286,1646,PHP,Fuel Expense
+TX-64253085,2025-08-03,Barangay Pantal,Internet Provider,38384,449698,PHP,Internet Bill
+TX-81805061,2024-10-17,Barangay Pantal,Hardware Store,697997,484711,PHP,Operational Expense
+TX-70658604,2024-04-17,Barangay Pantal,Fuel Station,2954,26887,PHP,Monthly Expense
+TX-83269203,2024-07-31,Barangay Pantal,Internet Provider,3770,44150,PHP,Service Payment
+TX-22990255,2024-10-28,Barangay Pantal,Electric Provider,4889153,349050,PHP,Training Expense
+TX-11560040,2025-04-24,Barangay Pantal,Logistics Services,1150874,57300,PHP,Electricity Payment
+TX-37918043,2023-01-23,Barangay Pantal,Maintenance Team,4087,1608572,PHP,Project Materials
+TX-35995610,2025-09-14,Barangay Pantal,Maria Santos,17856,374456,PHP,Project Materials
+TX-95685488,2024-10-17,Barangay Pantal,Construction Supply,2091134,47448,PHP,Construction Materials
+TX-97541297,2023-03-03,Barangay Pantal,City Treasury,225020,17647,PHP,Medical Assistance
+TX-99531841,2024-05-29,Barangay Pantal,Printing Services,1360241,4645948,PHP,Utility Payment
+TX-70299171,2024-02-06,Barangay Pantal,Logistics Services,2218,1551,PHP,Repair Expense
+TX-73590393,2025-02-12,Barangay Pantal,School Supplies Store,37547,3542,PHP,Barangay Event
+TX-64279755,2023-11-01,Barangay Pantal,Pharmacy,43883,26854,PHP,Project Materials
+TX-83508195,2024-09-23,Barangay Pantal,Consulting Services,56890,1987,PHP,Repair Expense
+TX-10268743,2023-07-11,Barangay Pantal,City Treasury,4238842,67063,PHP,Repair Expense
+TX-99985137,2024-09-21,Barangay Pantal,IT Services,2843416,4227773,PHP,Transport Expense
+TX-44511327,2023-01-08,Barangay Pantal,Construction Supply,2046,678,PHP,Utility Payment
+TX-87044380,2025-08-14,Barangay Pantal,Pharmacy,1537,1947,PHP,Public Service
+TX-42432491,2023-09-13,Barangay Pantal,Electric Provider,277204,53114,PHP,Barangay Event
+TX-96600411,2023-09-26,Barangay Pantal,Water Services,3464305,64323,PHP,Service Payment
+TX-74149759,2025-07-02,Barangay Pantal,Logistics Services,604773,3231783,PHP,Medical Assistance
+TX-71077995,2024-11-11,Barangay Pantal,IT Services,2781982,54086,PHP,Repair Expense
+TX-51664134,2024-01-07,Barangay Pantal,Construction Supply,2785,144434,PHP,Maintenance
+TX-45203652,2023-08-11,Barangay Pantal,Juan Dela Cruz,3531,205513,PHP,Equipment Purchase
+TX-25850411,2023-06-19,Barangay Pantal,Fuel Station,1048,103261,PHP,Equipment Purchase
+TX-29605107,2024-02-28,Barangay Pantal,City Treasury,4471618,16773,PHP,Equipment Purchase
+TX-98844083,2023-06-02,Barangay Pantal,Hardware Store,46754,1257,PHP,Utility Payment
+TX-93051149,2024-11-07,Barangay Pantal,ABC Construction,2068694,62596,PHP,Electricity Payment
+TX-60977546,2023-02-11,Barangay Pantal,School Supplies Store,257914,2325,PHP,Operational Expense
+TX-73404704,2025-02-12,Barangay Pantal,Security Services,456,49597,PHP,Office Supplies
+TX-89841984,2023-03-15,Barangay Pantal,Juan Dela Cruz,3377314,2781966,PHP,Medical Assistance
+TX-20737906,2023-10-22,Barangay Pantal,Maintenance Team,163386,491842,PHP,Fuel Expense
+TX-93878218,2024-03-19,Barangay Pantal,Juan Dela Cruz,2485496,63436,PHP,Medical Assistance
+TX-90885590,2023-03-24,Barangay Pantal,Internet Provider,53768,1178,PHP,Equipment Purchase
+TX-34788002,2024-10-10,Barangay Pantal,Fuel Station,1002,1219,PHP,Water Bill
+TX-91411190,2024-10-29,Barangay Pantal,Juan Dela Cruz,621220,1572,PHP,Public Service
+TX-65825309,2023-07-15,Barangay Pantal,Event Services,133,899520,PHP,Barangay Event
+TX-75468198,2024-07-07,Barangay Pantal,Event Services,2536940,322814,PHP,Monthly Expense
+TX-31039757,2025-09-15,Barangay Pantal,Juan Dela Cruz,186395,321763,PHP,Electricity Payment
+TX-11236242,2025-06-11,Barangay Pantal,ABC Construction,493,173589,PHP,Emergency Expense
+TX-63674249,2024-04-12,Barangay Pantal,Transport Services,400,4029,PHP,Road Repair
+TX-40593802,2023-09-02,Barangay Pantal,Transport Services,3680,172463,PHP,Maintenance
+TX-55689907,2023-05-24,Barangay Pantal,Consulting Services,4843,1279,PHP,Electricity Payment
+TX-82062180,2024-01-14,Barangay Pantal,IT Services,83053,3720,PHP,Utility Payment
+TX-32763605,2023-06-09,Barangay Pantal,Consulting Services,111192,3047,PHP,Equipment Purchase
+TX-41080299,2024-11-17,Barangay Pantal,Maria Santos,4166736,105462,PHP,Medical Assistance
+TX-86467850,2023-11-11,Barangay Pantal,Water Services,52924,4020193,PHP,Barangay Event
+TX-26173044,2023-08-04,Barangay Pantal,Rice Supplier,63270,1641,PHP,Fuel Expense
+TX-40116763,2024-01-27,Barangay Pantal,Fuel Station,16912,2036962,PHP,Internet Bill
+TX-39230846,2023-10-04,Barangay Pantal,Security Services,184571,4424,PHP,Barangay Event
+TX-87069685,2024-02-22,Barangay Pantal,Security Services,199704,395460,PHP,Fuel Expense
+TX-14911288,2023-11-28,Barangay Pantal,Rice Supplier,1995417,1019449,PHP,Project Materials
+TX-63226242,2025-03-20,Barangay Pantal,City Treasury,409852,489921,PHP,Food Supplies
+TX-68676072,2025-01-16,Barangay Pantal,School Supplies Store,355395,538,PHP,Emergency Expense
+TX-16771520,2023-06-28,Barangay Pantal,Fuel Station,63181,246029,PHP,Service Payment
+TX-10737280,2023-08-01,Barangay Pantal,Maria Santos,3649,55253,PHP,Monthly Expense
+TX-87967550,2025-03-10,Barangay Pantal,Water Services,2074,4458704,PHP,Community Support
+TX-20485785,2025-01-24,Barangay Pantal,Printing Services,31583,4601900,PHP,Barangay Event
+TX-50360164,2023-08-25,Barangay Pantal,Vegetable Supplier,346,707803,PHP,Construction Materials
+TX-20412538,2025-06-05,Barangay Pantal,Juan Dela Cruz,3634633,77814,PHP,Community Program
+TX-24145913,2025-07-31,Barangay Pantal,Event Services,187977,3312,PHP,Operational Expense
+TX-21565295,2024-03-07,Barangay Pantal,Catering Services,39623,58062,PHP,Service Payment
+TX-83019863,2024-01-07,Barangay Pantal,IT Services,36079,4121,PHP,Utility Payment
+TX-91019820,2024-04-14,Barangay Pantal,Repair Services,4968076,56903,PHP,Medical Assistance
+TX-33541521,2024-03-08,Barangay Pantal,Printing Services,2973,3100,PHP,Construction Materials
+TX-83265676,2024-06-02,Barangay Pantal,Health Center,1525423,170443,PHP,Training Expense
+TX-89195422,2024-07-21,Barangay Pantal,Community Workers,4286532,1971,PHP,Emergency Expense
+TX-61785180,2025-03-06,Barangay Pantal,Event Services,337,1188,PHP,Food Supplies
+TX-59551190,2023-10-19,Barangay Pantal,School Supplies Store,360428,3945279,PHP,Construction Materials
+TX-46859520,2023-08-27,Barangay Pantal,Health Center,511,4012789,PHP,Training Expense
+TX-20508752,2024-07-26,Barangay Pantal,Logistics Services,676,1867,PHP,Public Service
+TX-15391969,2024-12-29,Barangay Pantal,Community Workers,2298577,2953,PHP,Monthly Expense
+TX-86161761,2023-07-28,Barangay Pantal,Consulting Services,208649,4288547,PHP,Electricity Payment
+TX-70692312,2024-03-16,Barangay Pantal,Maria Santos,4556858,61330,PHP,Training Expense
+TX-90649090,2024-05-03,Barangay Pantal,Transport Services,4970388,162351,PHP,Service Payment
+TX-62444381,2023-06-10,Barangay Pantal,ABC Construction,7863,316239,PHP,Training Expense
+TX-13969435,2025-04-06,Barangay Pantal,Cleaning Services,183,2991,PHP,Public Service
+TX-59567820,2023-10-11,Barangay Pantal,Electric Provider,4090,4988613,PHP,Utility Payment
+TX-75514706,2023-08-18,Barangay Pantal,Construction Supply,4343,3685215,PHP,Training Expense
+TX-60314315,2024-03-05,Barangay Pantal,Health Center,4168015,499791,PHP,Emergency Expense
+TX-18273687,2024-02-01,Barangay Pantal,IT Services,3897,39273,PHP,Food Supplies
+TX-79564480,2025-04-13,Barangay Pantal,Health Center,21937,2262,PHP,Public Service
+TX-47053512,2023-07-28,Barangay Pantal,Hardware Store,4095,229199,PHP,Operational Expense
+TX-61894896,2025-01-11,Barangay Pantal,Repair Services,198512,136593,PHP,Service Payment
+TX-23692608,2025-03-09,Barangay Pantal,Fuel Station,37082,4857480,PHP,Repair Expense
+TX-68793952,2024-07-24,Barangay Pantal,Community Workers,75484,30770,PHP,Operational Expense
+TX-19721994,2023-12-11,Barangay Pantal,Vegetable Supplier,76999,3829821,PHP,Training Expense
+TX-62769914,2023-04-04,Barangay Pantal,Event Services,464589,401415,PHP,Community Support
+TX-40376646,2023-08-22,Barangay Pantal,Pharmacy,4755,65533,PHP,Medical Assistance
+TX-44988845,2023-01-14,Barangay Pantal,Pharmacy,356019,382739,PHP,Operational Expense
+TX-79287173,2025-02-28,Barangay Pantal,Fuel Station,570,3604066,PHP,Medical Assistance
+TX-39437418,2025-08-29,Barangay Pantal,Hardware Store,2121404,2404469,PHP,Equipment Purchase
+TX-68593943,2024-12-25,Barangay Pantal,Community Workers,297964,454340,PHP,Electricity Payment
+TX-55440755,2024-10-30,Barangay Pantal,Internet Provider,15464,59216,PHP,Medical Assistance
+TX-30095925,2023-12-05,Barangay Pantal,Vegetable Supplier,2100345,1701,PHP,Internet Bill
+TX-74789550,2024-03-20,Barangay Pantal,Transport Services,832,464134,PHP,Medical Assistance
+TX-82316425,2025-03-29,Barangay Pantal,IT Services,1425824,1811,PHP,Utility Payment
+TX-91406475,2024-07-15,Barangay Pantal,Electric Provider,87442,300160,PHP,Food Supplies
+TX-96867961,2024-11-01,Barangay Pantal,Repair Services,125353,49535,PHP,Training Expense
+TX-22140622,2023-11-20,Barangay Pantal,Electric Provider,3065,30355,PHP,Utility Payment
+TX-46156359,2024-11-01,Barangay Pantal,City Treasury,4139,2147626,PHP,Medical Assistance
+TX-56070258,2024-06-27,Barangay Pantal,Maintenance Team,456167,340901,PHP,Fuel Expense
+TX-86937512,2023-12-27,Barangay Pantal,City Treasury,4611279,33650,PHP,Internet Bill
+TX-76607522,2023-01-20,Barangay Pantal,Construction Supply,2858,741,PHP,Construction Materials
+TX-57645912,2023-10-10,Barangay Pantal,Hardware Store,5859,404611,PHP,Community Support
+TX-35709425,2025-07-31,Barangay Pantal,Electric Provider,2562,280526,PHP,Barangay Event
+TX-18882654,2025-06-09,Barangay Pantal,Hardware Store,1874,838,PHP,Equipment Purchase
+TX-77301567,2024-01-14,Barangay Pantal,Electric Provider,371145,57918,PHP,Water Bill
+TX-21685030,2023-04-26,Barangay Pantal,Electric Provider,3927,73450,PHP,Construction Materials
+TX-29062260,2024-06-04,Barangay Pantal,Logistics Services,471984,413158,PHP,Repair Expense
+TX-65430703,2025-01-02,Barangay Pantal,Maintenance Team,4900,2271110,PHP,Utility Payment
+TX-24470454,2025-05-24,Barangay Pantal,Fuel Station,8296,56861,PHP,Training Expense
+TX-58574129,2024-03-30,Barangay Pantal,Cleaning Services,335424,182462,PHP,Water Bill
+TX-16906750,2023-07-23,Barangay Pantal,Hardware Store,1310873,194,PHP,Transport Expense
+TX-84775882,2023-09-14,Barangay Pantal,Electric Provider,2953,4422045,PHP,Equipment Purchase
+TX-79391477,2023-03-06,Barangay Pantal,Water Services,48292,792595,PHP,Transport Expense
+TX-43270178,2023-01-05,Barangay Pantal,Electric Provider,2781747,2240196,PHP,Barangay Event
+TX-30896401,2024-08-25,Barangay Pantal,Printing Services,3925880,1656010,PHP,Public Service
+TX-11195289,2025-09-05,Barangay Pantal,Water Services,79116,38642,PHP,Medical Assistance
+TX-33911289,2023-06-02,Barangay Pantal,Vegetable Supplier,86483,3925858,PHP,Community Support
+TX-18772469,2024-11-09,Barangay Pantal,Event Services,2087540,24343,PHP,Electricity Payment
+TX-49817313,2025-09-27,Barangay Pantal,Catering Services,220012,770,PHP,Office Supplies
+TX-33650487,2023-10-09,Barangay Pantal,ABC Construction,23459,173152,PHP,Service Payment
+TX-17129260,2024-01-15,Barangay Pantal,Catering Services,2871,11439,PHP,Service Payment
+TX-77052794,2023-05-30,Barangay Pantal,Pharmacy,2898495,4060617,PHP,Construction Materials
+TX-81655877,2024-05-07,Barangay Pantal,Repair Services,21259,3328492,PHP,Fuel Expense
+TX-65482359,2025-08-02,Barangay Pantal,Rice Supplier,674695,3472680,PHP,Barangay Event
+TX-67010409,2023-09-04,Barangay Pantal,Health Center,295,872622,PHP,Service Payment
+TX-24832542,2025-05-15,Barangay Pantal,Electric Provider,2425408,55746,PHP,Construction Materials
+TX-18084732,2025-08-02,Barangay Pantal,Construction Supply,4951,1292,PHP,Food Supplies
+TX-52209537,2024-04-08,Barangay Pantal,City Treasury,81979,71802,PHP,Training Expense
+TX-23485620,2025-08-02,Barangay Pantal,Juan Dela Cruz,1920176,2026,PHP,Equipment Purchase
+TX-78409389,2024-05-03,Barangay Pantal,Electric Provider,2926,231084,PHP,Food Supplies
+TX-40650117,2025-04-06,Barangay Pantal,Printing Services,36928,2320,PHP,Transport Expense
+TX-98950763,2023-10-25,Barangay Pantal,School Supplies Store,56912,539525,PHP,Monthly Expense
+TX-49864457,2024-11-07,Barangay Pantal,Pharmacy,2066,444647,PHP,Transport Expense
+TX-84142332,2024-08-12,Barangay Pantal,Security Services,422091,902246,PHP,Equipment Purchase
+TX-44238542,2023-11-14,Barangay Pantal,ABC Construction,4550,81937,PHP,Project Materials
+TX-40323092,2023-10-24,Barangay Pantal,Vegetable Supplier,65405,340742,PHP,Road Repair
+TX-23676741,2024-10-16,Barangay Pantal,Catering Services,4322,839,PHP,Project Materials
+TX-67504426,2023-02-23,Barangay Pantal,Juan Dela Cruz,34042,9265,PHP,Emergency Expense
+TX-43123097,2024-05-29,Barangay Pantal,Vegetable Supplier,1436,469073,PHP,Internet Bill
+TX-37203247,2023-02-17,Barangay Pantal,Rice Supplier,379059,816,PHP,Community Program
+TX-95650464,2023-04-13,Barangay Pantal,Juan Dela Cruz,1418,86609,PHP,Emergency Expense
+TX-19386028,2023-11-30,Barangay Pantal,Rice Supplier,237757,25244,PHP,Water Bill
+TX-32946264,2024-11-07,Barangay Pantal,Logistics Services,16585,44508,PHP,Public Service
+TX-54723668,2023-09-09,Barangay Pantal,Rice Supplier,4773949,477522,PHP,Monthly Expense
+TX-22930749,2025-05-17,Barangay Pantal,Event Services,1785329,2332619,PHP,Utility Payment
+TX-97166526,2023-04-24,Barangay Pantal,Fuel Station,80091,2007,PHP,Medical Assistance
+TX-79719068,2023-01-15,Barangay Pantal,ABC Construction,64724,218060,PHP,Public Service
+TX-88640201,2024-04-18,Barangay Pantal,Maria Santos,907,1479,PHP,Community Support
+TX-68350166,2025-06-12,Barangay Pantal,Construction Supply,74785,1680945,PHP,Public Service
+TX-92534452,2023-12-21,Barangay Pantal,Juan Dela Cruz,291122,2652,PHP,Road Repair
+TX-98717074,2023-06-04,Barangay Pantal,Printing Services,36011,1445,PHP,Equipment Purchase
+TX-72218994,2023-05-11,Barangay Pantal,Juan Dela Cruz,195623,4116,PHP,Internet Bill
+TX-55673578,2024-02-26,Barangay Pantal,Repair Services,3309153,1240299,PHP,Barangay Event
+TX-97724166,2024-01-29,Barangay Pantal,Hardware Store,191534,93357,PHP,Utility Payment
+TX-73917456,2024-04-25,Barangay Pantal,Transport Services,1007763,34849,PHP,Food Supplies
+TX-84839207,2023-12-09,Barangay Pantal,Printing Services,5019,235664,PHP,Community Program
+TX-70020036,2023-12-30,Barangay Pantal,Repair Services,328280,1540160,PHP,Utility Payment
+TX-83178001,2023-10-21,Barangay Pantal,Consulting Services,3713126,64018,PHP,Water Bill
+TX-18925323,2024-04-23,Barangay Pantal,Internet Provider,1577,366827,PHP,Training Expense
+TX-52028237,2025-08-14,Barangay Pantal,Repair Services,20413,975301,PHP,Project Materials
+TX-67801037,2025-04-29,Barangay Pantal,Maintenance Team,4777,283488,PHP,Maintenance
+TX-61245912,2025-05-08,Barangay Pantal,Catering Services,5088,3804,PHP,Operational Expense
+TX-83655721,2023-11-30,Barangay Pantal,Maria Santos,127878,157759,PHP,Transport Expense
+TX-66500424,2023-10-05,Barangay Pantal,Printing Services,115079,79394,PHP,Operational Expense
+TX-70681679,2024-05-12,Barangay Pantal,City Treasury,34159,955,PHP,Internet Bill
+TX-99762729,2025-03-08,Barangay Pantal,Water Services,993840,2927,PHP,Water Bill
+TX-74459063,2025-08-30,Barangay Pantal,Pharmacy,1353,187095,PHP,Service Payment
+TX-91362017,2023-10-08,Barangay Pantal,Printing Services,62882,3322,PHP,Transport Expense
+TX-44032596,2024-07-22,Barangay Pantal,Maria Santos,1027897,20127,PHP,Training Expense
+TX-62152907,2024-09-24,Barangay Pantal,Rice Supplier,79088,3981099,PHP,Electricity Payment
+TX-66913874,2024-09-08,Barangay Pantal,Community Workers,469529,57050,PHP,Fuel Expense
+TX-27154639,2025-08-12,Barangay Pantal,Internet Provider,11673,2862,PHP,Water Bill
+TX-22589707,2023-08-25,Barangay Pantal,Electric Provider,206197,3901424,PHP,Monthly Expense
+TX-92570783,2025-02-28,Barangay Pantal,Event Services,183648,3254984,PHP,Transport Expense
+TX-81450488,2025-08-03,Barangay Pantal,Hardware Store,2764,667,PHP,Construction Materials
+TX-94755976,2023-06-10,Barangay Pantal,Vegetable Supplier,2355,45146,PHP,Monthly Expense
+TX-73087185,2023-10-08,Barangay Pantal,Vegetable Supplier,206423,4067628,PHP,Service Payment
+TX-45775597,2024-02-28,Barangay Pantal,Construction Supply,419396,457,PHP,Service Payment
+TX-97817036,2023-10-05,Barangay Pantal,Event Services,112555,379285,PHP,Transport Expense
+TX-50567802,2025-08-16,Barangay Pantal,Vegetable Supplier,70027,682380,PHP,Operational Expense
+TX-22621800,2023-05-07,Barangay Pantal,Rice Supplier,9376,1774,PHP,Equipment Purchase
+TX-55009913,2024-11-27,Barangay Pantal,Construction Supply,52958,4060,PHP,Community Program
+TX-51870995,2023-05-24,Barangay Pantal,Security Services,1535874,467377,PHP,Internet Bill
+TX-20193881,2025-02-10,Barangay Pantal,Maintenance Team,3817919,44317,PHP,Office Supplies
+TX-21188705,2024-02-09,Barangay Pantal,Printing Services,931598,21563,PHP,Service Payment
+TX-32448025,2024-12-16,Barangay Pantal,Water Services,636702,903,PHP,Emergency Expense
+TX-72002842,2025-02-25,Barangay Pantal,Transport Services,2669,33318,PHP,Electricity Payment
+TX-55300976,2023-05-14,Barangay Pantal,Software Services,266584,116297,PHP,Community Support
+TX-43056763,2023-01-22,Barangay Pantal,Fuel Station,17410,4964,PHP,Emergency Expense
+TX-25525154,2024-02-08,Barangay Pantal,Fuel Station,3470625,3287573,PHP,Road Repair
+TX-18934043,2024-10-03,Barangay Pantal,Logistics Services,1338,278872,PHP,Medical Assistance
+TX-82840455,2024-01-01,Barangay Pantal,Maria Santos,177619,2785,PHP,Monthly Expense
+TX-14899611,2024-10-16,Barangay Pantal,Consulting Services,150759,259676,PHP,Repair Expense
+TX-11912124,2025-04-10,Barangay Pantal,Printing Services,11377,3539302,PHP,Training Expense
+TX-23921176,2025-03-16,Barangay Pantal,Catering Services,42528,75801,PHP,Maintenance
+TX-96934562,2023-11-09,Barangay Pantal,School Supplies Store,1662,312187,PHP,Office Supplies
+TX-86733491,2024-01-19,Barangay Pantal,Internet Provider,1302041,27981,PHP,Operational Expense
+TX-52419189,2024-09-03,Barangay Pantal,City Treasury,4581317,417333,PHP,Food Supplies
+TX-37796281,2023-12-28,Barangay Pantal,IT Services,402164,318700,PHP,Maintenance
+TX-62566744,2023-08-03,Barangay Pantal,ABC Construction,65244,20692,PHP,Maintenance
+TX-23559560,2024-02-19,Barangay Pantal,ABC Construction,3555015,1471581,PHP,Community Program
+TX-31975679,2025-02-01,Barangay Pantal,Rice Supplier,1762,159541,PHP,Community Support
+TX-91585293,2025-09-13,Barangay Pantal,Health Center,70561,424501,PHP,Project Materials
+TX-10832656,2024-06-15,Barangay Pantal,Health Center,35909,4109019,PHP,Public Service
+TX-44892642,2025-09-15,Barangay Pantal,Water Services,4429,416901,PHP,Community Support
+TX-56296832,2023-08-08,Barangay Pantal,Printing Services,42135,352258,PHP,Service Payment
+TX-98797635,2024-06-23,Barangay Pantal,Water Services,2505290,244824,PHP,Road Repair
+TX-34574393,2025-03-27,Barangay Pantal,Transport Services,83590,3543,PHP,Monthly Expense
+TX-43838714,2024-01-04,Barangay Pantal,Internet Provider,3783,383019,PHP,Electricity Payment
+TX-86095482,2024-01-24,Barangay Pantal,Pharmacy,339,3834,PHP,Monthly Expense
+TX-19839456,2024-05-21,Barangay Pantal,Repair Services,1130085,812351,PHP,Monthly Expense
+TX-11704812,2024-09-26,Barangay Pantal,Printing Services,4536,67028,PHP,Community Support
+TX-38737324,2023-02-26,Barangay Pantal,Water Services,26502,4718144,PHP,Construction Materials
+TX-80448997,2023-09-12,Barangay Pantal,Hardware Store,382,26177,PHP,Public Service
+TX-29343558,2023-10-17,Barangay Pantal,Water Services,56307,2316464,PHP,Internet Bill
+TX-56283191,2025-05-06,Barangay Pantal,School Supplies Store,13894,4193,PHP,Monthly Expense
+TX-36366342,2023-12-15,Barangay Pantal,Electric Provider,140,1429557,PHP,Office Supplies
+TX-22979942,2024-02-19,Barangay Pantal,Logistics Services,4357,4296358,PHP,Barangay Event
+TX-71869367,2024-02-07,Barangay Pantal,Pharmacy,15950,2157778,PHP,Project Materials
+TX-59209933,2025-05-02,Barangay Pantal,Software Services,70397,72868,PHP,Community Program
+TX-47373028,2025-02-26,Barangay Pantal,Repair Services,935,68450,PHP,Utility Payment
+TX-75051579,2023-07-23,Barangay Pantal,Hardware Store,73246,1672550,PHP,Office Supplies
+TX-22247014,2025-02-02,Barangay Pantal,Health Center,3845,262307,PHP,Equipment Purchase
+TX-13776131,2024-02-14,Barangay Pantal,Construction Supply,51474,868073,PHP,Service Payment
+TX-42989256,2024-02-21,Barangay Pantal,Maintenance Team,31867,83463,PHP,Barangay Event
+TX-25676106,2023-01-03,Barangay Pantal,Internet Provider,83557,20459,PHP,Utility Payment
+TX-47866785,2025-04-10,Barangay Pantal,Health Center,4547,9048,PHP,Repair Expense
+TX-10457834,2025-02-14,Barangay Pantal,Fuel Station,1411,2487,PHP,Operational Expense
+TX-53775894,2023-03-18,Barangay Pantal,IT Services,2370813,1032,PHP,Repair Expense
+TX-73451440,2024-07-02,Barangay Pantal,School Supplies Store,3451514,14817,PHP,Maintenance
+TX-80101155,2023-05-15,Barangay Pantal,City Treasury,1708,17134,PHP,Community Support
+TX-64760942,2025-06-17,Barangay Pantal,Maintenance Team,1466,63822,PHP,Transport Expense
+TX-26865001,2024-04-02,Barangay Pantal,Pharmacy,134394,221956,PHP,Water Bill
+TX-40356956,2024-10-02,Barangay Pantal,Rice Supplier,22001,2016,PHP,Project Materials
+TX-21468606,2023-10-19,Barangay Pantal,Vegetable Supplier,1060,44944,PHP,Water Bill
+TX-98240851,2023-09-20,Barangay Pantal,Repair Services,1566,20097,PHP,Internet Bill
+TX-24709881,2023-11-13,Barangay Pantal,Rice Supplier,1760402,347833,PHP,Construction Materials
+TX-39080811,2025-01-03,Barangay Pantal,Water Services,452629,951,PHP,Equipment Purchase
+TX-14804174,2024-02-11,Barangay Pantal,Repair Services,4008887,117925,PHP,Medical Assistance
+TX-25783628,2024-09-07,Barangay Pantal,Printing Services,84808,65870,PHP,Equipment Purchase
+TX-50331663,2025-01-30,Barangay Pantal,Maintenance Team,907401,231268,PHP,Electricity Payment
+TX-47653738,2025-09-25,Barangay Pantal,Construction Supply,65139,116,PHP,Internet Bill
+TX-44460087,2023-03-04,Barangay Pantal,Maria Santos,72162,4442,PHP,Internet Bill
+TX-57807768,2025-06-11,Barangay Pantal,Cleaning Services,473106,45552,PHP,Water Bill
+TX-97414363,2023-04-28,Barangay Pantal,Security Services,3617,72330,PHP,Fuel Expense
+TX-19344546,2023-06-05,Barangay Pantal,Hardware Store,4267563,4524,PHP,Electricity Payment
+TX-62042450,2024-09-21,Barangay Pantal,Water Services,472759,2380728,PHP,Transport Expense
+TX-95238629,2023-12-06,Barangay Pantal,Rice Supplier,939179,449510,PHP,Food Supplies
+TX-59884947,2024-11-16,Barangay Pantal,Security Services,1469211,1654,PHP,Maintenance
+TX-40272260,2023-10-01,Barangay Pantal,Electric Provider,26753,24588,PHP,Monthly Expense
+TX-78804608,2023-12-05,Barangay Pantal,Construction Supply,4706746,18811,PHP,Training Expense
+TX-80061820,2023-12-28,Barangay Pantal,Vegetable Supplier,71498,445604,PHP,Barangay Event
+TX-25552277,2023-03-09,Barangay Pantal,ABC Construction,2695,1907158,PHP,Training Expense
+TX-36212984,2025-09-15,Barangay Pantal,School Supplies Store,663844,2256089,PHP,Community Support
+TX-48806630,2025-02-23,Barangay Pantal,Software Services,280,450240,PHP,Emergency Expense
+TX-85396021,2025-09-16,Barangay Pantal,Catering Services,400015,1741937,PHP,Emergency Expense
+TX-39841742,2024-09-15,Barangay Pantal,ABC Construction,250788,159686,PHP,Road Repair
+TX-33274411,2024-12-31,Barangay Pantal,Catering Services,3956,194954,PHP,Internet Bill
+TX-66047944,2024-04-18,Barangay Pantal,Internet Provider,3878,85777,PHP,Water Bill
+TX-33516570,2023-06-08,Barangay Pantal,Transport Services,46585,346401,PHP,Electricity Payment
+TX-77571344,2023-07-07,Barangay Pantal,Consulting Services,1154,83202,PHP,Water Bill
+TX-21249275,2024-08-24,Barangay Pantal,Community Workers,1927198,397943,PHP,Electricity Payment
+TX-65586553,2023-10-26,Barangay Pantal,Construction Supply,3488,328366,PHP,Operational Expense
+TX-43437695,2023-01-27,Barangay Pantal,Internet Provider,4134,51935,PHP,Repair Expense
+TX-84784590,2025-07-05,Barangay Pantal,Software Services,2003,884039,PHP,Utility Payment
+TX-67229500,2025-06-30,Barangay Pantal,Logistics Services,4690007,2669772,PHP,Construction Materials
+TX-41919009,2025-03-21,Barangay Pantal,City Treasury,751999,201287,PHP,Public Service
+TX-84756775,2023-01-31,Barangay Pantal,Transport Services,3017,1419,PHP,Service Payment
+TX-87347574,2023-01-14,Barangay Pantal,Maintenance Team,1361,425401,PHP,Project Materials
+TX-96945375,2023-11-20,Barangay Pantal,Cleaning Services,645681,4388288,PHP,Community Program
+TX-25744717,2024-04-16,Barangay Pantal,Maria Santos,4572894,710292,PHP,Food Supplies
+TX-34386083,2025-08-20,Barangay Pantal,Maintenance Team,1520531,17821,PHP,Medical Assistance
+TX-63751927,2025-03-29,Barangay Pantal,Hardware Store,4232517,170089,PHP,Repair Expense
+TX-90461913,2023-03-06,Barangay Pantal,Internet Provider,227621,215,PHP,Water Bill
+TX-48638343,2023-06-12,Barangay Pantal,Cleaning Services,86664,2619771,PHP,Equipment Purchase
+TX-89369747,2023-07-05,Barangay Pantal,Consulting Services,59061,4370,PHP,Transport Expense
+TX-63140859,2025-02-11,Barangay Pantal,School Supplies Store,294470,169083,PHP,Public Service
+TX-70800504,2024-10-31,Barangay Pantal,School Supplies Store,581913,760477,PHP,Training Expense
+TX-94371557,2023-06-05,Barangay Pantal,ABC Construction,229475,153823,PHP,Utility Payment
+TX-91257289,2024-11-08,Barangay Pantal,Fuel Station,248396,4244,PHP,Service Payment
+TX-19367239,2024-04-19,Barangay Pantal,City Treasury,266967,4623,PHP,Operational Expense
+TX-53453973,2023-03-10,Barangay Pantal,Software Services,77919,2981920,PHP,Service Payment
+TX-37604926,2023-07-24,Barangay Pantal,Security Services,23005,2017,PHP,Utility Payment
+TX-48476531,2024-03-07,Barangay Pantal,Hardware Store,1422,2817603,PHP,Community Support
+TX-82637131,2024-07-21,Barangay Pantal,Internet Provider,46050,2738097,PHP,Emergency Expense
+TX-89487670,2024-12-25,Barangay Pantal,Consulting Services,36641,484445,PHP,Barangay Event
+TX-98844152,2025-07-01,Barangay Pantal,Vegetable Supplier,248034,3541329,PHP,Water Bill
+TX-12082748,2025-01-13,Barangay Pantal,Vegetable Supplier,198767,4244,PHP,Emergency Expense
+TX-66106255,2024-11-01,Barangay Pantal,Security Services,2613,131865,PHP,Office Supplies
+TX-57723263,2024-08-20,Barangay Pantal,Rice Supplier,1629044,211913,PHP,Repair Expense
+TX-59717752,2024-01-25,Barangay Pantal,Catering Services,89305,31058,PHP,Barangay Event
+TX-10706092,2025-01-09,Barangay Pantal,Electric Provider,4147,37774,PHP,Community Program
+TX-92112286,2025-09-09,Barangay Pantal,Juan Dela Cruz,2936,34492,PHP,Service Payment
+TX-28700168,2025-07-06,Barangay Pantal,Electric Provider,4031,129859,PHP,Medical Assistance
+TX-96269628,2023-07-28,Barangay Pantal,City Treasury,39383,4704275,PHP,Electricity Payment
+TX-84370054,2025-06-03,Barangay Pantal,Logistics Services,66252,92029,PHP,Repair Expense
+TX-43248850,2025-07-11,Barangay Pantal,Community Workers,1578647,45917,PHP,Electricity Payment
+TX-88787946,2023-11-18,Barangay Pantal,Hardware Store,30337,76108,PHP,Service Payment
+TX-75121810,2024-05-13,Barangay Pantal,Printing Services,3998,57830,PHP,Fuel Expense
+TX-26221219,2025-04-11,Barangay Pantal,Rice Supplier,66188,4834292,PHP,Office Supplies
+TX-33518734,2023-01-31,Barangay Pantal,Cleaning Services,483074,4830,PHP,Operational Expense
+TX-13553619,2025-03-31,Barangay Pantal,Community Workers,1794267,431259,PHP,Food Supplies
+TX-42705573,2024-06-03,Barangay Pantal,Internet Provider,49802,271085,PHP,Barangay Event
+TX-19729195,2025-09-13,Barangay Pantal,Event Services,39031,423817,PHP,Water Bill
+TX-39553834,2024-07-07,Barangay Pantal,Event Services,48439,2389887,PHP,Utility Payment
+TX-83919161,2023-05-13,Barangay Pantal,Water Services,236298,108969,PHP,Food Supplies
+TX-11778931,2024-12-26,Barangay Pantal,Community Workers,71463,3770788,PHP,Emergency Expense
+TX-22283367,2025-04-12,Barangay Pantal,Repair Services,1313424,4068,PHP,Office Supplies
+TX-68540546,2023-11-10,Barangay Pantal,Community Workers,2166337,1859,PHP,Project Materials
+TX-54121086,2023-06-14,Barangay Pantal,Fuel Station,148183,4479,PHP,Training Expense
+TX-60195407,2023-04-14,Barangay Pantal,Water Services,938,170130,PHP,Operational Expense
+TX-32732411,2025-08-17,Barangay Pantal,Cleaning Services,4053,71630,PHP,Medical Assistance
+TX-66350603,2023-02-16,Barangay Pantal,Vegetable Supplier,49365,28463,PHP,Community Program
+TX-48599382,2025-08-07,Barangay Pantal,Vegetable Supplier,2564,72473,PHP,Monthly Expense
+TX-68296695,2023-05-09,Barangay Pantal,Cleaning Services,34813,1166,PHP,Project Materials
+TX-52562729,2024-11-10,Barangay Pantal,School Supplies Store,79003,2739,PHP,Utility Payment
+TX-20910553,2023-02-27,Barangay Pantal,City Treasury,284932,900,PHP,Community Support
+TX-71058084,2023-08-09,Barangay Pantal,Juan Dela Cruz,104099,3240,PHP,Transport Expense
+TX-12366906,2024-06-19,Barangay Pantal,IT Services,2425,405108,PHP,Electricity Payment
+TX-61054596,2023-01-09,Barangay Pantal,Maria Santos,2315964,4942,PHP,Construction Materials
+TX-38513433,2025-01-01,Barangay Pantal,Hardware Store,623197,409470,PHP,Community Program
+TX-27031459,2025-04-11,Barangay Pantal,Community Workers,1003922,3725406,PHP,Medical Assistance
+TX-25167101,2023-07-12,Barangay Pantal,Catering Services,243971,317176,PHP,Construction Materials
+TX-90839910,2025-07-28,Barangay Pantal,Software Services,2430708,1845420,PHP,Public Service
+TX-27268150,2024-09-30,Barangay Pantal,Electric Provider,2404932,15311,PHP,Equipment Purchase
+TX-48378839,2024-02-27,Barangay Pantal,Consulting Services,388929,4411076,PHP,Construction Materials
+TX-95076061,2024-06-08,Barangay Pantal,Cleaning Services,181890,4689,PHP,Utility Payment
+TX-27258342,2024-12-08,Barangay Pantal,Pharmacy,1688605,253,PHP,Emergency Expense
+TX-89286885,2023-02-10,Barangay Pantal,Logistics Services,385763,341,PHP,Community Support
+TX-34549602,2023-09-07,Barangay Pantal,Printing Services,1516820,3840,PHP,Monthly Expense
+TX-17561623,2025-08-19,Barangay Pantal,Rice Supplier,85756,1017,PHP,Community Support
+TX-75986724,2024-10-22,Barangay Pantal,Consulting Services,415060,48930,PHP,Monthly Expense
+TX-93160690,2024-03-20,Barangay Pantal,Event Services,3892,2613779,PHP,Repair Expense
+TX-53229316,2025-04-13,Barangay Pantal,ABC Construction,25947,69364,PHP,Transport Expense
+TX-68195049,2023-08-23,Barangay Pantal,Juan Dela Cruz,3172721,28329,PHP,Equipment Purchase
+TX-65609014,2025-01-08,Barangay Pantal,Pharmacy,1097,1967,PHP,Construction Materials
+TX-32099772,2024-07-11,Barangay Pantal,Vegetable Supplier,2519,423559,PHP,Operational Expense
+TX-17841177,2025-02-17,Barangay Pantal,Printing Services,2783,162049,PHP,Barangay Event
+TX-79490901,2024-10-07,Barangay Pantal,Consulting Services,3627632,30025,PHP,Electricity Payment
+TX-53773424,2025-08-21,Barangay Pantal,City Treasury,69913,3644,PHP,Maintenance
+TX-27452096,2024-03-30,Barangay Pantal,Catering Services,3202,82412,PHP,Medical Assistance
+TX-33233768,2023-12-10,Barangay Pantal,Health Center,3215,7379,PHP,Food Supplies
+TX-92086551,2024-03-31,Barangay Pantal,IT Services,903,144268,PHP,Training Expense
+TX-34701427,2024-04-04,Barangay Pantal,School Supplies Store,123614,683680,PHP,Service Payment
+TX-63123923,2023-01-09,Barangay Pantal,Maria Santos,1152314,3496905,PHP,Office Supplies
+TX-85510424,2025-01-10,Barangay Pantal,Logistics Services,3301538,1655140,PHP,Service Payment
+TX-98408375,2024-12-18,Barangay Pantal,Event Services,2081,14267,PHP,Operational Expense
+TX-58604978,2023-12-29,Barangay Pantal,Rice Supplier,2240,409339,PHP,Utility Payment
+TX-57083732,2025-03-20,Barangay Pantal,Rice Supplier,2840068,4897900,PHP,Utility Payment
+TX-14308371,2023-04-27,Barangay Pantal,Software Services,3888,4172,PHP,Road Repair
+TX-76093368,2025-04-02,Barangay Pantal,Maintenance Team,1779,1792596,PHP,Fuel Expense
+TX-75578496,2023-03-24,Barangay Pantal,School Supplies Store,23525,4376741,PHP,Community Program
+TX-48211794,2025-09-20,Barangay Pantal,Construction Supply,190543,499003,PHP,Road Repair
+TX-24659601,2023-07-31,Barangay Pantal,IT Services,289825,370447,PHP,Emergency Expense
+TX-61965207,2023-11-05,Barangay Pantal,Cleaning Services,4325877,426538,PHP,Construction Materials
+TX-92441074,2024-04-08,Barangay Pantal,Health Center,23442,3884716,PHP,Public Service
+TX-34492526,2023-07-16,Barangay Pantal,Repair Services,16284,49542,PHP,Internet Bill
+TX-89841735,2024-09-09,Barangay Pantal,Fuel Station,1244665,274970,PHP,Equipment Purchase
+TX-67426548,2025-02-05,Barangay Pantal,Security Services,2856958,233313,PHP,Utility Payment
+TX-13913017,2023-01-16,Barangay Pantal,Community Workers,216049,241971,PHP,Equipment Purchase
+TX-38648441,2024-06-13,Barangay Pantal,Health Center,2457,163016,PHP,Food Supplies
+TX-74089622,2024-05-05,Barangay Pantal,Hardware Store,43088,2797,PHP,Training Expense
+TX-83359655,2024-01-21,Barangay Pantal,Electric Provider,1026529,14379,PHP,Electricity Payment
+TX-77132323,2023-08-08,Barangay Pantal,Maintenance Team,457124,656,PHP,Operational Expense
+TX-80548184,2023-10-20,Barangay Pantal,Juan Dela Cruz,1902,1117,PHP,Internet Bill
+TX-55580168,2023-04-14,Barangay Pantal,Transport Services,3059439,40636,PHP,Medical Assistance
+TX-20903906,2024-10-30,Barangay Pantal,Electric Provider,4264,52354,PHP,Service Payment
+TX-53614995,2024-08-09,Barangay Pantal,Health Center,448646,3235,PHP,Road Repair
+TX-49222123,2023-11-22,Barangay Pantal,Community Workers,453059,302460,PHP,Project Materials
+TX-31883590,2023-04-28,Barangay Pantal,Transport Services,1101370,285368,PHP,Barangay Event
+TX-32945870,2025-01-09,Barangay Pantal,School Supplies Store,491772,4793,PHP,Electricity Payment
+TX-77215830,2023-10-25,Barangay Pantal,Rice Supplier,4321992,1736,PHP,Road Repair
+TX-49768533,2025-04-21,Barangay Pantal,Community Workers,240916,65091,PHP,Community Support
+TX-98927607,2025-01-28,Barangay Pantal,Pharmacy,1886,4928025,PHP,Repair Expense
+TX-32182797,2024-09-17,Barangay Pantal,Pharmacy,3627,4875,PHP,Office Supplies
+TX-33846890,2023-10-21,Barangay Pantal,Catering Services,58469,2450841,PHP,Transport Expense
+TX-20971951,2025-06-27,Barangay Pantal,Event Services,173676,1850,PHP,Construction Materials
+TX-85411299,2024-12-04,Barangay Pantal,ABC Construction,355,3996,PHP,Community Support
+TX-19969768,2025-05-13,Barangay Pantal,Rice Supplier,1296,4951651,PHP,Internet Bill
+TX-32607137,2025-07-22,Barangay Pantal,Software Services,2457,1070279,PHP,Maintenance
+TX-26136340,2024-04-07,Barangay Pantal,Internet Provider,2719,67050,PHP,Maintenance
+TX-92989529,2024-02-26,Barangay Pantal,Maria Santos,3890364,468949,PHP,Utility Payment
+TX-87939119,2023-12-25,Barangay Pantal,School Supplies Store,923,89079,PHP,Food Supplies
+TX-20929098,2024-02-13,Barangay Pantal,Pharmacy,3256,1879921,PHP,Operational Expense
+TX-13566121,2025-04-20,Barangay Pantal,Pharmacy,244657,1791,PHP,Office Supplies
+TX-11471080,2025-07-21,Barangay Pantal,Fuel Station,6336,585473,PHP,Community Program
+TX-72569463,2023-11-05,Barangay Pantal,Cleaning Services,3201453,1978264,PHP,Maintenance
+TX-77833889,2023-05-21,Barangay Pantal,Catering Services,310292,1902969,PHP,Food Supplies
+TX-28688750,2025-05-20,Barangay Pantal,Rice Supplier,971125,192406,PHP,Training Expense
+TX-99531971,2023-12-06,Barangay Pantal,Security Services,249965,148070,PHP,Maintenance
+TX-23411187,2024-07-07,Barangay Pantal,Construction Supply,251617,125763,PHP,Community Support
+TX-51693744,2024-01-08,Barangay Pantal,Maria Santos,4979,3741,PHP,Service Payment
+TX-30784418,2025-05-02,Barangay Pantal,Community Workers,3046263,2410,PHP,Transport Expense
+TX-24138596,2024-11-30,Barangay Pantal,Cleaning Services,14956,1369,PHP,Construction Materials
+TX-19260329,2023-06-22,Barangay Pantal,Hardware Store,1195655,81804,PHP,Utility Payment
+TX-88554199,2023-10-04,Barangay Pantal,Maintenance Team,248189,245991,PHP,Fuel Expense
+TX-77218400,2024-07-15,Barangay Pantal,Electric Provider,2878982,209106,PHP,Office Supplies
+TX-91739984,2023-10-29,Barangay Pantal,Construction Supply,23583,40507,PHP,Medical Assistance
+TX-93157249,2023-11-19,Barangay Pantal,Hardware Store,2842,4590966,PHP,Food Supplies
+TX-39060811,2024-11-10,Barangay Pantal,Maria Santos,89708,72070,PHP,Medical Assistance
+TX-41996231,2023-12-28,Barangay Pantal,ABC Construction,12511,2383,PHP,Project Materials
+TX-26076669,2023-03-23,Barangay Pantal,ABC Construction,433,29077,PHP,Equipment Purchase
+TX-66304058,2023-04-18,Barangay Pantal,Catering Services,3632681,320293,PHP,Maintenance
+TX-55582093,2024-07-17,Barangay Pantal,Maintenance Team,1789238,447271,PHP,Office Supplies
+TX-65124210,2023-12-02,Barangay Pantal,Rice Supplier,2964909,63433,PHP,Water Bill
+TX-60526816,2023-09-12,Barangay Pantal,School Supplies Store,120399,481,PHP,Equipment Purchase
+TX-73755811,2023-05-02,Barangay Pantal,Software Services,2671,57316,PHP,Utility Payment
+TX-48443636,2023-09-28,Barangay Pantal,Hardware Store,3210235,24436,PHP,Internet Bill
+TX-84850748,2025-03-16,Barangay Pantal,Printing Services,491355,47362,PHP,Barangay Event
+TX-93058554,2025-07-15,Barangay Pantal,Juan Dela Cruz,1325,4249,PHP,Electricity Payment
+TX-82501037,2024-09-01,Barangay Pantal,Consulting Services,14847,3155794,PHP,Road Repair
+TX-64663264,2025-01-03,Barangay Pantal,Maria Santos,123683,761,PHP,Repair Expense
+TX-65603641,2025-01-07,Barangay Pantal,Event Services,645,19884,PHP,Repair Expense
+TX-97930065,2023-01-21,Barangay Pantal,Maria Santos,4178,4327329,PHP,Community Support
+TX-41515225,2023-04-07,Barangay Pantal,Internet Provider,2988,236661,PHP,Internet Bill
+TX-96371678,2023-05-08,Barangay Pantal,Water Services,17811,8185,PHP,Barangay Event
+TX-73808382,2024-12-16,Barangay Pantal,Software Services,2140,1557483,PHP,Public Service
+TX-22987114,2025-06-30,Barangay Pantal,Vegetable Supplier,47821,2027381,PHP,Water Bill
+TX-52879133,2025-05-20,Barangay Pantal,IT Services,2764062,23090,PHP,Food Supplies
+TX-78297685,2024-12-21,Barangay Pantal,School Supplies Store,3098025,68709,PHP,Medical Assistance
+TX-68010779,2024-05-06,Barangay Pantal,Water Services,4829018,246606,PHP,Internet Bill
+TX-68763966,2025-06-20,Barangay Pantal,Repair Services,262,1297,PHP,Construction Materials
+TX-53067357,2025-07-15,Barangay Pantal,Printing Services,9994,4477109,PHP,Construction Materials
+TX-57065094,2023-05-07,Barangay Pantal,Juan Dela Cruz,257,3369496,PHP,Public Service
+TX-23007563,2023-01-30,Barangay Pantal,Catering Services,85009,6973,PHP,Construction Materials
+TX-77681639,2023-10-05,Barangay Pantal,Repair Services,60722,481258,PHP,Road Repair
+TX-77775238,2025-02-08,Barangay Pantal,Event Services,1469,15391,PHP,Maintenance
+TX-60574444,2023-09-01,Barangay Pantal,School Supplies Store,356996,332810,PHP,Operational Expense
+TX-82330127,2024-02-10,Barangay Pantal,Consulting Services,210962,395388,PHP,Food Supplies
+TX-12096007,2023-05-04,Barangay Pantal,Hardware Store,10958,1228566,PHP,Equipment Purchase
+TX-94567259,2024-08-10,Barangay Pantal,Fuel Station,4533921,109212,PHP,Operational Expense
+TX-38657326,2023-05-02,Barangay Pantal,Juan Dela Cruz,73528,490110,PHP,Emergency Expense
+TX-34662898,2025-07-30,Barangay Pantal,Software Services,610633,1000,PHP,Medical Assistance
+TX-95025214,2024-01-08,Barangay Pantal,Maria Santos,64087,223784,PHP,Public Service
+TX-33007829,2024-11-22,Barangay Pantal,Fuel Station,398404,2266,PHP,Monthly Expense
+TX-98492645,2024-12-29,Barangay Pantal,Consulting Services,13445,115603,PHP,Public Service
+TX-57389033,2025-02-21,Barangay Pantal,Electric Provider,3449,13930,PHP,Road Repair
+TX-34554485,2023-07-13,Barangay Pantal,Community Workers,2138137,2108,PHP,Transport Expense
+TX-58757357,2024-04-12,Barangay Pantal,Cleaning Services,21895,2938,PHP,Transport Expense
+TX-12722148,2024-04-16,Barangay Pantal,Repair Services,54734,17031,PHP,Monthly Expense
+TX-59051492,2024-06-27,Barangay Pantal,Vegetable Supplier,1552,175776,PHP,Medical Assistance
+TX-83986126,2024-11-19,Barangay Pantal,IT Services,864742,2905,PHP,Service Payment
+TX-18476105,2024-06-09,Barangay Pantal,Repair Services,548333,2429134,PHP,Internet Bill
+TX-17032329,2025-04-06,Barangay Pantal,ABC Construction,352,841,PHP,Community Program
+TX-65887538,2024-09-24,Barangay Pantal,Maintenance Team,2778383,473746,PHP,Community Program
+TX-21415367,2024-10-14,Barangay Pantal,Repair Services,84894,32191,PHP,Operational Expense
+TX-99946229,2024-03-23,Barangay Pantal,Transport Services,1905,288,PHP,Construction Materials
+TX-74461483,2025-06-26,Barangay Pantal,Hardware Store,25079,61591,PHP,Public Service
+TX-44475426,2025-09-14,Barangay Pantal,Internet Provider,381588,3740,PHP,Training Expense
+TX-52885947,2023-08-21,Barangay Pantal,IT Services,21916,4622,PHP,Maintenance
+TX-39178160,2024-08-24,Barangay Pantal,Juan Dela Cruz,3258529,478111,PHP,Emergency Expense
+TX-46362284,2025-02-12,Barangay Pantal,Juan Dela Cruz,2349,438713,PHP,Electricity Payment
+TX-89985738,2024-10-19,Barangay Pantal,Catering Services,38918,2293,PHP,Food Supplies
+TX-26194295,2023-03-23,Barangay Pantal,Construction Supply,15864,34824,PHP,Repair Expense
+TX-74176588,2024-06-19,Barangay Pantal,Security Services,8466,2512048,PHP,Office Supplies
+TX-98657880,2025-07-20,Barangay Pantal,Maintenance Team,81820,2741715,PHP,Public Service
+TX-24492308,2025-08-03,Barangay Pantal,City Treasury,2616533,1421646,PHP,Community Support
+TX-75270928,2025-03-11,Barangay Pantal,Software Services,443815,4273,PHP,Operational Expense
+TX-98004542,2023-09-03,Barangay Pantal,Logistics Services,1476552,3654128,PHP,Emergency Expense
+TX-50496312,2025-06-28,Barangay Pantal,Maria Santos,4482460,12378,PHP,Training Expense
+TX-61995338,2025-08-19,Barangay Pantal,Vegetable Supplier,1833,87259,PHP,Electricity Payment
+TX-28791092,2025-04-27,Barangay Pantal,Transport Services,3116815,2778475,PHP,Training Expense
+TX-90591892,2023-04-15,Barangay Pantal,Hardware Store,2307675,1719783,PHP,Training Expense
+TX-95363441,2024-03-21,Barangay Pantal,Maintenance Team,2973288,4896,PHP,Monthly Expense
+TX-18662936,2025-04-15,Barangay Pantal,Vegetable Supplier,4373,2825,PHP,Construction Materials
+TX-51004448,2023-03-16,Barangay Pantal,Consulting Services,1489220,511,PHP,Maintenance
+TX-68151267,2025-07-13,Barangay Pantal,Transport Services,3157297,444238,PHP,Fuel Expense
+TX-58704763,2023-10-14,Barangay Pantal,Water Services,659,240542,PHP,Monthly Expense
+TX-16670354,2023-01-02,Barangay Pantal,Rice Supplier,4228619,756023,PHP,Equipment Purchase
+TX-23909048,2025-09-18,Barangay Pantal,IT Services,1316,467074,PHP,Project Materials
+TX-58001044,2023-05-26,Barangay Pantal,City Treasury,2494,2601,PHP,Community Support
+TX-67213923,2024-06-08,Barangay Pantal,Vegetable Supplier,165570,1304024,PHP,Community Support
+TX-64764097,2025-03-07,Barangay Pantal,Repair Services,380790,663865,PHP,Training Expense
+TX-71583646,2025-08-12,Barangay Pantal,Printing Services,1268,316705,PHP,Construction Materials
+TX-11962515,2025-07-23,Barangay Pantal,Hardware Store,88310,448,PHP,Maintenance
+TX-39603453,2024-02-17,Barangay Pantal,Vegetable Supplier,302324,48724,PHP,Emergency Expense
+TX-55543628,2023-12-29,Barangay Pantal,Rice Supplier,4330561,173885,PHP,Emergency Expense
+TX-19447190,2025-06-12,Barangay Pantal,Community Workers,78131,373541,PHP,Emergency Expense
+TX-88690238,2023-08-10,Barangay Pantal,ABC Construction,62781,3440,PHP,Barangay Event
+TX-19938379,2025-08-15,Barangay Pantal,Logistics Services,21702,361,PHP,Water Bill
+TX-21138758,2025-08-06,Barangay Pantal,Rice Supplier,368961,255462,PHP,Barangay Event
+TX-98413519,2025-02-07,Barangay Pantal,Software Services,16816,88394,PHP,Internet Bill
+TX-63270484,2025-01-06,Barangay Pantal,Catering Services,8057,15998,PHP,Fuel Expense
+TX-41652116,2023-06-07,Barangay Pantal,Fuel Station,4479716,1126,PHP,Fuel Expense
+TX-52956768,2023-08-30,Barangay Pantal,School Supplies Store,10491,5343,PHP,Food Supplies
+TX-51067710,2024-05-12,Barangay Pantal,Maintenance Team,10318,1566802,PHP,Training Expense
+TX-41153413,2024-10-30,Barangay Pantal,Juan Dela Cruz,497606,216565,PHP,Water Bill
+TX-10441422,2024-11-08,Barangay Pantal,IT Services,54544,177084,PHP,Project Materials
+TX-89037591,2023-04-29,Barangay Pantal,Maria Santos,916,3886838,PHP,Repair Expense
+TX-61375607,2023-03-20,Barangay Pantal,Health Center,3218322,1010,PHP,Service Payment
+TX-52373197,2024-07-06,Barangay Pantal,Security Services,2386,27673,PHP,Medical Assistance
+TX-83152003,2023-02-11,Barangay Pantal,Consulting Services,252694,26378,PHP,Equipment Purchase
+TX-86913521,2024-05-17,Barangay Pantal,IT Services,4046,21143,PHP,Emergency Expense
+TX-67064308,2023-11-12,Barangay Pantal,Vegetable Supplier,47390,409602,PHP,Electricity Payment
+TX-51214932,2023-04-02,Barangay Pantal,Community Workers,2558,1947426,PHP,Internet Bill
+TX-17667701,2024-02-14,Barangay Pantal,Pharmacy,4920,438354,PHP,Public Service
+TX-69394552,2023-12-08,Barangay Pantal,Community Workers,2928425,297139,PHP,Construction Materials
+TX-76110382,2025-03-27,Barangay Pantal,Internet Provider,4145213,134631,PHP,Repair Expense
+TX-98863609,2023-04-29,Barangay Pantal,Logistics Services,3383,926554,PHP,Road Repair
+TX-38818716,2024-05-17,Barangay Pantal,Health Center,52328,4539062,PHP,Internet Bill
+TX-76761053,2024-06-16,Barangay Pantal,IT Services,4678019,394606,PHP,Electricity Payment
+TX-37303530,2025-07-24,Barangay Pantal,Community Workers,4897397,4130980,PHP,Community Program
+TX-76220339,2025-05-12,Barangay Pantal,Fuel Station,63350,77946,PHP,Construction Materials
+TX-59606431,2025-08-19,Barangay Pantal,Logistics Services,120551,56540,PHP,Operational Expense
+TX-70528438,2025-06-23,Barangay Pantal,Event Services,4879327,2912,PHP,Community Support
+TX-60959031,2024-07-15,Barangay Pantal,Cleaning Services,383610,276031,PHP,Transport Expense
+TX-85162008,2023-12-16,Barangay Pantal,Logistics Services,4775548,2001,PHP,Community Program
+TX-91492593,2025-09-08,Barangay Pantal,Maintenance Team,198987,1488,PHP,Equipment Purchase
+TX-71527078,2025-07-28,Barangay Pantal,Community Workers,1577,448,PHP,Training Expense
+TX-88098313,2023-09-24,Barangay Pantal,Catering Services,2476964,359728,PHP,Office Supplies
+TX-29905842,2025-03-11,Barangay Pantal,Cleaning Services,35118,282482,PHP,Internet Bill
+TX-54725579,2024-06-22,Barangay Pantal,Community Workers,59183,8000,PHP,Barangay Event
+TX-24268499,2024-06-10,Barangay Pantal,Security Services,2005484,80727,PHP,Barangay Event
+TX-13188610,2023-05-09,Barangay Pantal,Repair Services,287114,1246246,PHP,Construction Materials
+TX-19590906,2025-08-09,Barangay Pantal,Health Center,4787,3080263,PHP,Community Program
+TX-63266510,2025-01-22,Barangay Pantal,Health Center,3563765,271306,PHP,Operational Expense
+TX-24939401,2023-12-28,Barangay Pantal,Maria Santos,402897,4570173,PHP,Electricity Payment
+TX-97491219,2024-06-27,Barangay Pantal,Hardware Store,3477,4058855,PHP,Repair Expense
+TX-74321692,2023-11-14,Barangay Pantal,Software Services,26691,1748,PHP,Community Support
+TX-36202982,2023-08-24,Barangay Pantal,Rice Supplier,2878661,386286,PHP,Training Expense
+TX-99033173,2025-08-21,Barangay Pantal,Fuel Station,446,182137,PHP,Water Bill
+TX-51179097,2023-02-21,Barangay Pantal,Vegetable Supplier,3455446,529704,PHP,Operational Expense
+TX-53878078,2024-02-19,Barangay Pantal,IT Services,26229,1444111,PHP,Utility Payment
+TX-89652864,2024-08-16,Barangay Pantal,Internet Provider,369452,1855731,PHP,Service Payment
+TX-18231002,2024-08-13,Barangay Pantal,Vegetable Supplier,3549872,901035,PHP,Fuel Expense
+TX-15348403,2025-05-04,Barangay Pantal,Hardware Store,1833,2511986,PHP,Office Supplies
+TX-36269287,2023-04-03,Barangay Pantal,Repair Services,432582,224399,PHP,Service Payment
+TX-57991406,2024-01-07,Barangay Pantal,Internet Provider,2621237,2393463,PHP,Community Support
+TX-77639557,2025-05-06,Barangay Pantal,Logistics Services,2409130,3082531,PHP,Transport Expense
+TX-86039456,2025-04-22,Barangay Pantal,Event Services,77642,624802,PHP,Project Materials
+TX-10877865,2024-11-19,Barangay Pantal,Event Services,3518224,463,PHP,Operational Expense
+TX-19390460,2024-10-29,Barangay Pantal,Fuel Station,1093,467,PHP,Transport Expense
+TX-51539435,2025-09-17,Barangay Pantal,Construction Supply,41571,209747,PHP,Food Supplies
+TX-85320313,2023-01-04,Barangay Pantal,Rice Supplier,33724,42599,PHP,Training Expense
+TX-87807961,2023-08-21,Barangay Pantal,Cleaning Services,607,399540,PHP,Service Payment
+TX-35038154,2025-07-17,Barangay Pantal,Health Center,63463,482108,PHP,Public Service
+TX-83514084,2025-07-01,Barangay Pantal,Maintenance Team,4753085,2020473,PHP,Construction Materials
+TX-63773544,2023-09-10,Barangay Pantal,Consulting Services,601,2700,PHP,Repair Expense
+TX-29451893,2024-01-26,Barangay Pantal,Hardware Store,80250,2624902,PHP,Equipment Purchase
+TX-27114386,2024-05-05,Barangay Pantal,Pharmacy,1472732,4222955,PHP,Operational Expense
+TX-90012939,2023-08-10,Barangay Pantal,Hardware Store,67727,62084,PHP,Emergency Expense
+TX-60753529,2024-10-21,Barangay Pantal,Internet Provider,3424,1327,PHP,Community Support
+TX-57258973,2024-10-16,Barangay Pantal,Maintenance Team,3710,1961,PHP,Training Expense
+TX-56030912,2025-06-07,Barangay Pantal,Pharmacy,2384686,17510,PHP,Transport Expense
+TX-15003533,2023-11-01,Barangay Pantal,Construction Supply,73701,938,PHP,Public Service
+TX-80598861,2023-03-25,Barangay Pantal,Water Services,447210,37657,PHP,Food Supplies
+TX-74256621,2024-04-23,Barangay Pantal,Maintenance Team,1014401,892214,PHP,Service Payment
+TX-75888118,2025-04-16,Barangay Pantal,Cleaning Services,52465,82465,PHP,Electricity Payment
+TX-21982236,2023-01-13,Barangay Pantal,Electric Provider,1261463,975,PHP,Emergency Expense
+TX-36332735,2024-01-26,Barangay Pantal,Health Center,4891,982,PHP,Maintenance
+TX-24149613,2023-09-24,Barangay Pantal,Vegetable Supplier,87293,53841,PHP,Construction Materials
+TX-68122574,2024-10-09,Barangay Pantal,Hardware Store,261624,949131,PHP,Monthly Expense
+TX-45208188,2024-11-13,Barangay Pantal,Printing Services,4221394,1035696,PHP,Community Support
+TX-44788916,2024-12-13,Barangay Pantal,IT Services,1135336,3420,PHP,Road Repair
+TX-31196413,2024-08-08,Barangay Pantal,Hardware Store,70792,1511,PHP,Operational Expense
+TX-24926475,2023-01-26,Barangay Pantal,City Treasury,1324718,3502,PHP,Barangay Event
+TX-82220040,2024-07-31,Barangay Pantal,Printing Services,431413,4717102,PHP,Community Support
+TX-69345933,2023-06-21,Barangay Pantal,Water Services,601,30326,PHP,Training Expense
+TX-61657070,2023-11-18,Barangay Pantal,Maria Santos,319554,213688,PHP,Community Support
+TX-99637259,2024-10-11,Barangay Pantal,Fuel Station,4245117,1149,PHP,Operational Expense
+TX-42624578,2025-07-26,Barangay Pantal,Printing Services,3229,2596569,PHP,Utility Payment
+TX-51018845,2024-10-24,Barangay Pantal,Catering Services,4469,119712,PHP,Equipment Purchase
+TX-92329115,2024-05-20,Barangay Pantal,Event Services,76472,342474,PHP,Monthly Expense
+TX-71198987,2023-01-06,Barangay Pantal,Consulting Services,1433,4704,PHP,Repair Expense
+TX-83482509,2023-11-08,Barangay Pantal,Internet Provider,3934674,2577,PHP,Fuel Expense
+TX-14981443,2024-02-08,Barangay Pantal,Logistics Services,321403,2848903,PHP,Emergency Expense
+TX-92147361,2023-05-19,Barangay Pantal,Event Services,2723,1976669,PHP,Medical Assistance
+TX-35853892,2024-03-18,Barangay Pantal,Juan Dela Cruz,1154082,23670,PHP,Transport Expense
+TX-12471280,2023-04-03,Barangay Pantal,Pharmacy,2279,159989,PHP,Fuel Expense
+TX-44767048,2024-04-20,Barangay Pantal,Transport Services,361179,1933031,PHP,Food Supplies
+TX-32292489,2023-01-12,Barangay Pantal,Logistics Services,32188,2757494,PHP,Medical Assistance
+TX-57359478,2024-10-08,Barangay Pantal,IT Services,4565,3668665,PHP,Food Supplies
+TX-84599204,2024-01-04,Barangay Pantal,Vegetable Supplier,2338,1893964,PHP,Transport Expense
+TX-44200310,2023-02-27,Barangay Pantal,Juan Dela Cruz,1910,3922,PHP,Community Support
+TX-86813854,2025-05-17,Barangay Pantal,Water Services,76396,20228,PHP,Public Service
+TX-95104215,2025-07-11,Barangay Pantal,Logistics Services,2416,350220,PHP,Utility Payment
+TX-52661686,2023-12-28,Barangay Pantal,Internet Provider,2130095,19542,PHP,Equipment Purchase
+TX-97244355,2025-03-29,Barangay Pantal,ABC Construction,578875,105388,PHP,Transport Expense
+TX-21335006,2025-04-05,Barangay Pantal,Printing Services,323655,67491,PHP,Internet Bill
+TX-45814093,2025-01-17,Barangay Pantal,Electric Provider,3508,11890,PHP,Water Bill
+TX-78706667,2025-06-28,Barangay Pantal,Electric Provider,2573,439447,PHP,Water Bill
+TX-36737655,2025-03-27,Barangay Pantal,Maintenance Team,63289,125205,PHP,Transport Expense
+TX-68187264,2023-06-30,Barangay Pantal,Printing Services,3148658,89248,PHP,Equipment Purchase
+TX-99949527,2023-01-23,Barangay Pantal,Catering Services,4270,545,PHP,Food Supplies
+TX-28808436,2025-08-06,Barangay Pantal,Cleaning Services,4284824,602164,PHP,Service Payment
+TX-89648964,2023-07-18,Barangay Pantal,Hardware Store,2882024,3259828,PHP,Transport Expense
+TX-81509277,2023-05-15,Barangay Pantal,Repair Services,241862,4671534,PHP,Office Supplies
+TX-98185668,2025-07-13,Barangay Pantal,Water Services,1980480,111671,PHP,Equipment Purchase
+TX-29821020,2024-12-15,Barangay Pantal,Repair Services,106895,752,PHP,Public Service
+TX-80429729,2025-03-07,Barangay Pantal,Fuel Station,2505995,25327,PHP,Electricity Payment
+TX-62402719,2023-05-02,Barangay Pantal,Printing Services,49636,154543,PHP,Barangay Event
+TX-50232079,2024-04-06,Barangay Pantal,IT Services,2893419,42084,PHP,Monthly Expense
+TX-54505402,2025-09-09,Barangay Pantal,Internet Provider,1587931,427195,PHP,Repair Expense
+TX-66443374,2024-07-14,Barangay Pantal,Health Center,37274,104088,PHP,Emergency Expense
+TX-13281860,2023-11-14,Barangay Pantal,Rice Supplier,4932138,1399388,PHP,Utility Payment
+TX-27954965,2024-07-03,Barangay Pantal,Electric Provider,3663704,205087,PHP,Project Materials
+TX-90238755,2023-02-06,Barangay Pantal,Logistics Services,47460,404420,PHP,Medical Assistance
+TX-12912125,2025-05-13,Barangay Pantal,Event Services,2118,4123789,PHP,Maintenance
+TX-52700784,2023-11-28,Barangay Pantal,Vegetable Supplier,889,138357,PHP,Water Bill
+TX-66461333,2023-08-12,Barangay Pantal,Event Services,13694,4731,PHP,Public Service
+TX-35821107,2023-04-18,Barangay Pantal,ABC Construction,81579,1676,PHP,Food Supplies
+TX-81647733,2024-04-07,Barangay Pantal,Security Services,1833208,4659840,PHP,Water Bill
+TX-11558470,2023-12-10,Barangay Pantal,City Treasury,150264,639821,PHP,Utility Payment
+TX-32990087,2023-03-09,Barangay Pantal,Water Services,23133,286482,PHP,Maintenance
+TX-68915605,2025-04-26,Barangay Pantal,Health Center,180,2455885,PHP,Internet Bill
+TX-45125428,2024-09-25,Barangay Pantal,Pharmacy,3622,16036,PHP,Construction Materials
+TX-29175822,2023-03-04,Barangay Pantal,Pharmacy,73631,34207,PHP,Monthly Expense
+TX-31386762,2023-06-26,Barangay Pantal,Internet Provider,66522,543173,PHP,Food Supplies
+TX-59689486,2023-06-13,Barangay Pantal,Security Services,3812880,3321535,PHP,Monthly Expense
+TX-39662811,2024-05-09,Barangay Pantal,Software Services,327655,474939,PHP,Training Expense
+TX-69129769,2023-07-13,Barangay Pantal,Electric Provider,61621,4716,PHP,Public Service
+TX-70028470,2025-07-25,Barangay Pantal,Security Services,305200,2577,PHP,Repair Expense
+TX-36252074,2023-07-08,Barangay Pantal,Internet Provider,1495,2046,PHP,Service Payment
+TX-48115981,2023-08-02,Barangay Pantal,ABC Construction,64390,1635348,PHP,Internet Bill
+TX-43849758,2023-07-31,Barangay Pantal,Security Services,63011,153,PHP,Utility Payment
+TX-51848837,2025-08-19,Barangay Pantal,Electric Provider,1582181,377782,PHP,Construction Materials
+TX-47533596,2024-08-06,Barangay Pantal,Printing Services,170024,28203,PHP,Project Materials
+TX-74500036,2023-11-29,Barangay Pantal,Catering Services,10535,305991,PHP,Community Program
+TX-39140269,2024-03-25,Barangay Pantal,Cleaning Services,52306,3058,PHP,Project Materials
+TX-32678970,2023-01-30,Barangay Pantal,School Supplies Store,4404,4396137,PHP,Electricity Payment
+TX-41679349,2024-11-24,Barangay Pantal,Printing Services,1336,4277,PHP,Community Support
+TX-70825275,2023-07-13,Barangay Pantal,Pharmacy,4449113,2686428,PHP,Medical Assistance
+TX-53585224,2023-09-08,Barangay Pantal,Printing Services,1433407,250300,PHP,Barangay Event
+TX-98519539,2025-03-18,Barangay Pantal,Water Services,3916149,1251681,PHP,Food Supplies
+TX-97156252,2024-01-10,Barangay Pantal,Electric Provider,32507,4079436,PHP,Fuel Expense
+TX-70061179,2025-06-28,Barangay Pantal,Transport Services,2584,11863,PHP,Training Expense
+TX-28323814,2025-03-11,Barangay Pantal,Hardware Store,83642,4487531,PHP,Training Expense
+TX-39382989,2024-02-14,Barangay Pantal,Event Services,4442,2791534,PHP,Public Service
+TX-40128596,2025-03-13,Barangay Pantal,Community Workers,41883,1735037,PHP,Service Payment
+TX-29448103,2024-07-29,Barangay Pantal,Pharmacy,54432,4982106,PHP,Office Supplies
+TX-51936918,2024-12-06,Barangay Pantal,Internet Provider,252888,3241841,PHP,Construction Materials
+TX-93992418,2025-01-25,Barangay Pantal,City Treasury,4749,4420,PHP,Equipment Purchase
+TX-15803406,2025-01-22,Barangay Pantal,Pharmacy,372548,41640,PHP,Office Supplies
+TX-96891546,2025-01-10,Barangay Pantal,Hardware Store,62698,16121,PHP,Office Supplies
+TX-96832203,2023-11-11,Barangay Pantal,Repair Services,2303863,437497,PHP,Fuel Expense
+TX-20246858,2023-12-13,Barangay Pantal,Printing Services,3592578,55102,PHP,Road Repair
+TX-17816803,2024-11-30,Barangay Pantal,Cleaning Services,219712,638613,PHP,Road Repair
+TX-40655260,2023-12-05,Barangay Pantal,Construction Supply,104769,237992,PHP,Barangay Event
+TX-58046006,2023-04-24,Barangay Pantal,Catering Services,2603372,3683170,PHP,Emergency Expense
+TX-55583067,2024-04-17,Barangay Pantal,Construction Supply,940189,58390,PHP,Transport Expense
+TX-43964857,2025-09-24,Barangay Pantal,Rice Supplier,3193,2808,PHP,Maintenance
+TX-82014827,2023-01-23,Barangay Pantal,Security Services,236489,11077,PHP,Service Payment
+TX-12477139,2025-07-12,Barangay Pantal,Hardware Store,318004,152653,PHP,Fuel Expense
+TX-82680068,2025-03-15,Barangay Pantal,Health Center,852817,4764955,PHP,Water Bill
+TX-60159246,2025-07-03,Barangay Pantal,Transport Services,106047,131198,PHP,Community Program
+TX-87692244,2023-07-15,Barangay Pantal,Juan Dela Cruz,1149,4302,PHP,Fuel Expense
+TX-23629796,2025-05-29,Barangay Pantal,Hardware Store,3673,64803,PHP,Internet Bill
+TX-12108921,2023-07-12,Barangay Pantal,Repair Services,382690,4331143,PHP,Maintenance
+TX-71415224,2025-03-31,Barangay Pantal,Maria Santos,196771,14100,PHP,Transport Expense
+TX-26126811,2024-02-05,Barangay Pantal,Fuel Station,3324462,828,PHP,Food Supplies
+TX-65067978,2023-09-22,Barangay Pantal,Community Workers,1486,441847,PHP,Equipment Purchase
+TX-27861099,2024-05-15,Barangay Pantal,Fuel Station,17078,1549025,PHP,Internet Bill
+TX-46297855,2025-07-15,Barangay Pantal,Transport Services,3096372,1761,PHP,Emergency Expense
+TX-62629090,2023-09-15,Barangay Pantal,Construction Supply,1485,3824099,PHP,Operational Expense
+TX-62045369,2024-08-25,Barangay Pantal,Juan Dela Cruz,48784,3831112,PHP,Construction Materials
+TX-61229740,2023-02-07,Barangay Pantal,Internet Provider,30965,1948206,PHP,Service Payment
+TX-80109276,2025-03-01,Barangay Pantal,Rice Supplier,2063552,2742310,PHP,Service Payment
+TX-89802249,2024-12-25,Barangay Pantal,City Treasury,3633999,16505,PHP,Utility Payment
+TX-83299649,2024-10-05,Barangay Pantal,IT Services,68041,2745,PHP,Transport Expense
+TX-62458913,2023-08-10,Barangay Pantal,Catering Services,38543,82566,PHP,Public Service
+TX-76350573,2024-01-17,Barangay Pantal,City Treasury,1798,3810424,PHP,Electricity Payment
+TX-13580876,2025-08-25,Barangay Pantal,Maintenance Team,167470,35849,PHP,Fuel Expense
+TX-21021994,2024-01-05,Barangay Pantal,Internet Provider,4091,2925,PHP,Public Service
+TX-44145978,2025-02-12,Barangay Pantal,Rice Supplier,356107,445952,PHP,Project Materials
+TX-19089398,2024-09-13,Barangay Pantal,ABC Construction,486,4210,PHP,Fuel Expense
+TX-29994943,2024-07-21,Barangay Pantal,Electric Provider,4089,1269656,PHP,Community Program
+TX-50900440,2025-03-30,Barangay Pantal,Pharmacy,491217,263,PHP,Repair Expense
+TX-10300305,2025-03-03,Barangay Pantal,Hardware Store,1279,58207,PHP,Monthly Expense
+TX-62517559,2024-09-10,Barangay Pantal,Fuel Station,2327968,3273,PHP,Training Expense
+TX-81821309,2023-03-10,Barangay Pantal,Maria Santos,271182,1182,PHP,Fuel Expense
+TX-66872027,2023-04-18,Barangay Pantal,Health Center,287686,617169,PHP,Food Supplies
+TX-55138667,2024-05-02,Barangay Pantal,School Supplies Store,57723,4628,PHP,Project Materials
+TX-74728041,2024-12-01,Barangay Pantal,Community Workers,290988,201998,PHP,Electricity Payment
+TX-43015450,2023-09-19,Barangay Pantal,City Treasury,230902,3685525,PHP,Service Payment
+TX-45059692,2024-01-07,Barangay Pantal,Pharmacy,3054592,3161347,PHP,Fuel Expense
+TX-75891566,2024-03-03,Barangay Pantal,Consulting Services,80819,508,PHP,Maintenance
+TX-97868034,2023-07-08,Barangay Pantal,Health Center,2109023,2992,PHP,Maintenance
+TX-61549039,2024-06-17,Barangay Pantal,School Supplies Store,684,3697,PHP,Service Payment
+TX-76657229,2023-01-24,Barangay Pantal,ABC Construction,9277,2003556,PHP,Operational Expense
+TX-45078657,2024-11-17,Barangay Pantal,Security Services,39167,20122,PHP,Public Service
+TX-50001831,2025-08-16,Barangay Pantal,Repair Services,30200,65081,PHP,Community Support
+TX-47989013,2025-03-21,Barangay Pantal,Community Workers,1520829,3782,PHP,Emergency Expense
+TX-24181303,2023-10-06,Barangay Pantal,Internet Provider,3656,497108,PHP,Emergency Expense
+TX-96275578,2025-08-04,Barangay Pantal,Health Center,2322,3979,PHP,Monthly Expense
+TX-97395446,2024-10-15,Barangay Pantal,City Treasury,4586,234760,PHP,Training Expense
+TX-45407677,2024-09-21,Barangay Pantal,Water Services,196651,260866,PHP,Training Expense
+TX-36640323,2023-02-28,Barangay Pantal,IT Services,2785691,2678791,PHP,Monthly Expense
+TX-17752721,2024-03-29,Barangay Pantal,Software Services,2690,497654,PHP,Community Program
+TX-54485735,2023-05-11,Barangay Pantal,Catering Services,84362,1907,PHP,Office Supplies
+TX-37018966,2023-12-15,Barangay Pantal,Consulting Services,2629689,241435,PHP,Utility Payment
+TX-12758900,2023-06-13,Barangay Pantal,Pharmacy,63010,2146275,PHP,Operational Expense
+TX-68987353,2024-07-19,Barangay Pantal,Security Services,497838,75260,PHP,Project Materials
+TX-98318067,2023-07-11,Barangay Pantal,Maria Santos,497054,1341,PHP,Emergency Expense
+TX-76936274,2024-09-04,Barangay Pantal,Health Center,4781,2562041,PHP,Repair Expense
+TX-41391595,2025-09-13,Barangay Pantal,IT Services,2847239,4995,PHP,Barangay Event
+TX-52062862,2023-08-05,Barangay Pantal,ABC Construction,265581,3592011,PHP,Repair Expense
+TX-16770255,2024-11-13,Barangay Pantal,Logistics Services,340225,270982,PHP,Public Service
+TX-18614763,2023-10-19,Barangay Pantal,Cleaning Services,481439,46962,PHP,Maintenance
+TX-33074777,2024-11-12,Barangay Pantal,Pharmacy,86271,22907,PHP,Electricity Payment
+TX-23479295,2023-10-03,Barangay Pantal,Logistics Services,212948,388692,PHP,Food Supplies
+TX-64236926,2023-03-22,Barangay Pantal,Construction Supply,1018041,2901,PHP,Public Service
+TX-60229875,2023-01-11,Barangay Pantal,City Treasury,33643,2904523,PHP,Food Supplies
+TX-12221895,2024-09-17,Barangay Pantal,Community Workers,329268,3290,PHP,Road Repair
+TX-17808575,2025-03-31,Barangay Pantal,School Supplies Store,132197,2130555,PHP,Internet Bill
+TX-92353144,2023-06-12,Barangay Pantal,Consulting Services,1701,76340,PHP,Monthly Expense
+TX-19018298,2023-01-02,Barangay Pantal,Construction Supply,4650,17697,PHP,Road Repair
+TX-30946956,2024-01-30,Barangay Pantal,Internet Provider,44855,79382,PHP,Medical Assistance
+TX-15307017,2024-11-17,Barangay Pantal,Software Services,1276720,158129,PHP,Utility Payment
+TX-94251558,2025-02-06,Barangay Pantal,Security Services,52684,49329,PHP,Barangay Event
+TX-74750810,2025-07-27,Barangay Pantal,Vegetable Supplier,54749,88564,PHP,Office Supplies
+TX-36665520,2024-07-29,Barangay Pantal,Security Services,2117,53765,PHP,Emergency Expense
+TX-53995243,2024-08-14,Barangay Pantal,Electric Provider,4690881,2398,PHP,Water Bill
+TX-34654664,2024-11-06,Barangay Pantal,City Treasury,10687,1654556,PHP,Repair Expense
+TX-19075560,2025-08-18,Barangay Pantal,IT Services,70607,87706,PHP,Repair Expense
+TX-30044362,2024-11-03,Barangay Pantal,Community Workers,624,4288,PHP,Medical Assistance
+TX-86146290,2025-08-23,Barangay Pantal,Hardware Store,3245,176585,PHP,Equipment Purchase
+TX-11865314,2023-06-16,Barangay Pantal,Rice Supplier,4829,62300,PHP,Internet Bill
+TX-90765141,2024-10-15,Barangay Pantal,Repair Services,414751,914,PHP,Emergency Expense
+TX-97233989,2024-03-21,Barangay Pantal,Maintenance Team,152870,3286276,PHP,Training Expense
+TX-57644874,2025-02-19,Barangay Pantal,School Supplies Store,11747,77730,PHP,Equipment Purchase
+TX-81860360,2025-08-19,Barangay Pantal,Transport Services,85331,3919481,PHP,Service Payment
+TX-46482338,2024-10-11,Barangay Pantal,Community Workers,2098,2749493,PHP,Medical Assistance
+TX-54167381,2024-03-13,Barangay Pantal,Juan Dela Cruz,105487,416808,PHP,Office Supplies
+TX-19435352,2024-10-27,Barangay Pantal,Maria Santos,580594,2954286,PHP,Emergency Expense
+TX-56347340,2023-03-30,Barangay Pantal,ABC Construction,874,57052,PHP,Medical Assistance
+TX-15485118,2023-10-06,Barangay Pantal,Juan Dela Cruz,48022,8678,PHP,Medical Assistance
+TX-87803157,2025-02-21,Barangay Pantal,IT Services,2588,3982,PHP,Water Bill
+TX-31090353,2023-02-09,Barangay Pantal,Juan Dela Cruz,41865,83346,PHP,Monthly Expense
+TX-40533789,2025-02-25,Barangay Pantal,Water Services,4109670,54006,PHP,Food Supplies
+TX-54109668,2023-09-08,Barangay Pantal,Consulting Services,87851,493383,PHP,Medical Assistance
+TX-99529517,2024-06-14,Barangay Pantal,Rice Supplier,361531,2297,PHP,Road Repair
+TX-96408159,2023-03-21,Barangay Pantal,Fuel Station,3943,70394,PHP,Project Materials
+TX-20847473,2025-04-17,Barangay Pantal,Water Services,2995,1450599,PHP,Service Payment
+TX-87244189,2024-12-16,Barangay Pantal,Hardware Store,233753,2774,PHP,Barangay Event
+TX-52752327,2025-01-29,Barangay Pantal,Event Services,292107,672,PHP,Utility Payment
+TX-80568902,2024-05-07,Barangay Pantal,Juan Dela Cruz,3243657,23449,PHP,Maintenance
+TX-58332449,2024-06-04,Barangay Pantal,Security Services,414043,3169,PHP,Maintenance
+TX-18974326,2023-04-16,Barangay Pantal,Electric Provider,3207,1977,PHP,Utility Payment
+TX-24059123,2024-07-15,Barangay Pantal,Juan Dela Cruz,391,90139,PHP,Project Materials
+TX-56655129,2024-03-11,Barangay Pantal,Rice Supplier,7662,2209092,PHP,Electricity Payment
+TX-72313977,2025-05-21,Barangay Pantal,Pharmacy,3053127,327189,PHP,Fuel Expense
+TX-95324783,2023-02-03,Barangay Pantal,Pharmacy,68556,1751131,PHP,Training Expense
+TX-70218921,2023-03-28,Barangay Pantal,Logistics Services,4140,4902308,PHP,Construction Materials
+TX-23782195,2023-05-28,Barangay Pantal,Security Services,4807,20228,PHP,Training Expense
+TX-82888966,2025-08-17,Barangay Pantal,Catering Services,976456,66386,PHP,Fuel Expense
+TX-98434372,2025-05-28,Barangay Pantal,Hardware Store,2120,71844,PHP,Barangay Event
+TX-57109980,2025-05-31,Barangay Pantal,School Supplies Store,12067,224929,PHP,Equipment Purchase
+TX-65558444,2024-04-09,Barangay Pantal,Pharmacy,3933463,2226414,PHP,Transport Expense
+TX-30976536,2023-12-07,Barangay Pantal,Event Services,279168,240383,PHP,Public Service
+TX-16272161,2024-01-13,Barangay Pantal,IT Services,2226,78257,PHP,Emergency Expense
+TX-17167342,2025-02-26,Barangay Pantal,Maintenance Team,39930,70011,PHP,Community Program
+TX-39725591,2023-11-10,Barangay Pantal,Construction Supply,238293,1317,PHP,Construction Materials
+TX-56237679,2023-08-21,Barangay Pantal,Health Center,3264,42171,PHP,Project Materials
+TX-60268825,2025-08-17,Barangay Pantal,Repair Services,1509,2418,PHP,Community Support
+TX-19986387,2025-06-04,Barangay Pantal,Software Services,82618,17578,PHP,Fuel Expense
+TX-69389827,2024-01-22,Barangay Pantal,Catering Services,3553,346172,PHP,Construction Materials
+TX-38415505,2024-08-30,Barangay Pantal,Consulting Services,4380,16215,PHP,Medical Assistance
+TX-70854524,2024-01-25,Barangay Pantal,Catering Services,361885,202650,PHP,Internet Bill
+TX-19867282,2023-10-01,Barangay Pantal,Event Services,69871,854,PHP,Office Supplies
+TX-70184152,2023-09-24,Barangay Pantal,IT Services,2102913,4717410,PHP,Project Materials
+TX-58599288,2025-08-27,Barangay Pantal,Vegetable Supplier,391099,395985,PHP,Barangay Event
+TX-32453126,2024-04-23,Barangay Pantal,Pharmacy,2739,1763,PHP,Service Payment
+TX-40904279,2023-12-17,Barangay Pantal,Hardware Store,1609471,2768,PHP,Internet Bill
+TX-16837708,2025-08-05,Barangay Pantal,Repair Services,106463,41409,PHP,Transport Expense
+TX-82145772,2025-05-26,Barangay Pantal,Catering Services,62792,9804,PHP,Office Supplies
+TX-13764395,2023-07-13,Barangay Pantal,Vegetable Supplier,4189,1721,PHP,Emergency Expense
+TX-58759194,2025-08-30,Barangay Pantal,Cleaning Services,670,2991624,PHP,Operational Expense
+TX-35226209,2024-04-01,Barangay Pantal,Internet Provider,4178237,654,PHP,Monthly Expense
+TX-41931654,2023-09-26,Barangay Pantal,Printing Services,64611,3384379,PHP,Medical Assistance
+TX-45213165,2025-05-22,Barangay Pantal,Consulting Services,54355,2684412,PHP,Repair Expense
+TX-61118250,2023-12-31,Barangay Pantal,Rice Supplier,23375,859,PHP,Road Repair
+TX-59697603,2024-06-13,Barangay Pantal,Construction Supply,3104011,1973,PHP,Transport Expense
+TX-14172584,2023-07-16,Barangay Pantal,Electric Provider,4574947,65770,PHP,Fuel Expense
+TX-25552820,2023-03-01,Barangay Pantal,Maintenance Team,4686716,1674,PHP,Monthly Expense
+TX-36353295,2025-05-05,Barangay Pantal,Maria Santos,2048,2482,PHP,Food Supplies
+TX-34447428,2023-07-05,Barangay Pantal,Transport Services,144669,135591,PHP,Community Program
+TX-25564334,2025-03-01,Barangay Pantal,Logistics Services,1260,8815,PHP,Emergency Expense
+TX-16163071,2024-03-17,Barangay Pantal,Printing Services,371777,249174,PHP,Water Bill
+TX-15770974,2023-04-20,Barangay Pantal,Rice Supplier,1414,3986306,PHP,Maintenance
+TX-84182104,2023-12-20,Barangay Pantal,Cleaning Services,3049,74739,PHP,Water Bill
+TX-92034434,2025-04-13,Barangay Pantal,Vegetable Supplier,494457,436,PHP,Road Repair
+TX-80661075,2024-03-21,Barangay Pantal,Cleaning Services,8366,3253457,PHP,Medical Assistance
+TX-41023316,2024-02-13,Barangay Pantal,Software Services,388483,960,PHP,Equipment Purchase
+TX-47929681,2024-01-09,Barangay Pantal,Transport Services,1370830,2757744,PHP,Internet Bill
+TX-89437402,2023-12-31,Barangay Pantal,Catering Services,65126,390530,PHP,Community Support
+TX-46096034,2023-09-06,Barangay Pantal,IT Services,37950,279596,PHP,Monthly Expense
+TX-61708215,2024-08-06,Barangay Pantal,Transport Services,23653,77231,PHP,Utility Payment
+TX-99536651,2024-02-10,Barangay Pantal,Water Services,3018,69353,PHP,Monthly Expense
+TX-65196549,2024-05-03,Barangay Pantal,IT Services,6754,32877,PHP,Office Supplies
+TX-97602676,2024-04-18,Barangay Pantal,Juan Dela Cruz,423485,48611,PHP,Public Service
+TX-92968125,2024-06-24,Barangay Pantal,Maintenance Team,2304,4289867,PHP,Internet Bill
+TX-88585909,2025-03-27,Barangay Pantal,Transport Services,1997,3260,PHP,Fuel Expense
+TX-48980445,2025-09-02,Barangay Pantal,Water Services,80186,65881,PHP,Barangay Event
+TX-71696373,2024-09-25,Barangay Pantal,Cleaning Services,59892,54790,PHP,Community Support
+TX-29932592,2024-10-18,Barangay Pantal,Repair Services,1604296,883,PHP,Fuel Expense
+TX-32820281,2024-03-03,Barangay Pantal,Catering Services,480543,3966,PHP,Internet Bill
+TX-73774897,2024-04-25,Barangay Pantal,Juan Dela Cruz,89872,81035,PHP,Monthly Expense
+TX-50395192,2023-01-02,Barangay Pantal,Consulting Services,43234,52612,PHP,Barangay Event
+TX-58982620,2025-03-12,Barangay Pantal,Cleaning Services,2323199,1045,PHP,Training Expense
+TX-70169656,2024-06-30,Barangay Pantal,IT Services,399270,196901,PHP,Service Payment
+TX-66036970,2024-12-29,Barangay Pantal,Pharmacy,554,79811,PHP,Operational Expense
+TX-55619397,2023-02-17,Barangay Pantal,Juan Dela Cruz,40618,4658287,PHP,Emergency Expense
+TX-43514576,2023-09-28,Barangay Pantal,Internet Provider,365069,248751,PHP,Community Support
+TX-57760854,2025-05-26,Barangay Pantal,Health Center,2608,3968,PHP,Community Program
+TX-17408891,2023-06-02,Barangay Pantal,Logistics Services,165351,2587993,PHP,Internet Bill
+TX-43510807,2023-02-19,Barangay Pantal,Vegetable Supplier,8570,4843558,PHP,Electricity Payment
+TX-37979039,2025-03-10,Barangay Pantal,Cleaning Services,140997,33300,PHP,Community Support
+TX-11636070,2025-01-22,Barangay Pantal,Event Services,4558314,115227,PHP,Office Supplies
+TX-55574805,2025-04-22,Barangay Pantal,Juan Dela Cruz,3629447,2854323,PHP,Barangay Event
+TX-75015925,2024-05-21,Barangay Pantal,Community Workers,3802043,323574,PHP,Fuel Expense
+TX-84348617,2024-10-20,Barangay Pantal,Community Workers,182603,156413,PHP,Maintenance
+TX-98233547,2023-08-24,Barangay Pantal,ABC Construction,323564,201386,PHP,Road Repair
+TX-48197860,2023-08-21,Barangay Pantal,Logistics Services,4404389,483892,PHP,Community Program
+TX-11232848,2023-08-05,Barangay Pantal,Printing Services,3250919,3220806,PHP,Public Service
+TX-27473359,2024-12-26,Barangay Pantal,Software Services,4380778,49972,PHP,Repair Expense
+TX-54533422,2024-01-18,Barangay Pantal,Repair Services,123793,2594184,PHP,Community Program
+TX-31211349,2023-12-03,Barangay Pantal,Consulting Services,4281,2328,PHP,Road Repair
+TX-57938004,2025-05-17,Barangay Pantal,Event Services,5831,3855628,PHP,Service Payment
+TX-67929192,2023-04-08,Barangay Pantal,Event Services,2404813,252252,PHP,Fuel Expense
+TX-53749598,2024-01-14,Barangay Pantal,Internet Provider,71741,394097,PHP,Community Support
+TX-84732992,2023-11-09,Barangay Pantal,Juan Dela Cruz,73685,400965,PHP,Electricity Payment
+TX-14498729,2024-09-24,Barangay Pantal,Water Services,3644197,59139,PHP,Training Expense
+TX-60212889,2025-08-06,Barangay Pantal,City Treasury,473672,140619,PHP,Water Bill
+TX-20594023,2024-06-05,Barangay Pantal,City Treasury,402752,185,PHP,Repair Expense
+TX-31244847,2023-01-27,Barangay Pantal,Catering Services,32113,721146,PHP,Equipment Purchase
