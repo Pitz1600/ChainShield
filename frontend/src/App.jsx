@@ -3,8 +3,12 @@ import Welcome from './components/Auth/Welcome';
 import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
 import EmailVerify from './components/Auth/EmailVerify';
+import TwoFactorSetup from './components/Auth/TwoFactorSetup';
+import ForcePasswordChange from './components/Auth/ForcePasswordChange';
+import ResetPassword from './components/Auth/ResetPassword';
 import MainLayout from './components/Layout/MainLayout';
 import IdleTimer from './components/Auth/IdleTimer';
+import { authAPI } from './services/api';
 
 function App() {
   const [view, setView] = useState('welcome');
@@ -53,7 +57,8 @@ function App() {
     setView('dashboard');
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try { await authAPI.logout(); } catch { }
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setIsAuthenticated(false);
@@ -83,6 +88,9 @@ function App() {
   if (view === 'login') return <Login onLogin={handleLogin} onNavigate={handleNavigate} />;
   if (view === 'register') return <Register onRegister={handleLogin} onNavigate={handleNavigate} />;
   if (view === 'email-verify') return <EmailVerify user={pendingUser} onNavigate={handleNavigate} onLogin={handleLogin} />;
+  if (view === 'force-change-password') return <ForcePasswordChange onNavigate={handleNavigate} />;
+  if (view === 'setup-2fa') return <TwoFactorSetup onLogin={handleLogin} onNavigate={handleNavigate} />;
+  if (view === 'reset-password') return <ResetPassword onNavigate={handleNavigate} />;
   if (isAuthenticated && view === 'dashboard') {
     return (
       <>

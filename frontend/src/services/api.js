@@ -10,7 +10,7 @@ const api = axios.create({
   }
 });
 
-let csrfToken = null; // Store token in memory
+let csrfToken = null;
 
 api.interceptors.request.use(async (config) => {
   const token = localStorage.getItem('token');
@@ -26,8 +26,6 @@ api.interceptors.request.use(async (config) => {
   // Fetch CSRF token if not present
   if (!csrfToken) {
     try {
-      // Use a separate axios instance or the same one but ensure we don't loop
-      // Since this is a GET request, it won't recursively try to fetch CSRF token again due to the check above
       const response = await api.get('/csrf-token');
       csrfToken = response.data.csrfToken;
     } catch (error) {
@@ -43,6 +41,60 @@ api.interceptors.request.use(async (config) => {
 }, (error) => {
   return Promise.reject(error);
 });
+
+// ==========================================
+// Response interceptor: handle onboarding redirects
+// ==========================================
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 403 && error.response?.data?.onboardingRequired) {
+      // Redirect to onboarding
+      const { mustChangePassword, mustSetup2FA } = error.response.data;
+      if (mustChangePassword) {
+        window.location.href = '/force-change-password';
+      } else if (mustSetup2FA) {
+        window.location.href = '/setup-2fa';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
+// ==========================================
+// AUTH API
+// ==========================================
+export const authAPI = {
+  login: (credentials) => api.post('/auth/login', credentials),
+  register: (userData) => api.post('/auth/register', userData),
+  verifyEmail: (data) => api.post('/auth/verify-email', data),
+  resendOtp: () => api.post('/auth/resend-otp'),
+  verifyLoginOtp: (data) => api.post('/auth/verify-login-otp', data),
+  logout: () => api.post('/auth/logout'),
+  getProfile: () => api.get('/auth/profile'),
+
+  // 2FA
+  setup2FA: () => api.post('/auth/2fa/setup'),
+  verifySetup2FA: (data) => api.post('/auth/2fa/verify-setup', data),
+  disable2FA: (data) => api.post('/auth/2fa/disable', data),
+
+  // Onboarding
+  forceChangePassword: (data) => api.post('/auth/force-change-password', data),
+
+  // Forgot / Reset Password
+  forgotPassword: (data) => api.post('/auth/forgot-password', data),
+  resetPassword: (data) => api.post('/auth/reset-password', data),
+
+  // Email Change
+  requestEmailChange: (data) => api.post('/auth/email-change/request', data),
+  confirmEmailChange: (data) => api.post('/auth/email-change/confirm', data),
+
+  // Profile & Password (existing)
+  sendProfileOtp: () => api.post('/auth/send-profile-otp'),
+  updateProfile: (data) => api.put('/auth/update-profile', data),
+  sendPasswordOtp: () => api.post('/auth/send-password-otp'),
+  changePassword: (data) => api.post('/auth/change-password', data),
+};
 
 export const alertsAPI = {
   getAll: (params) => api.get('/alerts', { params }),
@@ -62,14 +114,6 @@ export const casesAPI = {
   getById: (id) => api.get(`/cases/${id}`),
   create: (data) => api.post('/cases', data),
   addNote: (id, note) => api.post(`/cases/${id}/notes`, note)
-};
-
-export const authAPI = {
-  login: (credentials) => api.post('/auth/login', credentials),
-  register: (userData) => api.post('/auth/register', userData),
-  resetPassword: (data) => api.post('/auth/reset-password', data),
-  verifyEmail: (data) => api.post('/auth/verify-email', data),
-  resendOtp: () => api.post('/auth/resend-otp')
 };
 
 export const transactionsAPI = {

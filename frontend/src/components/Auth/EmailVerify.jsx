@@ -68,9 +68,18 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
 
       if (res.data.success) {
         setSuccess("Email verified successfully!");
-        setTimeout(() => {
-          const token = localStorage.getItem('token');
-          onLogin(token, { ...user, isVerified: true });
+        setSuccess("Email verified successfully!");
+        setTimeout(async () => {
+          try {
+            // Fetch fresh profile to ensure we have the latest status
+            const profileRes = await api.get('/auth/me');
+            const token = localStorage.getItem('token');
+            onLogin(token, profileRes.data.data);
+          } catch (err) {
+            console.error("Failed to refresh profile:", err);
+            // Fallback: just redirect to login to force a refresh
+            onNavigate('login');
+          }
         }, 1500);
       }
     } catch (err) {

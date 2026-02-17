@@ -1,35 +1,61 @@
 import React, { useState } from 'react';
-import { Shield, Mail, AlertCircle, ChevronLeft, Check, ArrowRight, Key, Lightbulb } from 'lucide-react';
-import '../../styles/ResetPassword.css';
+import { Shield, Lock, ArrowRight, AlertCircle, CheckCircle, Mail } from 'lucide-react';
+import '../../styles/Login.css';
 import { authAPI } from '../../services/api';
 
-function ResetPassword({ onNavigate, onResetRequest }) {
+function ResetPassword({ onNavigate }) {
+  const [step, setStep] = useState('request'); // request | reset | done
   const [email, setEmail] = useState('');
+  const [token, setToken] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [totpCode, setTotpCode] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
 
-  const handleSubmit = async (e) => {
+  const handleRequestReset = async (e) => {
     e.preventDefault();
     setError('');
-    setSuccess(false);
     setLoading(true);
 
     try {
-      await authAPI.resetPassword({ email });
-
-      setSuccess(true);
-      // Pass the email to the parent and navigate to email verify
-      setTimeout(() => {
-        onResetRequest(email);
-        onNavigate('email-verify', { email, type: 'reset' });
-      }, 1500);
+      const response = await authAPI.forgotPassword({ email });
+      setSuccess(response.data.message || 'If an account exists with this email, a reset link has been sent.');
+      setStep('reset');
     } catch (err) {
-      if (err.response && err.response.data && err.response.data.error) {
-        setError(err.response.data.error);
-      } else {
-        setError('Failed to send reset code. Please try again.');
-      }
+      // Always show generic message to prevent enumeration
+      setSuccess('If an account exists with this email, a reset link has been sent.');
+      setStep('reset');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    setError('');
+
+    if (newPassword !== confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      setError('Password must be at least 8 characters.');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const payload = { token, newPassword };
+      if (totpCode) payload.totpCode = totpCode;
+
+      await authAPI.resetPassword(payload);
+      setStep('done');
+    } catch (err) {
+      setError(err.response?.data?.error || 'Password reset failed. The token may be expired.');
     } finally {
       setLoading(false);
     }
@@ -37,23 +63,23 @@ function ResetPassword({ onNavigate, onResetRequest }) {
 
   return (
     <div className="auth-container">
-      <div className="auth-sidebar reset-sidebar">
+      <div className="auth-sidebar">
         <div className="auth-sidebar-content">
           <div className="sidebar-brand" onClick={() => onNavigate('welcome')} style={{ cursor: 'pointer' }}>
             <div className="sidebar-logo"><Shield size={48} /></div>
             <h2 className="sidebar-title">ChainShield</h2>
-            <p className="sidebar-subtitle">Transaction Verification System</p>
+            <p className="sidebar-subtitle">Account Recovery</p>
           </div>
 
           <div className="sidebar-illustration">
-            <div className="illustration-circle purple"></div>
-            <div className="illustration-icon"><Key size={64} /></div>
+            <div className="illustration-circle"></div>
+            <div className="illustration-icon"><Lock size={64} /></div>
           </div>
 
           <div className="sidebar-info">
-            <h3 className="sidebar-info-title">Reset Your Password</h3>
+            <h3 className="sidebar-info-title">Reset Password</h3>
             <p className="sidebar-info-text">
-              Enter your email address and we'll send you a verification code to reset your password securely.
+              Enter your email to receive a password reset link. The link expires in 15 minutes.
             </p>
           </div>
         </div>
@@ -62,13 +88,19 @@ function ResetPassword({ onNavigate, onResetRequest }) {
       <div className="auth-main">
         <div className="auth-content">
           <button className="back-button" onClick={() => onNavigate('login')}>
-            <ChevronLeft size={16} style={{ marginRight: '4px' }} /> Back to Sign In
+            ← Back to Login
           </button>
 
           <div className="auth-header">
-            <h1 className="auth-title">Forgot Password?</h1>
+            <h1 className="auth-title">
+              {step === 'done' ? 'Password Reset' : step === 'reset' ? 'Enter Reset Token' : 'Forgot Password'}
+            </h1>
             <p className="auth-subtitle">
-              No worries! Enter your email address and we'll send you a code to reset your password.
+              {step === 'done'
+                ? 'Your password has been changed successfully.'
+                : step === 'reset'
+                  ? 'Enter the reset token from your email and your new password.'
+                  : 'Enter your email to receive a reset link.'}
             </p>
           </div>
 
@@ -79,72 +111,141 @@ function ResetPassword({ onNavigate, onResetRequest }) {
             </div>
           )}
 
-          {success && (
-            <div className="alert-box success">
-              <span className="alert-icon">✓</span>
-              <span className="alert-message">
-                Reset code sent successfully! Redirecting to verification...
-              </span>
+          {success && step === 'reset' && (
+            <div className="security-badge success">
+              <CheckCircle size={20} />
+              <span>{success}</span>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="auth-form">
-            <div className="form-field">
-              <label className="field-label">
-                <span className="label-icon"><Mail size={16} /></span>
-                <span>Email Address</span>
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="field-input"
-                placeholder="your.email@example.com"
-                required
-              />
-              <span className="field-hint">Enter the email associated with your account</span>
-            </div>
+          {step === 'request' && (
+            <form onSubmit={handleRequestReset} className="auth-form">
+              <div className="form-field">
+                <label className="field-label">
+                  <span className="label-icon"><Mail size={18} /></span>
+                  <span>Email Address</span>
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="field-input"
+                  placeholder="your.email@example.com"
+                  required
+                  autoFocus
+                />
+              </div>
 
-            <button type="submit" disabled={loading || success} className="submit-button">
-              {loading ? (
-                <>
-                  <span className="spinner"></span>
-                  <span>Sending Code...</span>
-                </>
-              ) : success ? (
-                <>
-                  <span>Code Sent!</span>
-                  <span className="button-icon"><Check size={18} /></span>
-                </>
-              ) : (
-                <>
-                  <span>Send Reset Code</span>
-                  <span className="button-icon"><ArrowRight size={18} /></span>
-                </>
-              )}
-            </button>
-          </form>
-
-          <div className="help-section">
-            <div className="help-header">
-              <span className="help-icon"><Lightbulb size={18} /></span>
-              <span className="help-title">What happens next?</span>
-            </div>
-            <ul className="help-list">
-              <li>We'll send a 6-digit verification code to your email</li>
-              <li>Enter the code on the next page to verify your identity</li>
-              <li>Create a new password to secure your account</li>
-            </ul>
-          </div>
-
-          <div className="auth-footer">
-            <p className="footer-text">
-              Remember your password?{' '}
-              <button className="link-button" onClick={() => onNavigate('login')}>
-                Sign In
+              <button type="submit" disabled={loading} className="submit-button">
+                {loading ? (
+                  <>
+                    <span className="spinner"></span>
+                    <span>Sending...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Send Reset Link</span>
+                    <span className="button-icon"><ArrowRight size={18} /></span>
+                  </>
+                )}
               </button>
-            </p>
-          </div>
+            </form>
+          )}
+
+          {step === 'reset' && (
+            <form onSubmit={handleResetPassword} className="auth-form">
+              <div className="form-field">
+                <label className="field-label">
+                  <span>Reset Token</span>
+                </label>
+                <input
+                  type="text"
+                  value={token}
+                  onChange={(e) => setToken(e.target.value)}
+                  className="field-input"
+                  placeholder="Paste the reset token from your email"
+                  required
+                  autoFocus
+                />
+              </div>
+
+              <div className="form-field">
+                <label className="field-label">
+                  <span className="label-icon"><Lock size={18} /></span>
+                  <span>New Password</span>
+                </label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="field-input"
+                  placeholder="At least 8 characters"
+                  required
+                  minLength={8}
+                />
+              </div>
+
+              <div className="form-field">
+                <label className="field-label">
+                  <span className="label-icon"><Lock size={18} /></span>
+                  <span>Confirm Password</span>
+                </label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="field-input"
+                  placeholder="Confirm new password"
+                  required
+                />
+              </div>
+
+              <div className="form-field">
+                <label className="field-label">
+                  <span>2FA Code (if enabled)</span>
+                </label>
+                <input
+                  type="text"
+                  value={totpCode}
+                  onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  className="field-input otp-input"
+                  placeholder="Optional — only if 2FA is enabled"
+                  maxLength={6}
+                />
+                <span className="field-hint">Leave empty if you don't have 2FA enabled</span>
+              </div>
+
+              <button type="submit" disabled={loading} className="submit-button">
+                {loading ? (
+                  <>
+                    <span className="spinner"></span>
+                    <span>Resetting...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Reset Password</span>
+                    <span className="button-icon"><ArrowRight size={18} /></span>
+                  </>
+                )}
+              </button>
+            </form>
+          )}
+
+          {step === 'done' && (
+            <div className="auth-form">
+              <div className="security-badge success">
+                <CheckCircle size={24} />
+                <span>Password has been reset successfully!</span>
+              </div>
+              <p style={{ textAlign: 'center', color: '#6b7280', margin: '16px 0 24px' }}>
+                You can now log in with your new password.
+              </p>
+              <button className="submit-button" onClick={() => onNavigate('login')}>
+                <span>Go to Login</span>
+                <span className="button-icon"><ArrowRight size={18} /></span>
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
