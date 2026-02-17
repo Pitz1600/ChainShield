@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
-const User = require('./models/User'); // Import the actual User model
+const crypto = require('crypto');
+const User = require('./models/User');
 require('dotenv').config();
 
-// Connect to MongoDB
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/chainshield';
 
 async function createAdmin() {
@@ -18,36 +18,43 @@ async function createAdmin() {
         if (existingAdmin) {
             console.log('⚠️  Admin account already exists!');
             console.log(`Email: ${adminEmail}`);
-            console.log('If you need to reset the password, please delete this user from the database manually.');
+            console.log('Run reset-admin.js to reset credentials.');
             return;
         }
 
-        // Create admin user
-        // Note: Password hashing is handled by the User model pre-save hook
+        // SECURITY: Generate cryptographically random temporary password
+        const tempPassword = crypto.randomBytes(12).toString('base64url');
+
         const admin = new User({
             firstName: 'System',
             lastName: 'Administrator',
             email: adminEmail,
-            password: 'admin123', // Default temporary password
+            password: tempPassword,         // Pre-save hook will hash
             role: 'administrator',
             position: 'System Administrator',
             isVerified: true,
             isActive: true,
-            createdAt: new Date(),
-            updatedAt: new Date()
+            mustChangePassword: true,       // FORCED on first login
+            mustSetup2FA: true,             // FORCED before dashboard access
         });
 
         await admin.save();
 
+        console.log('');
         console.log('✅ Admin account created successfully!');
-        console.log('---------------------------------------------------');
-        console.log(`Email:    ${adminEmail}`);
-        console.log(`Password: admin123`);
-        console.log('---------------------------------------------------');
-        console.log('⚠️  IMPORTANT: Change this password immediately after login!');
+        console.log('═══════════════════════════════════════════════');
+        console.log(`  Email:              ${adminEmail}`);
+        console.log(`  Temporary Password: ${tempPassword}`);
+        console.log('═══════════════════════════════════════════════');
+        console.log('');
+        console.log('🔒 SECURITY REQUIREMENTS:');
+        console.log('  1. Password MUST be changed on first login');
+        console.log('  2. Authenticator app 2FA MUST be set up');
+        console.log('  3. Copy the temporary password NOW — it will NOT be shown again');
+        console.log('');
 
     } catch (error) {
-        console.error('❌ Error creating admin account:', error);
+        console.error('❌ Error creating admin account:', error.message);
     } finally {
         await mongoose.connection.close();
         console.log('🔌 Disconnected from MongoDB');

@@ -14,12 +14,38 @@ const {
     validateOTP
 } = require('../middleware/validators');
 
-// Public routes with rate limiting and validation
+// ==========================================
+// PUBLIC ROUTES (rate-limited)
+// ==========================================
 router.post('/register', registrationLimiter, validateRegistration, authController.register);
 router.post('/login', loginLimiter, validateLogin, authController.login);
 router.post('/verify-login-otp', loginLimiter, authController.verifyLoginOtp);
 
-// Protected routes (require authentication)
+// Forgot / Reset Password (public, rate-limited)
+router.post('/forgot-password', loginLimiter, authController.forgotPassword);
+router.post('/reset-password', loginLimiter, authController.resetPassword);
+
+// ==========================================
+// ONBOARDING ROUTES (require auth token, limited scope)
+// ==========================================
+router.post('/force-change-password', authMiddleware, authController.forceChangePassword);
+
+// ==========================================
+// 2FA ROUTES (require auth)
+// ==========================================
+router.post('/2fa/setup', authMiddleware, authController.setup2FA);
+router.post('/2fa/verify-setup', authMiddleware, authController.verifySetup2FA);
+router.post('/2fa/disable', authMiddleware, authController.disable2FA);
+
+// ==========================================
+// EMAIL CHANGE (require auth + multi-step verification)
+// ==========================================
+router.post('/email-change/request', authMiddleware, otpResendLimiter, authController.requestEmailChange);
+router.post('/email-change/confirm', authMiddleware, otpVerificationLimiter, authController.confirmEmailChange);
+
+// ==========================================
+// PROTECTED ROUTES (require full auth)
+// ==========================================
 router.post('/verify-email', authMiddleware, otpVerificationLimiter, validateOTP, authController.verifyEmail);
 router.post('/resend-otp', authMiddleware, otpResendLimiter, authController.resendOtp);
 router.get('/profile', authMiddleware, authController.getProfile);
@@ -31,5 +57,8 @@ router.put('/update-profile', authMiddleware, otpVerificationLimiter, authContro
 // Password change with OTP
 router.post('/send-password-otp', authMiddleware, otpResendLimiter, authController.sendPasswordOtp);
 router.post('/change-password', authMiddleware, otpVerificationLimiter, authController.changePassword);
+
+// Logout - invalidates token
+router.post('/logout', authMiddleware, authController.logout);
 
 module.exports = router;

@@ -80,6 +80,28 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Sanitize data to prevent NoSQL injection
 app.use(mongoSanitize());
 
+// XSS Protection - sanitize all string inputs in request body
+const xss = require('xss');
+const sanitizeInput = (obj) => {
+  if (typeof obj === 'string') return xss(obj);
+  if (Array.isArray(obj)) return obj.map(sanitizeInput);
+  if (obj && typeof obj === 'object') {
+    const sanitized = {};
+    for (const [key, value] of Object.entries(obj)) {
+      sanitized[key] = sanitizeInput(value);
+    }
+    return sanitized;
+  }
+  return obj;
+};
+
+app.use((req, res, next) => {
+  if (req.body && typeof req.body === 'object') {
+    req.body = sanitizeInput(req.body);
+  }
+  next();
+});
+
 // Apply general rate limiting to all routes
 app.use('/api/', apiLimiter);
 

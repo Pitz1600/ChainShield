@@ -32,7 +32,8 @@ exports.getAllUsers = async (req, res) => {
             users: usersWithDates
         });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('[Admin getAllUsers Error]', error.message);
+        res.status(500).json({ error: 'Something went wrong' });
     }
 };
 
@@ -46,7 +47,7 @@ exports.inviteAdmin = async (req, res) => {
         // Check if user already exists
         const existingUser = await User.findOne({ email });
         if (existingUser) {
-            return res.status(400).json({ error: 'User with this email already exists' });
+            return res.status(400).json({ error: 'Request denied. Please try again.' });
         }
 
         // Generate secure invitation token
@@ -88,7 +89,8 @@ exports.inviteAdmin = async (req, res) => {
             throw new Error('Failed to send invitation email');
         }
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('[Admin inviteAdmin Error]', error.message);
+        res.status(500).json({ error: 'Something went wrong' });
     }
 };
 
@@ -130,7 +132,8 @@ exports.updateUserRole = async (req, res) => {
             }
         });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('[Admin updateUserRole Error]', error.message);
+        res.status(500).json({ error: 'Something went wrong' });
     }
 };
 
@@ -159,7 +162,8 @@ exports.deactivateUser = async (req, res) => {
             message: 'User deactivated successfully'
         });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('[Admin deactivateUser Error]', error.message);
+        res.status(500).json({ error: 'Something went wrong' });
     }
 };
 
@@ -183,7 +187,8 @@ exports.activateUser = async (req, res) => {
             message: 'User activated successfully'
         });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('[Admin activateUser Error]', error.message);
+        res.status(500).json({ error: 'Something went wrong' });
     }
 };
 
@@ -193,7 +198,7 @@ exports.activateUser = async (req, res) => {
 exports.updateUser = async (req, res) => {
     try {
         const { userId } = req.params;
-        const { username, role, position, isActive, isVerified } = req.body;
+        const { firstName, lastName, birthday, role, position, isActive, isVerified } = req.body;
 
         const user = await User.findById(userId);
         if (!user) {
@@ -211,7 +216,9 @@ exports.updateUser = async (req, res) => {
         }
 
         // Update fields if provided
-        if (username) user.username = username;
+        if (firstName) user.firstName = firstName;
+        if (lastName) user.lastName = lastName;
+        if (birthday !== undefined) user.birthday = birthday;
         if (role) user.role = role;
         if (position !== undefined) user.position = position;
         if (isActive !== undefined) user.isActive = isActive;
@@ -224,7 +231,10 @@ exports.updateUser = async (req, res) => {
             message: 'User updated successfully',
             user: {
                 id: user._id,
+                firstName: user.firstName,
+                lastName: user.lastName,
                 username: user.username,
+                birthday: user.birthday,
                 email: user.email,
                 role: user.role,
                 position: user.position,
@@ -233,7 +243,8 @@ exports.updateUser = async (req, res) => {
             }
         });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('[Admin updateUser Error]', error.message);
+        res.status(500).json({ error: 'Something went wrong' });
     }
 };
 
@@ -265,7 +276,8 @@ exports.getSystemStats = async (req, res) => {
             }
         });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('[Admin getSystemStats Error]', error.message);
+        res.status(500).json({ error: 'Something went wrong' });
     }
 };
 
@@ -355,7 +367,7 @@ exports.getAuditLogs = async (req, res) => {
  */
 exports.createUser = async (req, res) => {
     try {
-        const { firstName, lastName, email, password, role, position } = req.body;
+        const { firstName, lastName, birthday, email, password, role, position } = req.body;
 
         // Basic validation
         if (!firstName || !lastName || !email || !password || !role) {
@@ -365,19 +377,26 @@ exports.createUser = async (req, res) => {
         // Check for existing user
         const existingUser = await User.findOne({ email });
         if (existingUser) {
-            return res.status(400).json({ error: 'User with this email already exists' });
+            return res.status(400).json({ error: 'Request denied. Please try again.' });
         }
 
-        // Create user with isVerified: false
+        // Generate temporary password for admin-created users
+        const crypto = require('crypto');
+        const tempPassword = password || crypto.randomBytes(8).toString('base64url');
+
+        // Create user with forced onboarding
         const user = new User({
             firstName,
             lastName,
+            birthday: birthday || null,
             email,
-            password, // Hook will hash
+            password: tempPassword,
             role,
             position,
             isVerified: false,
-            isActive: true
+            isActive: true,
+            mustChangePassword: true,
+            mustSetup2FA: role === 'administrator'
         });
 
         await user.save();
