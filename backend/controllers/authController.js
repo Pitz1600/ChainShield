@@ -207,9 +207,7 @@ exports.login = async (req, res) => {
       user.otpLastSentAt = new Date();
       await user.save();
 
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`[OTP-DEBUG] New device OTP for ${user.email}: ${otp}`);
-      }
+      // Log removed for security
 
       try {
         await emailService.sendOTPEmail(user.email, otp, user.username);

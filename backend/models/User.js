@@ -140,6 +140,14 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
+// SECURITY: Enforce 2FA for Administrators
+userSchema.pre('save', function (next) {
+  if (this.role === 'administrator' && !this.twoFactorEnabled) {
+    this.mustSetup2FA = true;
+  }
+  next();
+});
+
 // ==========================================
 // TOTP Secret Encryption/Decryption
 // ==========================================

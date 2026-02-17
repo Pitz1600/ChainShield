@@ -3,7 +3,7 @@ import { Shield, Smartphone, Copy, CheckCircle, AlertTriangle, ArrowRight } from
 import '../../styles/Login.css';
 import { authAPI } from '../../services/api';
 
-function TwoFactorSetup({ onLogin, onNavigate }) {
+function TwoFactorSetup({ onLogin, onNavigate, onLogout }) {
     const [step, setStep] = useState('loading'); // loading | scan | verify | recovery
     const [qrCode, setQrCode] = useState('');
     const [secret, setSecret] = useState('');
@@ -211,6 +211,16 @@ function TwoFactorSetup({ onLogin, onNavigate }) {
                                 : 'Add an extra layer of security to your account with an authenticator app.'}
                         </p>
                     </div>
+
+                    <div className="sidebar-footer" style={{ marginTop: 'auto', paddingTop: '2rem' }}>
+                        <button
+                            onClick={onLogout}
+                            className="sidebar-logout-btn"
+                        >
+                            <ArrowRight size={16} style={{ transform: 'rotate(180deg)' }} />
+                            <span>Log Out & Return</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -245,7 +255,7 @@ function TwoFactorSetup({ onLogin, onNavigate }) {
                     {step === 'recovery' && renderRecoveryStep()}
                 </div>
             </div>
-        </div>
+        </div >
     );
 }
 

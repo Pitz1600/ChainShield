@@ -24,7 +24,13 @@ function App() {
         const response = await authAPI.getProfile();
         const userData = response.data;
 
-        if (!userData.isVerified) {
+        if (userData.mustChangePassword) {
+          setPendingUser(userData);
+          setView('force-change-password');
+        } else if (userData.mustSetup2FA || (userData.role === 'administrator' && !userData.twoFactorEnabled)) {
+          setPendingUser(userData);
+          setView('setup-2fa');
+        } else if (!userData.isVerified) {
           setPendingUser(userData);
           setView('email-verify');
         } else {
@@ -35,6 +41,7 @@ function App() {
       } catch (error) {
         // Not authenticated or session expired
         // localStorage.removeItem('user'); // Optional clean up
+        setView('welcome');
       } finally {
         setIsLoading(false);
       }
@@ -84,8 +91,8 @@ function App() {
   if (view === 'login') return <Login onLogin={handleLogin} onNavigate={handleNavigate} />;
   if (view === 'register') return <Register onRegister={handleLogin} onNavigate={handleNavigate} />;
   if (view === 'email-verify') return <EmailVerify user={pendingUser} onNavigate={handleNavigate} onLogin={handleLogin} />;
-  if (view === 'force-change-password') return <ForcePasswordChange onNavigate={handleNavigate} />;
-  if (view === 'setup-2fa') return <TwoFactorSetup onLogin={handleLogin} onNavigate={handleNavigate} />;
+  if (view === 'force-change-password') return <ForcePasswordChange onNavigate={handleNavigate} onLogout={handleLogout} />;
+  if (view === 'setup-2fa') return <TwoFactorSetup onLogin={handleLogin} onNavigate={handleNavigate} onLogout={handleLogout} />;
   if (view === 'reset-password') return <ResetPassword onNavigate={handleNavigate} />;
   if (isAuthenticated && view === 'dashboard') {
     return (

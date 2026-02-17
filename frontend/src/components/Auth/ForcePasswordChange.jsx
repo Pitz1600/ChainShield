@@ -3,7 +3,7 @@ import { Shield, Lock, ArrowRight, AlertCircle, CheckCircle, Eye, EyeOff } from 
 import '../../styles/Login.css';
 import { authAPI } from '../../services/api';
 
-function ForcePasswordChange({ onNavigate }) {
+function ForcePasswordChange({ onNavigate, onLogout }) {
     // Default email is empty, but user should probably enter their own.
     // Ideally we could pre-fill if we knew the current email, but for admin reset it's fine to ask.
     const [newEmail, setNewEmail] = useState('');
@@ -95,6 +95,16 @@ function ForcePasswordChange({ onNavigate }) {
                         <p className="sidebar-info-text">
                             Your account has a temporary password. You must set a strong permanent password before continuing.
                         </p>
+                    </div>
+
+                    <div className="sidebar-footer" style={{ marginTop: 'auto', paddingTop: '2rem' }}>
+                        <button
+                            onClick={onLogout}
+                            className="sidebar-logout-btn"
+                        >
+                            <ArrowRight size={16} style={{ transform: 'rotate(180deg)' }} />
+                            <span>Log Out & Return</span>
+                        </button>
                     </div>
                 </div>
             </div>

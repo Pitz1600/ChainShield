@@ -53,7 +53,10 @@ module.exports = async (req, res, next) => {
     }
 
     // SECURITY: Block non-onboarding routes if onboarding is incomplete
-    if (!decoded.scope && (user.mustChangePassword || user.mustSetup2FA || !user.isVerified)) {
+    // ENHANCEMENT: Also catch admins who bypassed the DB flag manually
+    const adminNeedsSetup = user.role === 'administrator' && !user.twoFactorEnabled;
+
+    if (!decoded.scope && (user.mustChangePassword || user.mustSetup2FA || !user.isVerified || adminNeedsSetup)) {
       const onboardingRoutes = [
         '/api/auth/force-change-password',
         '/api/auth/2fa/setup',

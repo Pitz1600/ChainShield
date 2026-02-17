@@ -1,5 +1,27 @@
 # System Updates
 
+## [2026-02-18] At-Rest Data Protection & Incident Response
+
+### 📀 At-Rest File Encryption (Uploads)
+- **Real-Time Locking**: Implemented AES-256-CBC encryption for all files uploaded via the import and complaints routes.
+- **Zero-Cleartext Disk Policy**: Files are stored as binary blobs (`.enc`); plain text is never written to permanent storage and exists only in memory during processing.
+- **Stream-Based Decryption**: Optimized individual file recovery using Node.js Streams for high performance and secure in-memory processing.
+
+### 🔄 Automated Key Rotation Utility
+- **Incident Response**: Created `backend/scripts/rotate-keys.js` to automate the migration of legacy data to a fresh master encryption key in the event of a compromise.
+- **Atomic Migration**: The utility performs a "Lift-and-Shift" re-encryption, ensuring data integrity while cryptographically invalidating leaked keys.
+- **Verified Simulation**: Successfully tested a full rotation cycle (Compromise -> Rotation -> Recovery) in a Dockerized environment.
+
+### 📦 Unified Encrypted Infrastructure
+- **Comprehensive Backups**: Updated `backup.sh` and `restore.sh` to include the `uploads/` directory in the master 256-bit encrypted backup bundles.
+- **Administrative Auditor**: Enhanced `decrypt-upload.js` to support batch decryption of entire directories, allowing administrators to perform emergency audits without compromising at-rest security.
+
+### 📚 Documentation Architecture
+- **Security Manifesto**: Restored and relocated `SECURITY.md` to `docs/SECURITY.md`, creating a centralized governance guide for Secrets Management (SSS, HSM, Break-Glass).
+- **Clean Setup Procedure**: Updated `docs/SETUP.md` with an standardized "New PC" installation guide, including unique cryptographic key generation.
+
+---
+
 ## [2026-02-18] Security Hardening & Reliability Updates
 
 ### 🌎 Environment Consolidation
@@ -13,6 +35,9 @@
 - **Standardized Endpoints**: Created `/auth/resend-login-otp` for "New Device" flows, ensuring consistent behavior with account verification.
 - **Frontend Timers**: Added countdown timers and auto-disabling buttons to the Login and Registration screens.
 - **Middleware Security**: Updated authentication middleware to correctly handle "Onboarding" states (Verification, 2FA Setup, Password Change) while blocking general API access.
+- **Log Sanitation**: Removed debug logging of OTPs to prevent sensitive data leakage in container logs.
+- **Frontend Hardening**: Fixed a race condition in `App.jsx` that allowed a split-second flash of protected content before redirection.
+- **Escape Hatch**: Added a "Return to Login" button to mandatory onboarding screens (2FA Setup, Password Change) to prevent users from being trapped.
 
 ### 🐛 Bug Fixes
 - **Dashboard Data**: Relaxed permissions on the Inflation Rate endpoint to allow all authenticated users (Residents/Officials) to see dashboard data (fixed 403 error).
