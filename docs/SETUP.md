@@ -19,42 +19,42 @@ Complete installation and configuration guide for ChainShield **Machine Learning
 
 ---
 
-## ⚡ Quick Setup with Docker (1 Minute!)
+## ⚡ Quick Setup with Docker (Recommended)
 
 ### 1. Install Docker Desktop
 Download and install from: https://www.docker.com/products/docker-desktop
 
-### 2. Start ChainShield
-Open terminal in project folder:
+### 2. Configure Environment
+Copy the example environment file and generate your secure keys:
+```powershell
+cp .env.example .env
+```
+Open `.env` and update the following:
+- `JWT_SECRET`: Generate with `openssl rand -hex 32`
+- `TOTP_ENCRYPTION_KEY`: Generate with `openssl rand -hex 32` (Required for 2FA)
+- `BACKUP_ENCRYPTION_KEY`: Generate with `openssl rand -hex 32` (Required for backups)
+- `SMTP_USER` & `SMTP_PASS`: Your email credentials for OTPs
 
+### 3. Start ChainShield
+Open terminal in project folder:
 ```powershell
 # Start entire system with one command!
-docker-compose up
+docker-compose up -d --build
 ```
 
 **That's it!** 🎉 Docker will:
 - Install all dependencies automatically
-- Start MongoDB
-- Start Backend API
-- Start ML Service (with integrity monitoring)
-- Start Graph Service
-- Start Frontend
+- Start MongoDB & Ganache (Blockchain)
+- Start Backend API & ML Service
+- Start Graph Service & Frontend
 
-### 3. Access Application
-
+### 4. Access Application
 Open browser: **http://localhost:5173**
 
 **Default Admin Credentials:**
 - Email: `admin@chainshield.com`
 - Password: `admin123`
-
-### 4. Stop System
-
-```powershell
-# Press Ctrl+C in terminal
-# Or run:
-docker-compose down
-```
+*(You will be prompted to change this on first login)*
 
 ---
 
@@ -82,27 +82,31 @@ cd ../graph_service
 pip install -r requirements.txt
 ```
 
-### 2. Configure Backend
-
-Create `backend/.env`:
+### 2. Configure Environment
+Create a `.env` file in the **project root** (copy from `.env.example`):
 ```env
+# Core API Settings
 PORT=5000
 MONGODB_URI=mongodb://localhost:27017/chainshield
-JWT_SECRET=your-secret-key-change-this
+JWT_SECRET=your_secure_random_string
 
-# Services
+# Security Keys (64 hex characters)
+TOTP_ENCRYPTION_KEY=your_generated_64_hex_key
+BACKUP_ENCRYPTION_KEY=your_generated_64_hex_key
+
+# Service URLs
 ML_SERVICE_URL=http://localhost:5001
 GRAPH_SERVICE_URL=http://localhost:5002
 
-# Blockchain (optional - set to 'none' to disable)
-BLOCKCHAIN_RPC_URL=none
+# SMTP for OTPs
+SMTP_USER=your-email@gmail.com
+SMTP_PASS=your-app-password
 ```
 
 ### 3. Create Admin User
-
 ```powershell
 cd backend
-node seedAdmin.js
+node create-admin.js
 ```
 
 ### 4. Start All Services
