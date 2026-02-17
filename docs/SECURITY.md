@@ -11,6 +11,9 @@ This document serves as the single source of truth for all security-related aspe
 6.  [Hardening Guide](#6-hardening-guide)
 7.  [Production Readiness Checklist](#7-production-readiness-checklist)
 8.  [Disaster Recovery & Backups](#8-disaster-recovery--backups)
+9.  [At-Rest File Encryption (Uploads)](#9-at-rest-file-encryption-uploads)
+10. [Cryptographic Key Rotation & Incident Response](#10-cryptographic-key-rotation--incident-response)
+11. [Key Management Lifecycle (Secrets Governance)](#11-key-management-lifecycle-secrets-governance)
 
 ---
 
@@ -492,6 +495,65 @@ Every backup generates a **SHA-256 checksum** file (`.sha256`). Before restoring
 ```bash
 sha256sum -c backup_filename.tar.gz.enc.sha256
 ```
+
+## 9. At-Rest File Encryption (Uploads)
+
+ChainShield implements a **"Zero-Cleartext"** storage policy for all user-uploaded content (CSVs, attachments, etc.) to prevent data exposure in the event of unauthorized filesystem access.
+
+### 🔒 9.1 Implementation Details
+1.  **Intercepted Uploads**: Every file uploaded via the `/api/transactions/import` or `/api/complaints/` routes is intercepted by the `encryption.js` utility BEFORE it is written to the `uploads/` directory.
+2.  **Cryptographic Locking**:
+    - **Algorithm**: AES-256-CBC.
+    - **Key Derivation**: PBKDF2 with 100,000 iterations.
+    - **Entropy**: Each file contains its own unique 16-byte Salt and 16-byte IV (Initialization Vector) prepended to the binary blob.
+3.  **Encrypted Persistence**: Files on disk are stored with the `.enc` extension and contain only high-entropy encrypted data.
+
+### 🔓 9.2 Decryption Lifecycle
+- **In-Memory Only**: Data is decrypted using Node.js **Streams** directly into memory. 
+- **Decrypted state**: The plain-text data exists only while being processed (e.g., by the CSV parser) and is never written back to the disk.
+
+## 10. Cryptographic Key Rotation & Incident Response
+
+In accordance with NIST SP 800-57, ChainShield provides an automated mechanism to rotate master secrets if a compromise is suspected or as part of annual hygiene.
+
+- **Utility**: `backend/scripts/rotate-keys.js`
+- **Workflow**:
+    1.  The administrator provides the **OLD** (potentially compromised) key.
+    2.  The script pulls the **NEW** key automatically from the current `.env`.
+    3.  It performs a stream-based migration for every `.enc` file in the system.
+    4.  Files are atomic re-encrypted and the legacy versions are SECURELY wiped.
+- **Goal**: To cryptographically invalidate a leaked key without losing access to historical data.
+
+## 11. Key Management Lifecycle (Secrets Governance)
+
+To address the "Single Point of Failure" risk of the `BACKUP_ENCRYPTION_KEY`, ChainShield advocates for an enterprise-grade Key Management Lifecycle.
+
+### 🔐 11.1 Prevention of Key Loss
+
+#### A. Shamir's Secret Sharing (SSS)
+For institutional environments, do not give the full master key to one person. Use an SSS tool to split the 256-bit hex key into **"Shares"**.
+- **Example Strategy**: Split the key into 5 shares with a **3-of-5 threshold**.
+- **Distribution**: Give one share each to the CISO, Head of IT, Barangay Chairman, and two external auditors.
+- **Recovery**: Any 3 people must meet to reconstruct the key during a disaster.
+
+#### B. The "Break-Glass" Physical Copy
+1. Print the `.env` contents on physical paper.
+2. Place the paper inside a **Tamper-Evident Envelope**.
+3. Store the envelope in a **Fireproof Grade-A Safe** located off-site (e.g., a bank safety deposit box).
+4. Perform a quarterly "Inventory Check" to ensure the envelope seal is intact.
+
+#### C. Hardware Security Modules (HSM)
+In high-security deployments:
+- Store the master key on a FIPS 140-2 Level 2+ certified hardware device (e.g., YubiKey HSM or Apricorn Aegis Secure Key).
+- Secure the device with a high-entropy physical PIN.
+
+### 🔄 11.2 Key Rotation Policy
+- **Annual Rotation**: Rotate the `BACKUP_ENCRYPTION_KEY` once every 12 months.
+- **Legacy Retention**: When rotating, keep the *previous* key in a secure legacy vault, as it is required to decrypt any backups or uploads created during its valid period.
+
+### 🚨 11.3 Emergency Response (Lost Key)
+- **If the key is lost**: All encrypted backups and at-rest uploads are **cryptographically destroyed**. There is no "backdoor."
+- **Mitigation**: This is why the "Physical Break-Glass" copy (Section 11.1.B) is mandatory for production systems.
 
 ---
 

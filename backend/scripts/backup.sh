@@ -26,34 +26,45 @@ if [ -z "${BACKUP_ENCRYPTION_KEY:-}" ]; then
     exit 1
 fi
 
-# Create backup directory
+# Create backup and staging directories
 mkdir -p "${BACKUP_DIR}"
+STAGING_DIR="${BACKUP_DIR}/${BACKUP_NAME}_staging"
+mkdir -p "${STAGING_DIR}"
 
-echo "🔄 Starting backup: ${BACKUP_NAME}"
+echo "🔄 Starting full system backup: ${BACKUP_NAME}"
 
 # Step 1: Dump MongoDB
 echo "  📦 Dumping MongoDB..."
-mongodump --uri="${MONGODB_URI}" --out="${BACKUP_DIR}/${BACKUP_NAME}" --quiet
+mongodump --uri="${MONGODB_URI}" --out="${STAGING_DIR}/db" --quiet
 
-# Step 2: Compress
-echo "  🗜️  Compressing..."
-tar -czf "${BACKUP_DIR}/${BACKUP_NAME}.tar.gz" -C "${BACKUP_DIR}" "${BACKUP_NAME}"
+# Step 2: Include Uploads
+echo "  📁 Including uploads directory..."
+# Use -p to preserve permissions, handle case where uploads might be empty
+if [ -d "../uploads" ]; then
+    cp -rp "../uploads" "${STAGING_DIR}/uploads"
+else
+    echo "  ⚠️  Warning: uploads directory not found at ../uploads"
+fi
 
-# Step 3: Encrypt with AES-256-CBC
+# Step 3: Compress everything in staging
+echo "  🗜️  Compressing bundle..."
+tar -czf "${BACKUP_DIR}/${BACKUP_NAME}.tar.gz" -C "${BACKUP_DIR}" "${BACKUP_NAME}_staging"
+
+# Step 4: Encrypt with AES-256-CBC
 echo "  🔐 Encrypting with AES-256-CBC..."
 openssl enc -aes-256-cbc -salt -pbkdf2 -iter 100000 \
     -in "${BACKUP_DIR}/${BACKUP_NAME}.tar.gz" \
     -out "${BACKUP_DIR}/${BACKUP_NAME}.tar.gz.enc" \
     -pass env:BACKUP_ENCRYPTION_KEY
 
-# Step 4: Generate SHA-256 checksum
+# Step 5: Generate SHA-256 checksum
 sha256sum "${BACKUP_DIR}/${BACKUP_NAME}.tar.gz.enc" > "${BACKUP_DIR}/${BACKUP_NAME}.sha256"
 
-# Step 5: Cleanup unencrypted files
-rm -rf "${BACKUP_DIR}/${BACKUP_NAME}"
+# Step 6: Cleanup unencrypted files
+rm -rf "${STAGING_DIR}"
 rm -f "${BACKUP_DIR}/${BACKUP_NAME}.tar.gz"
 
-# Step 6: Remove old backups (retention policy)
+# Step 7: Remove old backups (retention policy)
 echo "  🧹 Cleaning backups older than ${RETENTION_DAYS} days..."
 find "${BACKUP_DIR}" -name "chainshield_backup_*.tar.gz.enc" -mtime +${RETENTION_DAYS} -delete
 find "${BACKUP_DIR}" -name "chainshield_backup_*.sha256" -mtime +${RETENTION_DAYS} -delete

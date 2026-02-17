@@ -19,44 +19,61 @@ Complete installation and configuration guide for ChainShield **Machine Learning
 
 ---
 
-## ⚡ Quick Setup with Docker (Recommended)
+## ⚡ Clean Setup on a New PC (Docker Recommended)
 
-### 1. Install Docker Desktop
-Download and install from: https://www.docker.com/products/docker-desktop
+Follow these steps for a fresh installation where you do not need to migrate old data.
 
-### 2. Configure Environment
-Copy the example environment file and generate your secure keys:
-```powershell
+### 1. Prerequisites
+- **Docker Desktop**: [Download and Install](https://www.docker.com/products/docker-desktop)
+- **Git**: [Download and Install](https://git-scm.com/)
+
+### 2. Prepare the Environment
+Open your terminal (PowerShell or Bash) and run:
+
+```bash
+# 1. Clone the repository (if you haven't)
+git clone https://github.com/your-repo/ChainShield.git
+cd ChainShield
+
+# 2. Create your unique environment file
 cp .env.example .env
 ```
-Open `.env` and update the following:
-- `JWT_SECRET`: Generate with `openssl rand -hex 32`
-- `TOTP_ENCRYPTION_KEY`: Generate with `openssl rand -hex 32` (Required for 2FA)
-- `BACKUP_ENCRYPTION_KEY`: Generate with `openssl rand -hex 32` (Required for backups)
-- `SMTP_USER` & `SMTP_PASS`: Your email credentials for OTPs
 
-### 3. Start ChainShield
-Open terminal in project folder:
-```powershell
-# Start entire system with one command!
-docker-compose up -d --build
+### 3. Generate Your Security Keys (CRITICAL)
+Open the `.env` file in a text editor (Notepad, VS Code, etc.). You **must** generate fresh, unique keys for your new PC. Run these commands in your terminal and paste the results into `.env`:
+
+*   **JWT Secret** (Authentication):
+    `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
+*   **TOTP Key** (2FA Storage):
+    `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
+*   **Backup Key** (At-Rest Encryption):
+    `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
+
+> [!IMPORTANT]
+> Paste these 64-character hex strings into the corresponding fields in your `.env` file. These keys are unique to **this** installation.
+
+### 4. Launch the System
+```bash
+docker compose up -d --build
 ```
+*Wait for all containers to show "Started" or "Running" in Docker Desktop.*
 
-**That's it!** 🎉 Docker will:
-- Install all dependencies automatically
-- Start MongoDB & Ganache (Blockchain)
-- Start Backend API & ML Service
-- Start Graph Service & Frontend
+### 5. Create Your First Administrator
+Because the system is hardened, there is no "default" admin. You must create one manually for your new PC:
 
-### 4. Access Application
-Open browser: **http://localhost:5173**
+```bash
+docker exec -it chainshield-backend node scripts/create-admin.js
+```
+**Take note of the generated temporary password displayed in the terminal!**
 
-**Default Admin Credentials:**
-- Email: `admin@chainshield.com`
-- Password: `admin123`
-*(You will be prompted to change this on first login)*
+### 6. Access & Secure
+1. Open **http://localhost:5173**
+2. Login with your email and the **temporary password**.
+3. The system will immediately force you to:
+   - Create a new, permanent password.
+   - Set up your **2FA (Email OTP)**.
 
----
+**Setup Complete!** 🎉 You are now the master of a fresh, secured ChainShield instance.
 
 ## 🔧 Manual Setup (Alternative Method)
 

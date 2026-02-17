@@ -53,7 +53,7 @@
 
 ### 📚 Documentation
 - **Consolidated Security Docs**:
-    - Merged `THREAT_MODEL.md`, `HARDENING_GUIDE.md`, `SMTP_SETUP.md`, `ADMIN.MD`, and `PRODUCTION_CHECKLIST.md` into a single **`SECURITY.md`**.
+    - Merged `THREAT_MODEL.md`, `HARDENING_GUIDE.md`, `SMTP_SETUP.md`, `ADMIN.MD`, and `PRODUCTION_CHECKLIST.md` into a single **`docs/SECURITY.md`**.
     - Deleted redundant markdown files to clean up project root.
 - **New Utility Scripts**:
     - Created `backend/reset-devices.js` to easily clear trusted devices for testing 2FA flows.

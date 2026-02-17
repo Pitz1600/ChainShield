@@ -4,6 +4,7 @@ const blockchainService = require('../services/blockchainService');
 const CSVColumnMapper = require('../utils/csvColumnMapper');
 const csv = require('csv-parser');
 const fs = require('fs');
+const { decryptStream } = require('../utils/encryption');
 
 /**
  * Import transactions from ANY CSV file (no template required!)
@@ -23,7 +24,17 @@ exports.importTransactions = async (req, res) => {
     const mapper = new CSVColumnMapper();
 
     // Parse CSV file
-    fs.createReadStream(req.file.path)
+    if (req.file.isEncrypted) {
+      console.log(`🔐 DECRYPTION TRIGGERED: Providing secure in-memory stream for ${req.file.path}`);
+    } else {
+      console.log(`⚠️  PLAINTEXT ACCESS: Reading unencrypted file ${req.file.path}`);
+    }
+
+    const inputStream = req.file.isEncrypted
+      ? decryptStream(req.file.path)
+      : fs.createReadStream(req.file.path);
+
+    inputStream
       .pipe(csv())
       .on('headers', (headerList) => {
         headers = headerList;

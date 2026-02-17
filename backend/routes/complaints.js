@@ -4,6 +4,7 @@ const multer = require('multer');
 const path = require('path');
 const auth = require('../middleware/auth');
 const Complaint = require('../models/Complaint');
+const { encryptFile } = require('../utils/encryption');
 
 // Configure multer for file upload
 const storage = multer.diskStorage({
@@ -77,8 +78,19 @@ router.post('/', auth, upload.array('attachments', 5), validateComplaint, async 
         const sanitizedDescription = xss(description);
         const sanitizedLocation = location ? xss(location) : '';
 
-        // Get file paths
-        const attachments = req.files ? req.files.map(file => file.path) : [];
+        // Get file paths and encrypt them
+        const attachments = [];
+        if (req.files && req.files.length > 0) {
+            for (const file of req.files) {
+                try {
+                    const encryptedPath = await encryptFile(file.path);
+                    attachments.push(encryptedPath);
+                } catch (err) {
+                    console.error(`Failed to encrypt attachment ${file.path}:`, err);
+                    // Continue with other files or handle error
+                }
+            }
+        }
 
         const complaint = new Complaint({
             userId: anonymous === 'true' ? null : req.user.userId,

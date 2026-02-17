@@ -4,6 +4,7 @@ const multer = require('multer');
 const path = require('path');
 const csvImportController = require('../controllers/csvImportController');
 const transactionController = require('../controllers/transactionController');
+const { encryptFile } = require('../utils/encryption');
 const auth = require('../middleware/auth');
 const { requireOfficial } = require('../middleware/roleMiddleware');
 
@@ -39,7 +40,21 @@ const upload = multer({
 });
 
 // CSV Import routes - requires barangay official or admin role
-router.post('/import', auth, requireOfficial, upload.single('csvFile'), csvImportController.importTransactions);
+// CSV Import routes - requires barangay official or admin role
+router.post('/import', auth, requireOfficial, upload.single('csvFile'), async (req, res, next) => {
+    try {
+        if (req.file) {
+            const encryptedPath = await encryptFile(req.file.path);
+            req.file.path = encryptedPath;
+            req.file.filename = path.basename(encryptedPath);
+            req.file.isEncrypted = true;
+        }
+        next();
+    } catch (err) {
+        console.error('Encryption error:', err);
+        res.status(500).json({ error: 'Failed to secure uploaded file' });
+    }
+}, csvImportController.importTransactions);
 router.get('/template', auth, csvImportController.downloadTemplate);
 
 // Standard transaction routes - all authenticated users can view
