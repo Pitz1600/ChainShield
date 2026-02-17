@@ -10,6 +10,13 @@ export default defineConfig({
     strictPort: true,
     watch: {
       usePolling: true
+    },
+    proxy: {
+      '/api': {
+        target: 'http://chainshield-backend:5000',
+        changeOrigin: true,
+        secure: false,
+      }
     }
   },
   build: {

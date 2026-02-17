@@ -20,6 +20,7 @@ const {
 router.post('/register', registrationLimiter, validateRegistration, authController.register);
 router.post('/login', loginLimiter, validateLogin, authController.login);
 router.post('/verify-login-otp', loginLimiter, authController.verifyLoginOtp);
+router.post('/resend-login-otp', authMiddleware, otpResendLimiter, authController.resendLoginOtp);
 
 // Forgot / Reset Password (public, rate-limited)
 router.post('/forgot-password', loginLimiter, authController.forgotPassword);
@@ -33,9 +34,11 @@ router.post('/force-change-password', authMiddleware, authController.forceChange
 // ==========================================
 // 2FA ROUTES (require auth)
 // ==========================================
+router.post('/2fa/send-otp', authMiddleware, otpResendLimiter, authController.send2faOtp);
 router.post('/2fa/setup', authMiddleware, authController.setup2FA);
 router.post('/2fa/verify-setup', authMiddleware, authController.verifySetup2FA);
-router.post('/2fa/disable', authMiddleware, authController.disable2FA);
+router.post('/2fa/disable', authMiddleware, otpVerificationLimiter, authController.disable2FA);
+router.post('/2fa/reset', authMiddleware, otpVerificationLimiter, authController.reset2FA);
 
 // ==========================================
 // EMAIL CHANGE (require auth + multi-step verification)

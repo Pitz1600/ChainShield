@@ -18,48 +18,44 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check for existing authentication on mount
-    const checkAuth = () => {
-      const token = localStorage.getItem('token');
-      const userData = localStorage.getItem('user');
+    // Check for existing authentication on mount via API (cookie)
+    const checkAuth = async () => {
+      try {
+        const response = await authAPI.getProfile();
+        const userData = response.data;
 
-      if (token && userData) {
-        try {
-          const parsedUser = JSON.parse(userData);
-
-          // Check if user is verified
-          if (!parsedUser.isVerified) {
-            // User is not verified - redirect to email verification
-            setPendingUser(parsedUser);
-            setView('email-verify');
-          } else {
-            // User is verified - proceed to dashboard
-            setIsAuthenticated(true);
-            setUser(parsedUser);
-            setView('dashboard');
-          }
-        } catch (error) {
-          console.error('Error parsing user data:', error);
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
+        if (!userData.isVerified) {
+          setPendingUser(userData);
+          setView('email-verify');
+        } else {
+          setIsAuthenticated(true);
+          setUser(userData);
+          setView('dashboard');
         }
+      } catch (error) {
+        // Not authenticated or session expired
+        // localStorage.removeItem('user'); // Optional clean up
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
     checkAuth();
   }, []);
 
   const handleLogin = (token, userData) => {
-    localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify(userData));
+    // token arg is ignored/deprecated as it is in cookie now
+    // userData might be passed directly, or second arg
+    const userObj = userData || token; // Handle if called with (null, userData) or just (userData)
+
+    localStorage.setItem('user', JSON.stringify(userObj));
     setIsAuthenticated(true);
-    setUser(userData);
+    setUser(userObj);
     setView('dashboard');
   };
 
   const handleLogout = async () => {
     try { await authAPI.logout(); } catch { }
-    localStorage.removeItem('token');
+    // localStorage.removeItem('token'); // No longer used
     localStorage.removeItem('user');
     setIsAuthenticated(false);
     setUser(null);

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Shield, Lock, Mail, AlertCircle, ArrowRight, Smartphone, Key } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Shield, Lock, Mail, AlertCircle, ArrowRight, Smartphone, Key, Send } from 'lucide-react';
 import '../../styles/Login.css';
 import { authAPI } from '../../services/api';
 
@@ -14,6 +14,17 @@ function Login({ onLogin, onNavigate }) {
   const [otpCode, setOtpCode] = useState('');
   const [userId, setUserId] = useState(null);
   const [rememberDevice, setRememberDevice] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+
+  useEffect(() => {
+    let timer;
+    if (resendCooldown > 0) {
+      timer = setInterval(() => {
+        setResendCooldown((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -36,38 +47,17 @@ function Login({ onLogin, onNavigate }) {
       if (data.totpRequired) {
         setStep('totp');
         setUserId(data.userId);
-        setLoading(false);
-        return;
-      }
-
-      if (data.otpRequired && data.newDeviceDetected) {
+      } else if (data.otpRequired) {
         setStep('otp');
         setUserId(data.userId);
-        setLoading(false);
-        return;
-      }
-
-      if (data.mustChangePassword) {
-        localStorage.setItem('token', data.token);
+        // Note: New device OTP usually means we hold the user data and navigate
+        if (data.user) onNavigate('email-verify', data.user);
+      } else if (data.mustChangePassword) {
         onNavigate('force-change-password');
-        return;
-      }
-
-      if (data.mustSetup2FA) {
-        localStorage.setItem('token', data.token);
+      } else if (data.mustSetup2FA) {
         onNavigate('setup-2fa');
-        return;
-      }
-
-      // Full login success
-      if (data.token && data.user) {
-        if (!data.user.isVerified) {
-          localStorage.setItem('token', data.token);
-          localStorage.setItem('user', JSON.stringify(data.user));
-          onNavigate('email-verify', data.user);
-        } else {
-          onLogin(data.token, data.user);
-        }
+      } else {
+        onLogin(null, data.user);
       }
     } catch (err) {
       if (err.response?.data?.error) {
@@ -99,8 +89,8 @@ function Login({ onLogin, onNavigate }) {
         return;
       }
 
-      if (data.token && data.user) {
-        onLogin(data.token, data.user);
+      if (data.user) {
+        onLogin(null, data.user);
       }
     } catch (err) {
       if (err.response?.data?.error) {
@@ -110,6 +100,18 @@ function Login({ onLogin, onNavigate }) {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (resendCooldown > 0) return;
+    setError('');
+
+    try {
+      await authAPI.resendLoginOtp({ userId });
+      setResendCooldown(60);
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to resend code. Please try again.');
     }
   };
 
@@ -222,6 +224,21 @@ function Login({ onLogin, onNavigate }) {
           </>
         )}
       </button>
+
+      <div className="resend-container" style={{ textAlign: 'center', marginTop: '1rem' }}>
+        <p className="footer-text">
+          Didn't receive the code?{' '}
+          <button
+            type="button"
+            className="link-button"
+            onClick={handleResendOtp}
+            disabled={resendCooldown > 0}
+            style={{ display: 'inline', width: 'auto', padding: 0, height: 'auto', background: 'none' }}
+          >
+            {resendCooldown > 0 ? `Resend available in ${resendCooldown}s` : 'Resend code'}
+          </button>
+        </p>
+      </div>
 
       <button type="button" className="link-button" onClick={() => { setStep('credentials'); setError(''); setOtpCode(''); }}>
         ← Back to login

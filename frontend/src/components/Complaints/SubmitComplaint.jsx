@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { CheckCircle, AlertTriangle, Paperclip, X, Info, Lightbulb } from 'lucide-react';
+import api from '../../services/api';
 import '../../styles/SubmitComplaint.css';
 
 function SubmitComplaint({ user }) {
@@ -74,8 +75,6 @@ function SubmitComplaint({ user }) {
             setSubmitting(true);
             setError(null);
 
-            const token = localStorage.getItem('token');
-
             // Create FormData for file upload
             const submitData = new FormData();
             submitData.append('category', formData.category);
@@ -88,34 +87,25 @@ function SubmitComplaint({ user }) {
                 submitData.append('attachments', file);
             });
 
-            const response = await fetch('http://localhost:5000/api/complaints', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                },
-                body: submitData
+            await api.post('/complaints', submitData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
             });
 
-            if (response.ok) {
-                setSuccess(true);
-                // Reset form
-                setFormData({
-                    category: '',
-                    subject: '',
-                    description: '',
-                    location: '',
-                    anonymous: false
-                });
-                setFiles([]);
+            setSuccess(true);
+            // Reset form
+            setFormData({
+                category: '',
+                subject: '',
+                description: '',
+                location: '',
+                anonymous: false
+            });
+            setFiles([]);
 
-                // Hide success message after 5 seconds
-                setTimeout(() => setSuccess(false), 5000);
-            } else {
-                const errorData = await response.json();
-                setError(errorData.error || 'Failed to submit complaint');
-            }
+            // Hide success message after 5 seconds
+            setTimeout(() => setSuccess(false), 5000);
         } catch (err) {
-            setError('Error submitting complaint: ' + err.message);
+            setError('Error submitting complaint: ' + (err.response?.data?.error || err.message));
         } finally {
             setSubmitting(false);
         }

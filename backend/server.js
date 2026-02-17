@@ -47,25 +47,26 @@ app.use(helmet({
 }));
 
 // CORS - Configure allowed origins
+// CORS - Configure allowed origins
 const corsOptions = {
-  origin: process.env.NODE_ENV === 'production'
-    ? function (origin, callback) {
-      const allowedOrigins = [
-        'http://localhost:5173',
-        'http://localhost:3000',
-        process.env.FRONTEND_URL,
-      ].filter(Boolean);
+  origin: function (origin, callback) {
+    const allowedOrigins = [
+      'http://localhost:5173',
+      'http://127.0.0.1:5173',
+      'http://localhost:3000',
+      process.env.FRONTEND_URL,
+    ].filter(Boolean);
 
-      // Allow requests with no origin (mobile apps, Postman, etc.)
-      if (!origin) return callback(null, true);
+    // Allow requests with no origin (mobile apps, Postman, etc.)
+    if (!origin) return callback(null, true);
 
-      if (allowedOrigins.indexOf(origin) !== -1) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
+    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+      callback(null, true);
+    } else {
+      console.log('Blocked by CORS:', origin); // Log blocked origin for debugging
+      callback(new Error('Not allowed by CORS'));
     }
-    : true, // Allow all origins in development
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-csrf-token', 'X-CSRF-Token'],
@@ -110,24 +111,14 @@ app.use('/api/', apiLimiter);
 // ========================================
 
 const cookieParser = require('cookie-parser');
-const csurf = require('csurf');
+// const csurf = require('csurf'); // REMOVED: Deprecated
 
 // Parse cookies
 app.use(cookieParser());
 
 // CSRF Protection
-// Using double submit cookie pattern (safe for SPAs)
-const csrfProtection = csurf({ cookie: true });
-
-// Expose CSRF token endpoint
-app.get('/api/csrf-token', csrfProtection, (req, res) => {
-  res.json({ csrfToken: req.csrfToken() });
-});
-
-// Apply CSRF protection to all API routes (except read-only if configured, but here global)
-// Note: We'll apply it globally for safety, but we might need to exclude some webhooks if any.
-// Only Apply to mutating methods is handled by csurf default (POST, PUT, DELETE, PATCH)
-app.use(csrfProtection);
+// We are using SameSite=Strict cookies which provides strong CSRF protection for modern browsers.
+// Deprecated `csurf` middleware has been removed.
 
 // ========================================
 // ROUTES

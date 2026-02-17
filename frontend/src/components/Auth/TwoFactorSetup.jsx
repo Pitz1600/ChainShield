@@ -42,10 +42,9 @@ function TwoFactorSetup({ onLogin, onNavigate }) {
                 setRecoveryCodes(data.recoveryCodes);
                 setStep('recovery');
 
-                // Store the new full token for after recovery codes are acknowledged
-                if (data.token) {
-                    localStorage.setItem('token', data.token);
-                }
+                // Token cookie is updated by server if needed
+                // Just proceed to next step
+                // if (data.token) { ... }
             }
         } catch (err) {
             setError(err.response?.data?.error || 'Invalid code. Please try again.');
@@ -71,8 +70,8 @@ function TwoFactorSetup({ onLogin, onNavigate }) {
         // Get profile and redirect to dashboard
         try {
             const profileRes = await authAPI.getProfile();
-            const token = localStorage.getItem('token');
-            onLogin(token, profileRes.data);
+            // Cookie is already set, just update app state
+            onLogin(null, profileRes.data);
         } catch {
             onNavigate('login');
         }

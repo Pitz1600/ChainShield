@@ -35,36 +35,30 @@ function Dashboard({ user, onNavigate }) { // Ensure onNavigate is destructured
 
   const fetchDashboardData = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const response = await api.get('/transactions/alerts?limit=20');
+      const data = response.data;
 
-      const response = await fetch('http://localhost:5000/api/transactions/alerts?limit=20', {
-        headers: { 'Authorization': `Bearer ${token}` }
+      const formattedAlerts = data.alerts.map(alert => ({
+        id: alert._id,
+        severity: getSeverity(alert.riskScore),
+        type: alert.fraudPatterns?.[0]?.type || 'Risk Detected',
+        transactionType: alert.transactionType,
+        agency: alert.agency,
+        score: alert.riskScore,
+        time: getTimeAgo(alert.timestamp)
+      }));
+      setRecentAlerts(formattedAlerts);
+
+      const critical = data.alerts.filter(a => a.riskScore >= 80).length;
+      const high = data.alerts.filter(a => a.riskScore >= 60 && a.riskScore < 80).length;
+      const medium = data.alerts.filter(a => a.riskScore >= 40 && a.riskScore < 60).length;
+
+      setStats({
+        total: data.count || formattedAlerts.length,
+        critical,
+        high,
+        medium
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        const formattedAlerts = data.alerts.map(alert => ({
-          id: alert._id,
-          severity: getSeverity(alert.riskScore),
-          type: alert.fraudPatterns?.[0]?.type || 'Risk Detected',
-          transactionType: alert.transactionType,
-          agency: alert.agency,
-          score: alert.riskScore,
-          time: getTimeAgo(alert.timestamp)
-        }));
-        setRecentAlerts(formattedAlerts);
-
-        const critical = data.alerts.filter(a => a.riskScore >= 80).length;
-        const high = data.alerts.filter(a => a.riskScore >= 60 && a.riskScore < 80).length;
-        const medium = data.alerts.filter(a => a.riskScore >= 40 && a.riskScore < 60).length;
-
-        setStats({
-          total: data.count || 0,
-          critical,
-          high,
-          medium
-        });
-      }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     }
@@ -72,15 +66,8 @@ function Dashboard({ user, onNavigate }) { // Ensure onNavigate is destructured
 
   const fetchInflationRate = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/analytics/inflation/current', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setInflationRate(data.data.rate);
-      }
+      const response = await api.get('/analytics/inflation/current');
+      setInflationRate(response.data.data.rate);
     } catch (error) {
       console.error('Error fetching inflation rate:', error);
       // Set default if API fails

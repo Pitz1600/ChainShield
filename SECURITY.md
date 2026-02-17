@@ -10,6 +10,7 @@ This document serves as the single source of truth for all security-related aspe
 5.  [SMTP & Email Configuration](#5-smtp--email-configuration)
 6.  [Hardening Guide](#6-hardening-guide)
 7.  [Production Readiness Checklist](#7-production-readiness-checklist)
+8.  [Disaster Recovery & Backups](#8-disaster-recovery--backups)
 
 ---
 
@@ -89,8 +90,10 @@ ChainShield implements defense-in-depth across six security domains:
 |---|---|---|
 | Password Hashing | bcrypt (12 rounds) | Pre-save hook in `User.js` |
 | JWT Tokens | `jsonwebtoken` | 24h expiry, HS256 signing |
-| 2FA (OTP) | Email OTP for all non-admin roles | CSPRNG via `crypto.randomInt()` |
-| Token Blacklist | In-memory Set | Logout invalidates JWT immediately |
+| 2FA (OTP) | TOTP (App) or Email OTP | Multi-mode 2FA supported |
+| 2FA Management | Profile Modal | Requires Password + Email OTP |
+| Admin 2FA Policy | Mandatory Enrollment | Admins cannot disable 2FA |
+| Token Blacklist | MongoDB (TTL Index) | Persistent logout across restarts |
 | Session Expiry | JWT exp claim | 24h maximum session lifetime |
 | Idle Timeout | Frontend IdleTimer | Auto-logout after inactivity |
 
@@ -137,6 +140,7 @@ ChainShield implements defense-in-depth across six security domains:
 | Authentication | MongoDB SCRAM via `docker-compose.yml` |
 | Transport Encryption | TLS support via `MONGODB_TLS` env var |
 | Encrypted Backups | `backup.sh` (AES-256-CBC + PBKDF2) |
+| Encryption Key | 256-bit (Hex) in `.env` |
 | Mongoose ODM | Parameterized queries, schema validation |
 
 ### Audit Logging
@@ -306,6 +310,13 @@ If you lose access:
    - Clear any stuck 2FA/OTP states.
    - Force password change and 2FA setup on next login.
 
+#### Admin 2FA Policy
+
+Administrator accounts are subject to **Mandatory 2FA**.
+- **Can Reset**: Yes. Admins can initiate a fresh 2FA setup (e.g., if switching phones) by verifying with Password + Email OTP.
+- **Can Disable**: **No**. For system-wide security, the option to disable 2FA is blocked for all accounts with the `administrator` role.
+- **Verification**: All profile security changes require secondary verification via Email OTP.
+
 ---
 
 ## 5. SMTP & Email Configuration
@@ -401,11 +412,12 @@ graph TD
 ## 7. Production Readiness Checklist
 
 ### 🔐 Identity & Access Management (IAM)
-- [ ] **MFA Enforced:** Admin and sensitive roles require OTP.
+- [x] **MFA Enforced:** Admin and sensitive roles require OTP.
+- [x] **MFA Management:** Secure Enable/Change/Disable flow implemented.
 - [ ] **Strong Passwords:** Password policy Enforced (Length > 12, complexity).
-- [ ] **Session Management:** Secure, HTTPOnly, SameSite cookies used.
-- [ ] **Token Expiry:** JWT tokens expire < 24h.
-- [ ] **Generic Errors:** Login endpoints do not reveal user existence.
+- [x] **Session Management:** Secure, HTTPOnly, SameSite cookies used.
+- [x] **Token Expiry:** JWT tokens expire < 24h.
+- [x] **Generic Errors:** Login endpoints do not reveal user existence.
 
 ### 🛡️ Application Security
 - [ ] **Input Validation:** All inputs vetted (Joi/express-validator).
@@ -425,7 +437,7 @@ graph TD
 ### 📀 Data Security
 - [ ] **Encryption at Rest:** Database volume encryption enabled.
 - [ ] **Encryption in Transit:** TLS 1.2+ for all connections.
-- [ ] **Backups:** Automated, encrypted backups configured.
+- [x] **Backups:** Automated, encrypted backups configured.
 
 ### 🚨 Monitoring & Response
 - [ ] **Audit Logs:** Centralized logging enabled (ELK/Splunk equivalent).
@@ -434,4 +446,53 @@ graph TD
 
 ---
 
-*Last Updated: 2026-02-17*
+## 8. Disaster Recovery & Backups
+
+ChainShield uses an automated, encrypted backup system to ensure data integrity and availability in the event of a system failure or data corruption.
+
+### 🔐 Backup Encryption
+
+Backups are created using the `backend/scripts/backup.sh` utility. The process involves:
+1.  **Dumping**: A point-in-time snapshot of MongoDB via `mongodump`.
+2.  **Compression**: Archiving the dump into a `.tar.gz` file.
+3.  **Encryption**: Encrypting the archive using **AES-256-CBC** with a salted PBKDF2 key derivation (100,000 iterations).
+
+The encryption key is sourced from the `BACKUP_ENCRYPTION_KEY` environment variable in the root `.env` file.
+
+### 🔓 Restoration & Decryption
+
+To restore a backup, it must first be decrypted using OpenSSL.
+
+#### 1. Set the Encryption Key
+```bash
+export BACKUP_ENCRYPTION_KEY="your_key_from_env"
+```
+
+#### 2. Decrypt the Archive
+```bash
+openssl enc -d -aes-256-cbc -pbkdf2 -iter 100000 \
+    -in backup_filename.tar.gz.enc \
+    -out backup_filename.tar.gz \
+    -pass env:BACKUP_ENCRYPTION_KEY
+```
+
+#### 3. Extract and Restore
+```bash
+# Decompress
+tar -xzf backup_filename.tar.gz
+
+# Restore to MongoDB
+mongorestore --uri="mongodb://admin:password@localhost:27017/chainshield?authSource=admin" dump/
+```
+
+### ✅ Integrity Verification
+
+Every backup generates a **SHA-256 checksum** file (`.sha256`). Before restoring, you should verify that the checksum matches to ensure the backup has not been tampered with or corrupted during storage.
+
+```bash
+sha256sum -c backup_filename.tar.gz.enc.sha256
+```
+
+---
+
+*Last Updated: 2026-02-18*

@@ -10,33 +10,12 @@ const api = axios.create({
   }
 });
 
-let csrfToken = null;
+
 
 api.interceptors.request.use(async (config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-
-  // Skip CSRF for safe methods
-  if (['get', 'head', 'options'].includes(config.method.toLowerCase())) {
-    return config;
-  }
-
-  // Fetch CSRF token if not present
-  if (!csrfToken) {
-    try {
-      const response = await api.get('/csrf-token');
-      csrfToken = response.data.csrfToken;
-    } catch (error) {
-      console.error('Failed to fetch CSRF token:', error);
-    }
-  }
-
-  if (csrfToken) {
-    config.headers['X-CSRF-Token'] = csrfToken;
-  }
-
+  // Safe methods don't need CSRF headers (and we use strict cookies anyway)
+  // We can keep this interceptor minimal or remove it if no other logic exists.
+  // For now, minimizing it.
   return config;
 }, (error) => {
   return Promise.reject(error);
@@ -48,6 +27,14 @@ api.interceptors.request.use(async (config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    if (error.response?.status === 401) {
+      // Session expired or invalid
+      // Optional: Store current path for redirect after login
+      if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
+        window.location.href = '/login';
+      }
+    }
+
     if (error.response?.status === 403 && error.response?.data?.onboardingRequired) {
       // Redirect to onboarding
       const { mustChangePassword, mustSetup2FA } = error.response.data;
@@ -69,6 +56,7 @@ export const authAPI = {
   register: (userData) => api.post('/auth/register', userData),
   verifyEmail: (data) => api.post('/auth/verify-email', data),
   resendOtp: () => api.post('/auth/resend-otp'),
+  resendLoginOtp: (data) => api.post('/auth/resend-login-otp', data),
   verifyLoginOtp: (data) => api.post('/auth/verify-login-otp', data),
   logout: () => api.post('/auth/logout'),
   getProfile: () => api.get('/auth/profile'),

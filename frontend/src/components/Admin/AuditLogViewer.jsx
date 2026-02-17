@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FileText, AlertTriangle, Flag, RefreshCw, Filter, Eye, XCircle, CheckCircle, Clock } from 'lucide-react';
+import api from '../../services/api';
 import '../../styles/AdminPanel.css';
 
 function AuditLogViewer() {
@@ -25,25 +26,20 @@ function AuditLogViewer() {
     const fetchAuditLogs = async () => {
         setLoading(true);
         try {
-            const token = localStorage.getItem('token');
-            const queryParams = new URLSearchParams({
-                page: filters.page,
-                limit: filters.limit,
-                days: filters.days,
-                ...(filters.action && { action: filters.action }),
-                ...(filters.suspicious && { suspicious: 'true' })
+            const response = await api.get('/admin/audit-logs', {
+                params: {
+                    page: filters.page,
+                    limit: filters.limit,
+                    days: filters.days,
+                    ...(filters.action && { action: filters.action }),
+                    ...(filters.suspicious && { suspicious: 'true' })
+                }
             });
 
-            const response = await fetch(`http://localhost:5000/api/admin/audit-logs?${queryParams}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setLogs(data.logs);
-                setPagination(data.pagination);
-                setSummary(data.summary || {});
-            }
+            const data = response.data;
+            setLogs(data.logs);
+            setPagination(data.pagination);
+            setSummary(data.summary || {});
         } catch (error) {
             console.error('Error fetching audit logs:', error);
         } finally {
@@ -58,29 +54,15 @@ function AuditLogViewer() {
         }
 
         try {
-            const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/feedback/${feedbackId}/flag`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ reason: flagReason })
-            });
-
-            if (response.ok) {
-                alert('✅ Feedback flagged and removed from training dataset');
-                setFlagModalOpen(false);
-                setFlagReason('');
-                setSelectedLog(null);
-                fetchAuditLogs();
-            } else {
-                const data = await response.json();
-                alert('Error: ' + data.error);
-            }
+            await api.post(`/feedback/${feedbackId}/flag`, { reason: flagReason });
+            alert('✅ Feedback flagged and removed from training dataset');
+            setFlagModalOpen(false);
+            setFlagReason('');
+            setSelectedLog(null);
+            fetchAuditLogs();
         } catch (error) {
             console.error('Error flagging feedback:', error);
-            alert('Error flagging feedback');
+            alert('Error: ' + (error.response?.data?.error || 'Error flagging feedback'));
         }
     };
 

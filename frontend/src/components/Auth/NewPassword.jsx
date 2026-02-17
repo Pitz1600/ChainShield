@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Shield, Lock, AlertCircle, Info, ChevronLeft, Check, ArrowRight, Key, Unlock } from 'lucide-react';
+import api from '../../services/api';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import '../../styles/NewPassword.css';
 
@@ -29,32 +30,20 @@ function NewPassword({ resetToken, userEmail, onNavigate, onPasswordReset }) {
 
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/api/auth/new-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          resetToken,
-          email: userEmail,
-          password: formData.password
-        })
+      await api.post('/auth/new-password', {
+        resetToken,
+        email: userEmail,
+        password: formData.password
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
-        setSuccess(true);
-        // Redirect to login after successful password reset
-        setTimeout(() => {
-          onPasswordReset();
-          onNavigate('login');
-        }, 2000);
-      } else {
-        setError(data.error || 'Failed to reset password. Please try again.');
-      }
+      setSuccess(true);
+      // Redirect to login after successful password reset
+      setTimeout(() => {
+        onPasswordReset();
+        onNavigate('login');
+      }, 2000);
     } catch (err) {
-      setError('Unable to connect to server. Please make sure the backend is running.');
+      setError(err.response?.data?.error || 'Failed to reset password. Please try again.');
     } finally {
       setLoading(false);
     }

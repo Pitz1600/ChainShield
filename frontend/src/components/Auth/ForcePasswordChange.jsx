@@ -49,15 +49,12 @@ function ForcePasswordChange({ onNavigate }) {
             }
 
             if (data.mustSetup2FA) {
-                localStorage.setItem('token', data.token);
+                // Token is in cookie now
                 onNavigate('setup-2fa');
                 return;
             }
 
-            if (data.token) {
-                localStorage.setItem('token', data.token);
-            }
-
+            // Token is in cookie now
             onNavigate('login');
         } catch (err) {
             setError(err.response?.data?.error || 'Failed to change password.');

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Users, User, CheckCircle, Clock, Edit2, X, Shield, Activity, Mail, Trash2 } from 'lucide-react';
+import api from '../../services/api';
 import '../../styles/AdminPanel.css';
 
 function UserManagement() {
@@ -40,23 +41,14 @@ function UserManagement() {
     const fetchUsers = async () => {
         try {
             setLoading(true);
-            const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5000/api/admin/users', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setUsers(data.users || []);
-            } else if (response.status === 403) {
+            const response = await api.get('/admin/users');
+            setUsers(response.data.users || []);
+        } catch (err) {
+            if (err.response?.status === 403) {
                 setError('You do not have permission to view users');
             } else {
-                setError('Failed to load users');
+                setError('Error loading users: ' + (err.response?.data?.error || err.message));
             }
-        } catch (err) {
-            setError('Error loading users: ' + err.message);
         } finally {
             setLoading(false);
         }
@@ -64,17 +56,8 @@ function UserManagement() {
 
     const fetchStats = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5000/api/admin/stats', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setStats(data.stats);
-            }
+            const response = await api.get('/admin/stats');
+            setStats(response.data.stats);
         } catch (err) {
             console.error('Error loading stats:', err);
         }
@@ -99,44 +82,18 @@ function UserManagement() {
     const handleSaveUser = async (e) => {
         e.preventDefault();
         try {
-            const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/admin/users/${editFormData.userId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify(editFormData)
-            });
-
-            if (!response.ok) throw new Error('Failed to update user');
-
+            await api.put(`/admin/users/${editFormData.userId}`, editFormData);
             setIsEditModalOpen(false);
             fetchUsers();
         } catch (err) {
-            alert(err.message);
+            alert(err.response?.data?.error || err.message);
         }
     };
 
     const handleCreateUser = async (e) => {
         e.preventDefault();
         try {
-            const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5000/api/admin/users', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify(createFormData)
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.error || 'Failed to create user');
-            }
-
+            await api.post('/admin/users', createFormData);
             setIsCreateModalOpen(false);
             setCreateFormData({
                 firstName: '',
@@ -150,7 +107,7 @@ function UserManagement() {
             fetchUsers();
             fetchStats(); // Update stats
         } catch (err) {
-            alert(err.message);
+            alert(err.response?.data?.error || err.message);
         }
     };
 
@@ -160,24 +117,11 @@ function UserManagement() {
         }
 
         try {
-            const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/admin/users/${userId}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.error || 'Failed to delete user');
-            }
-
+            await api.delete(`/admin/users/${userId}`);
             fetchUsers();
             fetchStats(); // Update stats
         } catch (err) {
-            alert(err.message);
+            alert(err.response?.data?.error || err.message);
         }
     };
 

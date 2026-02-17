@@ -34,6 +34,9 @@ const userSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  otpLastSentAt: {
+    type: Date
+  },
   inviteToken: {
     type: String
   },

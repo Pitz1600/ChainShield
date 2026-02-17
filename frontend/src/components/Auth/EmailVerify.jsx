@@ -8,7 +8,18 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [resendCooldown, setResendCooldown] = useState(0);
   const inputRefs = useRef([]);
+
+  useEffect(() => {
+    let timer;
+    if (resendCooldown > 0) {
+      timer = setInterval(() => {
+        setResendCooldown((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
 
   const handleChange = (element, index) => {
     if (isNaN(element.value)) return false;
@@ -68,13 +79,11 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
 
       if (res.data.success) {
         setSuccess("Email verified successfully!");
-        setSuccess("Email verified successfully!");
         setTimeout(async () => {
           try {
             // Fetch fresh profile to ensure we have the latest status
-            const profileRes = await api.get('/auth/me');
-            const token = localStorage.getItem('token');
-            onLogin(token, profileRes.data.data);
+            const profileRes = await api.get('/auth/profile');
+            onLogin(null, profileRes.data);
           } catch (err) {
             console.error("Failed to refresh profile:", err);
             // Fallback: just redirect to login to force a refresh
@@ -83,15 +92,11 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
         }, 1500);
       }
     } catch (err) {
-      setError(
-        err.response?.data?.message || "Invalid or expired OTP."
-      );
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleResendOtp = async () => {
+    if (resendCooldown > 0) return;
     setError("");
     setSuccess("");
 
@@ -99,9 +104,10 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
       await api.post("/auth/resend-otp");
       setSuccess("A new OTP has been sent to your email.");
       setOtp(new Array(6).fill(""));
-      inputRefs.current[0].focus();
-    } catch {
-      setError("Failed to resend OTP. Please try again.");
+      if (inputRefs.current[0]) inputRefs.current[0].focus();
+      setResendCooldown(60);
+    } catch (err) {
+      setError(err.response?.data?.error || "Failed to resend OTP. Please try again.");
     }
   };
 
@@ -209,9 +215,9 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
               <button
                 className="resend-link"
                 onClick={handleResendOtp}
-                disabled={loading}
+                disabled={loading || resendCooldown > 0}
               >
-                Resend code
+                {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend code'}
               </button>
             </p>
           </div>

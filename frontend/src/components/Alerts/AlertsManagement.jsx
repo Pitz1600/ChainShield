@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Search, AlertTriangle, CheckCircle, AlertOctagon, Download, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import api from '../../services/api';
 import AlertCard from './AlertCard';
 import '../../styles/Alerts.css';
 
@@ -22,24 +23,13 @@ function AlertsManagement({ embedded = false }) {
   const fetchAlerts = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-
-      let url = 'http://localhost:5000/api/transactions/alerts?limit=5000';
+      let endpoint = '/transactions/alerts?limit=5000';
       if (filter !== 'all') {
-        url += `?severity=${filter}`;
+        endpoint += (endpoint.includes('?') ? '&' : '?') + `severity=${filter}`;
       }
 
-      const response = await fetch(url, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch alerts');
-      }
-
-      const data = await response.json();
+      const response = await api.get(endpoint);
+      const data = response.data;
       setAlerts(data.alerts || []);
       setError(null);
     } catch (err) {

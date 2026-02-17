@@ -1,5 +1,39 @@
 # System Updates
 
+## [2026-02-18] Security Hardening & Reliability Updates
+
+### 🌎 Environment Consolidation
+- **Single Source of Truth**: Consolidated all secrets (JWT, MongoDB, SMTP, Blockchain) into a single `.env` file at the project root.
+- **Docker Integration**: Optimized `docker-compose.yml` to pull all necessary variables from the root environment and pass them to services.
+- **Security Hardening**: Hardened `.gitignore` to recursively block all environment files (at any depth) from being committed to Git.
+- **Redundancy Removal**: Deleted obsolete `backend/.env` and duplicate example files to prevent configuration drift.
+
+### 🛡️ OTP Reliability & Rate Limiting
+- **Backend Cooldowns**: Implemented a mandatory 60-second cooldown on all OTP resend requests to prevent spam.
+- **Standardized Endpoints**: Created `/auth/resend-login-otp` for "New Device" flows, ensuring consistent behavior with account verification.
+- **Frontend Timers**: Added countdown timers and auto-disabling buttons to the Login and Registration screens.
+- **Middleware Security**: Updated authentication middleware to correctly handle "Onboarding" states (Verification, 2FA Setup, Password Change) while blocking general API access.
+
+### 🐛 Bug Fixes
+- **Dashboard Data**: Relaxed permissions on the Inflation Rate endpoint to allow all authenticated users (Residents/Officials) to see dashboard data (fixed 403 error).
+- **Redirection Logic**: Resolved "Pending dashboard redirection" loop for both Residents (account verification) and verified devices (login OTP) by fixing endpoint mismatches and data handling.
+- **Audit Logs**: Standardized logging for all sensitive authentication steps.
+
+---
+
+## [2026-02-18] 2FA Management & Backup Infrastructure
+
+### 🛡️ 2FA Management (Profile)
+- **Comprehensive Controls**: Users can now Enable, Change, and Disable 2FA directly from their profile page.
+- **Multi-Layered Verification**: All 2FA management actions require both Password and Email OTP verification.
+- **Admin Security Policy**: Implemented a mandatory 2FA policy for Administrators. Admins can Change/Reset their 2FA but cannot Disable it, ensuring persistent protection for privileged accounts.
+- **Recovery Codes**: Enhanced TOTP setup flow to provide generated recovery codes upon successful activation.
+
+### 📀 Backup Infrastructure
+- **Encrypted Backups**: Fully configured `backup.sh` with AES-256-CBC encryption.
+- **Secure Key Management**: Generated a 256-bit encryption key and added `BACKUP_ENCRYPTION_KEY` to the project environment.
+- **Automated Retention**: Confirmed 30-day automated cleanup for old encrypted archives.
+
 ## [2026-02-17] Security Overhaul & Documentation Cleanup
 
 ### 🔒 Authentication & 2FA Enhancements

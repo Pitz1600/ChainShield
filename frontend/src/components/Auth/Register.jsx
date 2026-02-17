@@ -71,9 +71,6 @@ function Register({ onRegister, onNavigate }) {
           role: 'resident'
         });
 
-        // Save token for verification API calls
-        localStorage.setItem('token', res.data.token);
-
         // Navigate to email verification
         onNavigate('email-verify', res.data.user);
 

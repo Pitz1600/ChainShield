@@ -1,5 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { Lock, Upload, AlertCircle, CheckCircle, Clock, FileText, AlertTriangle, TrendingUp, Shield, BarChart, Info, Settings, Zap, Download, ChevronLeft, ChevronRight, Link, Clipboard, Circle } from 'lucide-react';
+import api from '../../services/api';
 import { isOfficial } from '../../utils/permissions';
 import '../../styles/CSVImport.css';
 
@@ -44,26 +45,11 @@ const CSVImport = ({ user }) => {
 
     const handleDownloadTemplate = async () => {
         try {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                setError('Please login first');
-                return;
-            }
-
-            const response = await fetch('http://localhost:5000/api/transactions/template', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+            const response = await api.get('/transactions/template', {
+                responseType: 'blob'
             });
 
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({ error: 'Failed to download template' }));
-                setError(errorData.error || `Download failed: ${response.statusText}`);
-                return;
-            }
-
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
+            const url = window.URL.createObjectURL(response.data);
             const a = document.createElement('a');
             a.href = url;
             a.download = 'transaction_import_template.csv';
@@ -72,7 +58,7 @@ const CSVImport = ({ user }) => {
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
         } catch (err) {
-            setError('Failed to download template: ' + err.message);
+            setError('Failed to download template: ' + (err.response?.data?.error || err.message));
         }
     };
 
@@ -92,27 +78,16 @@ const CSVImport = ({ user }) => {
             const formData = new FormData();
             formData.append('csvFile', file);
 
-            const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5000/api/transactions/import', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                },
-                body: formData
+            const response = await api.post('/transactions/import', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
             });
 
-            const data = await response.json();
-
-            if (response.ok) {
-                setResults(data);
-                setFile(null);
-                // Reset file input
-                document.getElementById('csvFileInput').value = '';
-            } else {
-                setError(data.error || 'Upload failed');
-            }
+            setResults(response.data);
+            setFile(null);
+            // Reset file input
+            document.getElementById('csvFileInput').value = '';
         } catch (err) {
-            setError('Upload failed: ' + err.message);
+            setError('Upload failed: ' + (err.response?.data?.error || err.message));
         } finally {
             setUploading(false);
         }

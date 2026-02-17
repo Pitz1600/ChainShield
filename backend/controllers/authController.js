@@ -1,32 +1,13 @@
 const User = require('../models/User');
 const AuditLog = require('../models/AuditLog');
 const TrustedDevice = require('../models/TrustedDevice');
+const BlacklistedToken = require('../models/BlacklistedToken');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { generateSecret, generateURI, verifySync } = require('otplib');
 const QRCode = require('qrcode');
 const emailService = require('../services/emailService');
 
-// In-memory token blacklist (use Redis in production for multi-instance)
-const tokenBlacklist = new Set();
-
-// Export for use by auth middleware
-exports.tokenBlacklist = tokenBlacklist;
-
-// Cleanup expired tokens from blacklist every hour
-setInterval(() => {
-  const now = Math.floor(Date.now() / 1000);
-  for (const token of tokenBlacklist) {
-    try {
-      const decoded = jwt.decode(token);
-      if (decoded && decoded.exp && decoded.exp < now) {
-        tokenBlacklist.delete(token);
-      }
-    } catch {
-      tokenBlacklist.delete(token);
-    }
-  }
-}, 60 * 60 * 1000);
 
 // SECURITY: Generate 6-digit OTP using cryptographically secure random
 const generateOTP = () => {
@@ -74,6 +55,7 @@ exports.register = async (req, res) => {
       otp,
       otpExpires,
       otpAttempts: 0,
+      otpLastSentAt: new Date()
     });
 
     await user.save();
@@ -87,8 +69,16 @@ exports.register = async (req, res) => {
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '24h' });
 
+    // SECURITY: Send token as HttpOnly cookie
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    });
+
     res.status(201).json({
-      token,
+      success: true,
       user: {
         id: user._id,
         firstName: user.firstName,
@@ -214,6 +204,7 @@ exports.login = async (req, res) => {
       user.otp = otp;
       user.otpExpires = otpExpires;
       user.otpAttempts = 0;
+      user.otpLastSentAt = new Date();
       await user.save();
 
       if (process.env.NODE_ENV === 'development') {
@@ -234,6 +225,16 @@ exports.login = async (req, res) => {
         ipAddress: clientIp,
         userAgent: userAgent,
         details: { reason: 'new_device_or_ip' }
+      });
+
+      // SECURITY: Send token as HttpOnly cookie even for OTP step
+      // This allows the user to call /resend-login-otp which is protected
+      const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '24h' });
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+        maxAge: 24 * 60 * 60 * 1000
       });
 
       return res.json({
@@ -284,8 +285,16 @@ exports.login = async (req, res) => {
     // ALL CHECKS PASSED — issue full session token
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '24h' });
 
+    // SECURITY: Send token as HttpOnly cookie
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    });
+
     res.json({
-      token,
+      success: true,
       user: {
         id: user._id,
         firstName: user.firstName,
@@ -366,8 +375,16 @@ exports.verifyLoginOtp = async (req, res) => {
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '24h' });
 
+    // SECURITY: Send token as HttpOnly cookie
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax', // Relax for dev/localhost
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    });
+
     res.json({
-      token,
+      success: true,
       user: {
         id: user._id,
         firstName: user.firstName,
@@ -490,14 +507,23 @@ exports.forceChangePassword = async (req, res) => {
       return res.json({
         success: true,
         mustSetup2FA: true,
-        token: onboardingToken,
-        message: 'Password changed. Now set up two-factor authentication.'
       });
     }
 
-    // Issue full token
+    // ALL CHECKS PASSED — issue full session token
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '24h' });
-    res.json({ success: true, token, message: 'Password changed successfully.' });
+
+
+
+    // SECURITY: Send token as HttpOnly cookie
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax', // Relax for dev/localhost
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    });
+
+    res.json({ success: true, message: 'Password changed successfully.' });
   } catch (error) {
     console.error('[Force Change Password Error]', error.message);
     res.status(500).json({ error: 'Something went wrong' });
@@ -577,9 +603,16 @@ exports.verifySetup2FA = async (req, res) => {
     // Issue full token if this was part of onboarding
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '24h' });
 
+    // SECURITY: Send token as HttpOnly cookie
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax', // Relax for dev/localhost
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    });
+
     res.json({
       success: true,
-      token,
       recoveryCodes, // Show ONCE — user must save these
       message: '2FA enabled successfully. Save your recovery codes in a safe place.'
     });
@@ -589,9 +622,37 @@ exports.verifySetup2FA = async (req, res) => {
   }
 };
 
+// ==========================================
+// 2FA MANAGEMENT (Profile)
+// ==========================================
+
+exports.send2faOtp = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(401).json({ error: 'Authentication failed' });
+
+    const otp = generateOTP();
+    user.otp = otp;
+    user.otpExpires = new Date(Date.now() + 10 * 60 * 1000);
+    user.otpAttempts = 0;
+    await user.save();
+
+    try {
+      await emailService.sendOTPEmail(user.email, otp, user.username);
+      res.json({ success: true, message: 'Verification code sent.' });
+    } catch (emailError) {
+      console.error('Failed to send 2FA management OTP email:', emailError);
+      res.status(500).json({ error: 'Something went wrong' });
+    }
+  } catch (error) {
+    console.error('[Send 2FA OTP Error]', error.message);
+    res.status(500).json({ error: 'Something went wrong' });
+  }
+};
+
 exports.disable2FA = async (req, res) => {
   try {
-    const { password, totpCode } = req.body;
+    const { password, otp } = req.body;
     const user = await User.findById(req.user.id).select('+twoFactorSecret +recoveryCodes');
     if (!user) return res.status(401).json({ error: 'Authentication failed' });
 
@@ -609,15 +670,25 @@ exports.disable2FA = async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    // Verify TOTP
-    const secret = user.getTwoFactorSecret();
-    if (!verifySync({ token: totpCode, secret }).valid) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+    // Verify Email OTP
+    if (user.otpAttempts >= 10) {
+      return res.status(429).json({ error: 'Too many failed attempts.' });
+    }
+    if (!user.otp || !user.otpExpires || user.otpExpires < Date.now()) {
+      return res.status(400).json({ error: 'Verification code has expired.' });
+    }
+    if (user.otp !== otp) {
+      user.otpAttempts += 1;
+      await user.save();
+      return res.status(400).json({ error: 'Invalid verification code.' });
     }
 
     user.twoFactorEnabled = false;
     user.twoFactorSecret = undefined;
     user.recoveryCodes = [];
+    user.otp = undefined;
+    user.otpExpires = undefined;
+    user.otpAttempts = 0;
     await user.save();
 
     await AuditLog.logAction({
@@ -627,12 +698,75 @@ exports.disable2FA = async (req, res) => {
       username: user.username,
       ipAddress: req.ip,
       userAgent: req.get('User-Agent'),
-      details: {}
+      details: { method: 'email_otp_verified' }
     });
 
     res.json({ success: true, message: '2FA has been disabled.' });
   } catch (error) {
     console.error('[Disable 2FA Error]', error.message);
+    res.status(500).json({ error: 'Something went wrong' });
+  }
+};
+
+exports.reset2FA = async (req, res) => {
+  try {
+    const { password, otp } = req.body;
+    const user = await User.findById(req.user.id).select('+twoFactorSecret');
+    if (!user) return res.status(401).json({ error: 'Authentication failed' });
+
+    // Verify password
+    if (!(await user.comparePassword(password))) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    // Verify Email OTP
+    if (user.otpAttempts >= 10) {
+      return res.status(429).json({ error: 'Too many failed attempts.' });
+    }
+    if (!user.otp || !user.otpExpires || user.otpExpires < Date.now()) {
+      return res.status(400).json({ error: 'Verification code has expired.' });
+    }
+    if (user.otp !== otp) {
+      user.otpAttempts += 1;
+      await user.save();
+      return res.status(400).json({ error: 'Invalid verification code.' });
+    }
+
+    // Clear existing 2FA and prep for setup
+    user.twoFactorEnabled = false;
+    user.twoFactorSecret = undefined;
+    user.recoveryCodes = [];
+    user.otp = undefined;
+    user.otpExpires = undefined;
+    user.otpAttempts = 0;
+
+    // Generate NEW TOTP secret
+    const secret = generateSecret();
+    user.setTwoFactorSecret(secret);
+    await user.save();
+
+    // Generate QR code
+    const otpAuthUrl = generateURI({ secret, issuer: 'ChainShield', accountName: user.email });
+    const qrCodeDataUrl = await QRCode.toDataURL(otpAuthUrl);
+
+    res.json({
+      success: true,
+      secret: secret,
+      qrCode: qrCodeDataUrl,
+      message: 'New 2FA initiated. Scan the QR code and verify to complete.'
+    });
+
+    await AuditLog.logAction({
+      action: 'totp_reset_initiated',
+      userId: user._id,
+      userRole: user.role,
+      username: user.username,
+      ipAddress: req.ip,
+      userAgent: req.get('User-Agent'),
+      details: { method: 'email_otp_verified' }
+    });
+  } catch (error) {
+    console.error('[Reset 2FA Error]', error.message);
     res.status(500).json({ error: 'Something went wrong' });
   }
 };
@@ -932,10 +1066,17 @@ exports.resendOtp = async (req, res) => {
       return res.status(400).json({ error: 'Email already verified' });
     }
 
+    // Cooldown check (60 seconds)
+    if (user.otpLastSentAt && (Date.now() - user.otpLastSentAt) < 60000) {
+      const remaining = Math.ceil((60000 - (Date.now() - user.otpLastSentAt)) / 1000);
+      return res.status(429).json({ error: `Please wait ${remaining} seconds before requesting a new code.` });
+    }
+
     const otp = generateOTP();
     user.otp = otp;
     user.otpExpires = new Date(Date.now() + 10 * 60 * 1000);
     user.otpAttempts = 0;
+    user.otpLastSentAt = new Date();
     await user.save();
 
     try {
@@ -947,6 +1088,45 @@ exports.resendOtp = async (req, res) => {
     }
   } catch (error) {
     console.error('[Resend OTP Error]', error.message);
+    res.status(500).json({ error: 'Something went wrong' });
+  }
+};
+
+// ==========================================
+// RESEND LOGIN OTP (New Device)
+// ==========================================
+exports.resendLoginOtp = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const user = await User.findById(userId);
+    if (!user) return res.status(401).json({ error: 'Authentication failed' });
+
+    // Cooldown check (60 seconds)
+    if (user.otpLastSentAt && (Date.now() - user.otpLastSentAt) < 60000) {
+      const remaining = Math.ceil((60000 - (Date.now() - user.otpLastSentAt)) / 1000);
+      return res.status(429).json({ error: `Please wait ${remaining} seconds before requesting a new code.` });
+    }
+
+    const otp = generateOTP();
+    user.otp = otp;
+    user.otpExpires = new Date(Date.now() + 10 * 60 * 1000);
+    user.otpAttempts = 0;
+    user.otpLastSentAt = new Date();
+    await user.save();
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[OTP-DEBUG] Resent Login OTP for ${user.email}: ${otp}`);
+    }
+
+    try {
+      await emailService.sendOTPEmail(user.email, otp, user.username);
+      res.json({ success: true, message: 'Verification code resent.' });
+    } catch (emailError) {
+      console.error('Failed to resend Login OTP:', emailError);
+      res.status(500).json({ error: 'Something went wrong' });
+    }
+  } catch (error) {
+    console.error('[Resend Login OTP Error]', error.message);
     res.status(500).json({ error: 'Something went wrong' });
   }
 };
@@ -1120,7 +1300,15 @@ exports.logout = async (req, res) => {
     const token = req.header('Authorization')?.replace('Bearer ', '');
 
     if (token) {
-      tokenBlacklist.add(token);
+      // SECURITY: Add to database blacklist
+      await BlacklistedToken.create({ token });
+
+      // Clear cookie
+      res.clearCookie('token', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict'
+      });
 
       if (req.user) {
         await AuditLog.logAction({
@@ -1130,7 +1318,7 @@ exports.logout = async (req, res) => {
           username: req.user.username,
           ipAddress: req.ip,
           userAgent: req.get('User-Agent'),
-          details: { method: 'token_blacklist' }
+          details: { method: 'token_blacklist_db' }
         });
       }
     }

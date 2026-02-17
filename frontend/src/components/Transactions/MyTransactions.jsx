@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AlertTriangle, CheckCircle, Clock, FileText, Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
+import api from '../../services/api';
 import '../../styles/MyTransactions.css';
 import '../../styles/ColorfulIcons.css';
 
@@ -23,34 +24,29 @@ function MyTransactions({ user, embedded = false }) {
     const fetchMyTransactions = async () => {
         try {
             setLoading(true);
-            const token = localStorage.getItem('token');
 
-            // Build query string
-            const params = new URLSearchParams();
-            if (filters.type !== 'all') params.append('type', filters.type);
-            if (filters.status !== 'all') params.append('status', filters.status);
-            if (filters.dateFrom) params.append('dateFrom', filters.dateFrom);
-            if (filters.dateTo) params.append('dateTo', filters.dateTo);
+            // Build query params
+            const queryParams = {
+                limit: 5000,
+                ...(filters.type !== 'all' && { type: filters.type }),
+                ...(filters.status !== 'all' && { status: filters.status }),
+                ...(filters.dateFrom && { dateFrom: filters.dateFrom }),
+                ...(filters.dateTo && { dateTo: filters.dateTo })
+            };
 
-            const response = await fetch(`http://localhost:5000/api/transactions/my-transactions?limit=5000&${params}`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+            const response = await api.get('/transactions/my-transactions', {
+                params: queryParams
             });
 
-            if (response.ok) {
-                const data = await response.json();
-                setTransactions(data.transactions || []);
-            } else if (response.status === 404) {
-                // Endpoint doesn't exist yet, use mock data
+            setTransactions(response.data.transactions || []);
+        } catch (err) {
+            if (err.response?.status === 404) {
                 setTransactions([]);
             } else {
-                setError('Failed to load transactions');
+                console.error('Error fetching transactions:', err);
+                setError('Failed to load transactions. Please check your connection.');
+                setTransactions([]);
             }
-        } catch (err) {
-            console.error('Error fetching transactions:', err);
-            setError('Failed to load transactions. Please check your connection.');
-            setTransactions([]);
         } finally {
             setLoading(false);
         }

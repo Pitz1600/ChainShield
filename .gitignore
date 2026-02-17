@@ -6,15 +6,12 @@ yarn-error.log*
 
 # Environment Variables - CRITICAL: Never commit these!
 .env
-.env.local
-.env.development
-.env.test
-.env.production
+.env.*
+!.env.example
 *.env
-backend/.env
-frontend/.env
-ml_service/.env
-graph_service/.env
+**/.env
+**/.env.*
+**/env.example
 
 # Python
 __pycache__/
