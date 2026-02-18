@@ -95,7 +95,31 @@ export const authAPI = {
   resendLoginOtp: (data) => api.post('/auth/resend-login-otp', data),
   verifyLoginOtp: (data) => api.post('/auth/verify-login-otp', data),
   verifyMfa: (data) => api.post('/auth/verify-mfa', data),
-  logout: () => api.post('/auth/logout'),
+  logout: async () => {
+    try {
+      // Call backend to invalidate token
+      const response = await api.post('/auth/logout');
+      console.log('[Logout API] Backend logout successful');
+      
+      // Clear CSRF token cache on frontend
+      csrfToken = null;
+      
+      // Clear auth cookie as backup (backend should handle with Set-Cookie)
+      document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;';
+      document.cookie = 'token=; path=/; domain=; expires=Thu, 01 Jan 1970 00:00:00 UTC;';
+      
+      console.log('[Logout API] Frontend cleanup complete');
+      return response;
+    } catch (err) {
+      console.error('[Logout API Error]', err.message);
+      // Still clear local CSRF and cookie even if request fails
+      csrfToken = null;
+      document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;';
+      document.cookie = 'token=; path=/; domain=; expires=Thu, 01 Jan 1970 00:00:00 UTC;';
+      // Don't throw - proceed with logout anyway
+      return { success: true };
+    }
+  },
   getProfile: () => api.get('/auth/profile'),
 
   // 2FA
@@ -104,6 +128,7 @@ export const authAPI = {
     throw err;
   }),
   verifySetup2FA: (data) => api.post('/auth/2fa/verify-setup', data, { withCredentials: true }),
+  restartSetup2FA: () => api.post('/auth/2fa/restart-setup', {}, { withCredentials: true }),
   disable2FA: (data) => api.post('/auth/2fa/disable', data, { withCredentials: true }),
 
   // Onboarding

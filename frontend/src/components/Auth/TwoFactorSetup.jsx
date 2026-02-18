@@ -30,12 +30,15 @@ function TwoFactorSetup({ onLogin, onNavigate, onLogout }) {
             setStep('scan');
         } catch (err) {
             const msg = err.response?.data?.error || '';
+            console.error('[TwoFactorSetup] Init error:', msg, err);
+            
             // If 2FA is already enabled (e.g. after a successful verify + page reload),
             // skip straight to a done state instead of showing an error.
             if (msg.toLowerCase().includes('already enabled')) {
                 setStep('done');
             } else {
-                setError(msg || 'Failed to initialize 2FA setup.');
+                setError(msg || 'Failed to initialize 2FA setup. Please try refreshing the page.');
+                setStep('error');
             }
         }
     };
@@ -57,6 +60,24 @@ function TwoFactorSetup({ onLogin, onNavigate, onLogout }) {
         } catch (err) {
             setTotpCode(''); // clear so user can type a fresh code
             setError(err.response?.data?.error || 'Invalid code. Please try again.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleRestartSetup = async () => {
+        setError('');
+        setLoading(true);
+
+        try {
+            const response = await authAPI.restartSetup2FA();
+            setQrCode(response.data.qrCode);
+            setSecret(response.data.secret);
+            setTotpCode('');
+            setStep('scan');
+            // Success message
+        } catch (err) {
+            setError(err.response?.data?.error || 'Failed to restart setup.');
         } finally {
             setLoading(false);
         }
@@ -144,6 +165,34 @@ function TwoFactorSetup({ onLogin, onNavigate, onLogout }) {
                         </>
                     )}
                 </button>
+
+                <div style={{ marginTop: '1rem', textAlign: 'center' }}>
+                    <button
+                        type="button"
+                        onClick={handleRestartSetup}
+                        disabled={loading}
+                        style={{
+                            background: 'transparent',
+                            border: '1px solid #cbd5e1',
+                            color: '#64748b',
+                            padding: '0.75rem 1.5rem',
+                            borderRadius: '0.375rem',
+                            cursor: 'pointer',
+                            fontSize: '0.875rem',
+                            transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                            e.target.style.background = '#f1f5f9';
+                            e.target.style.color = '#475569';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.target.style.background = 'transparent';
+                            e.target.style.color = '#64748b';
+                        }}
+                    >
+                        Generate New QR Code
+                    </button>
+                </div>
             </form>
         </div>
     );
@@ -257,6 +306,22 @@ function TwoFactorSetup({ onLogin, onNavigate, onLogout }) {
                         <div style={{ textAlign: 'center', padding: '3rem' }}>
                             <span className="spinner" style={{ display: 'inline-block', width: 40, height: 40 }}></span>
                             <p style={{ marginTop: '1rem', color: '#666' }}>Initializing 2FA setup...</p>
+                        </div>
+                    )}
+
+                    {step === 'error' && (
+                        <div style={{ textAlign: 'center', padding: '2rem' }}>
+                            <AlertTriangle size={48} color="#ef4444" />
+                            <p style={{ marginTop: '1rem', color: '#374151', fontWeight: 600 }}>{error}</p>
+                            <button 
+                                className="submit-button" 
+                                style={{ marginTop: '1.5rem' }} 
+                                onClick={initSetup}
+                                disabled={loading}
+                            >
+                                <span>{loading ? 'Retrying...' : 'Try Again'}</span>
+                                <span className="button-icon"><ArrowRight size={18} /></span>
+                            </button>
                         </div>
                     )}
 

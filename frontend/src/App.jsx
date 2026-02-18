@@ -72,12 +72,28 @@ function App() {
   }, []);
 
   const handleLogout = async () => {
-    try { await authAPI.logout(); } catch { }
+    try {
+      // Call logout API to invalidate token on backend and clear cookies
+      await authAPI.logout();
+      console.log('[Logout] Backend logout successful');
+    } catch (err) {
+      console.error('[Logout] API call failed:', err.message);
+      // Continue with logout even if API call fails
+    }
+    
+    // Clear all frontend auth state immediately
     localStorage.removeItem('user');
+    sessionStorage.clear();
     setIsAuthenticated(false);
     setUser(null);
     setPendingUser(null);
+    
+    // Navigate to welcome view
     setView('welcome');
+    
+    // NOTE: Don't verify token is blacklisted here - the response interceptor
+    // would redirect us back to /setup-2fa if token is invalid (403 + onboardingRequired)
+    // Let logout complete cleanly by not making any authenticated requests
   };
 
   const handleNavigate = useCallback((newView, data = null) => {

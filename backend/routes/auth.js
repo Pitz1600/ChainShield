@@ -39,6 +39,7 @@ router.post('/force-change-password', authMiddleware, authController.forceChange
 router.post('/2fa/send-otp', authMiddleware, otpResendLimiter, authController.send2faOtp);
 router.post('/2fa/setup', authMiddleware, authController.setup2FA);
 router.post('/2fa/verify-setup', authMiddleware, authController.verifySetup2FA);
+router.post('/2fa/restart-setup', authMiddleware, authController.restart2FASetup);
 router.post('/2fa/disable', authMiddleware, otpVerificationLimiter, authController.disable2FA);
 router.post('/2fa/reset', authMiddleware, otpVerificationLimiter, authController.reset2FA);
 router.get('/2fa/recovery-codes/count', authMiddleware, authController.getRecoveryCodeCount);

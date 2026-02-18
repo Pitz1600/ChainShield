@@ -710,11 +710,13 @@ exports.setup2FA = async (req, res) => {
     const user = await User.findById(req.user.id).select('+twoFactorSecret');
     if (!user) return res.status(401).json({ error: 'Authentication failed' });
 
-    if (user.twoFactorEnabled) {
+    // Allow setup only if 2FA is not already enabled
+    // If a previous setup exists but wasn't verified, generate a new one
+    if (user.twoFactorEnabled && user.recoveryCodes && user.recoveryCodes.length > 0) {
       return res.status(400).json({ error: '2FA is already enabled.' });
     }
 
-    // Generate TOTP secret
+    // Generate TOTP secret (this can be called multiple times during onboarding)
     const secret = generateSecret();
     user.setTwoFactorSecret(secret);
     await user.save();
@@ -802,6 +804,41 @@ exports.verifySetup2FA = async (req, res) => {
     });
   } catch (error) {
     console.error('[Verify 2FA Setup Error]', error.message);
+    res.status(500).json({ error: 'Something went wrong' });
+  }
+};
+
+// ==========================================
+// RESTART 2FA SETUP (resend QR code)
+// ==========================================
+exports.restart2FASetup = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Generate a fresh TOTP secret
+    const { secret, qrCode } = await user.generateTOTPSecret();
+
+    await AuditLog.logAction({
+      action: 'totp_setup_restarted',
+      userId: user._id,
+      userRole: user.role,
+      username: user.username,
+      ipAddress: req.ip,
+      userAgent: req.get('User-Agent'),
+      details: { method: 'restart_during_onboarding' }
+    });
+
+    res.json({
+      success: true,
+      secret,
+      qrCode,
+      message: 'QR code regenerated. Scan it again with your authenticator app.'
+    });
+  } catch (error) {
+    console.error('[Restart 2FA Setup Error]', error.message);
     res.status(500).json({ error: 'Something went wrong' });
   }
 };

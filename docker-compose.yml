@@ -17,6 +17,12 @@ services:
       - mongodb_data:/data/db
     networks:
       - chainshield-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   # =========================
   # Backend API (Node.js)
@@ -56,10 +62,14 @@ services:
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
       GOOGLE_CALLBACK_URL: ${GOOGLE_CALLBACK_URL}
     depends_on:
-      - mongodb
-      - redis
-      - ml-service
-      - graph-service
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      ml-service:
+        condition: service_started
+      graph-service:
+        condition: service_started
     volumes:
       - ./backend:/app
       - /app/node_modules

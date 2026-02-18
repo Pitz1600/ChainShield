@@ -21,4 +21,27 @@
 - **Security Portal:** Established a formalized `/security` directory for risk assessments and audit logs.
 
 ---
-*Last Updated: 2026-02-18*
+
+## [2026-02-19] - Bug Fixes & Linux Support
+
+### 🐛 Authentication & Onboarding Fixes
+- **2FA Setup 403 Error:** Fixed authentication middleware path mismatch that blocked 2FA setup access. Updated scoped token paths from `/api/auth/setup-2fa` to `/api/auth/2fa/setup` and added path normalization for trailing slashes.
+- **Logout Functionality - Two-Part Fix:**
+  1. **Middleware Permission Issue:** Scoped tokens (setup_2fa, change_password, etc.) didn't have permission to call `/api/auth/logout`. Added logout endpoint to allowed paths for all scoped token types.
+  2. **Response Interceptor Hijacking:** Frontend logout was calling `getProfile()` to verify token invalidation, but this 403 response triggered the interceptor to redirect back to setup pages. Removed verification call to allow clean logout without redirect interference.
+  - **Result:** Users clicking "Log Out & Return" on onboarding pages now correctly log out, clear all auth state, and navigate to welcome page. After page refresh, they remain logged out.
+- **Path Normalization:** Improved middleware to handle trailing slashes consistently, preventing potential path-manipulation bypasses.
+- **Enhanced Debug Logging:** Added detailed debug messages showing blocked paths and allowed paths for troubleshooting.
+
+### 🐧 Linux & Cross-Platform Support
+- **Linux Shell Scripts:** Created bash equivalents for all PowerShell scripts:
+  - `test-ganache.sh` - Tests Ganache blockchain connection
+  - `verify-blockchain-hash.sh` - Verifies transactions on blockchain
+- **Improved Portability:** Both Windows (.ps1) and Linux (.sh) versions now available with identical functionality.
+
+### ✅ Testing & Verification
+- **Path Matching Tests:** Created `test-path-matching.js` to verify middleware path validation logic.
+- **Test Results:** All path matching tests pass for both scoped tokens and non-scoped onboarding flows.
+
+---
+*Last Updated: 2026-02-19*

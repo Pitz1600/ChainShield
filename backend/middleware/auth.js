@@ -46,20 +46,29 @@ module.exports = async (req, res, next) => {
     if (decoded.scope) {
       const allowedPaths = {
         'change_password': ['/api/auth/force-change-password'],
-        'setup_2fa': ['/api/auth/setup-2fa', '/api/auth/verify-setup-2fa'],
+        'setup_2fa': ['/api/auth/2fa/setup', '/api/auth/2fa/verify-setup'],
         'mfa_verification': ['/api/auth/verify-mfa'],
         'verify_email': ['/api/auth/verify-email', '/api/auth/resend-otp']
       };
 
-      // ALWAYS allow profile access to scoped tokens so frontend can read onboarding state/email
-      const allowed = [...(allowedPaths[decoded.scope] || []), '/api/auth/profile'];
-      // Simple path check - in production might need robust matching
-      const currentPath = req.originalUrl.split('?')[0];
+      // ALWAYS allow profile access and logout for scoped tokens
+      // Users must be able to logout regardless of onboarding state
+      const allowed = [...(allowedPaths[decoded.scope] || []), '/api/auth/profile', '/api/auth/logout'];
+      
+      // Get current path and normalize it (remove query string and trailing slash)
+      let currentPath = req.originalUrl.split('?')[0];
+      if (currentPath.endsWith('/') && currentPath !== '/') {
+        currentPath = currentPath.slice(0, -1);
+      }
+      
+      // Check if current path is in allowed routes
+      const isAllowed = allowed.includes(currentPath);
 
-      if (!allowed.includes(currentPath)) {
-        console.warn(`[AUTH-DEBUG] Blocked scoped token (${decoded.scope}) from path: ${currentPath}`);
+      if (!isAllowed) {
+        console.warn(`[AUTH-DEBUG] Blocked scoped token (${decoded.scope}) from path: ${currentPath}. Allowed: ${JSON.stringify(allowed)}`);
         return res.status(403).json({
           error: 'Account setup required',
+          onboardingRequired: true,
           scope: decoded.scope
         });
       }
@@ -82,9 +91,17 @@ module.exports = async (req, res, next) => {
         '/api/auth/profile' // Allow fetching profile to see what's needed
       ];
 
-      const currentPath = req.originalUrl.split('?')[0];
+      // Get current path and normalize it (remove query string and trailing slash)
+      let currentPath = req.originalUrl.split('?')[0];
+      if (currentPath.endsWith('/') && currentPath !== '/') {
+        currentPath = currentPath.slice(0, -1);
+      }
 
-      if (!onboardingRoutes.includes(currentPath)) {
+      // Check if current path is in allowed routes
+      const isAllowed = onboardingRoutes.includes(currentPath);
+
+      if (!isAllowed) {
+        console.warn(`[AUTH-DEBUG] Onboarding: Blocked path "${currentPath}" for user ${user.email}. Needs: pwd=${user.mustChangePassword}, 2fa=${user.mustSetup2FA}, verified=${user.isVerified}`);
         return res.status(403).json({
           error: 'Account setup required',
           onboardingRequired: true,
