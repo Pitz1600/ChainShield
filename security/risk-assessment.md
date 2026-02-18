@@ -29,9 +29,9 @@
 | Risk Level | Mitigation Strategy | Status |
 |------------|---------------------|--------|
 | Critical | Implement 2FA and OAuth secure flows | **COMPLETED** |
-| High | Enforce database TLS and hardening | **IN-PROGRESS** |
-| High | Implement tamper-resistant audit logs | **IN-PROGRESS** |
-| Medium | Generic login error messages | **PLANNED** |
+| High | Enforce database TLS and hardening | **COMPLETED** |
+| High | Implement tamper-resistant audit logs | **COMPLETED** |
+| Medium | Generic login error messages | **COMPLETED** |
 
 ## 5. Monthly Update Policy
 This risk assessment MUST be reviewed and updated on the **first Monday of every month** by the lead security engineer or system administrator. All changes must be recorded in the `update-log.md`.

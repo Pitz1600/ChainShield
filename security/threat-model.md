@@ -3,12 +3,12 @@
 ## 1. STRIDE Threat Categorization
 | Category | Threat | Mitigation |
 |----------|--------|------------|
-| Spoofing | Identity theft via credential leaking | 2FA, OAuth, Secure Passwords |
-| Tampering | Modifying transaction history | Database Isolation, Hashed Audit Logs |
+| Spoofing | Identity theft via credential leaking | 2FA, OAuth (Blocked for Admin), Secure Passwords |
+| Tampering | Modifying transaction history | Database Isolation, Tamper-Resistant Audit Logs (HMAC) |
 | Repudiation | Denying a suspicious transaction | Enhanced Audit Logging, Fixed Meta Data |
-| Information Disclosure | Harvesting user emails | Generic login errors (Anti-enumeration) |
+| Information Disclosure | Harvesting user emails | Generic login errors, Response Delays (500-900ms) |
 | Denial of Service | Brute force login flooding | Rate Limiting, IP Whitelisting |
-| Elevation of Privilege | Gaining admin access | Role-Based Access Control (RBAC) |
+| Elevation of Privilege | Gaining admin access | RBAC, Script-Only Admin Role Restriction |
 
 ## 2. OWASP Top 10 Mapping
 - **A01:2021-Broken Access Control:** Mitigation via RBAC and strict middleware.
