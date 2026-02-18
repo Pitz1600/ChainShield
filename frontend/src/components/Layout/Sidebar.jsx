@@ -68,11 +68,49 @@ function Sidebar({ user, activeView, setActiveView, onLogout, isMobileMenuOpen, 
   const menuItems = getMenuItems();
   const showNav = user?.isVerified;
 
+  const [showLogoutConfirm, setShowLogoutConfirm] = React.useState(false);
+
+  const handleLogoutClick = () => {
+    setShowLogoutConfirm(true);
+  };
+
+  const confirmLogout = () => {
+    setShowLogoutConfirm(false);
+    onLogout();
+  };
+
+  const cancelLogout = () => {
+    setShowLogoutConfirm(false);
+  };
+
   return (
     <>
       {/* Mobile overlay */}
       {isMobileMenuOpen && (
         <div className="sidebar-overlay" onClick={toggleMobileMenu}></div>
+      )}
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutConfirm && (
+        <div className="logout-modal-overlay">
+          <div className="logout-modal">
+            <div className="modal-icon-wrapper">
+              <LogOut size={32} />
+            </div>
+            <h3 className="modal-title">Confirm Logout</h3>
+            <p className="modal-message">
+              Are you sure you want to end your session? You will need to sign in again to access the portal.
+            </p>
+            <div className="modal-actions">
+              <button className="modal-btn btn-cancel" onClick={cancelLogout}>
+                Cancel
+              </button>
+              <button className="modal-btn btn-confirm" onClick={confirmLogout}>
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       <aside className={`sidebar ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
@@ -116,7 +154,7 @@ function Sidebar({ user, activeView, setActiveView, onLogout, isMobileMenuOpen, 
         </nav>
 
         <div className="sidebar-footer">
-          <button onClick={onLogout} className="logout-btn">
+          <button onClick={handleLogoutClick} className="logout-btn">
             <span><LogOut size={18} /></span>
             <span>Logout Portal</span>
           </button>

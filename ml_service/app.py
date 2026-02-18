@@ -5,6 +5,7 @@ Philippine Government Fraud Detection using Ensemble ML + Economic Data
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from functools import wraps
 import pandas as pd
 import numpy as np
 from sklearn.ensemble import IsolationForest
@@ -32,6 +33,25 @@ DATASETS_DIR.mkdir(exist_ok=True)
 
 app = Flask(__name__)
 CORS(app)
+
+# =========================
+# SECURITY FIX (V3): Internal API Authentication
+# Validates shared secret header on all prediction endpoints.
+# Set ML_API_SECRET in .env and pass it from the backend service.
+# =========================
+
+ML_API_SECRET = os.environ.get('ML_API_SECRET')
+
+def require_internal_auth(f):
+    """Decorator to validate internal shared-secret header."""
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if ML_API_SECRET:  # Only enforce if secret is configured
+            token = request.headers.get('X-Internal-Secret')
+            if not token or token != ML_API_SECRET:
+                return jsonify({'error': 'Unauthorized - invalid internal secret'}), 401
+        return f(*args, **kwargs)
+    return decorated
 
 # =========================
 # MODEL PATHS
@@ -128,6 +148,7 @@ def health():
 # =========================
 
 @app.route("/predict", methods=["POST"])
+@require_internal_auth  # SECURITY FIX (V3): Requires X-Internal-Secret header
 def predict():
     try:
         data = request.json or {}
@@ -229,6 +250,37 @@ def predict():
             "risk_level": "LOW",
             "isFraudulent": False
         }), 500
+
+@app.route("/train", methods=["POST"])
+@require_internal_auth
+def train():
+    try:
+        from ensemble_model import ensemble_detector as detector
+        from data_processing_pipeline import load_and_preprocess_training_data
+        
+        # 1. Load data
+        print("📥 Loading training data...")
+        X, y = load_and_preprocess_training_data()
+        
+        # 2. Train model
+        print("🚀 Retraining ensemble model...")
+        detector.train(X, y)
+        
+        # 3. Save new model
+        detector.save_models(MODELS_DIR)
+        
+        # 4. Reload global instances
+        global fraud_model, anomaly_model, explainer
+        initialize_models()
+        
+        return jsonify({
+            "success": True,
+            "message": "Model updated and reloaded successfully",
+            "timestamp": datetime.now().isoformat()
+        })
+    except Exception as e:
+        print(f"❌ Training failed: {e}")
+        return jsonify({"error": f"Training failed: {str(e)}"}), 500
 
 # =========================
 # FEATURE EXTRACTION

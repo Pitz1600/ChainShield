@@ -4,8 +4,6 @@ const BlacklistedToken = require('../models/BlacklistedToken');
 
 module.exports = async (req, res, next) => {
   try {
-
-
     // Try cookie first, then header (for backward compatibility or testing)
     let token = req.cookies?.token;
     if (!token) {
@@ -19,35 +17,50 @@ module.exports = async (req, res, next) => {
     // SECURITY: Check database blacklist
     const isBlacklisted = await BlacklistedToken.exists({ token });
     if (isBlacklisted) {
+      console.log('[AUTH-DEBUG] Token is blacklisted');
       // Clear invalid cookie
-      res.clearCookie('token');
+      res.clearCookie('token', { path: '/' });
       return res.status(401).json({ error: 'Session expired. Please log in again.' });
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log(`[AUTH-DEBUG] Token decoded for UserID: ${decoded.id}, Scope: ${decoded.scope || 'None'}`);
+
     const user = await User.findById(decoded.id);
 
-    if (!user || !user.isActive) {
+    if (!user) {
+      console.warn(`[AUTH-DEBUG] User not found in DB for ID: ${decoded.id}`);
       return res.status(401).json({ error: 'Authentication failed' });
     }
+
+    if (!user.isActive) {
+      console.warn(`[AUTH-DEBUG] User account is inactive: ${user.email}`);
+      return res.status(401).json({ error: 'Authentication failed' });
+    }
+
+    console.log(`[AUTH-DEBUG] User found: ${user.email}, Role: ${user.role}, 2FA: ${user.twoFactorEnabled}`);
+
+    req.user = user;
 
     // SECURITY: If this is a scoped onboarding token, only allow onboarding routes
     if (decoded.scope) {
       const allowedPaths = {
         'change_password': ['/api/auth/force-change-password'],
-        'setup_2fa': ['/api/auth/2fa/setup', '/api/auth/2fa/verify-setup']
+        'setup_2fa': ['/api/auth/setup-2fa', '/api/auth/verify-setup-2fa'],
+        'mfa_verification': ['/api/auth/verify-mfa'],
+        'verify_email': ['/api/auth/verify-email', '/api/auth/resend-otp']
       };
 
-      const allowed = allowedPaths[decoded.scope] || [];
+      // ALWAYS allow profile access to scoped tokens so frontend can read onboarding state/email
+      const allowed = [...(allowedPaths[decoded.scope] || []), '/api/auth/profile'];
       // Simple path check - in production might need robust matching
       const currentPath = req.originalUrl.split('?')[0];
 
       if (!allowed.includes(currentPath)) {
+        console.warn(`[AUTH-DEBUG] Blocked scoped token (${decoded.scope}) from path: ${currentPath}`);
         return res.status(403).json({
-          error: 'Access denied',
-          onboardingRequired: true,
-          mustChangePassword: user.mustChangePassword,
-          mustSetup2FA: user.mustSetup2FA
+          error: 'Account setup required',
+          scope: decoded.scope
         });
       }
     }

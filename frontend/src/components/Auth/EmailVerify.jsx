@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Shield, AlertCircle, CheckCircle, Mail, ChevronLeft } from 'lucide-react';
 import api from "../../services/api";
 import "../../styles/EmailVerify.css";

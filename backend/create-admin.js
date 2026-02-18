@@ -38,6 +38,9 @@ async function createAdmin() {
             mustSetup2FA: true,             // FORCED before dashboard access
         });
 
+        // Bypass security hook for authorized script
+        admin._allowAdminChange = true;
+
         await admin.save();
 
         console.log('');

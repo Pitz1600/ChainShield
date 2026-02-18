@@ -102,8 +102,8 @@ exports.updateUserRole = async (req, res) => {
         const { userId } = req.params;
         const { role } = req.body;
 
-        // Validate role
-        const validRoles = ['resident', 'barangay_official', 'administrator'];
+        // Validate role (SECURITY: Administrator role restricted to scripts only)
+        const validRoles = ['resident', 'barangay_official'];
         if (!validRoles.includes(role)) {
             return res.status(400).json({ error: 'Invalid role' });
         }
@@ -292,14 +292,19 @@ exports.getAuditLogs = async (req, res) => {
 
         const query = {};
 
+        // Filter by user (ID or name)
+        if (req.query.userId) {
+            query.userId = req.query.userId;
+        }
+
         // Filter by action
         if (req.query.action) {
             query.action = req.query.action;
         }
 
-        // Filter by suspicious
-        if (req.query.suspicious === 'true') {
-            query.isSuspicious = true;
+        // Specific View: Failed attempts
+        if (req.query.view === 'failed_attempts') {
+            query.action = { $in: ['login_failed', 'suspicious_login'] };
         }
 
         // Filter by date range (days)
@@ -364,6 +369,7 @@ exports.getAuditLogs = async (req, res) => {
 };
 /**
  * Create a new user (admin only)
+ * SECURITY: Cannot create administrators via UI
  */
 exports.createUser = async (req, res) => {
     try {
@@ -372,6 +378,11 @@ exports.createUser = async (req, res) => {
         // Basic validation
         if (!firstName || !lastName || !email || !password || !role) {
             return res.status(400).json({ error: 'All fields are required' });
+        }
+
+        // SECURITY: Block administrator creation via UI
+        if (role === 'administrator') {
+            return res.status(403).json({ error: 'Administrator accounts can only be created via authorized system scripts.' });
         }
 
         // Check for existing user

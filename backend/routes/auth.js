@@ -11,7 +11,8 @@ const {
 const {
     validateRegistration,
     validateLogin,
-    validateOTP
+    validateOTP,
+    validateTOTP
 } = require('../middleware/validators');
 
 // ==========================================
@@ -19,7 +20,8 @@ const {
 // ==========================================
 router.post('/register', registrationLimiter, validateRegistration, authController.register);
 router.post('/login', loginLimiter, validateLogin, authController.login);
-router.post('/verify-login-otp', loginLimiter, authController.verifyLoginOtp);
+router.post('/verify-login-otp', loginLimiter, validateOTP, authController.verifyLoginOtp);
+router.post('/verify-mfa', authMiddleware, otpVerificationLimiter, validateTOTP, authController.verifyMfa);
 router.post('/resend-login-otp', authMiddleware, otpResendLimiter, authController.resendLoginOtp);
 
 // Forgot / Reset Password (public, rate-limited)
@@ -39,6 +41,8 @@ router.post('/2fa/setup', authMiddleware, authController.setup2FA);
 router.post('/2fa/verify-setup', authMiddleware, authController.verifySetup2FA);
 router.post('/2fa/disable', authMiddleware, otpVerificationLimiter, authController.disable2FA);
 router.post('/2fa/reset', authMiddleware, otpVerificationLimiter, authController.reset2FA);
+router.get('/2fa/recovery-codes/count', authMiddleware, authController.getRecoveryCodeCount);
+router.post('/2fa/recovery-codes/regenerate', authMiddleware, otpVerificationLimiter, authController.regenerateRecoveryCodes);
 
 // ==========================================
 // EMAIL CHANGE (require auth + multi-step verification)

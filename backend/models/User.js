@@ -49,7 +49,18 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: true
+    required: false // Optional for OAuth users (Google SSO)
+  },
+  // OAuth / SSO fields
+  googleId: {
+    type: String,
+    sparse: true,  // allows null but enforces uniqueness when set
+    index: true
+  },
+  authProvider: {
+    type: String,
+    enum: ['local', 'google'],
+    default: 'local'
   },
   role: {
     type: String,
@@ -104,6 +115,17 @@ const userSchema = new mongoose.Schema({
   },
 
   // ==========================================
+  // Security Hardening (Account Lockout)
+  // ==========================================
+  failedLoginAttempts: {
+    type: Number,
+    default: 0
+  },
+  lockUntil: {
+    type: Date
+  },
+
+  // ==========================================
   // Email Change (dual OTP)
   // ==========================================
   pendingEmail: {
@@ -140,10 +162,20 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
-// SECURITY: Enforce 2FA for Administrators
+// SECURITY: Strictly control the 'administrator' role
 userSchema.pre('save', function (next) {
-  if (this.role === 'administrator' && !this.twoFactorEnabled) {
-    this.mustSetup2FA = true;
+  // Only intercept if the role is being changed TO administrator
+  if (this.isModified('role') && this.role === 'administrator') {
+    // SECURITY: Only allow if internal flag is set
+    // This flag should ONLY be set by specialized scripts or super-admin actions
+    if (!this._allowAdminChange) {
+      return next(new Error('Unauthorized: The administrator role can only be assigned via authorized system scripts.'));
+    }
+
+    // Force MFA setup for all admins
+    if (!this.twoFactorEnabled) {
+      this.mustSetup2FA = true;
+    }
   }
   next();
 });

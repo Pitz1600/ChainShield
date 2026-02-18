@@ -50,8 +50,14 @@ services:
       CONTRACT_ADDRESS: ${CONTRACT_ADDRESS}
       BLOCKCHAIN_ACCOUNT: ${BLOCKCHAIN_ACCOUNT}
       BLOCKCHAIN_PRIVATE_KEY: ${BLOCKCHAIN_PRIVATE_KEY}
+      REDIS_URL: redis://redis:6379
+      ML_API_SECRET: ${ML_API_SECRET}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GOOGLE_CALLBACK_URL: ${GOOGLE_CALLBACK_URL}
     depends_on:
       - mongodb
+      - redis
       - ml-service
       - graph-service
     volumes:
@@ -60,6 +66,26 @@ services:
     networks:
       - chainshield-network
     command: npm run dev
+
+  # =========================
+  # Redis (Rate Limiter Persistence)
+  # =========================
+  redis:
+    image: redis:7-alpine
+    container_name: chainshield-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    networks:
+      - chainshield-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # =========================
   # ML Service (Python)
@@ -154,3 +180,4 @@ volumes:
   ml_models:
   ml_datasets:
   ganache_data:
+  redis_data:

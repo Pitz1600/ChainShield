@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Shield, Smartphone, Copy, CheckCircle, AlertTriangle, ArrowRight } from 'lucide-react';
 import '../../styles/Login.css';
 import { authAPI } from '../../services/api';
@@ -13,9 +13,13 @@ function TwoFactorSetup({ onLogin, onNavigate, onLogout }) {
     const [loading, setLoading] = useState(false);
     const [copied, setCopied] = useState(false);
     const [codesAcknowledged, setCodesAcknowledged] = useState(false);
+    const initCalled = useRef(false);
 
     useEffect(() => {
-        initSetup();
+        if (!initCalled.current) {
+            initCalled.current = true;
+            initSetup();
+        }
     }, []);
 
     const initSetup = async () => {
@@ -25,7 +29,14 @@ function TwoFactorSetup({ onLogin, onNavigate, onLogout }) {
             setSecret(response.data.secret);
             setStep('scan');
         } catch (err) {
-            setError(err.response?.data?.error || 'Failed to initialize 2FA setup.');
+            const msg = err.response?.data?.error || '';
+            // If 2FA is already enabled (e.g. after a successful verify + page reload),
+            // skip straight to a done state instead of showing an error.
+            if (msg.toLowerCase().includes('already enabled')) {
+                setStep('done');
+            } else {
+                setError(msg || 'Failed to initialize 2FA setup.');
+            }
         }
     };
 
@@ -40,13 +51,11 @@ function TwoFactorSetup({ onLogin, onNavigate, onLogout }) {
 
             if (data.recoveryCodes) {
                 setRecoveryCodes(data.recoveryCodes);
+                setTotpCode(''); // clear input
                 setStep('recovery');
-
-                // Token cookie is updated by server if needed
-                // Just proceed to next step
-                // if (data.token) { ... }
             }
         } catch (err) {
+            setTotpCode(''); // clear so user can type a fresh code
             setError(err.response?.data?.error || 'Invalid code. Please try again.');
         } finally {
             setLoading(false);
@@ -248,6 +257,17 @@ function TwoFactorSetup({ onLogin, onNavigate, onLogout }) {
                         <div style={{ textAlign: 'center', padding: '3rem' }}>
                             <span className="spinner" style={{ display: 'inline-block', width: 40, height: 40 }}></span>
                             <p style={{ marginTop: '1rem', color: '#666' }}>Initializing 2FA setup...</p>
+                        </div>
+                    )}
+
+                    {step === 'done' && (
+                        <div style={{ textAlign: 'center', padding: '2rem' }}>
+                            <CheckCircle size={48} color="#22c55e" />
+                            <p style={{ marginTop: '1rem', color: '#374151', fontWeight: 600 }}>2FA is already enabled on your account.</p>
+                            <button className="submit-button" style={{ marginTop: '1.5rem' }} onClick={handleFinish}>
+                                <span>Go to Dashboard</span>
+                                <span className="button-icon"><ArrowRight size={18} /></span>
+                            </button>
                         </div>
                     )}
 

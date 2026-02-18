@@ -31,6 +31,27 @@ const PERMISSIONS = {
         'view_verification_results',
     ],
 
+    // SECURITY FIX (V1): Analyst permissions — read-only fraud investigation access
+    analyst: [
+        'view_public_records',
+        'track_transactions',
+        'view_analytics',
+        'view_fraud_cases',
+        'view_verification_results',
+    ],
+
+    // SECURITY FIX (V1): Investigator permissions — fraud investigation + reporting
+    investigator: [
+        'view_public_records',
+        'track_transactions',
+        'view_analytics',
+        'view_fraud_cases',
+        'view_verification_results',
+        'respond_complaints',
+        'validate_documents',
+        'generate_reports',
+    ],
+
     // Administrator permissions (includes all permissions)
     administrator: [
         'view_public_records',

@@ -5,8 +5,14 @@ const fs = require('fs');
 const path = require('path');
 const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
+const xss = require('xss');
+const cookieParser = require('cookie-parser');
+const passport = require('passport');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const connectDB = require('./config/database');
 const { apiLimiter } = require('./middleware/rateLimiter');
+const { csrfProtection, issueCsrfToken } = require('./middleware/csrfMiddleware');
+const { scheduleSecurityReviews } = require('./tasks/securityTasks');
 
 // Load environment variables
 dotenv.config();
@@ -57,13 +63,20 @@ const corsOptions = {
       process.env.FRONTEND_URL,
     ].filter(Boolean);
 
-    // Allow requests with no origin (mobile apps, Postman, etc.)
-    if (!origin) return callback(null, true);
+    // SECURITY FIX (V5): In production, reject requests with no Origin header.
+    // This prevents CORS bypass via Postman/curl in production environments.
+    // In development, allow for local testing convenience.
+    if (!origin) {
+      if (process.env.NODE_ENV === 'development') {
+        return callback(null, true);
+      }
+      return callback(new Error('Origin header required'));
+    }
 
-    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+    if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
-      console.log('Blocked by CORS:', origin); // Log blocked origin for debugging
+      console.warn('[CORS] Blocked request from origin:', origin);
       callback(new Error('Not allowed by CORS'));
     }
   },
@@ -82,7 +95,6 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(mongoSanitize());
 
 // XSS Protection - sanitize all string inputs in request body
-const xss = require('xss');
 const sanitizeInput = (obj) => {
   if (typeof obj === 'string') return xss(obj);
   if (Array.isArray(obj)) return obj.map(sanitizeInput);
@@ -110,19 +122,74 @@ app.use('/api/', apiLimiter);
 // SECURITY ENHANCEMENTS
 // ========================================
 
-const cookieParser = require('cookie-parser');
-// const csurf = require('csurf'); // REMOVED: Deprecated
-
-// Parse cookies
+// Parse cookies (required for CSRF double-submit cookie pattern)
 app.use(cookieParser());
 
-// CSRF Protection
-// We are using SameSite=Strict cookies which provides strong CSRF protection for modern browsers.
-// Deprecated `csurf` middleware has been removed.
+// ========================================
+// PASSPORT / OAUTH SETUP
+// ========================================
+
+// Configure Google OAuth 2.0 strategy
+if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+  passport.use(new GoogleStrategy({
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: process.env.GOOGLE_CALLBACK_URL || '/api/auth/google/callback',
+    scope: ['profile', 'email'],
+  }, (accessToken, refreshToken, profile, done) => {
+    // Attach profile to request — oauthController.googleCallback handles DB logic
+    return done(null, profile);
+  }));
+
+  // Minimal session serialization (we use JWT cookies, not Passport sessions)
+  passport.serializeUser((user, done) => done(null, user));
+  passport.deserializeUser((user, done) => done(null, user));
+
+  app.use(passport.initialize());
+  console.log('🔑 Google OAuth: Configured');
+} else {
+  console.warn('⚠️  Google OAuth: GOOGLE_CLIENT_ID/SECRET not set — OAuth disabled');
+}
+
+// ========================================
+// CSRF PROTECTION (Double-Submit Cookie)
+// ========================================
+app.use(csrfProtection);
 
 // ========================================
 // ROUTES
 // ========================================
+
+// CSRF token endpoint (public — must be before CSRF protection is applied to routes)
+app.get('/api/auth/csrf-token', issueCsrfToken);
+
+// OAuth routes (Passport redirects — no CSRF needed, handled by csrfMiddleware path exclusion)
+const oauthController = require('./controllers/oauthController');
+if (process.env.GOOGLE_CLIENT_ID) {
+  app.get('/api/auth/google',
+    passport.authenticate('google', { scope: ['profile', 'email'], session: false })
+  );
+  app.get('/api/auth/google/callback',
+    (req, res, next) => {
+      passport.authenticate('google', { session: false }, (err, profile) => {
+        if (err || !profile) {
+          // Clear any existing auth cookie so a stale session can't auto-login
+          // after the user cancels or the OAuth flow fails.
+          res.clearCookie('token', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+          });
+          return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}?error=oauth_failed`);
+        }
+        req.oauthProfile = profile;
+        next();
+      })(req, res, next);
+    },
+    oauthController.googleCallback
+  );
+}
+
 app.use('/api/transactions', require('./routes/transactions'));
 app.use('/api/alerts', require('./routes/alerts'));
 app.use('/api/auth', require('./routes/auth'));
@@ -175,7 +242,10 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`🛡️  ChainShield Backend running on port ${PORT}`);
-  console.log(`📧 Email Service: ${process.env.SMTP_HOST ? 'Configured' : 'Development mode (console logging)'}`);
+  console.log(`🛡️  ChainShield Backend running on port ${PORT} `);
+  console.log(`📧 Email Service: ${process.env.SMTP_HOST ? 'Configured' : 'Development mode (console logging)'} `);
   console.log(`🔒 Security: Helmet, CORS, Rate Limiting, Input Sanitization enabled`);
+
+  // Initialize automated security tasks
+  scheduleSecurityReviews();
 });
