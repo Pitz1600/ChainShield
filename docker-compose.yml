@@ -11,6 +11,8 @@ services:
       - "27017:27017"
     environment:
       MONGO_INITDB_DATABASE: chainshield
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
     volumes:
       - mongodb_data:/data/db
     networks:
@@ -28,11 +30,22 @@ services:
     ports:
       - "5000:5000"
     environment:
-      NODE_ENV: development
-      MONGODB_URI: mongodb://mongodb:27017/chainshield
+      NODE_ENV: ${NODE_ENV:-development}
+      MONGODB_URI: ${MONGODB_URI}
       JWT_SECRET: ${JWT_SECRET}
-      ML_SERVICE_URL: http://ml-service:5001
-      GRAPH_SERVICE_URL: http://graph-service:5002
+      JWT_EXPIRE: ${JWT_EXPIRE}
+      TOTP_ENCRYPTION_KEY: ${TOTP_ENCRYPTION_KEY}
+      BACKUP_ENCRYPTION_KEY: ${BACKUP_ENCRYPTION_KEY}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_SECURE: ${SMTP_SECURE}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+      EMAIL_FROM: ${EMAIL_FROM}
+      EMAIL_FROM_NAME: ${EMAIL_FROM_NAME}
+      FRONTEND_URL: ${FRONTEND_URL}
+      ML_SERVICE_URL: ${ML_SERVICE_URL}
+      GRAPH_SERVICE_URL: ${GRAPH_SERVICE_URL}
       BLOCKCHAIN_RPC_URL: ${BLOCKCHAIN_RPC_URL}
       CONTRACT_ADDRESS: ${CONTRACT_ADDRESS}
       BLOCKCHAIN_ACCOUNT: ${BLOCKCHAIN_ACCOUNT}
@@ -96,7 +109,7 @@ services:
     ports:
       - "5173:5173"
     environment:
-      - VITE_API_URL=http://localhost:5000/api
+      - VITE_API_URL=/api
     volumes:
       - ./frontend:/app
       - /app/node_modules

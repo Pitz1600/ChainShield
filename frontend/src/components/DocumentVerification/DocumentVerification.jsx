@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { AlertTriangle, CheckCircle, XCircle, Info, FileText } from 'lucide-react';
+import { AlertTriangle, CheckCircle, XCircle, Info, FileText, Paperclip } from 'lucide-react';
+import api from '../../services/api';
 import { isOfficial } from '../../utils/permissions';
 import '../../styles/DocumentVerification.css';
 
@@ -44,37 +45,23 @@ function DocumentVerification({ user }) {
             setError(null);
             setResult(null);
 
-            const token = localStorage.getItem('token');
-
             // For now, we'll just send the document ID
             // In a real implementation, you'd also hash the file and send it
-            const response = await fetch('http://localhost:5000/api/datagovph/scan', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    documentId: documentId,
-                    documentType: 'government_document'
-                })
+            const response = await api.post('/datagovph/scan', {
+                documentId: documentId,
+                documentType: 'government_document'
             });
 
-            if (response.ok) {
-                const data = await response.json();
-                setResult({
-                    verified: data.verified || false,
-                    status: data.verified ? 'Authentic' : 'Not Found',
-                    message: data.message || 'Document verification completed',
-                    details: data.details || {},
-                    blockchainHash: data.blockchainHash || null
-                });
-            } else {
-                const errorData = await response.json();
-                setError(errorData.error || 'Verification failed');
-            }
+            const data = response.data;
+            setResult({
+                verified: data.verified || false,
+                status: data.verified ? 'Authentic' : 'Not Found',
+                message: data.message || 'Document verification completed',
+                details: data.details || {},
+                blockchainHash: data.blockchainHash || null
+            });
         } catch (err) {
-            setError('Error verifying document: ' + err.message);
+            setError('Error verifying document: ' + (err.response?.data?.error || err.message));
         } finally {
             setVerifying(false);
         }
@@ -122,7 +109,7 @@ function DocumentVerification({ user }) {
                         />
                         {file && (
                             <div className="file-info">
-                                <span>📎 {file.name}</span>
+                                <span><Paperclip size={16} /> {file.name}</span>
                                 <span className="file-size">({(file.size / 1024).toFixed(2)} KB)</span>
                             </div>
                         )}

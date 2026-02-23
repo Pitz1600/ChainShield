@@ -5,10 +5,19 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   server: {
-    host: 'localhost',
+    host: true, // Listen on all addresses
     port: 5173,
     strictPort: true,
-    open: false
+    watch: {
+      usePolling: true
+    },
+    proxy: {
+      '/api': {
+        target: 'http://chainshield-backend:5000',
+        changeOrigin: true,
+        secure: false,
+      }
+    }
   },
   build: {
     target: 'es2015',

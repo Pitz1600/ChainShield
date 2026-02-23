@@ -14,7 +14,39 @@ const auditLogSchema = new mongoose.Schema({
             'feedback_flagged',
             'feedback_removed',
             'model_retrained',
-            'analyst_rate_limited'
+            'analyst_rate_limited',
+            // User Actions
+            'user_login',
+            'user_login_otp',
+            'user_register',
+            'user_verified',
+            'user_logout',
+            'login_failed',
+            // 2FA Actions
+            'totp_setup',
+            'totp_disabled',
+            // Device Actions
+            'new_device_detected',
+            'device_added',
+            'suspicious_login',
+            // Email Change
+            'email_change_attempt',
+            'email_changed',
+            // Password Actions
+            'forced_password_change',
+            'password_reset_requested',
+            'password_reset_completed',
+            'password_changed',
+            // Admin Actions
+            'admin_invite',
+            'admin_update_user_role',
+            'admin_deactivate_user',
+            'admin_activate_user',
+            'admin_update_user',
+            'admin_create_user',
+            'admin_delete_user',
+            // System Actions
+            'db_reset'
         ],
         required: true,
         index: true

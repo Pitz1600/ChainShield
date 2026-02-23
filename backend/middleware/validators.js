@@ -26,11 +26,31 @@ const handleValidationErrors = (req, res, next) => {
  * Registration validation
  */
 const validateRegistration = [
-    body('username')
+    body('firstName')
         .trim()
-        .notEmpty().withMessage('Full name is required')
-        .isLength({ min: 2, max: 100 }).withMessage('Name must be between 2 and 100 characters')
-        .matches(/^[a-zA-Z\s\-\.]+$/).withMessage('Name can only contain letters, spaces, hyphens, and periods'),
+        .notEmpty().withMessage('First name is required')
+        .isLength({ min: 1, max: 50 }).withMessage('First name must be between 1 and 50 characters')
+        .matches(/^[a-zA-Z\s\-\.]+$/).withMessage('First name can only contain letters, spaces, hyphens, and periods'),
+
+    body('lastName')
+        .trim()
+        .notEmpty().withMessage('Last name is required')
+        .isLength({ min: 1, max: 50 }).withMessage('Last name must be between 1 and 50 characters')
+        .matches(/^[a-zA-Z\s\-\.]+$/).withMessage('Last name can only contain letters, spaces, hyphens, and periods'),
+
+    body('birthday')
+        .optional({ nullable: true, checkFalsy: true })
+        .isISO8601().withMessage('Birthday must be a valid date')
+        .custom((value) => {
+            if (value) {
+                const birthDate = new Date(value);
+                const today = new Date();
+                if (birthDate > today) {
+                    throw new Error('Birthday cannot be in the future');
+                }
+            }
+            return true;
+        }),
 
     body('email')
         .trim()
@@ -110,10 +130,15 @@ const validateAdminCreation = [
         .isEmail().withMessage('Invalid email format')
         .normalizeEmail(),
 
-    body('username')
+    body('firstName')
         .trim()
-        .notEmpty().withMessage('Full name is required')
-        .isLength({ min: 2, max: 100 }).withMessage('Name must be between 2 and 100 characters'),
+        .notEmpty().withMessage('First name is required')
+        .isLength({ min: 1, max: 50 }).withMessage('First name must be between 1 and 50 characters'),
+
+    body('lastName')
+        .trim()
+        .notEmpty().withMessage('Last name is required')
+        .isLength({ min: 1, max: 50 }).withMessage('Last name must be between 1 and 50 characters'),
 
     handleValidationErrors
 ];

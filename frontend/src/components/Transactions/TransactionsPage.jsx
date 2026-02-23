@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AlertTriangle, List, FileText } from 'lucide-react';
+import api from '../../services/api';
 import AlertsManagement from '../Alerts/AlertsManagement';
 import MyTransactions from './MyTransactions';
 import '../../styles/TransactionsPage.css';
@@ -16,25 +17,13 @@ function TransactionsPage({ user }) {
 
     const fetchCounts = async () => {
         try {
-            const token = localStorage.getItem('token');
-
             // Fetch alert count
-            const alertsResponse = await fetch('http://localhost:5000/api/transactions/alerts', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (alertsResponse.ok) {
-                const alertsData = await alertsResponse.json();
-                setAlertCount(alertsData.alerts?.length || 0);
-            }
+            const alertsResponse = await api.get('/transactions/alerts');
+            setAlertCount(alertsResponse.data.alerts?.length || 0);
 
             // Fetch history count
-            const historyResponse = await fetch('http://localhost:5000/api/transactions/my-transactions', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (historyResponse.ok) {
-                const historyData = await historyResponse.json();
-                setHistoryCount(historyData.transactions?.length || 0);
-            }
+            const historyResponse = await api.get('/transactions/my-transactions');
+            setHistoryCount(historyResponse.data.count || 0);
         } catch (error) {
             console.error('Error fetching counts:', error);
         }

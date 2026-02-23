@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Mail, AlertTriangle, AlertCircle, TrendingUp, CheckCircle } from 'lucide-react';
+import { Mail, AlertTriangle, AlertCircle, TrendingUp, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import api from '../../services/api';
 import '../../styles/Dashboard.css';
 import '../../styles/ColorfulIcons.css';
@@ -16,50 +16,13 @@ function Dashboard({ user, onNavigate }) { // Ensure onNavigate is destructured
   const [currentPage, setCurrentPage] = useState(1);
   const alertsPerPage = 5;
 
-  // Add handleVerificationClick logic
-  const handleVerificationClick = async () => {
-    try {
-      await api.post('/auth/resend-otp');
-      // Backend logs OTP to console as per requirement
-    } catch (error) {
-      console.error('Failed to resend OTP:', error);
-    }
-    onNavigate('email-verify', user);
-  };
-
-  // Add unverified user barrier
-  if (!user?.isVerified) {
+  // Add user existence check
+  if (!user) {
     return (
       <div className="dashboard-container" style={{ alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
-        <div style={{ textAlign: 'center', padding: '3rem', background: 'white', borderRadius: '12px', boxShadow: 'var(--shadow-md)', maxWidth: '500px' }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}><Mail size={48} color="#3b82f6" /></div>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: '700', color: 'var(--primary-blue)', marginBottom: '0.5rem' }}>
-            Verify Your Email
-          </h2>
-          <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', lineHeight: '1.6' }}>
-            <strong style={{ color: 'var(--text-primary)' }}>{user.username}</strong>, verify your email address to continue.<br />
-            We sent a code to <strong style={{ color: 'var(--text-primary)' }}>{user.email}</strong>.
-          </p>
-          <button
-            className="btn-primary" // Assuming btn-primary exists or inline styles needed
-            onClick={handleVerificationClick}
-            style={{
-              width: '100%',
-              justifyContent: 'center',
-              display: 'inline-flex',
-              alignItems: 'center',
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#3b82f6',
-              color: 'white',
-              border: 'none',
-              borderRadius: '0.5rem',
-              fontSize: '1rem',
-              fontWeight: '600',
-              cursor: 'pointer'
-            }}
-          >
-            Go to Verification Page
-          </button>
+        <div style={{ textAlign: 'center', padding: '3rem' }}>
+          <div style={{ width: '50px', height: '50px', border: '4px solid #e2e8f0', borderTopColor: '#3b82f6', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto' }}></div>
+          <p style={{ marginTop: '1rem', color: '#64748b' }}>Loading user data...</p>
         </div>
       </div>
     );
@@ -72,36 +35,30 @@ function Dashboard({ user, onNavigate }) { // Ensure onNavigate is destructured
 
   const fetchDashboardData = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const response = await api.get('/transactions/alerts?limit=20');
+      const data = response.data;
 
-      const response = await fetch('http://localhost:5000/api/transactions/alerts?limit=20', {
-        headers: { 'Authorization': `Bearer ${token}` }
+      const formattedAlerts = data.alerts.map(alert => ({
+        id: alert._id,
+        severity: getSeverity(alert.riskScore),
+        type: alert.fraudPatterns?.[0]?.type || 'Risk Detected',
+        transactionType: alert.transactionType,
+        agency: alert.agency,
+        score: alert.riskScore,
+        time: getTimeAgo(alert.timestamp)
+      }));
+      setRecentAlerts(formattedAlerts);
+
+      const critical = data.alerts.filter(a => a.riskScore >= 80).length;
+      const high = data.alerts.filter(a => a.riskScore >= 60 && a.riskScore < 80).length;
+      const medium = data.alerts.filter(a => a.riskScore >= 40 && a.riskScore < 60).length;
+
+      setStats({
+        total: data.count || formattedAlerts.length,
+        critical,
+        high,
+        medium
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        const formattedAlerts = data.alerts.map(alert => ({
-          id: alert._id,
-          severity: getSeverity(alert.riskScore),
-          type: alert.fraudPatterns?.[0]?.type || 'Risk Detected',
-          transactionType: alert.transactionType,
-          agency: alert.agency,
-          score: alert.riskScore,
-          time: getTimeAgo(alert.timestamp)
-        }));
-        setRecentAlerts(formattedAlerts);
-
-        const critical = data.alerts.filter(a => a.riskScore >= 80).length;
-        const high = data.alerts.filter(a => a.riskScore >= 60 && a.riskScore < 80).length;
-        const medium = data.alerts.filter(a => a.riskScore >= 40 && a.riskScore < 60).length;
-
-        setStats({
-          total: data.count || 0,
-          critical,
-          high,
-          medium
-        });
-      }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     }
@@ -109,15 +66,8 @@ function Dashboard({ user, onNavigate }) { // Ensure onNavigate is destructured
 
   const fetchInflationRate = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/analytics/inflation/current', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setInflationRate(data.data.rate);
-      }
+      const response = await api.get('/analytics/inflation/current');
+      setInflationRate(response.data.data.rate);
     } catch (error) {
       console.error('Error fetching inflation rate:', error);
       // Set default if API fails
@@ -253,7 +203,7 @@ function Dashboard({ user, onNavigate }) { // Ensure onNavigate is destructured
                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}
               >
-                ←
+                <ChevronLeft size={16} />
               </button>
               <span className="pagination-text-small">
                 {currentPage} / {totalPages}
@@ -263,7 +213,7 @@ function Dashboard({ user, onNavigate }) { // Ensure onNavigate is destructured
                 onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                 disabled={currentPage === totalPages}
               >
-                →
+                <ChevronRight size={16} />
               </button>
             </div>
           )}

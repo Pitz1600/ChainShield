@@ -3,7 +3,11 @@ import Welcome from './components/Auth/Welcome';
 import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
 import EmailVerify from './components/Auth/EmailVerify';
+import TwoFactorSetup from './components/Auth/TwoFactorSetup';
+import ForcePasswordChange from './components/Auth/ForcePasswordChange';
+import ResetPassword from './components/Auth/ResetPassword';
 import MainLayout from './components/Layout/MainLayout';
+import IdleTimer from './components/Auth/IdleTimer';
 import { authAPI } from './services/api';
 
 function App() {
@@ -14,61 +18,56 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check for existing authentication on mount
-    const checkAuth = () => {
-      const token = localStorage.getItem('token');
-      const userData = localStorage.getItem('user');
+    // Check for existing authentication on mount via API (cookie)
+    const checkAuth = async () => {
+      try {
+        const response = await authAPI.getProfile();
+        const userData = response.data;
 
-      if (token && userData) {
-        try {
-          const parsedUser = JSON.parse(userData);
+        if (userData.mustChangePassword) {
+          setPendingUser(userData);
+          setView('force-change-password');
+        } else if (userData.mustSetup2FA || (userData.role === 'administrator' && !userData.twoFactorEnabled)) {
+          setPendingUser(userData);
+          setView('setup-2fa');
+        } else if (!userData.isVerified) {
+          setPendingUser(userData);
+          setView('email-verify');
+        } else {
           setIsAuthenticated(true);
-          setUser(parsedUser);
+          setUser(userData);
           setView('dashboard');
-        } catch (error) {
-          console.error('Error parsing user data:', error);
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
         }
+      } catch (error) {
+        // Not authenticated or session expired
+        // localStorage.removeItem('user'); // Optional clean up
+        setView('welcome');
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
     checkAuth();
   }, []);
 
   const handleLogin = (token, userData) => {
-    localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify(userData));
+    // token arg is ignored/deprecated as it is in cookie now
+    // userData might be passed directly, or second arg
+    const userObj = userData || token; // Handle if called with (null, userData) or just (userData)
+
+    localStorage.setItem('user', JSON.stringify(userObj));
     setIsAuthenticated(true);
-    setUser(userData);
+    setUser(userObj);
     setView('dashboard');
   };
 
   const handleLogout = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      // Use direct fetch to ensure token is sent even if api interceptor has issues
-      // and to ensure we wait for it properly.
-      if (token) {
-        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-        await fetch(`${API_URL}/auth/logout`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-      }
-    } catch (error) {
-      console.error('Logout failed:', error);
-    } finally {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      setIsAuthenticated(false);
-      setUser(null);
-      setPendingUser(null);
-      setView('welcome');
-    }
+    try { await authAPI.logout(); } catch { }
+    // localStorage.removeItem('token'); // No longer used
+    localStorage.removeItem('user');
+    setIsAuthenticated(false);
+    setUser(null);
+    setPendingUser(null);
+    setView('welcome');
   };
 
   const handleNavigate = (newView, data = null) => {
@@ -92,7 +91,20 @@ function App() {
   if (view === 'login') return <Login onLogin={handleLogin} onNavigate={handleNavigate} />;
   if (view === 'register') return <Register onRegister={handleLogin} onNavigate={handleNavigate} />;
   if (view === 'email-verify') return <EmailVerify user={pendingUser} onNavigate={handleNavigate} onLogin={handleLogin} />;
-  if (isAuthenticated && view === 'dashboard') return <MainLayout user={user} onLogout={handleLogout} onNavigate={handleNavigate} />;
+  if (view === 'force-change-password') return <ForcePasswordChange onNavigate={handleNavigate} onLogout={handleLogout} />;
+  if (view === 'setup-2fa') return <TwoFactorSetup onLogin={handleLogin} onNavigate={handleNavigate} onLogout={handleLogout} />;
+  if (view === 'reset-password') return <ResetPassword onNavigate={handleNavigate} />;
+  if (isAuthenticated && view === 'dashboard') {
+    return (
+      <>
+        <IdleTimer onIdle={() => {
+          alert('Session expired due to inactivity.');
+          handleLogout();
+        }} />
+        <MainLayout user={user} onLogout={handleLogout} onNavigate={handleNavigate} />
+      </>
+    );
+  }
 
   return <Welcome onNavigate={handleNavigate} />;
 }

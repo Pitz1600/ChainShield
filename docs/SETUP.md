@@ -19,44 +19,61 @@ Complete installation and configuration guide for ChainShield **Machine Learning
 
 ---
 
-## ⚡ Quick Setup with Docker (1 Minute!)
+## ⚡ Clean Setup on a New PC (Docker Recommended)
 
-### 1. Install Docker Desktop
-Download and install from: https://www.docker.com/products/docker-desktop
+Follow these steps for a fresh installation where you do not need to migrate old data.
 
-### 2. Start ChainShield
-Open terminal in project folder:
+### 1. Prerequisites
+- **Docker Desktop**: [Download and Install](https://www.docker.com/products/docker-desktop)
+- **Git**: [Download and Install](https://git-scm.com/)
 
-```powershell
-# Start entire system with one command!
-docker-compose up
+### 2. Prepare the Environment
+Open your terminal (PowerShell or Bash) and run:
+
+```bash
+# 1. Clone the repository (if you haven't)
+git clone https://github.com/your-repo/ChainShield.git
+cd ChainShield
+
+# 2. Create your unique environment file
+cp .env.example .env
 ```
 
-**That's it!** 🎉 Docker will:
-- Install all dependencies automatically
-- Start MongoDB
-- Start Backend API
-- Start ML Service (with integrity monitoring)
-- Start Graph Service
-- Start Frontend
+### 3. Generate Your Security Keys (CRITICAL)
+Open the `.env` file in a text editor (Notepad, VS Code, etc.). You **must** generate fresh, unique keys for your new PC. Run these commands in your terminal and paste the results into `.env`:
 
-### 3. Access Application
+*   **JWT Secret** (Authentication):
+    `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
+*   **TOTP Key** (2FA Storage):
+    `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
+*   **Backup Key** (At-Rest Encryption):
+    `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
 
-Open browser: **http://localhost:5173**
+> [!IMPORTANT]
+> Paste these 64-character hex strings into the corresponding fields in your `.env` file. These keys are unique to **this** installation.
 
-**Default Admin Credentials:**
-- Email: `admin@chainshield.com`
-- Password: `admin123`
-
-### 4. Stop System
-
-```powershell
-# Press Ctrl+C in terminal
-# Or run:
-docker-compose down
+### 4. Launch the System
+```bash
+docker compose up -d --build
 ```
+*Wait for all containers to show "Started" or "Running" in Docker Desktop.*
 
----
+### 5. Create Your First Administrator
+Because the system is hardened, there is no "default" admin. You must create one manually for your new PC:
+
+```bash
+docker exec -it chainshield-backend node scripts/create-admin.js
+```
+**Take note of the generated temporary password displayed in the terminal!**
+
+### 6. Access & Secure
+1. Open **http://localhost:5173**
+2. Login with your email and the **temporary password**.
+3. The system will immediately force you to:
+   - Create a new, permanent password.
+   - Set up your **2FA (Email OTP)**.
+
+**Setup Complete!** 🎉 You are now the master of a fresh, secured ChainShield instance.
 
 ## 🔧 Manual Setup (Alternative Method)
 
@@ -82,27 +99,31 @@ cd ../graph_service
 pip install -r requirements.txt
 ```
 
-### 2. Configure Backend
-
-Create `backend/.env`:
+### 2. Configure Environment
+Create a `.env` file in the **project root** (copy from `.env.example`):
 ```env
+# Core API Settings
 PORT=5000
 MONGODB_URI=mongodb://localhost:27017/chainshield
-JWT_SECRET=your-secret-key-change-this
+JWT_SECRET=your_secure_random_string
 
-# Services
+# Security Keys (64 hex characters)
+TOTP_ENCRYPTION_KEY=your_generated_64_hex_key
+BACKUP_ENCRYPTION_KEY=your_generated_64_hex_key
+
+# Service URLs
 ML_SERVICE_URL=http://localhost:5001
 GRAPH_SERVICE_URL=http://localhost:5002
 
-# Blockchain (optional - set to 'none' to disable)
-BLOCKCHAIN_RPC_URL=none
+# SMTP for OTPs
+SMTP_USER=your-email@gmail.com
+SMTP_PASS=your-app-password
 ```
 
 ### 3. Create Admin User
-
 ```powershell
 cd backend
-node seedAdmin.js
+node create-admin.js
 ```
 
 ### 4. Start All Services

@@ -4,6 +4,7 @@ const multer = require('multer');
 const path = require('path');
 const auth = require('../middleware/auth');
 const Complaint = require('../models/Complaint');
+const { encryptFile } = require('../utils/encryption');
 
 // Configure multer for file upload
 const storage = multer.diskStorage({
@@ -33,26 +34,71 @@ const upload = multer({
     }
 });
 
+const { body, validationResult } = require('express-validator');
+const xss = require('xss');
+
+// Validation rules for complaint submission
+const validateComplaint = [
+    body('category')
+        .isIn([
+            'Infrastructure',
+            'Public Services',
+            'Health & Sanitation',
+            'Peace & Order',
+            'Environmental',
+            'Corruption/Irregularity',
+            'Other'
+        ])
+        .withMessage('Invalid category'),
+    body('subject')
+        .trim()
+        .notEmpty()
+        .withMessage('Subject is required')
+        .isLength({ max: 200 })
+        .withMessage('Subject must be less than 200 characters'),
+    body('description')
+        .trim()
+        .notEmpty()
+        .withMessage('Description is required')
+];
+
 // Submit a new complaint
-router.post('/', auth, upload.array('attachments', 5), async (req, res) => {
+router.post('/', auth, upload.array('attachments', 5), validateComplaint, async (req, res) => {
+    // Check for validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+
     try {
         const { category, subject, description, location, anonymous } = req.body;
 
-        // Validation
-        if (!category || !subject || !description) {
-            return res.status(400).json({ error: 'Category, subject, and description are required' });
-        }
+        // XSS Sanitization
+        const sanitizedSubject = xss(subject);
+        const sanitizedDescription = xss(description);
+        const sanitizedLocation = location ? xss(location) : '';
 
-        // Get file paths
-        const attachments = req.files ? req.files.map(file => file.path) : [];
+        // Get file paths and encrypt them
+        const attachments = [];
+        if (req.files && req.files.length > 0) {
+            for (const file of req.files) {
+                try {
+                    const encryptedPath = await encryptFile(file.path);
+                    attachments.push(encryptedPath);
+                } catch (err) {
+                    console.error(`Failed to encrypt attachment ${file.path}:`, err);
+                    // Continue with other files or handle error
+                }
+            }
+        }
 
         const complaint = new Complaint({
             userId: anonymous === 'true' ? null : req.user.userId,
             userEmail: anonymous === 'true' ? null : req.user.email,
             category,
-            subject,
-            description,
-            location,
+            subject: sanitizedSubject,
+            description: sanitizedDescription,
+            location: sanitizedLocation,
             anonymous: anonymous === 'true',
             attachments,
             status: 'pending',

@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Shield, AlertCircle, CheckCircle } from 'lucide-react';
+import { Shield, AlertCircle, CheckCircle, Mail, ChevronLeft } from 'lucide-react';
 import api from "../../services/api";
 import "../../styles/EmailVerify.css";
 
@@ -8,7 +8,18 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [resendCooldown, setResendCooldown] = useState(0);
   const inputRefs = useRef([]);
+
+  useEffect(() => {
+    let timer;
+    if (resendCooldown > 0) {
+      timer = setInterval(() => {
+        setResendCooldown((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
 
   const handleChange = (element, index) => {
     if (isNaN(element.value)) return false;
@@ -19,6 +30,27 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
     if (element.value && index < 5) {
       inputRefs.current[index + 1].focus();
     }
+  };
+
+  const handlePaste = (e) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData('text').trim();
+
+    // Only accept 6-digit numeric codes
+    if (!/^\d{6}$/.test(pastedData)) {
+      setError('Please paste a valid 6-digit code');
+      return;
+    }
+
+    // Distribute the pasted digits across all inputs
+    const digits = pastedData.split('');
+    setOtp(digits);
+
+    // Focus the last input
+    inputRefs.current[5].focus();
+
+    // Clear any previous errors
+    setError('');
   };
 
   const handleKeyDown = (e, index) => {
@@ -47,21 +79,24 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
 
       if (res.data.success) {
         setSuccess("Email verified successfully!");
-        setTimeout(() => {
-          const token = localStorage.getItem('token');
-          onLogin(token, { ...user, isVerified: true });
+        setTimeout(async () => {
+          try {
+            // Fetch fresh profile to ensure we have the latest status
+            const profileRes = await api.get('/auth/profile');
+            onLogin(null, profileRes.data);
+          } catch (err) {
+            console.error("Failed to refresh profile:", err);
+            // Fallback: just redirect to login to force a refresh
+            onNavigate('login');
+          }
         }, 1500);
       }
     } catch (err) {
-      setError(
-        err.response?.data?.message || "Invalid or expired OTP."
-      );
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleResendOtp = async () => {
+    if (resendCooldown > 0) return;
     setError("");
     setSuccess("");
 
@@ -69,9 +104,10 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
       await api.post("/auth/resend-otp");
       setSuccess("A new OTP has been sent to your email.");
       setOtp(new Array(6).fill(""));
-      inputRefs.current[0].focus();
-    } catch {
-      setError("Failed to resend OTP. Please try again.");
+      if (inputRefs.current[0]) inputRefs.current[0].focus();
+      setResendCooldown(60);
+    } catch (err) {
+      setError(err.response?.data?.error || "Failed to resend OTP. Please try again.");
     }
   };
 
@@ -88,7 +124,7 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
 
           <div className="sidebar-illustration">
             <div className="illustration-circle"></div>
-            <div className="illustration-icon">📧</div>
+            <div className="illustration-icon"><Mail size={64} /></div>
           </div>
 
           <div className="sidebar-info">
@@ -104,7 +140,7 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
       <div className="auth-main">
         <div className="auth-content">
           <button className="back-button" onClick={() => onNavigate("welcome")}>
-            ← Back to Home
+            <ChevronLeft size={16} style={{ marginRight: '4px' }} /> Back to Home
           </button>
 
           <div className="auth-header">
@@ -146,6 +182,7 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
                   onChange={(e) => handleChange(e.target, index)}
                   onKeyDown={(e) => handleKeyDown(e, index)}
                   onFocus={(e) => e.target.select()}
+                  onPaste={index === 0 ? handlePaste : undefined}
                 />
               ))}
             </div>
@@ -178,9 +215,9 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
               <button
                 className="resend-link"
                 onClick={handleResendOtp}
-                disabled={loading}
+                disabled={loading || resendCooldown > 0}
               >
-                Resend code
+                {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend code'}
               </button>
             </p>
           </div>

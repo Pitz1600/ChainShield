@@ -32,7 +32,8 @@ exports.getAllUsers = async (req, res) => {
             users: usersWithDates
         });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('[Admin getAllUsers Error]', error.message);
+        res.status(500).json({ error: 'Something went wrong' });
     }
 };
 
@@ -46,7 +47,7 @@ exports.inviteAdmin = async (req, res) => {
         // Check if user already exists
         const existingUser = await User.findOne({ email });
         if (existingUser) {
-            return res.status(400).json({ error: 'User with this email already exists' });
+            return res.status(400).json({ error: 'Request denied. Please try again.' });
         }
 
         // Generate secure invitation token
@@ -88,7 +89,8 @@ exports.inviteAdmin = async (req, res) => {
             throw new Error('Failed to send invitation email');
         }
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('[Admin inviteAdmin Error]', error.message);
+        res.status(500).json({ error: 'Something went wrong' });
     }
 };
 
@@ -130,7 +132,8 @@ exports.updateUserRole = async (req, res) => {
             }
         });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('[Admin updateUserRole Error]', error.message);
+        res.status(500).json({ error: 'Something went wrong' });
     }
 };
 
@@ -159,7 +162,8 @@ exports.deactivateUser = async (req, res) => {
             message: 'User deactivated successfully'
         });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('[Admin deactivateUser Error]', error.message);
+        res.status(500).json({ error: 'Something went wrong' });
     }
 };
 
@@ -183,7 +187,8 @@ exports.activateUser = async (req, res) => {
             message: 'User activated successfully'
         });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('[Admin activateUser Error]', error.message);
+        res.status(500).json({ error: 'Something went wrong' });
     }
 };
 
@@ -193,7 +198,7 @@ exports.activateUser = async (req, res) => {
 exports.updateUser = async (req, res) => {
     try {
         const { userId } = req.params;
-        const { username, role, position, isActive, isVerified } = req.body;
+        const { firstName, lastName, birthday, role, position, isActive, isVerified } = req.body;
 
         const user = await User.findById(userId);
         if (!user) {
@@ -211,7 +216,9 @@ exports.updateUser = async (req, res) => {
         }
 
         // Update fields if provided
-        if (username) user.username = username;
+        if (firstName) user.firstName = firstName;
+        if (lastName) user.lastName = lastName;
+        if (birthday !== undefined) user.birthday = birthday;
         if (role) user.role = role;
         if (position !== undefined) user.position = position;
         if (isActive !== undefined) user.isActive = isActive;
@@ -224,7 +231,10 @@ exports.updateUser = async (req, res) => {
             message: 'User updated successfully',
             user: {
                 id: user._id,
+                firstName: user.firstName,
+                lastName: user.lastName,
                 username: user.username,
+                birthday: user.birthday,
                 email: user.email,
                 role: user.role,
                 position: user.position,
@@ -233,7 +243,8 @@ exports.updateUser = async (req, res) => {
             }
         });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('[Admin updateUser Error]', error.message);
+        res.status(500).json({ error: 'Something went wrong' });
     }
 };
 
@@ -265,7 +276,8 @@ exports.getSystemStats = async (req, res) => {
             }
         });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('[Admin getSystemStats Error]', error.message);
+        res.status(500).json({ error: 'Something went wrong' });
     }
 };
 
@@ -275,7 +287,7 @@ exports.getSystemStats = async (req, res) => {
 exports.getAuditLogs = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 20;
+        const limit = parseInt(req.query.limit) || 10;
         const skip = (page - 1) * limit;
 
         const query = {};
@@ -303,7 +315,7 @@ exports.getAuditLogs = async (req, res) => {
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit)
-            .populate('userId', 'username email role');
+            .populate('userId', 'firstName lastName email role');
 
         const total = await AuditLog.countDocuments(query);
 
@@ -337,10 +349,133 @@ exports.getAuditLogs = async (req, res) => {
                 limit,
                 total,
                 pages: Math.ceil(total / limit)
+            },
+            summary: {
+                suspiciousLast7Days: await AuditLog.countDocuments({
+                    isSuspicious: true,
+                    createdAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) }
+                })
             }
         });
     } catch (error) {
         console.error('Get Audit Logs Error:', error);
         res.status(500).json({ error: error.message });
+    }
+};
+/**
+ * Create a new user (admin only)
+ */
+exports.createUser = async (req, res) => {
+    try {
+        const { firstName, lastName, birthday, email, password, role, position } = req.body;
+
+        // Basic validation
+        if (!firstName || !lastName || !email || !password || !role) {
+            return res.status(400).json({ error: 'All fields are required' });
+        }
+
+        // Check for existing user
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ error: 'Request denied. Please try again.' });
+        }
+
+        // Generate temporary password for admin-created users
+        const crypto = require('crypto');
+        const tempPassword = password || crypto.randomBytes(8).toString('base64url');
+
+        // Create user with forced onboarding
+        const user = new User({
+            firstName,
+            lastName,
+            birthday: birthday || null,
+            email,
+            password: tempPassword,
+            role,
+            position,
+            isVerified: false,
+            isActive: true,
+            mustChangePassword: true,
+            mustSetup2FA: role === 'administrator'
+        });
+
+        await user.save();
+
+        // Log action
+        await AuditLog.create({
+            action: 'admin_create_user',
+            userId: req.user._id,
+            userRole: req.user.role,
+            username: req.user.username,
+            details: {
+                createdUserId: user._id,
+                createdUserEmail: user.email,
+                role: user.role
+            },
+            ipAddress: req.ip,
+            userAgent: req.headers['user-agent']
+        });
+
+        res.status(201).json({
+            success: true,
+            message: 'User created successfully',
+            user: {
+                id: user._id,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                email: user.email,
+                role: user.role,
+                isVerified: user.isVerified
+            }
+        });
+
+    } catch (error) {
+        console.error('Create user error:', error);
+        res.status(500).json({ error: 'Failed to create user' });
+    }
+};
+
+/**
+ * Delete a user (admin only)
+ */
+exports.deleteUser = async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        // Prevent self-deletion
+        if (userId === req.user._id.toString()) {
+            return res.status(400).json({ error: 'You cannot delete your own account' });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        await User.findByIdAndDelete(userId);
+
+        // Log action
+        await AuditLog.create({
+            action: 'admin_delete_user',
+            userId: req.user._id,
+            userRole: req.user.role,
+            username: req.user.username,
+            details: {
+                deletedUserId: userId,
+                deletedUserEmail: user.email,
+                deletedUserRole: user.role
+            },
+            ipAddress: req.ip,
+            userAgent: req.headers['user-agent']
+        });
+
+        res.json({
+            success: true,
+            message: 'User deleted successfully'
+        });
+
+    } catch (error) {
+        console.error('Delete user error:', error);
+        res.status(500).json({ error: 'Failed to delete user' });
     }
 };

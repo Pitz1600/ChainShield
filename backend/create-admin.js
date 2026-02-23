@@ -1,70 +1,63 @@
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
+const User = require('./models/User');
 require('dotenv').config();
 
-// Connect to MongoDB
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/chainshield';
-mongoose.connect(MONGODB_URI);
-
-const userSchema = new mongoose.Schema({
-    username: String,
-    email: String,
-    password: String,
-    role: String,
-    department: String,
-    isVerified: Boolean,
-    createdAt: Date,
-    updatedAt: Date
-});
-
-const User = mongoose.model('User', userSchema);
 
 async function createAdmin() {
     try {
+        await mongoose.connect(MONGODB_URI);
+        console.log('✅ Connected to MongoDB');
+
+        const adminEmail = 'admin@chainshield.local';
+
         // Check if admin already exists
-        const existingAdmin = await User.findOne({ email: 'admin@chainshield.local' });
+        const existingAdmin = await User.findOne({ email: adminEmail });
 
         if (existingAdmin) {
             console.log('⚠️  Admin account already exists!');
-            console.log('Email: admin@chainshield.local');
-            console.log('If you need to reset the password, delete this user first.');
-            mongoose.connection.close();
+            console.log(`Email: ${adminEmail}`);
+            console.log('Run reset-admin.js to reset credentials.');
             return;
         }
 
-        // Generate secure random password
-        const crypto = require('crypto');
-        const adminPassword = process.env.ADMIN_PASSWORD || crypto.randomBytes(16).toString('hex');
+        // SECURITY: Generate cryptographically random temporary password
+        const tempPassword = crypto.randomBytes(12).toString('base64url');
 
-        // Hash the password
-        const hashedPassword = await bcrypt.hash(adminPassword, 10);
-
-        // Create admin user
         const admin = new User({
-            username: 'System Administrator',
-            email: 'admin@chainshield.local',
-            password: hashedPassword,
+            firstName: 'System',
+            lastName: 'Administrator',
+            email: adminEmail,
+            password: tempPassword,         // Pre-save hook will hash
             role: 'administrator',
-            department: 'IT Department',
+            position: 'System Administrator',
             isVerified: true,
-            createdAt: new Date(),
-            updatedAt: new Date()
+            isActive: true,
+            mustChangePassword: true,       // FORCED on first login
+            mustSetup2FA: true,             // FORCED before dashboard access
         });
 
         await admin.save();
 
+        console.log('');
         console.log('✅ Admin account created successfully!');
+        console.log('═══════════════════════════════════════════════');
+        console.log(`  Email:              ${adminEmail}`);
+        console.log(`  Temporary Password: ${tempPassword}`);
+        console.log('═══════════════════════════════════════════════');
         console.log('');
-        console.log('📧 Email: admin@chainshield.local');
-        console.log('🔒 Password: ' + adminPassword);
-        console.log('');
-        console.log('⚠️  IMPORTANT: Save this password securely! It is generated randomly.');
+        console.log('🔒 SECURITY REQUIREMENTS:');
+        console.log('  1. Password MUST be changed on first login');
+        console.log('  2. Authenticator app 2FA MUST be set up');
+        console.log('  3. Copy the temporary password NOW — it will NOT be shown again');
         console.log('');
 
     } catch (error) {
-        console.error('❌ Error creating admin account:', error);
+        console.error('❌ Error creating admin account:', error.message);
     } finally {
-        mongoose.connection.close();
+        await mongoose.connection.close();
+        console.log('🔌 Disconnected from MongoDB');
     }
 }
 

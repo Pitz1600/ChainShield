@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, AlertTriangle, List, Upload, BarChart3, Search, Settings, User, Shield, LogOut } from 'lucide-react';
+import { Home, AlertTriangle, List, Upload, BarChart3, Search, Settings, User, Shield, LogOut, X } from 'lucide-react';
 import { isAdmin, isOfficial } from '../../utils/permissions';
 import '../../styles/Sidebar.css';
 
@@ -93,7 +93,7 @@ function Sidebar({ user, activeView, setActiveView, onLogout, isMobileMenuOpen, 
           </div>
           {/* Mobile close button */}
           <button className="mobile-close-btn" onClick={toggleMobileMenu}>
-            ✕
+            <X size={24} />
           </button>
         </div>
 

@@ -47,28 +47,29 @@ app.use(helmet({
 }));
 
 // CORS - Configure allowed origins
+// CORS - Configure allowed origins
 const corsOptions = {
-  origin: process.env.NODE_ENV === 'production'
-    ? function (origin, callback) {
-      const allowedOrigins = [
-        'http://localhost:5173',
-        'http://localhost:3000',
-        process.env.FRONTEND_URL,
-      ].filter(Boolean);
+  origin: function (origin, callback) {
+    const allowedOrigins = [
+      'http://localhost:5173',
+      'http://127.0.0.1:5173',
+      'http://localhost:3000',
+      process.env.FRONTEND_URL,
+    ].filter(Boolean);
 
-      // Allow requests with no origin (mobile apps, Postman, etc.)
-      if (!origin) return callback(null, true);
+    // Allow requests with no origin (mobile apps, Postman, etc.)
+    if (!origin) return callback(null, true);
 
-      if (allowedOrigins.indexOf(origin) !== -1) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
+    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+      callback(null, true);
+    } else {
+      console.log('Blocked by CORS:', origin); // Log blocked origin for debugging
+      callback(new Error('Not allowed by CORS'));
     }
-    : true, // Allow all origins in development
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-csrf-token', 'X-CSRF-Token'],
 };
 
 app.use(cors(corsOptions));
@@ -80,12 +81,48 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Sanitize data to prevent NoSQL injection
 app.use(mongoSanitize());
 
+// XSS Protection - sanitize all string inputs in request body
+const xss = require('xss');
+const sanitizeInput = (obj) => {
+  if (typeof obj === 'string') return xss(obj);
+  if (Array.isArray(obj)) return obj.map(sanitizeInput);
+  if (obj && typeof obj === 'object') {
+    const sanitized = {};
+    for (const [key, value] of Object.entries(obj)) {
+      sanitized[key] = sanitizeInput(value);
+    }
+    return sanitized;
+  }
+  return obj;
+};
+
+app.use((req, res, next) => {
+  if (req.body && typeof req.body === 'object') {
+    req.body = sanitizeInput(req.body);
+  }
+  next();
+});
+
 // Apply general rate limiting to all routes
 app.use('/api/', apiLimiter);
 
 // Audit Logging
 const auditLog = require('./middleware/auditLog');
 app.use(auditLog);
+
+// ========================================
+// SECURITY ENHANCEMENTS
+// ========================================
+
+const cookieParser = require('cookie-parser');
+// const csurf = require('csurf'); // REMOVED: Deprecated
+
+// Parse cookies
+app.use(cookieParser());
+
+// CSRF Protection
+// We are using SameSite=Strict cookies which provides strong CSRF protection for modern browsers.
+// Deprecated `csurf` middleware has been removed.
 
 // ========================================
 // ROUTES

@@ -9,7 +9,7 @@ const { requireRole, requireFraudAccess, requireAdmin } = require('../middleware
  * @desc    Get current inflation rate
  * @access  Private (Analyst, Investigator, Administrator)
  */
-router.get('/inflation/current', authMiddleware, requireFraudAccess, async (req, res) => {
+router.get('/inflation/current', authMiddleware, async (req, res) => {
     try {
         const rate = await inflationService.getCurrentRate();
 
@@ -37,7 +37,7 @@ router.get('/inflation/current', authMiddleware, requireFraudAccess, async (req,
  * @desc    Get historical inflation rates
  * @access  Private (Analyst, Investigator, Administrator)
  */
-router.get('/inflation/history', authMiddleware, requireFraudAccess, async (req, res) => {
+router.get('/inflation/history', authMiddleware, async (req, res) => {
     try {
         const limit = parseInt(req.query.limit) || 12;
         const history = await inflationService.getHistoricalRates(limit);

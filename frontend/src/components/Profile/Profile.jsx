@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { User, Edit, Lock, Mail, Building, Target, Send, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { User, Edit, Lock, Mail, Building, Target, Send, X, Shield, Smartphone, Copy, CheckCircle, AlertTriangle } from 'lucide-react';
 import api from '../../services/api';
 import '../../styles/Profile.css';
 import '../../styles/ColorfulIcons.css';
@@ -7,9 +7,12 @@ import '../../styles/ColorfulIcons.css';
 function Profile({ user }) {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [show2faModal, setShow2faModal] = useState(false);
 
   const [editForm, setEditForm] = useState({
-    username: user.username,
+    firstName: user.firstName || '',
+    lastName: user.lastName || '',
+    birthday: user.birthday ? new Date(user.birthday).toISOString().split('T')[0] : '',
     email: user.email,
     otp: ''
   });
@@ -21,10 +24,23 @@ function Profile({ user }) {
     otp: ''
   });
 
+  const [twoFactorForm, setTwoFactorForm] = useState({
+    password: '',
+    otp: '',
+    totpCode: '',
+    mode: 'setup' // setup | disable
+  });
+
   const [editOtpSent, setEditOtpSent] = useState(false);
   const [passwordOtpSent, setPasswordOtpSent] = useState(false);
+  const [twoFactorOtpSent, setTwoFactorOtpSent] = useState(false);
+  const [qrCode, setQrCode] = useState('');
+  const [secret, setSecret] = useState('');
+  const [recoveryCodes, setRecoveryCodes] = useState([]);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const handleOpenEditModal = () => {
     setShowEditModal(true);
@@ -32,7 +48,9 @@ function Profile({ user }) {
     setMessage('');
     setError('');
     setEditForm({
-      username: user.username,
+      firstName: user.firstName || '',
+      lastName: user.lastName || '',
+      birthday: user.birthday ? new Date(user.birthday).toISOString().split('T')[0] : '',
       email: user.email,
       otp: ''
     });
@@ -110,19 +128,8 @@ function Profile({ user }) {
 
   const handlePasswordChange = async (e) => {
     e.preventDefault();
-
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
-
-    if (passwordForm.newPassword.length < 6) {
-      setError('Password must be at least 6 characters');
-      return;
-    }
-
-    if (!passwordOtpSent) {
-      setError('Please request OTP first');
+      setError('New passwords do not match');
       return;
     }
 
@@ -133,14 +140,113 @@ function Profile({ user }) {
         otp: passwordForm.otp
       });
 
-      setMessage('Password changed successfully!');
+      setMessage('Password updated successfully!');
       setError('');
+
       setTimeout(() => {
         handleClosePasswordModal();
+        setPasswordForm({
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: '',
+          otp: ''
+        });
       }, 1500);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to change password');
+      setError(err.response?.data?.error || 'Failed to update password');
     }
+  };
+
+  const handleOpen2faModal = (mode) => {
+    setShow2faModal(true);
+    setTwoFactorOtpSent(false);
+    setQrCode('');
+    setSecret('');
+    setRecoveryCodes([]);
+    setMessage('');
+    setError('');
+    setTwoFactorForm({
+      password: '',
+      otp: '',
+      totpCode: '',
+      mode
+    });
+  };
+
+  const handleClose2faModal = () => {
+    setShow2faModal(false);
+    setTwoFactorOtpSent(false);
+    setQrCode('');
+    setSecret('');
+    setMessage('');
+    setError('');
+  };
+
+  const handleSend2faOTP = async () => {
+    try {
+      await api.post('/auth/2fa/send-otp');
+      setTwoFactorOtpSent(true);
+      setMessage('OTP sent to your email!');
+      setError('');
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to send OTP');
+    }
+  };
+
+  const handle2faVerify = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    try {
+      if (twoFactorForm.mode === 'disable') {
+        await api.post('/auth/2fa/disable', {
+          password: twoFactorForm.password,
+          otp: twoFactorForm.otp
+        });
+        setMessage('2FA has been disabled successfully!');
+        setTimeout(() => window.location.reload(), 1500);
+      } else {
+        // Change or Enable
+        const response = await api.post('/auth/2fa/reset', {
+          password: twoFactorForm.password,
+          otp: twoFactorForm.otp
+        });
+        setQrCode(response.data.qrCode);
+        setSecret(response.data.secret);
+        setTwoFactorForm({ ...twoFactorForm, mode: 'verify-totp' });
+        setMessage('2FA reset initiated. Please scan the QR code.');
+      }
+    } catch (err) {
+      setError(err.response?.data?.error || 'Verification failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleTotpVerify = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await api.post('/auth/2fa/verify-setup', {
+        totpCode: twoFactorForm.totpCode
+      });
+      setRecoveryCodes(response.data.recoveryCodes);
+      setTwoFactorForm({ ...twoFactorForm, mode: 'recovery' });
+      setMessage('2FA enabled successfully!');
+    } catch (err) {
+      setError(err.response?.data?.error || 'Invalid TOTP code');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const copySecret = () => {
+    navigator.clipboard.writeText(secret);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
@@ -229,9 +335,19 @@ function Profile({ user }) {
 
         <div className="contact-info">
           <div className="contact-row">
-            <span className="contact-label">Full Name</span>
-            <span className="contact-value">{user.username}</span>
+            <span className="contact-label">First Name</span>
+            <span className="contact-value">{user.firstName}</span>
           </div>
+          <div className="contact-row">
+            <span className="contact-label">Last Name</span>
+            <span className="contact-value">{user.lastName}</span>
+          </div>
+          {user.birthday && (
+            <div className="contact-row">
+              <span className="contact-label">Birthday</span>
+              <span className="contact-value">{new Date(user.birthday).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+            </div>
+          )}
           <div className="contact-row">
             <span className="contact-label">Email Address</span>
             <span className="contact-value">{user.email}</span>
@@ -245,10 +361,47 @@ function Profile({ user }) {
 
       <div className="profile-section">
         <h3 className="section-title">Security</h3>
-        <p className="section-subtitle">Change your password to keep your account secure. OTP verification required.</p>
-        <button className="edit-btn" onClick={handleOpenPasswordModal}>
-          <Lock size={16} /> Change Password
-        </button>
+        <p className="section-subtitle">Manage your account protection and credentials.</p>
+
+        <div className="security-controls">
+          <div className="security-item">
+            <div className="security-info">
+              <span className="security-label">Account Password</span>
+              <span className="security-desc">Update your login password regularly</span>
+            </div>
+            <button className="edit-btn secondary" onClick={handleOpenPasswordModal}>
+              <Lock size={16} /> Change Password
+            </button>
+          </div>
+
+          <div className="security-item">
+            <div className="security-info">
+              <div className="security-label-group">
+                <span className="security-label">Two-Factor Authentication (2FA)</span>
+                <span className={`status-badge ${user.twoFactorEnabled ? 'enabled' : 'disabled'}`}>
+                  {user.twoFactorEnabled ? 'Enabled' : 'Disabled'}
+                </span>
+              </div>
+              <span className="security-desc">Protect your account with an extra verification step</span>
+            </div>
+            <div className="security-actions">
+              {user.twoFactorEnabled ? (
+                <>
+                  <button className="edit-btn secondary" onClick={() => handleOpen2faModal('setup')}>
+                    <Smartphone size={16} /> Change 2FA
+                  </button>
+                  <button className="edit-btn danger" onClick={() => handleOpen2faModal('disable')}>
+                    <Shield size={16} /> Disable 2FA
+                  </button>
+                </>
+              ) : (
+                <button className="edit-btn success" onClick={() => handleOpen2faModal('setup')}>
+                  <Shield size={16} /> Enable 2FA
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Edit Profile Modal */}
@@ -267,13 +420,33 @@ function Profile({ user }) {
 
             <form onSubmit={handleEditSubmit} className="modal-form">
               <div className="form-group">
-                <label className="form-label">Full Name</label>
+                <label className="form-label">First Name</label>
                 <input
                   type="text"
                   className="form-input"
-                  value={editForm.username}
-                  onChange={(e) => setEditForm({ ...editForm, username: e.target.value })}
+                  value={editForm.firstName}
+                  onChange={(e) => setEditForm({ ...editForm, firstName: e.target.value })}
                   required
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Last Name</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  value={editForm.lastName}
+                  onChange={(e) => setEditForm({ ...editForm, lastName: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Birthday</label>
+                <input
+                  type="date"
+                  className="form-input"
+                  value={editForm.birthday}
+                  onChange={(e) => setEditForm({ ...editForm, birthday: e.target.value })}
+                  max={new Date().toISOString().split('T')[0]}
                 />
               </div>
               <div className="form-group">
@@ -400,6 +573,141 @@ function Profile({ user }) {
               </button>
               <p className="security-hint">Passwords must be at least 6 characters long. Avoid reusing old passwords for better security.</p>
             </form>
+          </div>
+        </div>
+      )}
+      {/* 2FA Management Modal */}
+      {show2faModal && (
+        <div className="modal-overlay" onClick={handleClose2faModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="modal-title">
+                {twoFactorForm.mode === 'disable' ? 'Disable 2FA' :
+                  twoFactorForm.mode === 'verify-totp' ? 'Authenticator Setup' :
+                    twoFactorForm.mode === 'recovery' ? 'Save Recovery Codes' : 'Setup 2FA'}
+              </h3>
+              <button className="modal-close" onClick={handleClose2faModal}>
+                <X size={20} />
+              </button>
+            </div>
+
+            {message && <div className="success-banner">{message}</div>}
+            {error && <div className="error-banner">{error}</div>}
+
+            <div className="modal-form">
+              {(twoFactorForm.mode === 'setup' || twoFactorForm.mode === 'disable') && (
+                <form onSubmit={handle2faVerify} className="inner-form">
+                  <p className="form-hint">
+                    For your security, please verify your identity with your password and an email code.
+                  </p>
+
+                  <div className="form-group">
+                    <label className="form-label">Account Password</label>
+                    <input
+                      type="password"
+                      className="form-input"
+                      placeholder="Enter your current password"
+                      value={twoFactorForm.password}
+                      onChange={(e) => setTwoFactorForm({ ...twoFactorForm, password: e.target.value })}
+                      required
+                    />
+                  </div>
+
+                  <div className="otp-section">
+                    <div className="form-group">
+                      <label className="form-label">Email OTP Verification</label>
+                      <div className="otp-input-group">
+                        <input
+                          type="text"
+                          className="form-input"
+                          placeholder="Enter OTP from email"
+                          value={twoFactorForm.otp}
+                          onChange={(e) => setTwoFactorForm({ ...twoFactorForm, otp: e.target.value })}
+                          required
+                          disabled={!twoFactorOtpSent}
+                        />
+                        <button
+                          type="button"
+                          className="otp-btn"
+                          onClick={handleSend2faOTP}
+                          disabled={twoFactorOtpSent}
+                        >
+                          <Send size={16} /> {twoFactorOtpSent ? 'Sent' : 'Send OTP'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button type="submit" className={`update-btn ${twoFactorForm.mode === 'disable' ? 'danger' : ''}`} disabled={loading || !twoFactorOtpSent}>
+                    {loading ? <span className="spinner"></span> :
+                      (twoFactorForm.mode === 'disable' ? 'Verify & Disable 2FA' : 'Verify & Continue')}
+                  </button>
+                </form>
+              )}
+
+              {twoFactorForm.mode === 'verify-totp' && (
+                <form onSubmit={handleTotpVerify} className="inner-form">
+                  <div className="qr-box">
+                    <p className="qr-text">Scan this QR code with your authenticator app (Google Authenticator, Authy, etc.)</p>
+                    {qrCode && <img src={qrCode} alt="2FA QR Code" className="qr-image" />}
+
+                    <div className="manual-entry">
+                      <span className="manual-label">Unable to scan? Use this secret:</span>
+                      <div className="secret-display">
+                        <code>{secret}</code>
+                        <button type="button" onClick={copySecret} className="copy-icon">
+                          {copied ? <CheckCircle size={16} /> : <Copy size={16} />}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Verification Code</label>
+                    <input
+                      type="text"
+                      className="form-input totp-input"
+                      placeholder="000 000"
+                      value={twoFactorForm.totpCode}
+                      onChange={(e) => setTwoFactorForm({ ...twoFactorForm, totpCode: e.target.value.replace(/\D/g, '').slice(0, 6) })}
+                      required
+                      maxLength={6}
+                      autoFocus
+                    />
+                    <p className="security-hint">Enter the 6-digit code from your app to verify setup</p>
+                  </div>
+
+                  <button type="submit" className="update-btn" disabled={loading || twoFactorForm.totpCode.length < 6}>
+                    {loading ? <span className="spinner"></span> : 'Complete Setup'}
+                  </button>
+                </form>
+              )}
+
+              {twoFactorForm.mode === 'recovery' && (
+                <div className="recovery-flow">
+                  <div className="recovery-notice">
+                    <AlertTriangle size={24} />
+                    <div>
+                      <strong>Save your recovery codes!</strong>
+                      <p>If you lose your device, these codes are the ONLY way to access your account.</p>
+                    </div>
+                  </div>
+
+                  <div className="recovery-grid">
+                    {recoveryCodes.map((code, idx) => (
+                      <div key={idx} className="recovery-code">{code}</div>
+                    ))}
+                  </div>
+
+                  <button
+                    className="update-btn"
+                    onClick={() => window.location.reload()}
+                  >
+                    I've saved my codes - Finish
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}

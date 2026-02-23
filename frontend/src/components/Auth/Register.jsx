@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { Shield, User, Mail, Lock, AlertCircle, Building } from 'lucide-react';
+import { Shield, User, Mail, Lock, AlertCircle, Building, Calendar, FileText, ShieldCheck } from 'lucide-react';
 import '../../styles/Register.css';
 import api from '../../services/api';
 
 function Register({ onRegister, onNavigate }) {
   const [formData, setFormData] = useState({
-    username: '',
+    firstName: '',
+    lastName: '',
+    birthday: '',
     email: '',
     role: 'resident',
     position: 'Kagawad',
@@ -22,7 +24,7 @@ function Register({ onRegister, onNavigate }) {
     setError('');
 
     if (step === 1) {
-      if (!formData.username || !formData.email) {
+      if (!formData.firstName || !formData.lastName || !formData.email) {
         setError('Please fill in all required fields');
         return;
       }
@@ -61,14 +63,13 @@ function Register({ onRegister, onNavigate }) {
       setLoading(true);
       try {
         const res = await api.post('/auth/register', {
-          username: formData.username,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          birthday: formData.birthday || null,
           email: formData.email,
           password: formData.password,
           role: 'resident'
         });
-
-        // Save token for verification API calls
-        localStorage.setItem('token', res.data.token);
 
         // Navigate to email verification
         onNavigate('email-verify', res.data.user);
@@ -92,7 +93,7 @@ function Register({ onRegister, onNavigate }) {
 
           <div className="sidebar-illustration">
             <div className="illustration-circle green"></div>
-            <div className="illustration-icon">📝</div>
+            <div className="illustration-icon"><FileText size={48} color="white" /></div>
           </div>
 
           <div className="sidebar-info">
@@ -142,18 +143,48 @@ function Register({ onRegister, onNavigate }) {
                 <div className="form-field">
                   <label className="field-label">
                     <span className="label-icon"><User size={18} /></span>
-                    <span>Full Name</span>
+                    <span>First Name</span>
                     <span className="required">*</span>
                   </label>
                   <input
                     type="text"
-                    value={formData.username}
-                    onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                    value={formData.firstName}
+                    onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                     className="field-input"
-                    placeholder="Juan Dela Cruz"
+                    placeholder="Juan"
                     required
                   />
-                  <span className="field-hint">As it appears on official documents</span>
+                </div>
+
+                <div className="form-field">
+                  <label className="field-label">
+                    <span className="label-icon"><User size={18} /></span>
+                    <span>Last Name</span>
+                    <span className="required">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.lastName}
+                    onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                    className="field-input"
+                    placeholder="Dela Cruz"
+                    required
+                  />
+                </div>
+
+                <div className="form-field">
+                  <label className="field-label">
+                    <span className="label-icon"><Calendar size={18} /></span>
+                    <span>Date of Birth</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.birthday}
+                    onChange={(e) => setFormData({ ...formData, birthday: e.target.value })}
+                    className="field-input"
+                    max={new Date().toISOString().split('T')[0]}
+                  />
+                  <span className="field-hint">Optional - for age verification</span>
                 </div>
 
                 <div className="form-field">
@@ -197,7 +228,7 @@ function Register({ onRegister, onNavigate }) {
 
                 <div className="form-field">
                   <label className="field-label">
-                    <span className="label-icon">🔐</span>
+                    <span className="label-icon"><ShieldCheck size={18} /></span>
                     <span>Confirm Password</span>
                     <span className="required">*</span>
                   </label>

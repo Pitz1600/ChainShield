@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { CheckCircle, AlertTriangle, Paperclip, X, Info, Lightbulb } from 'lucide-react';
+import api from '../../services/api';
 import '../../styles/SubmitComplaint.css';
 
 function SubmitComplaint({ user }) {
@@ -73,8 +75,6 @@ function SubmitComplaint({ user }) {
             setSubmitting(true);
             setError(null);
 
-            const token = localStorage.getItem('token');
-
             // Create FormData for file upload
             const submitData = new FormData();
             submitData.append('category', formData.category);
@@ -87,34 +87,25 @@ function SubmitComplaint({ user }) {
                 submitData.append('attachments', file);
             });
 
-            const response = await fetch('http://localhost:5000/api/complaints', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                },
-                body: submitData
+            await api.post('/complaints', submitData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
             });
 
-            if (response.ok) {
-                setSuccess(true);
-                // Reset form
-                setFormData({
-                    category: '',
-                    subject: '',
-                    description: '',
-                    location: '',
-                    anonymous: false
-                });
-                setFiles([]);
+            setSuccess(true);
+            // Reset form
+            setFormData({
+                category: '',
+                subject: '',
+                description: '',
+                location: '',
+                anonymous: false
+            });
+            setFiles([]);
 
-                // Hide success message after 5 seconds
-                setTimeout(() => setSuccess(false), 5000);
-            } else {
-                const errorData = await response.json();
-                setError(errorData.error || 'Failed to submit complaint');
-            }
+            // Hide success message after 5 seconds
+            setTimeout(() => setSuccess(false), 5000);
         } catch (err) {
-            setError('Error submitting complaint: ' + err.message);
+            setError('Error submitting complaint: ' + (err.response?.data?.error || err.message));
         } finally {
             setSubmitting(false);
         }
@@ -130,13 +121,13 @@ function SubmitComplaint({ user }) {
 
             {success && (
                 <div className="success-banner">
-                    ✅ Your report has been submitted successfully! You will receive updates via email.
+                    <CheckCircle size={20} style={{ marginRight: '8px' }} /> Your report has been submitted successfully! You will receive updates via email.
                 </div>
             )}
 
             {error && (
                 <div className="error-banner">
-                    ⚠️ {error}
+                    <AlertTriangle size={20} style={{ marginRight: '8px' }} /> {error}
                 </div>
             )}
 
@@ -213,13 +204,13 @@ function SubmitComplaint({ user }) {
                             <div className="file-list">
                                 {files.map((file, index) => (
                                     <div key={index} className="file-item">
-                                        <span>📎 {file.name}</span>
+                                        <span><Paperclip size={16} /> {file.name}</span>
                                         <button
                                             type="button"
                                             onClick={() => removeFile(index)}
                                             className="remove-file"
                                         >
-                                            ✕
+                                            <X size={16} />
                                         </button>
                                     </div>
                                 ))}
@@ -251,7 +242,7 @@ function SubmitComplaint({ user }) {
                 </form>
 
                 <div className="complaint-info">
-                    <h3>ℹ️ What Happens Next?</h3>
+                    <h3><Info size={20} style={{ marginRight: '8px', marginLeft: 0, display: 'inline-block', verticalAlign: 'text-bottom' }} /> What Happens Next?</h3>
                     <ol>
                         <li>Your report is reviewed by barangay officials</li>
                         <li>You'll receive a confirmation email with a tracking number</li>

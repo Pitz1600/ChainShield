@@ -173,13 +173,20 @@ exports.getMyTransactions = async (req, res) => {
     } = req.query;
 
     // Build query to only show user's transactions
-    const query = {
-      $or: [
-        { userId: req.user.userId },
-        { fromAddress: req.user.email },
-        { toAddress: req.user.email }
-      ]
-    };
+    // Build query - Residents see only their own, Officials/Admins see all
+    let query = {};
+    const isOfficial = ['administrator', 'barangay_official', 'analyst', 'investigator'].includes(req.user.role);
+
+    if (!isOfficial) {
+      query = {
+        $or: [
+          { userId: req.user._id }, // Use _id as userId might not be populated in all contexts
+          { userId: req.user.userId }, // Keep for backward compatibility
+          { fromAddress: req.user.email },
+          { toAddress: req.user.email }
+        ]
+      };
+    }
 
     // Apply filters
     if (type && type !== 'all') {

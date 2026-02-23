@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Lock, BarChart, Target, Zap, DollarSign, ChevronLeft, ChevronRight } from 'lucide-react';
+import api from '../../services/api';
 import { isOfficial } from '../../utils/permissions';
 import '../../styles/Analytics.css';
 
@@ -38,27 +39,20 @@ function Analytics({ user }) {
 
   const fetchAnalyticsData = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const response = await api.get('/transactions/alerts?limit=5000');
+      const data = response.data;
+      setAllAlerts(data.alerts || []);
 
-      const response = await fetch('http://localhost:5000/api/transactions/alerts', {
-        headers: { 'Authorization': `Bearer ${token}` }
+      const critical = data.alerts.filter(a => a.riskScore >= 80).length;
+      const high = data.alerts.filter(a => a.riskScore >= 60 && a.riskScore < 80).length;
+      const medium = data.alerts.filter(a => a.riskScore >= 40 && a.riskScore < 60).length;
+
+      setStats({
+        total: data.count || 0,
+        critical,
+        high,
+        medium
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        setAllAlerts(data.alerts || []);
-
-        const critical = data.alerts.filter(a => a.riskScore >= 80).length;
-        const high = data.alerts.filter(a => a.riskScore >= 60 && a.riskScore < 80).length;
-        const medium = data.alerts.filter(a => a.riskScore >= 40 && a.riskScore < 60).length;
-
-        setStats({
-          total: data.count || 0,
-          critical,
-          high,
-          medium
-        });
-      }
     } catch (error) {
       console.error('Error fetching analytics data:', error);
     }

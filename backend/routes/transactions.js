@@ -4,6 +4,7 @@ const multer = require('multer');
 const path = require('path');
 const csvImportController = require('../controllers/csvImportController');
 const transactionController = require('../controllers/transactionController');
+const { encryptFile } = require('../utils/encryption');
 const auth = require('../middleware/auth');
 const { requireOfficial } = require('../middleware/roleMiddleware');
 
@@ -20,8 +21,16 @@ const storage = multer.diskStorage({
 const upload = multer({
     storage: storage,
     fileFilter: (req, file, cb) => {
-        if (path.extname(file.originalname).toLowerCase() !== '.csv') {
+        // SECURITY: Validate both extension AND MIME type
+        const allowedExtensions = ['.csv'];
+        const allowedMimeTypes = ['text/csv', 'application/vnd.ms-excel', 'text/plain'];
+        const ext = path.extname(file.originalname).toLowerCase();
+
+        if (!allowedExtensions.includes(ext)) {
             return cb(new Error('Only CSV files are allowed'));
+        }
+        if (!allowedMimeTypes.includes(file.mimetype)) {
+            return cb(new Error('Invalid file type. Only CSV files are accepted.'));
         }
         cb(null, true);
     },
@@ -31,7 +40,21 @@ const upload = multer({
 });
 
 // CSV Import routes - requires barangay official or admin role
-router.post('/import', auth, requireOfficial, upload.single('csvFile'), csvImportController.importTransactions);
+// CSV Import routes - requires barangay official or admin role
+router.post('/import', auth, requireOfficial, upload.single('csvFile'), async (req, res, next) => {
+    try {
+        if (req.file) {
+            const encryptedPath = await encryptFile(req.file.path);
+            req.file.path = encryptedPath;
+            req.file.filename = path.basename(encryptedPath);
+            req.file.isEncrypted = true;
+        }
+        next();
+    } catch (err) {
+        console.error('Encryption error:', err);
+        res.status(500).json({ error: 'Failed to secure uploaded file' });
+    }
+}, csvImportController.importTransactions);
 router.get('/template', auth, csvImportController.downloadTemplate);
 
 // Standard transaction routes - all authenticated users can view

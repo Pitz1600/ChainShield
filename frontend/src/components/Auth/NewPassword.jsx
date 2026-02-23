@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Shield, Lock, AlertCircle, Info } from 'lucide-react';
+import { Shield, Lock, AlertCircle, Info, ChevronLeft, Check, ArrowRight, Key, Unlock } from 'lucide-react';
+import api from '../../services/api';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import '../../styles/NewPassword.css';
 
@@ -29,32 +30,20 @@ function NewPassword({ resetToken, userEmail, onNavigate, onPasswordReset }) {
 
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/api/auth/new-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          resetToken,
-          email: userEmail,
-          password: formData.password
-        })
+      await api.post('/auth/new-password', {
+        resetToken,
+        email: userEmail,
+        password: formData.password
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
-        setSuccess(true);
-        // Redirect to login after successful password reset
-        setTimeout(() => {
-          onPasswordReset();
-          onNavigate('login');
-        }, 2000);
-      } else {
-        setError(data.error || 'Failed to reset password. Please try again.');
-      }
+      setSuccess(true);
+      // Redirect to login after successful password reset
+      setTimeout(() => {
+        onPasswordReset();
+        onNavigate('login');
+      }, 2000);
     } catch (err) {
-      setError('Unable to connect to server. Please make sure the backend is running.');
+      setError(err.response?.data?.error || 'Failed to reset password. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -72,7 +61,7 @@ function NewPassword({ resetToken, userEmail, onNavigate, onPasswordReset }) {
 
           <div className="sidebar-illustration">
             <div className="illustration-circle teal"></div>
-            <div className="illustration-icon">🔐</div>
+            <div className="illustration-icon"><Key size={64} /></div>
           </div>
 
           <div className="sidebar-info">
@@ -87,7 +76,7 @@ function NewPassword({ resetToken, userEmail, onNavigate, onPasswordReset }) {
       <div className="auth-main">
         <div className="auth-content">
           <button className="back-button" onClick={() => onNavigate('login')}>
-            ← Back to Sign In
+            <ChevronLeft size={16} style={{ marginRight: '4px' }} /> Back to Sign In
           </button>
 
           <div className="auth-header">
@@ -116,7 +105,7 @@ function NewPassword({ resetToken, userEmail, onNavigate, onPasswordReset }) {
           <form onSubmit={handleSubmit} className="auth-form">
             <div className="form-field">
               <label className="field-label">
-                <span className="label-icon">🔒</span>
+                <span className="label-icon"><Lock size={16} /></span>
                 <span>New Password</span>
                 <span className="required">*</span>
               </label>
@@ -133,7 +122,7 @@ function NewPassword({ resetToken, userEmail, onNavigate, onPasswordReset }) {
 
             <div className="form-field">
               <label className="field-label">
-                <span className="label-icon">🔓</span>
+                <span className="label-icon"><Unlock size={16} /></span>
                 <span>Confirm New Password</span>
                 <span className="required">*</span>
               </label>
@@ -178,12 +167,12 @@ function NewPassword({ resetToken, userEmail, onNavigate, onPasswordReset }) {
               ) : success ? (
                 <>
                   <span>Password Reset!</span>
-                  <span className="button-icon">✓</span>
+                  <span className="button-icon"><Check size={18} /></span>
                 </>
               ) : (
                 <>
                   <span>Reset Password</span>
-                  <span className="button-icon">→</span>
+                  <span className="button-icon"><ArrowRight size={18} /></span>
                 </>
               )}
             </button>

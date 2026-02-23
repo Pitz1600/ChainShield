@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Users, User, CheckCircle, Clock, Edit2, X, Shield, Activity, Mail } from 'lucide-react';
+import { Users, User, CheckCircle, Clock, Edit2, X, Shield, Activity, Mail, Trash2 } from 'lucide-react';
+import api from '../../services/api';
 import '../../styles/AdminPanel.css';
 
 function UserManagement() {
@@ -10,7 +11,9 @@ function UserManagement() {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
     const [editFormData, setEditFormData] = useState({
-        username: '',
+        firstName: '',
+        lastName: '',
+        birthday: '',
         userId: '',
         email: '',
         role: 'resident',
@@ -18,6 +21,17 @@ function UserManagement() {
         isActive: true,
         isVerified: false
     });
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [createFormData, setCreateFormData] = useState({
+        firstName: '',
+        lastName: '',
+        birthday: '',
+        email: '',
+        password: '',
+        role: 'resident',
+        position: ''
+    });
+    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
 
     useEffect(() => {
         fetchUsers();
@@ -27,23 +41,14 @@ function UserManagement() {
     const fetchUsers = async () => {
         try {
             setLoading(true);
-            const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5000/api/admin/users', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setUsers(data.users || []);
-            } else if (response.status === 403) {
+            const response = await api.get('/admin/users');
+            setUsers(response.data.users || []);
+        } catch (err) {
+            if (err.response?.status === 403) {
                 setError('You do not have permission to view users');
             } else {
-                setError('Failed to load users');
+                setError('Error loading users: ' + (err.response?.data?.error || err.message));
             }
-        } catch (err) {
-            setError('Error loading users: ' + err.message);
         } finally {
             setLoading(false);
         }
@@ -51,17 +56,8 @@ function UserManagement() {
 
     const fetchStats = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5000/api/admin/stats', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setStats(data.stats);
-            }
+            const response = await api.get('/admin/stats');
+            setStats(response.data.stats);
         } catch (err) {
             console.error('Error loading stats:', err);
         }
@@ -71,7 +67,9 @@ function UserManagement() {
         setEditingUser(user);
         setEditFormData({
             userId: user._id,
-            username: user.username,
+            firstName: user.firstName || '',
+            lastName: user.lastName || '',
+            birthday: user.birthday ? new Date(user.birthday).toISOString().split('T')[0] : '',
             email: user.email,
             role: user.role,
             position: user.position || '',
@@ -84,255 +82,372 @@ function UserManagement() {
     const handleSaveUser = async (e) => {
         e.preventDefault();
         try {
-            const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/admin/users/${editFormData.userId}`, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    username: editFormData.username,
-                    role: editFormData.role,
-                    position: editFormData.position,
-                    isActive: editFormData.isActive,
-                    isVerified: editFormData.isVerified
-                })
-            });
-
-            if (response.ok) {
-                await fetchUsers();
-                await fetchStats();
-                setIsEditModalOpen(false);
-                setEditingUser(null);
-            } else {
-                const data = await response.json();
-                alert(data.error || 'Failed to update user');
-            }
+            await api.put(`/admin/users/${editFormData.userId}`, editFormData);
+            setIsEditModalOpen(false);
+            fetchUsers();
         } catch (err) {
-            alert('Error updating user: ' + err.message);
+            alert(err.response?.data?.error || err.message);
         }
     };
 
+    const handleCreateUser = async (e) => {
+        e.preventDefault();
+        try {
+            await api.post('/admin/users', createFormData);
+            setIsCreateModalOpen(false);
+            setCreateFormData({
+                firstName: '',
+                lastName: '',
+                birthday: '',
+                email: '',
+                password: '',
+                role: 'resident',
+                position: ''
+            });
+            fetchUsers();
+            fetchStats(); // Update stats
+        } catch (err) {
+            alert(err.response?.data?.error || err.message);
+        }
+    };
+
+    const handleDeleteUser = async (userId) => {
+        if (!window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+            return;
+        }
+
+        try {
+            await api.delete(`/admin/users/${userId}`);
+            fetchUsers();
+            fetchStats(); // Update stats
+        } catch (err) {
+            alert(err.response?.data?.error || err.message);
+        }
+    };
+
+    if (loading) return <div className="loading-spinner">Loading users...</div>;
+    if (error) return <div className="error-message">{error}</div>;
+
     return (
-        <>
-            <div className="page-hero admin-hero">
-                <div>
-                    <span className="hero-tag">ADMIN PANEL</span>
-                    <h2 className="hero-title">System Administration</h2>
-                    <p className="hero-subtitle">Manage users, roles, permissions, and monitor system statistics.</p>
+        <div className="user-management">
+            {/* Unified Hero Banner */}
+            <div className="admin-hero">
+                <div className="hero-text-section">
+                    <div className="hero-label">User Management Workspace</div>
+                    <h1 className="hero-title">Welcome back, Admin!</h1>
+                    <p className="hero-description">
+                        Manage user accounts, roles, and verification status.
+                        Maintain a secure and organized community directory.
+                    </p>
                 </div>
-                <div className="hero-stats">
-                    <div className="hero-stat-item">
-                        <span className="hero-stat-value">{stats.totalUsers || 0}</span>
-                        <span className="hero-stat-label">Total Users</span>
+
+                <div className="hero-stats-row">
+                    <div className="hero-stat-card">
+                        <div className="hero-stat-icon" style={{ background: 'rgba(59, 130, 246, 0.2)', color: '#3b82f6' }}>
+                            <Users size={24} />
+                        </div>
+                        <div className="hero-stat-info">
+                            <span className="hero-stat-value">{stats.totalUsers}</span>
+                            <span className="hero-stat-label">Total Users</span>
+                        </div>
                     </div>
-                    <div className="hero-stat-item">
-                        <span className="hero-stat-value">{stats.activeUsers || 0}</span>
-                        <span className="hero-stat-label">Active</span>
+
+                    <div className="hero-stat-card">
+                        <div className="hero-stat-icon" style={{ background: 'rgba(16, 185, 129, 0.2)', color: '#10b981' }}>
+                            <Activity size={24} />
+                        </div>
+                        <div className="hero-stat-info">
+                            <span className="hero-stat-value">{stats.activeUsers}</span>
+                            <span className="hero-stat-label">Active Users</span>
+                        </div>
                     </div>
-                    <div className="hero-stat-item">
-                        <span className="hero-stat-value">{stats.pendingVerification || 0}</span>
-                        <span className="hero-stat-label">Pending</span>
+
+                    <div className="hero-stat-card">
+                        <div className="hero-stat-icon" style={{ background: 'rgba(245, 158, 11, 0.2)', color: '#f59e0b' }}>
+                            <Clock size={24} />
+                        </div>
+                        <div className="hero-stat-info">
+                            <span className="hero-stat-value">{stats.pendingVerification}</span>
+                            <span className="hero-stat-label">Pending</span>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div className="admin-content-wrapper">
-                <div className="admin-content">
-                    {loading && (
-                        <div style={{ padding: '3rem', textAlign: 'center' }}>
-                            <div style={{ width: '40px', height: '40px', border: '4px solid #e2e8f0', borderTopColor: '#3b82f6', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto' }}></div>
-                            <p style={{ marginTop: '1rem', color: '#64748b' }}>Loading...</p>
-                        </div>
-                    )}
+            {/* Header Actions */}
+            <div className="section-header">
+                <h2>User Directory ({users.length})</h2>
+                <button
+                    className="btn-primary"
+                    onClick={() => setIsCreateModalOpen(true)}
+                    style={{ marginLeft: 'auto' }}
+                >
+                    <User size={16} style={{ marginRight: '0.5rem' }} />
+                    Create User
+                </button>
+            </div>
 
-                    {error && (
-                        <div style={{ padding: '2rem', textAlign: 'center', color: '#dc2626' }}>
-                            {error}
-                        </div>
-                    )}
-
-                    {!loading && !error && (
-                        <div className="users-table-container">
-                            <h3 style={{ margin: '0 0 1.5rem', color: '#334155', fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <Users size={24} className="text-blue-500" />
-                                User Management
-                            </h3>
-                            <div className="user-card-header" style={{ display: 'grid', gridTemplateColumns: '2fr 2.5fr 1.5fr 1fr 1fr auto', padding: '0 1.25rem 0.5rem', fontWeight: '600', color: '#64748b', fontSize: '0.85rem', textTransform: 'uppercase' }}>
-                                <div>User</div>
-                                <div>Contact</div>
-                                <div>Role</div>
-                                <div>Status</div>
-                                <div>KYC</div>
-                                <div>Actions</div>
-                            </div>
-
-                            {users.map((u) => (
-                                <div key={u._id} className="user-card-row">
-                                    <div className="user-info-cell">
-                                        <div className="user-main-text" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                            <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                                <Users size={16} color="#64748b" />
-                                            </div>
-                                            {u.username}
+            {/* Users Table */}
+            <div className="table-container">
+                <table className="data-table">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Contact</th>
+                            <th>Verified</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {users.map(user => (
+                            <tr key={user._id}>
+                                <td>
+                                    <div className="user-cell">
+                                        <div className="avatar-circle">
+                                            {user.firstName?.charAt(0) || user.username?.charAt(0)}
                                         </div>
-                                        <div className="user-sub-text">ID: {u._id.slice(-6)}</div>
-                                    </div>
-
-                                    <div className="user-info-cell">
-                                        <div className="user-main-text" style={{ fontSize: '0.9rem' }}>{u.email}</div>
-                                        <div className="user-sub-text">
-                                            Joined: {new Date(u.createdAt).toLocaleDateString()}
+                                        <div className="user-info">
+                                            <span className="user-name">{user.firstName} {user.lastName}</span>
+                                            <span className="user-sub">{user.position}</span>
                                         </div>
                                     </div>
-
-                                    <div className="user-info-cell">
-                                        <span style={{
-                                            display: 'inline-flex',
-                                            alignItems: 'center',
-                                            gap: '0.25rem',
-                                            padding: '0.25rem 0.75rem',
-                                            borderRadius: '99px',
-                                            fontSize: '0.8rem',
-                                            fontWeight: '600',
-                                            background: u.role === 'administrator' ? '#f0f9ff' : u.role === 'analyst' ? '#fdf4ff' : '#f8fafc',
-                                            color: u.role === 'administrator' ? '#0369a1' : u.role === 'analyst' ? '#a21caf' : '#475569',
-                                            border: '1px solid transparent',
-                                            borderColor: u.role === 'administrator' ? '#bae6fd' : u.role === 'analyst' ? '#f0abfc' : '#e2e8f0'
-                                        }}>
-                                            {u.role === 'administrator' ? <Shield size={12} /> : <User size={12} />}
-                                            {u.role.replace('_', ' ')}
+                                </td>
+                                <td>
+                                    <span className={`role-badge ${user.role}`}>
+                                        {user.role}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span className={`status-badge ${user.isActive ? 'active' : 'inactive'}`}>
+                                        {user.isActive ? 'Active' : 'Deactivated'}
+                                    </span>
+                                </td>
+                                <td>{user.email}</td>
+                                <td>
+                                    {user.isVerified ? (
+                                        <span className="verified-badge">
+                                            <CheckCircle size={14} /> Verified
                                         </span>
-                                        {u.position && <div className="user-sub-text" style={{ marginTop: '4px', paddingLeft: '4px' }}>{u.position}</div>}
-                                    </div>
-
-                                    <div>
-                                        <span className={`status-badge ${u.isActive ? 'active' : 'inactive'}`}>
-                                            {u.isActive ? 'Active' : 'Inactive'}
+                                    ) : (
+                                        <span className="unverified-badge">
+                                            <Clock size={14} /> Pending
                                         </span>
-                                    </div>
-
-                                    <div>
-                                        {u.isVerified ? (
-                                            <span style={{ color: '#10b981', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem', fontWeight: '600' }}>
-                                                <CheckCircle size={16} /> Verified
-                                            </span>
-                                        ) : (
-                                            <span style={{ color: '#f59e0b', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem', fontWeight: '600' }}>
-                                                <Clock size={16} /> Pending
-                                            </span>
-                                        )}
-                                    </div>
-
-                                    <div>
+                                    )}
+                                </td>
+                                <td>
+                                    <div className="actions-cell">
                                         <button
-                                            className="action-button"
-                                            style={{ background: 'none', border: '1px solid #e2e8f0', color: '#475569' }}
-                                            onClick={() => handleEditUser(u)}
+                                            className="icon-btn edit"
+                                            onClick={() => handleEditUser(user)}
+                                            title="Edit User"
                                         >
-                                            <Edit2 size={16} style={{ marginRight: '6px' }} /> Edit
+                                            <Edit2 size={16} />
+                                        </button>
+                                        <button
+                                            className="icon-btn delete"
+                                            onClick={() => handleDeleteUser(user._id)}
+                                            title="Delete User"
+                                            disabled={currentUser.id === user._id}
+                                            style={{ opacity: currentUser.id === user._id ? 0.5 : 1, cursor: currentUser.id === user._id ? 'not-allowed' : 'pointer' }}
+                                        >
+                                            <Trash2 size={16} />
                                         </button>
                                     </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
             </div>
 
-            {/* EDIT USER MODAL */}
+            {/* Edit User Modal */}
             {isEditModalOpen && (
-                <div className="modal-overlay" onClick={() => setIsEditModalOpen(false)}>
-                    <div className="edit-modal" onClick={e => e.stopPropagation()}>
+                <div className="modal-overlay">
+                    <div className="edit-modal">
                         <div className="modal-header">
-                            <h3>Edit User Profile</h3>
+                            <h3>Edit User</h3>
                             <button className="close-modal-btn" onClick={() => setIsEditModalOpen(false)}>
                                 <X size={20} />
                             </button>
                         </div>
-
-                        <form onSubmit={handleSaveUser}>
-                            <div className="modal-content">
+                        <div className="modal-content">
+                            <form onSubmit={handleSaveUser}>
                                 <div className="form-grid">
-                                    <div className="form-group full-width">
-                                        <label className="form-label">Email Address (Read-only)</label>
-                                        <div style={{ position: 'relative' }}>
-                                            <input
-                                                type="email"
-                                                className="form-input"
-                                                value={editFormData.email}
-                                                readOnly
-                                                style={{ paddingLeft: '2.5rem' }}
-                                            />
-                                            <Mail size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
-                                        </div>
-                                    </div>
-
                                     <div className="form-group">
-                                        <label className="form-label">Full Name</label>
+                                        <label className="form-label">First Name</label>
                                         <input
                                             type="text"
                                             className="form-input"
-                                            value={editFormData.username}
-                                            onChange={(e) => setEditFormData({ ...editFormData, username: e.target.value })}
+                                            value={editFormData.firstName}
+                                            onChange={(e) => setEditFormData({ ...editFormData, firstName: e.target.value })}
                                             required
                                         />
                                     </div>
-
+                                    <div className="form-group">
+                                        <label className="form-label">Last Name</label>
+                                        <input
+                                            type="text"
+                                            className="form-input"
+                                            value={editFormData.lastName}
+                                            onChange={(e) => setEditFormData({ ...editFormData, lastName: e.target.value })}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label">Birthday</label>
+                                        <input
+                                            type="date"
+                                            className="form-input"
+                                            value={editFormData.birthday}
+                                            onChange={(e) => setEditFormData({ ...editFormData, birthday: e.target.value })}
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label">Email</label>
+                                        <input
+                                            type="email"
+                                            className="form-input"
+                                            value={editFormData.email}
+                                            readOnly
+                                            title="Email cannot be changed here"
+                                        />
+                                    </div>
                                     <div className="form-group">
                                         <label className="form-label">Role</label>
                                         <select
                                             className="form-select"
                                             value={editFormData.role}
                                             onChange={(e) => setEditFormData({ ...editFormData, role: e.target.value })}
+                                            disabled={editingUser && editingUser._id === currentUser.id}
                                         >
                                             <option value="resident">Resident</option>
-                                            <option value="analyst">Analyst</option>
-                                            <option value="senior_analyst">Senior Analyst</option>
-                                            <option value="investigator">Investigator</option>
+                                            <option value="barangay_official">Barangay Official</option>
                                             <option value="administrator">Administrator</option>
+                                            <option value="analyst">Analyst</option>
+                                            <option value="investigator">Investigator</option>
                                         </select>
                                     </div>
-
                                     <div className="form-group">
-                                        <label className="form-label">Account Status</label>
-                                        <div className="toggle-group">
-                                            <button
-                                                type="button"
-                                                className={`toggle-btn ${editFormData.isActive ? 'active' : ''}`}
-                                                onClick={() => setEditFormData({ ...editFormData, isActive: !editFormData.isActive })}
-                                            >
-                                                <Activity size={18} />
-                                                {editFormData.isActive ? 'Active' : 'Inactive'}
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <div className="form-group">
-                                        <label className="form-label">Verification (KYC)</label>
-                                        <div className="toggle-group">
-                                            <button
-                                                type="button"
-                                                className={`toggle-btn ${editFormData.isVerified ? 'verified' : ''}`}
-                                                onClick={() => setEditFormData({ ...editFormData, isVerified: !editFormData.isVerified })}
-                                            >
-                                                <Shield size={18} />
-                                                {editFormData.isVerified ? 'Verified' : 'Unverified'}
-                                            </button>
-                                        </div>
+                                        <label className="form-label">Position / Title</label>
+                                        <input
+                                            type="text"
+                                            className="form-input"
+                                            value={editFormData.position}
+                                            onChange={(e) => setEditFormData({ ...editFormData, position: e.target.value })}
+                                            placeholder="e.g. Captain, Secretary"
+                                        />
                                     </div>
                                 </div>
-                            </div>
-                            <div className="modal-footer">
-                                <button type="button" className="btn-cancel" onClick={() => setIsEditModalOpen(false)}>Cancel</button>
-                                <button type="submit" className="btn-save">Save Changes</button>
-                            </div>
-                        </form>
+                                <div className="modal-footer">
+                                    <button type="button" className="btn-cancel" onClick={() => setIsEditModalOpen(false)}>Cancel</button>
+                                    <button type="submit" className="btn-save">Save Changes</button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
             )}
-        </>
+
+            {/* Create User Modal */}
+            {isCreateModalOpen && (
+                <div className="modal-overlay">
+                    <div className="edit-modal">
+                        <div className="modal-header">
+                            <h3>Create New User</h3>
+                            <button className="close-modal-btn" onClick={() => setIsCreateModalOpen(false)}>
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <div className="modal-content">
+                            <form onSubmit={handleCreateUser}>
+                                <div className="form-grid">
+                                    <div className="form-group">
+                                        <label className="form-label">First Name</label>
+                                        <input
+                                            type="text"
+                                            className="form-input"
+                                            value={createFormData.firstName}
+                                            onChange={(e) => setCreateFormData({ ...createFormData, firstName: e.target.value })}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label">Last Name</label>
+                                        <input
+                                            type="text"
+                                            className="form-input"
+                                            value={createFormData.lastName}
+                                            onChange={(e) => setCreateFormData({ ...createFormData, lastName: e.target.value })}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label">Birthday</label>
+                                        <input
+                                            type="date"
+                                            className="form-input"
+                                            value={createFormData.birthday}
+                                            onChange={(e) => setCreateFormData({ ...createFormData, birthday: e.target.value })}
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label">Email</label>
+                                        <input
+                                            type="email"
+                                            className="form-input"
+                                            value={createFormData.email}
+                                            onChange={(e) => setCreateFormData({ ...createFormData, email: e.target.value })}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label">Password</label>
+                                        <input
+                                            type="password"
+                                            className="form-input"
+                                            value={createFormData.password}
+                                            onChange={(e) => setCreateFormData({ ...createFormData, password: e.target.value })}
+                                            required
+                                            minLength={6}
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label">Role</label>
+                                        <select
+                                            className="form-select"
+                                            value={createFormData.role}
+                                            onChange={(e) => setCreateFormData({ ...createFormData, role: e.target.value })}
+                                        >
+                                            <option value="resident">Resident</option>
+                                            <option value="barangay_official">Barangay Official</option>
+                                            <option value="administrator">Administrator</option>
+                                            <option value="analyst">Analyst</option>
+                                            <option value="investigator">Investigator</option>
+                                        </select>
+                                    </div>
+                                    <div className="form-group full-width">
+                                        <label className="form-label">Position / Title</label>
+                                        <input
+                                            type="text"
+                                            className="form-input"
+                                            value={createFormData.position}
+                                            onChange={(e) => setCreateFormData({ ...createFormData, position: e.target.value })}
+                                            placeholder="e.g. Captain, Secretary"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="modal-footer">
+                                    <button type="button" className="btn-cancel" onClick={() => setIsCreateModalOpen(false)}>Cancel</button>
+                                    <button type="submit" className="btn-save">Create User</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
     );
 }
 
