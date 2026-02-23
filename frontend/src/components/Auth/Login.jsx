@@ -3,6 +3,16 @@ import { Shield, Lock, Mail, AlertCircle, ArrowRight, Smartphone, Key, Send } fr
 import '../../styles/Login.css';
 import { authAPI } from '../../services/api';
 
+// Google icon SVG (inline, no external dependency)
+const GoogleIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+    <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4" />
+    <path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853" />
+    <path d="M3.964 10.707A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.707V4.961H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.039l3.007-2.332z" fill="#FBBC05" />
+    <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.961L3.964 6.293C4.672 4.166 6.656 3.58 9 3.58z" fill="#EA4335" />
+  </svg>
+);
+
 function Login({ onLogin, onNavigate }) {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
@@ -15,6 +25,47 @@ function Login({ onLogin, onNavigate }) {
   const [userId, setUserId] = useState(null);
   const [rememberDevice, setRememberDevice] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
+
+  // Handle OAuth redirect result (?oauth=success or ?error=...)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const oauthResult = params.get('oauth');
+    const oauthError = params.get('error');
+    const oauthMfa = params.get('oauth_mfa');
+    const oauthSetup2FA = params.get('oauth_setup_2fa');
+    const oauthForcePassword = params.get('oauth_force_password');
+    const oauthUserId = params.get('userId');
+
+    if (oauthMfa === 'true' && oauthUserId) {
+      setStep('totp');
+      setUserId(oauthUserId);
+      window.history.replaceState({}, '', window.location.pathname);
+    } else if (oauthSetup2FA === 'true') {
+      window.history.replaceState({}, '', window.location.pathname);
+      onNavigate('setup-2fa');
+    } else if (oauthForcePassword === 'true') {
+      window.history.replaceState({}, '', window.location.pathname);
+      onNavigate('force-change-password');
+    } else if (oauthResult === 'success') {
+      // OAuth succeeded — fetch profile and complete login
+      window.history.replaceState({}, '', window.location.pathname);
+      authAPI.getProfile()
+        .then(res => { if (res.data) onLogin(null, res.data); })
+        .catch(() => setError('OAuth login failed. Please try again.'));
+    } else if (oauthError) {
+      window.history.replaceState({}, '', window.location.pathname);
+      // Clear any stale session cookie so the user isn't silently logged in
+      authAPI.logout().catch(() => { }); // fire-and-forget, ignore errors
+      const errorMessages = {
+        oauth_failed: 'Google sign-in was cancelled or failed. Please try again.',
+        oauth_no_email: 'Google account has no email address. Please use a different account.',
+        oauth_admin_blocked: 'Administrator accounts must sign in with email and password.',
+        account_disabled: 'Your account has been disabled. Please contact support.',
+        oauth_error: 'An error occurred during sign-in. Please try again.',
+      };
+      setError(errorMessages[oauthError] || 'Sign-in failed. Please try again.');
+    }
+  }, [onLogin]);
 
   useEffect(() => {
     let timer;
@@ -32,6 +83,18 @@ function Login({ onLogin, onNavigate }) {
     setLoading(true);
 
     try {
+      // If it's the TOTP step during OAuth, use the dedicated verifyMfa endpoint
+      if (step === 'totp' && !formData.password) {
+        const response = await authAPI.verifyMfa({
+          totpCode,
+          rememberDevice
+        });
+        if (response.data.user) {
+          onLogin(null, response.data.user);
+        }
+        return;
+      }
+
       const payload = { email: formData.email, password: formData.password };
 
       // Include TOTP code if on that step
@@ -308,6 +371,19 @@ function Login({ onLogin, onNavigate }) {
           </>
         )}
       </button>
+
+      {/* Google OAuth SSO Button */}
+      <div className="oauth-divider">
+        <span>or</span>
+      </div>
+      <a
+        href={`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/auth/google`}
+        className="oauth-button google-button"
+        aria-label="Continue with Google"
+      >
+        <GoogleIcon />
+        <span>Continue with Google</span>
+      </a>
     </form>
   );
 

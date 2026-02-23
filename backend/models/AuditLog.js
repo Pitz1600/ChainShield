@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const crypto = require('crypto');
 
 /**
  * Audit Log Schema
@@ -18,6 +19,7 @@ const auditLogSchema = new mongoose.Schema({
             // User Actions
             'user_login',
             'user_login_otp',
+            'oauth_login',       // Google SSO login
             'user_register',
             'user_verified',
             'user_logout',
@@ -119,6 +121,15 @@ const auditLogSchema = new mongoose.Schema({
     },
     reviewNotes: {
         type: String
+    },
+
+    // Cryptographic Tamper Protection
+    hash: {
+        type: String,
+        index: true
+    },
+    previousHash: {
+        type: String
     }
 }, {
     timestamps: true
@@ -130,10 +141,15 @@ auditLogSchema.index({ userId: 1, createdAt: -1 });
 auditLogSchema.index({ action: 1, createdAt: -1 });
 auditLogSchema.index({ isSuspicious: 1, createdAt: -1 });
 
-// Static method to log action
+// Static method to log action with cryptographic hashing
 auditLogSchema.statics.logAction = async function (data) {
     try {
-        return await this.create({
+        // 1. Get the previous log entry's hash to create a chain
+        const lastLog = await this.findOne().sort({ createdAt: -1 });
+        const previousHash = lastLog ? lastLog.hash : '0000000000000000000000000000000000000000000000000000000000000000';
+
+        // 2. Prepare log entry content
+        const logEntry = {
             action: data.action,
             userId: data.userId,
             userRole: data.userRole,
@@ -144,8 +160,21 @@ auditLogSchema.statics.logAction = async function (data) {
             ipAddress: data.ipAddress,
             userAgent: data.userAgent,
             isSuspicious: data.isSuspicious || false,
-            suspiciousReason: data.suspiciousReason
-        });
+            suspiciousReason: data.suspiciousReason,
+            previousHash: previousHash,
+            timestamp: new Date().toISOString()
+        };
+
+        // 3. Create SHA-256 hash of the entry + previous hash
+        const entryString = JSON.stringify(logEntry);
+        const hash = crypto.createHmac('sha256', process.env.JWT_SECRET || 'fallback-secret')
+            .update(entryString + previousHash)
+            .digest('hex');
+
+        logEntry.hash = hash;
+
+        // 4. Save the entry
+        return await this.create(logEntry);
     } catch (error) {
         console.error('Audit Log Error:', error);
         // Don't fail the main operation if logging fails

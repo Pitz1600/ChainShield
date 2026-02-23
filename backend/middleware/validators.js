@@ -143,10 +143,24 @@ const validateAdminCreation = [
     handleValidationErrors
 ];
 
+/**
+ * TOTP/2FA validation
+ */
+const validateTOTP = [
+    body('totpCode')
+        .trim()
+        .notEmpty().withMessage('Authenticator code is required')
+        .isLength({ min: 6, max: 10 }).withMessage('Invalid code format')
+        .isNumeric().withMessage('Code must contain only numbers'),
+
+    handleValidationErrors
+];
+
 module.exports = {
     validateRegistration,
     validateLogin,
     validateOTP,
+    validateTOTP,
     validateEmail,
     validateAdminCreation,
     handleValidationErrors,

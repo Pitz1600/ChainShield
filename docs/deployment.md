@@ -94,18 +94,24 @@ cd graph_service && pip install -r requirements.txt && python app.py
 
 ## Post-Deployment Checklist
 
-### Security Hardening
+### Security Hardening (Mandatory)
 
-- [ ] Changed default JWT_SECRET
-- [ ] Changed default MongoDB password
-- [ ] Generated BACKUP_ENCRYPTION_KEY
-- [ ] Configured SMTP for production email
-- [ ] Enabled MONGODB_TLS for production
-- [ ] Set `NODE_ENV=production`
-- [ ] Changed Ganache mnemonic/keys
-- [ ] Created initial admin account: `node backend/create-admin.js`
-- [ ] Verified CORS origins match production domain
-- [ ] Reviewed and disabled unused ports
+Before proceeding to production, you MUST review and implement the controls in our security documentation:
+
+1. **[Risk Assessment](../security/risk-assessment.md)** - Review system-specific risks.
+2. **[Database Hardening](../security/database-hardening.md)** - Lockdown your MongoDB instance.
+3. **[Threat Model](../security/threat-model.md)** - Understand the attack vectors.
+4. **[Audit Logging](../security/audit-logging.md)** - Verify log integrity and chain hashing.
+
+- [x] Changed default JWT_SECRET
+- [x] Changed default MongoDB password
+- [x] Generated BACKUP_ENCRYPTION_KEY
+- [x] Configured SMTP for production email
+- [x] Enabled MONGODB_TLS for production
+- [x] Set `NODE_ENV=production`
+- [x] Verified CORS origins match production domain
+- [x] Reviewed and disabled unused ports (Default: 27017 restricted)
+- [x] Verified hash-chaining in `AuditLogs` on startup
 
 ### First Admin Account
 

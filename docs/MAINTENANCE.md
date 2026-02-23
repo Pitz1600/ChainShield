@@ -22,9 +22,28 @@
 
 ### Quarterly
 - [ ] Run security test suite: `node backend/verify_security.js`
-- [ ] Review OWASP Top 10 compliance (see `docs/THREAT_MODEL.md`)
+- [ ] Review OWASP Top 10 compliance (see `docs/SECURITY.md`)
 - [ ] Update TLS certificates if self-signed
-- [ ] Review and update threat model
+- [ ] Review and update threat model (see `docs/SECURITY.md#threat-model`)
+- [ ] Rotate Google OAuth credentials if compromised
+
+---
+
+## Redis Maintenance
+
+```bash
+# Check Redis health
+docker compose exec redis redis-cli ping
+
+# View rate limit keys
+docker compose exec redis redis-cli keys 'rl:*'
+
+# Flush all rate limit counters (emergency reset)
+docker compose exec redis redis-cli --scan --pattern 'rl:*' | xargs redis-cli del
+
+# Monitor Redis memory usage
+docker compose exec redis redis-cli info memory | grep used_memory_human
+```
 
 ---
 

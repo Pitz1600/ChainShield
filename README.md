@@ -18,22 +18,15 @@ ChainShield empowers barangays to modernize their operations and audit processes
 
 ## 👥 User Roles
 
-### 🏠 **Resident**
-*   **Digital Complaints**: Submit reports on infrastructure, peace & order, or other concerns.
-*   **Document Verification**: Check if a document is authentic using its ID.
-*   **Transaction History**: View their own history of fees and payments.
-*   **Profile Management**: Manage personal contact details.
+| Role | Description | Key Permissions |
+|---|---|---|
+| 🏠 **Resident** | Citizens of the barangay | View own records, submit complaints, verify documents |
+| 🏛️ **Barangay Official** | Captain, Kagawad, Secretary, Treasurer | Dashboard, complaint management, CSV import, analytics |
+| 🔍 **Analyst** | Read-only fraud investigation | View fraud cases, analytics, verification results |
+| 🕵️ **Investigator** | Active fraud investigation | All analyst permissions + respond to complaints, generate reports |
+| 🛡️ **Administrator** | System management | Full access — user management, audit logs, system config |
 
-### 🏛️ **Barangay Official** (Captain, Kagawad, Secretary, Treasurer)
-*   **Dashboard**: View real-time statistics on constituents and reports.
-*   **Complaint Management**: Review, track, and update the status of resident complaints.
-*   **Analytics**: Monitor trends in complaints and transaction volume.
-*   **CSV Import**: Bulk upload transaction records for analysis.
-
-### 🛡️ **Administrator**
-*   **System Management**: Manage user roles, permissions, and system configurations.
-*   **Fraud Detection**: Access advanced ML insights and network analysis graphs.
-*   **Audit Logs**: detailed view of all system activities.
+> **Note**: Administrators must use local email/password + mandatory TOTP 2FA. Google SSO is available for Residents, Officials, Analysts, and Investigators.
 
 ---
 
@@ -62,13 +55,13 @@ ChainShield empowers barangays to modernize their operations and audit processes
 └──────┬───────┘
        │ React (Vite)
        ▼
-┌──────────────┐      ┌─────────────┐
-│   Backend    │◄────►│  MongoDB    │
-│  (Node.js)   │      │ (Database)  │
-└──────┬───────┘      └─────────────┘
+┌──────────────┐      ┌─────────────┐      ┌─────────────┐
+│   Backend    │◄────►│  MongoDB    │      │    Redis    │
+│  (Node.js)   │      │ (Database)  │      │ (Rate Limit)│
+└──────┬───────┘      └─────────────┘      └─────────────┘
        │
        ├─────► 🤖 ML Service (Python/Flask)
-       │       (Anomaly Detection)
+       │       (Anomaly Detection — auth required)
        │
        ├─────► 🕸️ Graph Service (Python)
        │       (Network Analysis)
@@ -79,26 +72,48 @@ ChainShield empowers barangays to modernize their operations and audit processes
 
 ---
 
+## 🔒 Security Posture
+
+| Control | Status | Details |
+|---|---|---|
+| Authentication | ✅ | JWT (HttpOnly cookie) + Email OTP + TOTP 2FA |
+| OAuth / SSO | ✅ | Google OAuth 2.0 (residents/officials only) |
+| Password Policy | ✅ | Min 8 chars, uppercase, lowercase, number, special char |
+| RBAC | ✅ | 5 roles with explicit permission matrices |
+| Rate Limiting | ✅ | Redis-backed, 5 login attempts/15min (OWASP) |
+| CSRF Protection | ✅ | Double-submit cookie pattern (HMAC-signed) |
+| Input Validation | ✅ | express-validator + mongoSanitize + XSS filter |
+| File Encryption | ✅ | AES-256-CBC per-file encryption at rest |
+| Audit Logging | ✅ | All actions logged with IP, user agent, timestamp |
+| HTTPS / TLS | ✅ | Enforced in production via Nginx/reverse proxy |
+| Container Security | ✅ | Non-root Docker user (nodeuser, UID 1001) |
+| CI Security Audit | ✅ | GitHub Actions `npm audit` on every push |
+
+See [`docs/SECURITY.md`](docs/SECURITY.md) for the full security documentation.
+
+---
+
 ## 🚀 Quick Start
 
 **See [docs/SETUP.md](docs/SETUP.md) for complete installation instructions.**
 
 ### Prerequisites
 *   Docker & Docker Compose
+*   (Optional) Google Cloud credentials for OAuth
 
 ### One-Command Start
 ```bash
+cp .env.example .env
+# Edit .env with your credentials
 docker compose up
 ```
 Access the application at **http://localhost:5173**
 
----
-
-## 🔒 Security & Privacy
-
-*   **Role-Based Access Control (RBAC)**: Strict separation between Residents, Officials, and Admins.
-*   **Data Minimization**: Only essential data is stored; sensitive fields are encrypted.
-*   **No PII on Blockchain**: Only cryptographic hashes are stored on the blockchain, protecting privacy.
+### Google OAuth Setup (Optional)
+1. Go to [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
+2. Create an OAuth 2.0 Client ID (Web application)
+3. Add `http://localhost:5000/api/auth/google/callback` as an authorized redirect URI
+4. Copy `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` to your `.env`
 
 ---
 

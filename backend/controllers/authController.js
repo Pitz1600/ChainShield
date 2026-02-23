@@ -8,6 +8,9 @@ const { generateSecret, generateURI, verifySync } = require('otplib');
 const QRCode = require('qrcode');
 const emailService = require('../services/emailService');
 
+// Artificial delay to prevent timing attacks and user enumeration
+const authDelay = () => new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 400));
+
 
 // SECURITY: Generate 6-digit OTP using cryptographically secure random
 const generateOTP = () => {
@@ -74,7 +77,8 @@ exports.register = async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
-      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      path: '/'
     });
 
     res.status(201).json({
@@ -115,10 +119,42 @@ exports.login = async (req, res) => {
   try {
     const { email, password, totpCode, rememberDevice } = req.body;
 
-    const user = await User.findOne({ email }).select('+twoFactorSecret +recoveryCodes');
+    const user = await User.findOne({ email }).select('+twoFactorSecret +recoveryCodes +failedLoginAttempts +lockUntil');
+
+    // SECURITY: Artificial delay for all auth responses
+    await authDelay();
+
+    // 1. Check if account is locked
+    if (user && user.lockUntil && user.lockUntil > Date.now()) {
+      const remainingMinutes = Math.ceil((user.lockUntil - Date.now()) / (60 * 1000));
+      return res.status(401).json({
+        error: `Account is temporarily locked. Please try again in ${remainingMinutes} minutes.`
+      });
+    }
+
+    // 2. Verify user existence and password
+    // SECURITY: Use generic message for both non-existent user and wrong password
     if (!user || !(await user.comparePassword(password))) {
-      // Log failed attempt internally
       if (user) {
+        user.failedLoginAttempts += 1;
+
+        // Lock account after 5 failed attempts (OWASP Recommendation)
+        if (user.failedLoginAttempts >= 5) {
+          user.lockUntil = Date.now() + 15 * 60 * 1000; // Lock for 15 minutes
+          await AuditLog.logAction({
+            action: 'suspicious_login',
+            userId: user._id,
+            userRole: user.role,
+            username: user.username,
+            ipAddress: req.ip,
+            userAgent: req.get('User-Agent'),
+            details: { reason: 'account_locked_brute_force', failedAttempts: user.failedLoginAttempts },
+            isSuspicious: true,
+            suspiciousReason: 'Account locked due to multiple failed login attempts'
+          });
+        }
+        await user.save();
+
         await AuditLog.logAction({
           action: 'login_failed',
           userId: user._id,
@@ -126,12 +162,19 @@ exports.login = async (req, res) => {
           username: user.username,
           ipAddress: req.ip,
           userAgent: req.get('User-Agent'),
-          details: { reason: 'invalid_password' },
+          details: { reason: 'invalid_credentials' },
           isSuspicious: true,
           suspiciousReason: 'Failed login attempt'
         });
       }
       return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    // 3. Reset failed attempts on successful login
+    if (user.failedLoginAttempts > 0) {
+      user.failedLoginAttempts = 0;
+      user.lockUntil = undefined;
+      await user.save();
     }
 
     // Check if user account is active
@@ -142,6 +185,16 @@ exports.login = async (req, res) => {
     // CHECK 1: Must change password (new accounts)
     if (user.mustChangePassword) {
       const onboardingToken = generateOnboardingToken(user._id, 'change_password');
+
+      // SECURITY: Must set cookie for onboarding flow persistence
+      res.cookie('token', onboardingToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+        maxAge: 3600000, // 1 hour (matching onboarding token expiry)
+        path: '/'
+      });
+
       return res.json({
         mustChangePassword: true,
         token: onboardingToken,
@@ -273,6 +326,15 @@ exports.login = async (req, res) => {
     // CHECK 4: Must setup 2FA (admin accounts, or flagged accounts)
     if (user.mustSetup2FA) {
       const onboardingToken = generateOnboardingToken(user._id, 'setup_2fa');
+
+      res.cookie('token', onboardingToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+        maxAge: 3600000, // 1 hour
+        path: '/'
+      });
+
       return res.json({
         mustSetup2FA: true,
         token: onboardingToken,
@@ -364,6 +426,15 @@ exports.verifyLoginOtp = async (req, res) => {
     // Check if must setup 2FA
     if (user.mustSetup2FA) {
       const onboardingToken = generateOnboardingToken(user._id, 'setup_2fa');
+
+      res.cookie('token', onboardingToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+        maxAge: 3600000,
+        path: '/'
+      });
+
       return res.json({
         mustSetup2FA: true,
         token: onboardingToken,
@@ -415,6 +486,84 @@ exports.verifyLoginOtp = async (req, res) => {
 };
 
 // ==========================================
+// VERIFY MFA (For OAuth 2FA enforcement)
+// ==========================================
+exports.verifyMfa = async (req, res) => {
+  try {
+    const { totpCode, rememberDevice } = req.body;
+    const user = await User.findById(req.user.id).select('+twoFactorSecret +recoveryCodes');
+
+    if (!user || !user.isActive) {
+      return res.status(401).json({ error: 'Authentication failed' });
+    }
+
+    // Verify TOTP code
+    const secret = user.getTwoFactorSecret();
+    const isValidTotp = verifySync({ token: totpCode, secret }).valid;
+
+    if (!isValidTotp) {
+      // Try recovery code
+      const isRecovery = await user.useRecoveryCode(totpCode);
+      if (!isRecovery) {
+        await AuditLog.logAction({
+          action: 'login_failed',
+          userId: user._id,
+          userRole: user.role,
+          username: user.username,
+          ipAddress: req.ip,
+          userAgent: req.get('User-Agent'),
+          details: { reason: 'invalid_mfa_totp', method: 'oauth_mfa' },
+          isSuspicious: true,
+          suspiciousReason: 'Failed MFA attempt after OAuth'
+        });
+        return res.status(401).json({ error: 'Invalid authenticator code.' });
+      }
+    }
+
+    // Success — Clear MFA requirement and issue full token
+    if (rememberDevice) {
+      await TrustedDevice.addTrustedDevice(user._id, req.get('User-Agent'), req.ip);
+    }
+
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '24h' });
+
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+      maxAge: 24 * 60 * 60 * 1000,
+      path: '/'
+    });
+
+    res.json({
+      success: true,
+      user: {
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        twoFactorEnabled: user.twoFactorEnabled
+      }
+    });
+
+    await AuditLog.logAction({
+      action: 'oauth_login_mfa_verified',
+      userId: user._id,
+      userRole: user.role,
+      username: user.username,
+      ipAddress: req.ip,
+      userAgent: req.get('User-Agent'),
+      details: { method: 'google_oauth_mfa' }
+    });
+  } catch (error) {
+    console.error('[Verify MFA Error]', error.message);
+    res.status(500).json({ error: 'Authentication failed' });
+  }
+};
+
+// ==========================================
 // FORCE PASSWORD CHANGE (First login)
 // ==========================================
 exports.forceChangePassword = async (req, res) => {
@@ -461,6 +610,11 @@ exports.forceChangePassword = async (req, res) => {
       emailChanged = true;
     }
 
+    // SECURITY: Bypass script-only check if this IS the user setting their own onboarding password
+    if (user.role === 'administrator') {
+      user._allowAdminChange = true;
+    }
+
     await user.save();
 
     await AuditLog.logAction({
@@ -491,6 +645,16 @@ exports.forceChangePassword = async (req, res) => {
         // For now, assume SMTP is configured as per requirement.
       }
 
+      // Issue a standard token for verification flow (middleware handles isVerified check)
+      const onboardingToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+      res.cookie('token', onboardingToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+        maxAge: 3600000,
+        path: '/'
+      });
+
       return res.json({
         success: true,
         verifyEmail: true,
@@ -502,6 +666,15 @@ exports.forceChangePassword = async (req, res) => {
     // If must also setup 2FA, return that requirement
     if (user.mustSetup2FA) {
       const onboardingToken = generateOnboardingToken(user._id, 'setup_2fa');
+
+      res.cookie('token', onboardingToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+        maxAge: 3600000,
+        path: '/'
+      });
+
       return res.json({
         success: true,
         mustSetup2FA: true,
@@ -523,8 +696,9 @@ exports.forceChangePassword = async (req, res) => {
 
     res.json({ success: true, message: 'Password changed successfully.' });
   } catch (error) {
-    console.error('[Force Change Password Error]', error.message);
-    res.status(500).json({ error: 'Something went wrong' });
+    console.error('[Force Change Password Error]', error);
+    // Include specific error message for debugging (remove in high-security production)
+    res.status(500).json({ error: `Something went wrong: ${error.message}` });
   }
 };
 
@@ -536,11 +710,13 @@ exports.setup2FA = async (req, res) => {
     const user = await User.findById(req.user.id).select('+twoFactorSecret');
     if (!user) return res.status(401).json({ error: 'Authentication failed' });
 
-    if (user.twoFactorEnabled) {
+    // Allow setup only if 2FA is not already enabled
+    // If a previous setup exists but wasn't verified, generate a new one
+    if (user.twoFactorEnabled && user.recoveryCodes && user.recoveryCodes.length > 0) {
       return res.status(400).json({ error: '2FA is already enabled.' });
     }
 
-    // Generate TOTP secret
+    // Generate TOTP secret (this can be called multiple times during onboarding)
     const secret = generateSecret();
     user.setTwoFactorSecret(secret);
     await user.save();
@@ -563,22 +739,33 @@ exports.setup2FA = async (req, res) => {
 
 exports.verifySetup2FA = async (req, res) => {
   try {
+    console.log('[DEBUG] verifySetup2FA called');
     const { totpCode } = req.body;
+    console.log('[DEBUG] totpCode received:', totpCode);
+
     const user = await User.findById(req.user.id).select('+twoFactorSecret +recoveryCodes');
-    if (!user) return res.status(401).json({ error: 'Authentication failed' });
+    if (!user) {
+      console.log('[DEBUG] User not found (401)');
+      return res.status(401).json({ error: 'Authentication failed' });
+    }
 
     if (user.twoFactorEnabled) {
+      console.log('[DEBUG] 2FA already enabled (400)');
       return res.status(400).json({ error: '2FA is already enabled.' });
     }
 
     const secret = user.getTwoFactorSecret();
     if (!secret) {
+      console.log('[DEBUG] No secret found (400)');
       return res.status(400).json({ error: 'Please initiate 2FA setup first.' });
     }
 
     // Verify the TOTP code
     const result = verifySync({ token: totpCode, secret });
+    console.log('[DEBUG] verifySync result:', result);
+
     if (!result.valid) {
+      console.log('[DEBUG] verification failed (400)');
       return res.status(400).json({ error: 'Invalid verification code. Please try again.' });
     }
 
@@ -606,7 +793,8 @@ exports.verifySetup2FA = async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax', // Relax for dev/localhost
-      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      path: '/'
     });
 
     res.json({
@@ -616,6 +804,41 @@ exports.verifySetup2FA = async (req, res) => {
     });
   } catch (error) {
     console.error('[Verify 2FA Setup Error]', error.message);
+    res.status(500).json({ error: 'Something went wrong' });
+  }
+};
+
+// ==========================================
+// RESTART 2FA SETUP (resend QR code)
+// ==========================================
+exports.restart2FASetup = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Generate a fresh TOTP secret
+    const { secret, qrCode } = await user.generateTOTPSecret();
+
+    await AuditLog.logAction({
+      action: 'totp_setup_restarted',
+      userId: user._id,
+      userRole: user.role,
+      username: user.username,
+      ipAddress: req.ip,
+      userAgent: req.get('User-Agent'),
+      details: { method: 'restart_during_onboarding' }
+    });
+
+    res.json({
+      success: true,
+      secret,
+      qrCode,
+      message: 'QR code regenerated. Scan it again with your authenticator app.'
+    });
+  } catch (error) {
+    console.error('[Restart 2FA Setup Error]', error.message);
     res.status(500).json({ error: 'Something went wrong' });
   }
 };
@@ -663,9 +886,11 @@ exports.disable2FA = async (req, res) => {
       return res.status(403).json({ error: 'Administrators cannot disable two-factor authentication.' });
     }
 
-    // Verify password
-    if (!(await user.comparePassword(password))) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+    // Verify password (skip for OAuth users)
+    if (user.authProvider !== 'google') {
+      if (!(await user.comparePassword(password))) {
+        return res.status(401).json({ error: 'Invalid credentials' });
+      }
     }
 
     // Verify Email OTP
@@ -712,9 +937,13 @@ exports.reset2FA = async (req, res) => {
     const user = await User.findById(req.user.id).select('+twoFactorSecret');
     if (!user) return res.status(401).json({ error: 'Authentication failed' });
 
-    // Verify password
-    if (!(await user.comparePassword(password))) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+    // Verify password (skip for OAuth users as they don't have a local password)
+    if (user.authProvider !== 'google') {
+      if (!(await user.comparePassword(password))) {
+        return res.status(401).json({ error: 'Invalid credentials' });
+      }
+    } else {
+      console.log(`[AUTH-DEBUG] Skipping password check for Google user: ${user.email}`);
     }
 
     // Verify Email OTP
@@ -778,9 +1007,11 @@ exports.requestEmailChange = async (req, res) => {
     const user = await User.findById(req.user.id).select('+twoFactorSecret');
     if (!user) return res.status(401).json({ error: 'Authentication failed' });
 
-    // Verify password
-    if (!(await user.comparePassword(password))) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+    // Verify password (skip for OAuth users)
+    if (user.authProvider !== 'google') {
+      if (!(await user.comparePassword(password))) {
+        return res.status(401).json({ error: 'Invalid credentials' });
+      }
     }
 
     // Verify TOTP if 2FA enabled
@@ -1131,10 +1362,13 @@ exports.resendLoginOtp = async (req, res) => {
 
 exports.getProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select('-password -otp -otpExpires -resetPasswordToken -resetPasswordExpires -emailChangeOtpOld -emailChangeOtpNew -pendingEmail');
+    const user = await User.findById(req.user.id).select('-password -otp -otpExpires -resetPasswordToken -resetPasswordExpires -emailChangeOtpOld -emailChangeOtpNew -pendingEmail +recoveryCodes');
     if (!user) return res.status(401).json({ error: 'Authentication failed' });
 
     const userObj = user.toObject();
+    userObj.recoveryCodeCount = user.recoveryCodes ? user.recoveryCodes.length : 0;
+    delete userObj.recoveryCodes; // Don't send hashed codes
+
     if (!userObj.createdAt) userObj.createdAt = user._id.getTimestamp();
     if (!userObj.updatedAt) userObj.updatedAt = user._id.getTimestamp();
 
@@ -1234,6 +1468,8 @@ exports.updateProfile = async (req, res) => {
   }
 };
 
+
+
 exports.changePassword = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -1291,22 +1527,105 @@ exports.changePassword = async (req, res) => {
 };
 
 // ==========================================
+// RECOVERY CODES MANAGEMENT
+// ==========================================
+exports.getRecoveryCodeCount = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('+recoveryCodes');
+    if (!user) return res.status(401).json({ error: 'Authentication failed' });
+
+    res.json({
+      success: true,
+      count: user.recoveryCodes ? user.recoveryCodes.length : 0
+    });
+  } catch (error) {
+    console.error('[Get Recovery Code Count Error]', error.message);
+    res.status(500).json({ error: 'Something went wrong' });
+  }
+};
+
+exports.regenerateRecoveryCodes = async (req, res) => {
+  try {
+    const { password, otp } = req.body;
+    const user = await User.findById(req.user.id).select('+password +otp +otpExpires +otpAttempts');
+    if (!user) return res.status(401).json({ error: 'Authentication failed' });
+
+    // Verify Password (skip for Google OAuth)
+    if (user.authProvider !== 'google') {
+      if (!password || !(await user.comparePassword(password))) {
+        return res.status(401).json({ error: 'Invalid credentials' });
+      }
+    }
+
+    // Verify Email OTP
+    if (user.otpAttempts >= 10) {
+      return res.status(429).json({ error: 'Too many failed attempts.' });
+    }
+    if (!user.otp || !user.otpExpires || user.otpExpires < Date.now()) {
+      return res.status(400).json({ error: 'Verification code has expired.' });
+    }
+
+    if (user.otp !== otp) {
+      user.otpAttempts += 1;
+      await user.save();
+      return res.status(400).json({ error: 'Invalid verification code.' });
+    }
+
+    // Generate NEW recovery codes
+    const codes = await user.generateRecoveryCodes();
+
+    // Reset OTP status
+    user.otp = undefined;
+    user.otpExpires = undefined;
+    user.otpAttempts = 0;
+    await user.save();
+
+    await AuditLog.logAction({
+      action: 'recovery_codes_regenerated',
+      userId: user._id,
+      userRole: user.role,
+      username: user.username,
+      ipAddress: req.ip,
+      userAgent: req.get('User-Agent'),
+      details: { method: 'authenticated_regeneration' }
+    });
+
+    res.json({
+      success: true,
+      codes, // Plaintext codes returned ONCE
+      message: 'New recovery codes generated. Please save them securely.'
+    });
+  } catch (error) {
+    console.error('[Regenerate Recovery Codes Error]', error.message);
+    res.status(500).json({ error: 'Something went wrong' });
+  }
+};
+
+// ==========================================
 // LOGOUT
 // ==========================================
 exports.logout = async (req, res) => {
   try {
-    const token = req.header('Authorization')?.replace('Bearer ', '');
+    // Token is stored in an HttpOnly cookie — NOT in Authorization header
+    const token = req.cookies?.token;
+
+    // Always clear the cookie regardless of whether we have a token
+    res.clearCookie('token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+      path: '/'
+    });
 
     if (token) {
-      // SECURITY: Add to database blacklist
-      await BlacklistedToken.create({ token });
-
-      // Clear cookie
-      res.clearCookie('token', {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict'
-      });
+      // SECURITY: Add to database blacklist so the token can't be reused
+      // even if someone extracts it before the cookie is cleared
+      try {
+        await BlacklistedToken.create({ token });
+      } catch (blacklistErr) {
+        // Ignore duplicate key errors (token already blacklisted)
+        if (blacklistErr.code !== 11000) throw blacklistErr;
+      }
 
       if (req.user) {
         await AuditLog.logAction({

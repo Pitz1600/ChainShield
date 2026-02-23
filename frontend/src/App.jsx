@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Welcome from './components/Auth/Welcome';
 import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
@@ -21,6 +21,21 @@ function App() {
     // Check for existing authentication on mount via API (cookie)
     const checkAuth = async () => {
       try {
+        // If there are OAuth result params in the URL, let Login.jsx handle them.
+        // Don't auto-login — the user may have cancelled OAuth or the flow may have failed.
+        const params = new URLSearchParams(window.location.search);
+        const hasOauthParams = params.get('error') ||
+          params.get('oauth') === 'success' ||
+          params.get('oauth_mfa') ||
+          params.get('oauth_setup_2fa') ||
+          params.get('oauth_force_password');
+
+        if (hasOauthParams) {
+          setView('login');
+          setIsLoading(false);
+          return;
+        }
+
         const response = await authAPI.getProfile();
         const userData = response.data;
 
@@ -40,7 +55,6 @@ function App() {
         }
       } catch (error) {
         // Not authenticated or session expired
-        // localStorage.removeItem('user'); // Optional clean up
         setView('welcome');
       } finally {
         setIsLoading(false);
@@ -49,33 +63,45 @@ function App() {
     checkAuth();
   }, []);
 
-  const handleLogin = (token, userData) => {
-    // token arg is ignored/deprecated as it is in cookie now
-    // userData might be passed directly, or second arg
-    const userObj = userData || token; // Handle if called with (null, userData) or just (userData)
-
+  const handleLogin = useCallback((token, userData) => {
+    const userObj = userData || token;
     localStorage.setItem('user', JSON.stringify(userObj));
     setIsAuthenticated(true);
     setUser(userObj);
     setView('dashboard');
-  };
+  }, []);
 
   const handleLogout = async () => {
-    try { await authAPI.logout(); } catch { }
-    // localStorage.removeItem('token'); // No longer used
+    try {
+      // Call logout API to invalidate token on backend and clear cookies
+      await authAPI.logout();
+      console.log('[Logout] Backend logout successful');
+    } catch (err) {
+      console.error('[Logout] API call failed:', err.message);
+      // Continue with logout even if API call fails
+    }
+    
+    // Clear all frontend auth state immediately
     localStorage.removeItem('user');
+    sessionStorage.clear();
     setIsAuthenticated(false);
     setUser(null);
     setPendingUser(null);
+    
+    // Navigate to welcome view
     setView('welcome');
+    
+    // NOTE: Don't verify token is blacklisted here - the response interceptor
+    // would redirect us back to /setup-2fa if token is invalid (403 + onboardingRequired)
+    // Let logout complete cleanly by not making any authenticated requests
   };
 
-  const handleNavigate = (newView, data = null) => {
+  const handleNavigate = useCallback((newView, data = null) => {
     if (data) {
       setPendingUser(data);
     }
     setView(newView);
-  };
+  }, []);
 
   // Show loading state while checking authentication
   if (isLoading) {

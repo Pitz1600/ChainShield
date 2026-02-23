@@ -21,9 +21,11 @@ X-CSRF-Token: <csrf_token>
 
 ### Get CSRF Token
 ```
-GET /csrf-token
+GET /auth/csrf-token
 Response: { "csrfToken": "..." }
 ```
+
+> **CSRF Implementation**: Double-submit cookie pattern. The token is also set as a `csrf_token` cookie (non-HttpOnly). Frontend must read the cookie and send it as the `X-CSRF-Token` header on all mutating requests. Tokens are HMAC-signed with `JWT_SECRET`.
 
 ---
 
@@ -43,19 +45,41 @@ Response 201: { token, user: { id, firstName, lastName, email, role, isVerified 
 ### Login
 ```
 POST /auth/login
-Rate Limit: 20/15min
-Body: { email, password }
-Response 200 (admin): { token, user: {...} }
-Response 200 (others): { otpRequired: true, userId, message }
+Rate Limit: 5/15min (OWASP recommendation, Redis-backed)
+Body: { email, password, totpCode? }
+Response 200 (full session): { token, user: {...} }
+Response 200 (TOTP required): { totpRequired: true, userId }
+Response 200 (new device): { otpRequired: true, userId }
 ```
 
 ### Verify Login OTP
 ```
 POST /auth/verify-login-otp
-Rate Limit: 20/15min
-Body: { userId, otp }
+Rate Limit: 5/15min
+Body: { userId, otp, rememberDevice? }
 Response 200: { token, user: {...} }
 ```
+
+### Google OAuth / SSO
+```
+GET /auth/google
+  → Redirects to Google consent screen
+  → No request body needed
+
+GET /auth/google/callback
+  → Google redirects here after consent
+  → Sets JWT cookie, redirects to FRONTEND_URL?oauth=success
+  → On error: redirects to FRONTEND_URL?error=<code>
+
+Error codes:
+  oauth_failed        - Google auth failed
+  oauth_no_email      - Google account has no email
+  oauth_admin_blocked - Admin accounts cannot use OAuth
+  account_disabled    - Account is deactivated
+  oauth_error         - Unexpected server error
+```
+
+> **OAuth Notes**: OAuth users are provisioned as `resident` role by default. Existing accounts are linked by email. Administrators are blocked from OAuth — they must use local auth + TOTP 2FA.
 
 ### Logout
 ```
