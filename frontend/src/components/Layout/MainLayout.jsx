@@ -12,6 +12,7 @@ const CSVImport = lazy(() => import('../CSVImport/CSVImport'));
 const AdminPanel = lazy(() => import('../Admin/AdminPanel'));
 const DocumentVerification = lazy(() => import('../DocumentVerification/DocumentVerification'));
 const SubmitComplaint = lazy(() => import('../Complaints/SubmitComplaint'));
+const Feedbacks = lazy(() => import('../Feedbacks/Feedbacks'));
 
 function MainLayout({ user, onLogout, onNavigate }) {
   const [activeView, setActiveView] = useState('dashboard');
@@ -53,6 +54,7 @@ function MainLayout({ user, onLogout, onNavigate }) {
             {activeView === 'csvimport' && <CSVImport user={user} />}
             {activeView === 'admin' && <AdminPanel user={user} />}
             {activeView === 'profile' && <Profile user={user} />}
+            {activeView === 'feedbacks' && <Feedbacks user={user} />}
           </Suspense>
         </div>
       </div>

@@ -203,6 +203,7 @@ app.use('/api/blockchain', require('./routes/blockchain'));
 app.use('/api/datagovph', require('./routes/dataGovPh'));
 app.use('/api/complaints', require('./routes/complaints'));
 app.use('/api/analytics', require('./routes/analytics'));
+app.use('/api/feedbacks', require('./routes/feedbacks'));
 
 // Root endpoint
 app.get('/', (req, res) => {

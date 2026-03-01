@@ -44,4 +44,19 @@
 - **Test Results:** All path matching tests pass for both scoped tokens and non-scoped onboarding flows.
 
 ---
-*Last Updated: 2026-02-19*
+
+## [2026-02-28] - Feedbacks & Communication System
+
+### 💬 Citizen Feedback Portal
+- **New Interface:** Created a dedicated `Feedbacks` page to allow residents to communicate with barangay officials and administrators.
+- **Search Capabilities:** Implemented an advanced search bar capable of finding keywords across feedback content, replies, author names, and emails.
+- **Role-Based Permissions:** Added strict access controls ensuring residents can only modify their own posts, while Officials and Admins maintain full CRUD capabilities across all messages.
+
+### 📝 Edit Approval Workflow
+- **Resident Edits:** Introduced an edit-approval queue where residents modifying their feedbacks or replies must have their edits verified by an official/admin before changes go live.
+- **Pending States:** Developed UI indicators showing `"Edit Pending Approval"` states for feedback cards and replies.
+- **Moderate Edits:** Added "Approve" and "Reject" functionality for officials and admins to moderate proposed message changes.
+- **Confirmations:** Integrated custom confirmation modals for both verifying edits and permanently deleting messages.
+
+---
+*Last Updated: 2026-02-28*

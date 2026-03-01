@@ -100,14 +100,14 @@ export const authAPI = {
       // Call backend to invalidate token
       const response = await api.post('/auth/logout');
       console.log('[Logout API] Backend logout successful');
-      
+
       // Clear CSRF token cache on frontend
       csrfToken = null;
-      
+
       // Clear auth cookie as backup (backend should handle with Set-Cookie)
       document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;';
       document.cookie = 'token=; path=/; domain=; expires=Thu, 01 Jan 1970 00:00:00 UTC;';
-      
+
       console.log('[Logout API] Frontend cleanup complete');
       return response;
     } catch (err) {
@@ -193,6 +193,20 @@ export const blockchainAPI = {
 export const dataGovPhAPI = {
   scan: (data) => api.post('/datagovph/scan', data),
   search: (params) => api.get('/datagovph/search', { params })
+};
+
+export const feedbacksAPI = {
+  getAll: (params) => api.get('/feedbacks', { params }),
+  create: (data) => api.post('/feedbacks', data),
+  update: (id, data) => api.put(`/feedbacks/${id}`, data),
+  delete: (id) => api.delete(`/feedbacks/${id}`),
+  approveAction: (id) => api.put(`/feedbacks/${id}/approve`),
+  rejectAction: (id) => api.put(`/feedbacks/${id}/reject`),
+  addReply: (id, data) => api.post(`/feedbacks/${id}/replies`, data),
+  updateReply: (id, replyId, data) => api.put(`/feedbacks/${id}/replies/${replyId}`, data),
+  deleteReply: (id, replyId) => api.delete(`/feedbacks/${id}/replies/${replyId}`),
+  approveReplyAction: (id, replyId) => api.put(`/feedbacks/${id}/replies/${replyId}/approve`),
+  rejectReplyAction: (id, replyId) => api.put(`/feedbacks/${id}/replies/${replyId}/reject`)
 };
 
 export default api;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, AlertTriangle, List, Upload, BarChart3, Search, Settings, User, Shield, LogOut, X } from 'lucide-react';
+import { Home, AlertTriangle, List, Upload, BarChart3, Search, Settings, User, Shield, LogOut, X, MessageSquare } from 'lucide-react';
 import { isAdmin, isOfficial } from '../../utils/permissions';
 import '../../styles/Sidebar.css';
 
@@ -14,13 +14,15 @@ function Sidebar({ user, activeView, setActiveView, onLogout, isMobileMenuOpen, 
     search: Search,
     settings: Settings,
     user: User,
-    shield: Shield
+    shield: Shield,
+    feedbacks: MessageSquare
   };
 
   // Base menu items for all users
   const baseMenuItems = [
     { id: 'dashboard', icon: 'home', label: 'Dashboard', roles: ['resident', 'barangay_official', 'administrator'] },
     { id: 'transactions', icon: 'history', label: 'Transactions', roles: ['resident', 'barangay_official', 'administrator'] },
+    { id: 'feedbacks', icon: 'feedbacks', label: 'Feedbacks', roles: ['resident', 'barangay_official', 'administrator'] },
   ];
 
   // Resident-specific menu items (view-only features)
