@@ -6,22 +6,26 @@ import { Search, Plus, MessageSquare } from 'lucide-react';
 import { isAdmin, isOfficial } from '../../utils/permissions';
 import '../../styles/Feedbacks.css';
 
-function Feedbacks({ user }) {
+function Feedbacks({ user, initialTab = 'public' }) {
     const [feedbacks, setFeedbacks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [activeTab, setActiveTab] = useState(initialTab);
     const [refreshTrigger, setRefreshTrigger] = useState(0);
 
     useEffect(() => {
         fetchFeedbacks();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [refreshTrigger]);
+    }, [refreshTrigger, activeTab]);
 
     const fetchFeedbacks = async () => {
         try {
             setLoading(true);
-            const params = searchQuery ? { search: searchQuery } : {};
+            const params = {
+                ...(searchQuery ? { search: searchQuery } : {}),
+                ...(activeTab === 'moderation' ? { status: 'pending' } : { status: 'approved' })
+            };
             const response = await feedbacksAPI.getAll(params);
             setFeedbacks(response.data);
         } catch (error) {
@@ -50,6 +54,23 @@ function Feedbacks({ user }) {
                 <p className="page-subtitle">Share your thoughts, read community posts, and engage with your barangay.</p>
             </div>
 
+            {(isAdmin(user) || isOfficial(user)) && (
+                <div className="admin-tabs feedback-tabs">
+                    <button
+                        className={`tab-button ${activeTab === 'public' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('public')}
+                    >
+                        Public Feed
+                    </button>
+                    <button
+                        className={`tab-button ${activeTab === 'moderation' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('moderation')}
+                    >
+                        Moderation Desk
+                    </button>
+                </div>
+            )}
+
             <div className="feedbacks-toolbar">
                 <form className="search-bar" onSubmit={handleSearchSubmit}>
                     <Search size={20} className="search-icon" />
@@ -63,10 +84,12 @@ function Feedbacks({ user }) {
                     <button type="submit" className="search-btn">Search</button>
                 </form>
 
-                <button className="create-feedback-btn" onClick={() => setIsModalOpen(true)}>
-                    <Plus size={20} />
-                    <span>New Post</span>
-                </button>
+                {!(isAdmin(user) || isOfficial(user)) && (
+                    <button className="create-feedback-btn" onClick={() => setIsModalOpen(true)}>
+                        <Plus size={20} />
+                        <span>New Post</span>
+                    </button>
+                )}
             </div>
 
             <div className="feedbacks-content">

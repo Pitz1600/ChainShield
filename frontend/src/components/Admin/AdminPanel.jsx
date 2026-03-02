@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Users, FileText } from 'lucide-react';
 import { isAdmin } from '../../utils/permissions';
 import UserManagement from './UserManagement';
 import AuditLogViewer from './AuditLogViewer';
+import Feedbacks from '../Feedbacks/Feedbacks';
+import { Users, FileText, MessageSquare } from 'lucide-react';
 import '../../styles/AdminPanel.css';
 
 function AdminPanel({ user }) {
@@ -28,7 +29,7 @@ function AdminPanel({ user }) {
     const [stats, setStats] = useState({ totalUsers: 0, activeUsers: 0, pendingVerification: 0 });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [activeTab, setActiveTab] = useState('security');
+    const [activeTab, setActiveTab] = useState('users');
 
     useEffect(() => {
         // Load everything on mount
@@ -167,11 +168,20 @@ function AdminPanel({ user }) {
                     <FileText size={18} />
                     Audit Logs
                 </button>
+                <button
+                    className={`tab-button ${activeTab === 'feedbacks' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('feedbacks')}
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                >
+                    <MessageSquare size={18} />
+                    Community Feedbacks
+                </button>
             </div>
 
             {/* Tab Content */}
             {activeTab === 'users' && <UserManagement user={user} />}
             {activeTab === 'audit' && <AuditLogViewer user={user} />}
+            {activeTab === 'feedbacks' && <Feedbacks user={user} initialTab="moderation" />}
         </div>
     );
 }

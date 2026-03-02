@@ -7,6 +7,8 @@ const crypto = require('crypto');
 const { generateSecret, generateURI, verifySync } = require('otplib');
 const QRCode = require('qrcode');
 const emailService = require('../services/emailService');
+const fs = require('fs');
+const path = require('path');
 
 // Artificial delay to prevent timing attacks and user enumeration
 const authDelay = () => new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 400));
@@ -1644,5 +1646,89 @@ exports.logout = async (req, res) => {
   } catch (error) {
     console.error('[Logout Error]', error.message);
     res.status(500).json({ error: 'Something went wrong' });
+  }
+};
+
+// ==========================================
+// PROFILE PICTURE
+// ==========================================
+exports.uploadProfilePicture = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      // Remove uploaded file if user not found
+      fs.unlinkSync(req.file.path);
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Delete old profile picture if it exists
+    if (user.profilePicture) {
+      const oldPath = path.join(__dirname, '..', user.profilePicture);
+      if (fs.existsSync(oldPath)) {
+        try {
+          fs.unlinkSync(oldPath);
+        } catch (err) {
+          console.error('Failed to delete old profile picture:', err);
+        }
+      }
+    }
+
+    // Save new path (normalized for URL, relative to uploads root)
+    user.profilePicture = req.file.path.replace(/\\/g, '/').replace(/^uploads\//, '');
+    await user.save();
+
+    res.json({
+      success: true,
+      profilePicture: user.profilePicture,
+      message: 'Profile picture updated'
+    });
+
+    await AuditLog.logAction({
+      action: 'profile_picture_update',
+      userId: user._id,
+      userRole: user.role || 'resident',
+      username: user.username,
+      ipAddress: req.ip,
+      userAgent: req.get('User-Agent')
+    });
+  } catch (error) {
+    console.error('[Upload Profile Picture Error]', error.message);
+    if (req.file) fs.unlinkSync(req.file.path);
+    res.status(500).json({ error: 'Failed to upload profile picture' });
+  }
+};
+
+exports.deleteProfilePicture = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user || !user.profilePicture) {
+      return res.status(404).json({ error: 'No profile picture to delete' });
+    }
+
+    const filePath = path.join(__dirname, '..', user.profilePicture);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+
+    user.profilePicture = null;
+    await user.save();
+
+    res.json({ success: true, message: 'Profile picture deleted' });
+
+    await AuditLog.logAction({
+      action: 'profile_picture_delete',
+      userId: user._id,
+      userRole: user.role || 'resident',
+      username: user.username,
+      ipAddress: req.ip,
+      userAgent: req.get('User-Agent')
+    });
+  } catch (error) {
+    console.error('[Delete Profile Picture Error]', error.message);
+    res.status(500).json({ error: 'Failed to delete profile picture' });
   }
 };

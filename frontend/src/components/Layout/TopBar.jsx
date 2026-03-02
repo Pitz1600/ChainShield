@@ -3,13 +3,15 @@ import { Menu, Search, Bell } from 'lucide-react';
 import '../../styles/TopBar.css';
 import '../../styles/ColorfulIcons.css';
 
-function TopBar({ user, toggleMobileMenu }) {
+function TopBar({ user, toggleMobileMenu, setActiveView }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
   const handleMenuToggle = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
     toggleMobileMenu();
   };
+
+  const baseUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
 
   return (
     <header className="top-bar">
@@ -58,13 +60,23 @@ function TopBar({ user, toggleMobileMenu }) {
           <div
             className="user-profile"
             title={`${user?.username || 'User'} (${user?.role || 'Role'})`}
+            onClick={() => setActiveView('profile')}
+            style={{ cursor: 'pointer' }}
           >
             <div className="user-info">
               <span className="user-name">{user?.username || 'User'}</span>
               <span className="user-role">{user?.role || 'Role'}</span>
             </div>
             <div className="user-avatar">
-              <span>{(user?.username || 'U').charAt(0).toUpperCase()}</span>
+              {user?.profilePicture ? (
+                <img
+                  src={`${baseUrl}/uploads/${user.profilePicture}`}
+                  alt="Avatar"
+                  className="user-avatar-img"
+                />
+              ) : (
+                <span>{(user?.username || 'U').charAt(0).toUpperCase()}</span>
+              )}
             </div>
           </div>
         </div>

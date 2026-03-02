@@ -320,7 +320,7 @@ exports.getAuditLogs = async (req, res) => {
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit)
-            .populate('userId', 'firstName lastName email role');
+            .populate('userId', 'username firstName lastName email role');
 
         const total = await AuditLog.countDocuments(query);
 
@@ -329,9 +329,7 @@ exports.getAuditLogs = async (req, res) => {
         const formattedLogs = logs.map(log => ({
             _id: log._id,
             action: log.action,
-            details: log.details && typeof log.details === 'object' ?
-                JSON.stringify(log.details) :
-                (log.details || ''), // Frontend expects string or needs adjustment
+            details: log.details || {},
             ip: log.ipAddress,
             timestamp: log.createdAt,
             createdAt: log.createdAt,
@@ -341,8 +339,11 @@ exports.getAuditLogs = async (req, res) => {
                 username: log.userId.username,
                 email: log.userId.email,
                 role: log.userId.role
-            } : null,
-            userId: log.userId, // Keep original populated field just in case
+            } : {
+                username: log.username || 'INTERNAL SYSTEM',
+                role: log.userRole || 'system'
+            },
+            userId: log.userId,
             userRole: log.userRole
         }));
 

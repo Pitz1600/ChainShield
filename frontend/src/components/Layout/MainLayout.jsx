@@ -7,12 +7,12 @@ import '../../styles/MainLayout.css';
 const Dashboard = lazy(() => import('../Dashboard/Dashboard'));
 const TransactionsPage = lazy(() => import('../Transactions/TransactionsPage'));
 const Analytics = lazy(() => import('../Analytics/Analytics'));
-const Profile = lazy(() => import('../Profile/Profile'));
 const CSVImport = lazy(() => import('../CSVImport/CSVImport'));
 const AdminPanel = lazy(() => import('../Admin/AdminPanel'));
 const DocumentVerification = lazy(() => import('../DocumentVerification/DocumentVerification'));
 const SubmitComplaint = lazy(() => import('../Complaints/SubmitComplaint'));
 const Feedbacks = lazy(() => import('../Feedbacks/Feedbacks'));
+const Profile = lazy(() => import('../Profile/Profile'));
 
 function MainLayout({ user, onLogout, onNavigate }) {
   const [activeView, setActiveView] = useState('dashboard');
@@ -38,7 +38,11 @@ function MainLayout({ user, onLogout, onNavigate }) {
         toggleMobileMenu={toggleMobileMenu}
       />
       <div className="main-content">
-        <TopBar user={user} toggleMobileMenu={toggleMobileMenu} />
+        <TopBar
+          user={user}
+          toggleMobileMenu={toggleMobileMenu}
+          setActiveView={setActiveView}
+        />
         <div className="content-area">
           <Suspense fallback={
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '400px' }}>
@@ -53,8 +57,8 @@ function MainLayout({ user, onLogout, onNavigate }) {
             {activeView === 'analytics' && <Analytics user={user} />}
             {activeView === 'csvimport' && <CSVImport user={user} />}
             {activeView === 'admin' && <AdminPanel user={user} />}
-            {activeView === 'profile' && <Profile user={user} />}
             {activeView === 'feedbacks' && <Feedbacks user={user} />}
+            {activeView === 'profile' && <Profile user={user} />}
           </Suspense>
         </div>
       </div>
