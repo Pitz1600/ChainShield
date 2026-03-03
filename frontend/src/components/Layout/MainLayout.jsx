@@ -8,7 +8,7 @@ const Dashboard = lazy(() => import('../Dashboard/Dashboard'));
 const TransactionsPage = lazy(() => import('../Transactions/TransactionsPage'));
 const Analytics = lazy(() => import('../Analytics/Analytics'));
 const Profile = lazy(() => import('../Profile/Profile'));
-const CSVImport = lazy(() => import('../CSVImport/CSVImport'));
+const IntegrityChecker = lazy(() => import('../IntegrityChecker/IntegrityChecker'));
 const AdminPanel = lazy(() => import('../Admin/AdminPanel'));
 const DocumentVerification = lazy(() => import('../DocumentVerification/DocumentVerification'));
 const SubmitComplaint = lazy(() => import('../Complaints/SubmitComplaint'));
@@ -51,7 +51,7 @@ function MainLayout({ user, onLogout, onNavigate }) {
             {activeView === 'dashboard' && <Dashboard user={user} onNavigate={onNavigate} />}
             {activeView === 'transactions' && <TransactionsPage user={user} />}
             {activeView === 'analytics' && <Analytics user={user} />}
-            {activeView === 'csvimport' && <CSVImport user={user} />}
+            {activeView === 'integrity_checker' && <IntegrityChecker user={user} />}
             {activeView === 'admin' && <AdminPanel user={user} />}
             {activeView === 'profile' && <Profile user={user} />}
             {activeView === 'feedbacks' && <Feedbacks user={user} />}

@@ -59,4 +59,22 @@
 - **Confirmations:** Integrated custom confirmation modals for both verifying edits and permanently deleting messages.
 
 ---
-*Last Updated: 2026-02-28*
+
+## [2026-03-03] Integrity Checker (formerly CSV Import)
+- **Rebranding**: Renamed the "CSV Import" module to "Integrity Checker" to better reflect its comprehensive verification capabilities.
+- **Manual Transaction Entry**:
+    - Introduced a new manual entry interface alongside the CSV upload functionality.
+  - Developed a **Paginated Modal** that allows users to:
+    - Add multiple transactions in one go.
+    - Navigate between transaction rows using dynamic pagination (shown only when 2+ rows exist).
+    - Remove rows if necessary.
+- **Improved Layout & Validation**:
+    - Refined grid layout for better scannability (Date, Payer/Payee, Debit/Credit, Description).
+    - All fields are marked as **Required**.
+    - Backend-ready validation ensures no incomplete data is sent for analysis.
+- **Live Analysis**: Manually entered data is processed through the same AI-powered risk assessment as CSV uploads.
+
+## Technical Changes
+- Renamed components and styles from `CSVImport` to `IntegrityChecker`.
+- Updated navigation shortcuts and labels in the Sidebar.
+- Implemented client-side CSV generation for manual data payloads.

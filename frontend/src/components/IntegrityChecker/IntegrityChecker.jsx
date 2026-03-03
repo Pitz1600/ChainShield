@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Lock, Upload, AlertCircle, CheckCircle, Clock, FileText, AlertTriangle, TrendingUp, Shield, BarChart, Info, Settings, Zap, Download, ChevronLeft, ChevronRight, Link, Clipboard, Circle } from 'lucide-react';
+import { Lock, Upload, AlertCircle, CheckCircle, Clock, FileText, AlertTriangle, TrendingUp, Shield, BarChart, Info, Settings, Zap, Download, ChevronLeft, ChevronRight, Link, Clipboard, Circle, Plus, Trash2, X, Loader2 } from 'lucide-react';
 import api from '../../services/api';
 import { isOfficial } from '../../utils/permissions';
-import '../../styles/CSVImport.css';
+import '../../styles/IntegrityChecker.css';
 
-const CSVImport = ({ user }) => {
+const IntegrityChecker = ({ user }) => {
     // Permission check - only officials and admins can import
     if (!isOfficial(user)) {
         return (
@@ -13,7 +13,7 @@ const CSVImport = ({ user }) => {
                     <div style={{ fontSize: '3rem', marginBottom: '1rem' }}><Lock size={48} color="#991b1b" /></div>
                     <h2 style={{ color: '#991b1b', marginBottom: '0.5rem' }}>Access Denied</h2>
                     <p style={{ color: '#7f1d1d' }}>
-                        CSV Import is only available to Barangay Officials and Administrators.
+                        Integrity Checker is only available to Barangay Officials and Administrators.
                     </p>
                     <p style={{ color: '#991b1b', fontSize: '0.875rem', marginTop: '1rem' }}>
                         Your role: <strong>{user?.role || 'Unknown'}</strong>
@@ -31,6 +31,142 @@ const CSVImport = ({ user }) => {
     const [detailsPage, setDetailsPage] = useState(1);
     const TABLE_PAGE_SIZE = 10;
     const DETAILS_PAGE_SIZE = 5;
+
+    // Manual Entry State
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [manualRows, setManualRows] = useState([{
+        date: new Date().toISOString().split('T')[0],
+        payerName: '',
+        payeeName: '',
+        debitAmount: '0',
+        creditAmount: '0',
+        description: ''
+    }]);
+    const [currentRowIndex, setCurrentRowIndex] = useState(0);
+    const [modalError, setModalError] = useState(null);
+
+    const formatCurrencyDisplay = (value) => {
+        if (!value && value !== 0) return '';
+        const number = parseFloat(value);
+        if (isNaN(number)) return value;
+        return new Intl.NumberFormat('en-PH', {
+            style: 'currency',
+            currency: 'PHP',
+            minimumFractionDigits: 2
+        }).format(number);
+    };
+
+    const handleAddManualRow = () => {
+        setManualRows([...manualRows, {
+            date: new Date().toISOString().split('T')[0],
+            payerName: '',
+            payeeName: '',
+            debitAmount: '0',
+            creditAmount: '0',
+            description: ''
+        }]);
+        setCurrentRowIndex(manualRows.length);
+    };
+
+    const handleRemoveManualRow = (index) => {
+        const newRows = manualRows.filter((_, i) => i !== index);
+        setManualRows(newRows);
+        if (currentRowIndex >= newRows.length) {
+            setCurrentRowIndex(Math.max(0, newRows.length - 1));
+        }
+    };
+
+    const handleManualFieldChange = (field, value) => {
+        setModalError(null);
+        setError(null);
+        const newRows = [...manualRows];
+        newRows[currentRowIndex][field] = value;
+        setManualRows(newRows);
+    };
+
+    const validateManualRow = (row, index) => {
+        if (!row.date) return `Row ${index + 1}: Date is required.`;
+        if (!row.payerName?.trim()) return `Row ${index + 1}: Payer Name is required.`;
+        if (row.payerName.length > 100) return `Row ${index + 1}: Payer Name is too long (max 100).`;
+        if (!row.payeeName?.trim()) return `Row ${index + 1}: Payee Name is required.`;
+        if (row.payeeName.length > 100) return `Row ${index + 1}: Payee Name is too long (max 100).`;
+        if (!row.description?.trim()) return `Row ${index + 1}: Description is required.`;
+        if (row.description.length > 500) return `Row ${index + 1}: Description is too long (max 500).`;
+
+        const debit = parseFloat(row.debitAmount?.toString().replace(/,/g, ''));
+        const credit = parseFloat(row.creditAmount?.toString().replace(/,/g, ''));
+        if (isNaN(debit) || debit < 0) return `Row ${index + 1}: Invalid Debit amount.`;
+        if (isNaN(credit) || credit < 0) return `Row ${index + 1}: Invalid Credit amount.`;
+
+        const specialChars = /[<>{}[\]\\]/;
+        if (specialChars.test(row.payerName) || specialChars.test(row.payeeName) || specialChars.test(row.description)) {
+            return `Row ${index + 1}: Special characters like < > { } [ ] are not allowed.`;
+        }
+
+        return null;
+    };
+
+    const handleAnalyzeManual = async () => {
+        setModalError(null);
+
+        // Comprehensive Validation
+        for (let i = 0; i < manualRows.length; i++) {
+            const errorMsg = validateManualRow(manualRows[i], i);
+            if (errorMsg) {
+                setModalError(errorMsg);
+                return;
+            }
+        }
+
+        setUploading(true);
+        setError(null);
+        setResults(null);
+
+        try {
+            // Convert manual rows to CSV format
+            const headers = ['Date', 'Payer Name', 'Payee Name', 'Debit Amount', 'Credit Amount', 'Description'];
+            const csvContent = [
+                headers.join(','),
+                ...manualRows.map(row => [
+                    `"${row.date || ''}"`,
+                    `"${row.payerName || ''}"`,
+                    `"${row.payeeName || ''}"`,
+                    row.debitAmount?.toString().replace(/,/g, '') || '0',
+                    row.creditAmount?.toString().replace(/,/g, '') || '0',
+                    `"${row.description || ''}"`
+                ].join(','))
+            ].join('\n');
+
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const file = new File([blob], 'manual_entry.csv', { type: 'text/csv' });
+
+            const formData = new FormData();
+            formData.append('csvFile', file);
+
+            const response = await api.post('/transactions/import', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+
+            setResults(response.data);
+            setIsModalOpen(false);
+
+            // Clear all manual entry form data after successful analysis
+            setManualRows([{
+                date: new Date().toISOString().split('T')[0],
+                payerName: '',
+                payeeName: '',
+                debitAmount: '0',
+                creditAmount: '0',
+                description: ''
+            }]);
+            setCurrentRowIndex(0);
+            setModalError(null);
+        } catch (err) {
+            setError('Analysis failed: ' + (err.response?.data?.error || err.message));
+        } finally {
+            setUploading(false);
+        }
+    };
 
     const handleFileChange = (e) => {
         const selectedFile = e.target.files[0];
@@ -95,10 +231,10 @@ const CSVImport = ({ user }) => {
 
     return (
         <div className="csv-import-container">
-            <div className="page-hero csv-hero">
-                <span className="hero-tag">CSV IMPORT</span>
-                <h2 className="hero-title">Bulk Transaction Import</h2>
-                <p className="hero-subtitle">Upload CSV files to import multiple transactions at once with automatic risk assessment and anomaly detection.</p>
+            <div className="page-hero integrity-checker-hero">
+                <span className="hero-tag">INTEGRITY CHECKER</span>
+                <h2 className="hero-title">Transaction Integrity Verification</h2>
+                <p className="hero-subtitle">Perform bulk transaction analysis or manual verification with AI-powered risk assessment.</p>
 
                 <div className="hero-features-grid">
                     <div className="hero-feature-card">
@@ -177,8 +313,210 @@ const CSVImport = ({ user }) => {
                                 <><Upload size={20} style={{ marginRight: '8px' }} /> Upload & Analyze</>
                             )}
                         </button>
+
+                        <div className="action-divider">or</div>
+
+                        <button
+                            className="btn-manual"
+                            onClick={() => setIsModalOpen(true)}
+                            disabled={uploading}
+                        >
+                            <Plus size={20} style={{ marginRight: '8px' }} /> Manual Entry
+                        </button>
                     </div>
                 </div>
+
+                {uploading && (
+                    <div className="analyzing-state">
+                        <Loader2 className="animate-spin" size={48} />
+                        <h3>Integrity checking in progress...</h3>
+                        <p>Our AI is analyzing patterns and blockchain signatures</p>
+                    </div>
+                )}
+
+                {isModalOpen && (
+                    <div className="integrity-modal-overlay">
+                        <div className="integrity-modal">
+                            <div className="modal-header">
+                                <div className="modal-title-group">
+                                    <h3>Manual Transaction Entry</h3>
+                                    <span className="row-counter">Row {currentRowIndex + 1} of {manualRows.length}</span>
+                                </div>
+                                <button className="close-modal" onClick={() => { setIsModalOpen(false); setModalError(null); }}>
+                                    <X size={20} />
+                                </button>
+                            </div>
+
+                            <div className="modal-body">
+                                {modalError && (
+                                    <div className="modal-inner-error">
+                                        <AlertCircle size={18} />
+                                        <span>{modalError}</span>
+                                    </div>
+                                )}
+
+                                <div className="form-grid">
+                                    <div className="form-group date-col">
+                                        <label>Date</label>
+                                        <input
+                                            type="date"
+                                            value={manualRows[currentRowIndex].date}
+                                            onChange={(e) => handleManualFieldChange('date', e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>
+                                            Payer Name
+                                            <span className={`char-count ${manualRows[currentRowIndex].payerName.length > 100 ? 'limit' : ''}`}>
+                                                {manualRows[currentRowIndex].payerName.length}/100
+                                            </span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            placeholder="e.g. Barangay Pantal"
+                                            value={manualRows[currentRowIndex].payerName}
+                                            onChange={(e) => handleManualFieldChange('payerName', e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>
+                                            Payee Name
+                                            <span className={`char-count ${manualRows[currentRowIndex].payeeName.length > 100 ? 'limit' : ''}`}>
+                                                {manualRows[currentRowIndex].payeeName.length}/100
+                                            </span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            placeholder="e.g. Supplier Name"
+                                            value={manualRows[currentRowIndex].payeeName}
+                                            onChange={(e) => handleManualFieldChange('payeeName', e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Debit Amount (Payment Out)</label>
+                                        <div className="currency-input-wrapper">
+                                            <span className="currency-symbol">₱</span>
+                                            <input
+                                                type="text"
+                                                placeholder="0.00"
+                                                value={manualRows[currentRowIndex].debitAmount}
+                                                onChange={(e) => {
+                                                    const val = e.target.value.replace(/[^0-9.]/g, '');
+                                                    handleManualFieldChange('debitAmount', val);
+                                                }}
+                                                onBlur={(e) => {
+                                                    const numericVal = parseFloat(e.target.value.replace(/,/g, ''));
+                                                    if (!isNaN(numericVal)) {
+                                                        const formatted = new Intl.NumberFormat('en-PH', {
+                                                            minimumFractionDigits: 2,
+                                                            maximumFractionDigits: 2
+                                                        }).format(numericVal);
+                                                        handleManualFieldChange('debitAmount', formatted);
+                                                    }
+                                                }}
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Credit Amount (Funds In)</label>
+                                        <div className="currency-input-wrapper">
+                                            <span className="currency-symbol">₱</span>
+                                            <input
+                                                type="text"
+                                                placeholder="0.00"
+                                                value={manualRows[currentRowIndex].creditAmount}
+                                                onChange={(e) => {
+                                                    const val = e.target.value.replace(/[^0-9.]/g, '');
+                                                    handleManualFieldChange('creditAmount', val);
+                                                }}
+                                                onBlur={(e) => {
+                                                    const numericVal = parseFloat(e.target.value.replace(/,/g, ''));
+                                                    if (!isNaN(numericVal)) {
+                                                        const formatted = new Intl.NumberFormat('en-PH', {
+                                                            minimumFractionDigits: 2,
+                                                            maximumFractionDigits: 2
+                                                        }).format(numericVal);
+                                                        handleManualFieldChange('creditAmount', formatted);
+                                                    }
+                                                }}
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="form-group full-width">
+                                        <label>
+                                            Description
+                                            <span className={`char-count ${manualRows[currentRowIndex].description.length > 500 ? 'limit' : ''}`}>
+                                                {manualRows[currentRowIndex].description.length}/500
+                                            </span>
+                                        </label>
+                                        <textarea
+                                            placeholder="Enter transaction details..."
+                                            value={manualRows[currentRowIndex].description}
+                                            onChange={(e) => handleManualFieldChange('description', e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+                                {manualRows.length >= 2 && (
+                                    <div className="modal-pagination">
+                                        <button
+                                            className="btn-nav"
+                                            onClick={() => setCurrentRowIndex(currentRowIndex - 1)}
+                                            disabled={currentRowIndex === 0}
+                                            type="button"
+                                        >
+                                            <ChevronLeft size={16} /> Previous
+                                        </button>
+
+                                        <div className="nav-indicators">
+                                            {manualRows.map((_, idx) => (
+                                                <span
+                                                    key={idx}
+                                                    className={`nav-dot ${currentRowIndex === idx ? 'active' : ''}`}
+                                                    onClick={() => setCurrentRowIndex(idx)}
+                                                ></span>
+                                            ))}
+                                        </div>
+
+                                        <button
+                                            className="btn-nav"
+                                            onClick={() => setCurrentRowIndex(currentRowIndex + 1)}
+                                            disabled={currentRowIndex === manualRows.length - 1}
+                                            type="button"
+                                        >
+                                            Next <ChevronRight size={16} />
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="modal-footer">
+                                <div className="footer-left">
+                                    <button className="btn-add-row" onClick={handleAddManualRow} type="button">
+                                        <Plus size={16} /> Add another row
+                                    </button>
+                                    {manualRows.length > 1 && (
+                                        <button className="btn-remove-row" onClick={() => handleRemoveManualRow(currentRowIndex)} type="button">
+                                            <Trash2 size={16} /> Remove row
+                                        </button>
+                                    )}
+                                </div>
+                                <div className="footer-right">
+                                    <button className="btn-cancel" onClick={() => setIsModalOpen(false)} type="button">Cancel</button>
+                                    <button className="btn-analyze" onClick={handleAnalyzeManual} type="button">
+                                        <Zap size={18} /> Analyze
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {error && (
                     <div className="alert alert-error">
@@ -188,13 +526,13 @@ const CSVImport = ({ user }) => {
                 )}
 
                 {results && (
-                    <div className="results-container">
+                    <div className="results-container animate-fade-in">
                         <div className="results-header">
-                            <h3><CheckCircle size={24} style={{ display: 'inline', marginRight: '8px', color: '#10b981' }} /> Import Complete with Risk Analysis</h3>
+                            <h3><CheckCircle size={24} className="success-icon" /> Integrity Check Complete</h3>
                             <p>{results.message}</p>
                             {results.mappingConfidence && (
                                 <p className="mapping-confidence">
-                                    <BarChart size={16} style={{ marginRight: '4px', verticalAlign: 'text-bottom' }} /> Column Detection Confidence: <strong>{results.mappingConfidence}%</strong>
+                                    <BarChart size={16} className="mapping-icon" /> Column Detection Confidence: <strong>{results.mappingConfidence}%</strong>
                                 </p>
                             )}
                         </div>
@@ -202,7 +540,7 @@ const CSVImport = ({ user }) => {
                         <div className="results-stats">
                             <div className="stat-card success">
                                 <div className="stat-value">{results.imported}</div>
-                                <div className="stat-label">Successfully Imported</div>
+                                <div className="stat-label">Successfully Checked</div>
                             </div>
                             {results.flaggedCount > 0 && (
                                 <div className="stat-card danger">
@@ -223,10 +561,10 @@ const CSVImport = ({ user }) => {
                                 </div>
                             )}
                             {results.blockchainVerified > 0 && (
-                                <div className="stat-card" style={{ background: 'linear-gradient(135deg, #059669 0%, #047857 100%)', color: 'white' }}>
+                                <div className="stat-card verified">
                                     <div className="stat-value">{results.blockchainVerified}</div>
-                                    <div className="stat-label" style={{ color: 'rgba(255,255,255,0.9)' }}>
-                                        <Shield size={18} style={{ marginRight: '4px' }} /> Verified on Blockchain
+                                    <div className="stat-label">
+                                        <Shield size={18} className="stat-icon-shield" /> Verified on Blockchain
                                     </div>
                                 </div>
                             )}
@@ -254,7 +592,7 @@ const CSVImport = ({ user }) => {
                             return (
                                 <div className="results-table-container">
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                                        <h4 style={{ margin: 0 }}>Imported Transactions with Risk Assessment</h4>
+                                        <h4 style={{ margin: 0 }}>Checked Transactions with Risk Assessment</h4>
                                         <span style={{ fontSize: '0.85rem', color: '#64748b' }}>
                                             Showing {tableStart + 1}–{Math.min(tableStart + TABLE_PAGE_SIZE, results.results.length)} of {results.results.length}
                                         </span>
@@ -275,45 +613,39 @@ const CSVImport = ({ user }) => {
                                         </thead>
                                         <tbody>
                                             {tableSlice.map((result, idx) => (
-                                                <tr key={idx} className={result.flagged ? 'flagged-row' : ''}>
-                                                    <td>{result.row}</td>
-                                                    <td className="transaction-id">{result.transactionId}</td>
-                                                    <td>{result.transactionType}</td>
-                                                    <td className="amount">₱{result.amount?.toLocaleString()}</td>
-                                                    <td>
+                                                <tr key={idx} className={`result-row ${result.flagged ? 'flagged-row' : ''}`} style={{ animationDelay: `${idx * 0.05}s` }}>
+                                                    <td data-label="Row">{result.row}</td>
+                                                    <td data-label="Transaction ID" className="transaction-id">{result.transactionId}</td>
+                                                    <td data-label="Type">{result.transactionType}</td>
+                                                    <td data-label="Amount" className="amount">₱{result.amount?.toLocaleString()}</td>
+                                                    <td data-label="Risk Score">
                                                         <span className={`risk-score risk-${result.riskLevel?.toLowerCase()}`}>
                                                             {result.riskScore}
                                                         </span>
                                                     </td>
-                                                    <td>
+                                                    <td data-label="Risk Level">
                                                         <span className={`badge badge-${result.riskLevel?.toLowerCase()}`}>
                                                             {result.riskLevel}
                                                         </span>
                                                     </td>
-                                                    <td>
+                                                    <td data-label="Risk Category">
                                                         {result.anomalyCategory && result.anomalyCategory !== 'Other' ? (
                                                             <span className="anomaly-type">{result.anomalyCategory}</span>
                                                         ) : (
                                                             <span className="no-anomaly">-</span>
                                                         )}
                                                     </td>
-                                                    <td>
+                                                    <td data-label="Blockchain Hash">
                                                         {result.blockchainTxId ? (
-                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                                <span style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: '#059669' }} title={result.blockchainTxId}>
-                                                                    <Link size={12} style={{ marginRight: '4px' }} /> {result.blockchainTxId.substring(0, 10)}...
+                                                            <div className="blockchain-hash-wrapper">
+                                                                <span className="blockchain-hash-text" title={result.blockchainTxId}>
+                                                                    <Link size={12} className="link-icon" /> {result.blockchainTxId.substring(0, 10)}...
                                                                 </span>
                                                                 <button
+                                                                    className="btn-copy-hash"
                                                                     onClick={() => {
                                                                         navigator.clipboard.writeText(result.blockchainTxId);
                                                                         alert('Blockchain hash copied to clipboard!');
-                                                                    }}
-                                                                    style={{
-                                                                        background: 'none',
-                                                                        border: 'none',
-                                                                        cursor: 'pointer',
-                                                                        padding: '0.25rem',
-                                                                        fontSize: '0.875rem'
                                                                     }}
                                                                     title="Copy blockchain hash"
                                                                 >
@@ -321,14 +653,14 @@ const CSVImport = ({ user }) => {
                                                                 </button>
                                                             </div>
                                                         ) : (
-                                                            <span style={{ color: '#94a3b8', fontSize: '0.875rem' }}>Not recorded</span>
+                                                            <span className="not-recorded">Not recorded</span>
                                                         )}
                                                     </td>
-                                                    <td>
+                                                    <td data-label="Status">
                                                         {result.flagged ? (
-                                                            <span className="badge badge-danger"><AlertTriangle size={14} style={{ marginRight: '4px' }} /> FLAGGED</span>
+                                                            <span className="badge badge-danger"><AlertTriangle size={14} className="badge-icon" /> FLAGGED</span>
                                                         ) : (
-                                                            <span className="badge badge-success"><CheckCircle size={14} style={{ marginRight: '4px' }} /> Clean</span>
+                                                            <span className="badge badge-success"><CheckCircle size={14} className="badge-icon" /> Clean</span>
                                                         )}
                                                     </td>
                                                 </tr>
@@ -408,87 +740,37 @@ const CSVImport = ({ user }) => {
                                         </span>
                                     </div>
                                     {detailSlice.map((result, idx) => (
-                                        <div key={idx} className="risk-detail-card" style={{
-                                            border: result.riskLevel === 'CRITICAL' ? '2px solid #ef4444' :
-                                                result.riskLevel === 'HIGH' ? '2px solid #f97316' :
-                                                    result.riskLevel === 'MEDIUM' ? '2px solid #eab308' :
-                                                        '1px solid #e2e8f0',
-                                            borderRadius: '12px',
-                                            padding: '1rem 1.25rem',
-                                            marginBottom: '0.75rem',
-                                            background: result.riskLevel === 'CRITICAL' ? '#fef2f2' :
-                                                result.riskLevel === 'HIGH' ? '#fff7ed' :
-                                                    result.riskLevel === 'MEDIUM' ? '#fefce8' :
-                                                        '#f8fafc'
-                                        }}>
-                                            <div className="risk-detail-header" style={{
-                                                display: 'flex',
-                                                justifyContent: 'space-between',
-                                                alignItems: 'center',
-                                                marginBottom: '0.75rem'
-                                            }}>
-                                                <div style={{ fontWeight: '600', fontSize: '0.95rem' }}>
-                                                    Row {result.row} — <span style={{ color: '#6366f1' }}>{result.transactionId}</span>
+                                        <div key={idx} className={`risk-detail-card risk-${result.riskLevel?.toLowerCase()}`} style={{ animationDelay: `${idx * 0.1}s` }}>
+                                            <div className="risk-card-header">
+                                                <div className="risk-card-title">
+                                                    Row {result.row} — <span className="tx-id-highlight">{result.transactionId}</span>
                                                     {result.riskScore !== undefined && (
-                                                        <span style={{ marginLeft: '0.75rem', color: '#64748b', fontWeight: '400', fontSize: '0.85rem' }}>
+                                                        <span className="risk-score-text">
                                                             Score: {result.riskScore}/100
                                                         </span>
                                                     )}
                                                 </div>
-                                                <span style={{
-                                                    padding: '0.25rem 0.75rem',
-                                                    borderRadius: '999px',
-                                                    fontWeight: '700',
-                                                    fontSize: '0.75rem',
-                                                    letterSpacing: '0.05em',
-                                                    color: 'white',
-                                                    background: result.riskLevel === 'CRITICAL' ? '#dc2626' :
-                                                        result.riskLevel === 'HIGH' ? '#ea580c' :
-                                                            result.riskLevel === 'MEDIUM' ? '#ca8a04' :
-                                                                '#16a34a'
-                                                }}>
-                                                    {result.riskLevel === 'CRITICAL' && <><Circle size={10} fill="currentColor" style={{ marginRight: '4px' }} /> CRITICAL</>}
-                                                    {result.riskLevel === 'HIGH' && <><Circle size={10} fill="currentColor" style={{ marginRight: '4px' }} /> HIGH</>}
-                                                    {result.riskLevel === 'MEDIUM' && <><Circle size={10} fill="currentColor" style={{ marginRight: '4px' }} /> MEDIUM</>}
-                                                    {result.riskLevel === 'LOW' && <><Circle size={10} fill="currentColor" style={{ marginRight: '4px' }} /> LOW</>}
-                                                    {!result.riskLevel && <><Circle size={10} style={{ marginRight: '4px' }} /> N/A</>}
+                                                <span className={`risk-card-badge risk-${result.riskLevel?.toLowerCase()}`}>
+                                                    {result.riskLevel === 'CRITICAL' && <><Circle size={10} fill="currentColor" className="circle-icon" /> CRITICAL</>}
+                                                    {result.riskLevel === 'HIGH' && <><Circle size={10} fill="currentColor" className="circle-icon" /> HIGH</>}
+                                                    {result.riskLevel === 'MEDIUM' && <><Circle size={10} fill="currentColor" className="circle-icon" /> MEDIUM</>}
+                                                    {result.riskLevel === 'LOW' && <><Circle size={10} fill="currentColor" className="circle-icon" /> LOW</>}
+                                                    {!result.riskLevel && <><Circle size={10} className="circle-icon" /> N/A</>}
                                                 </span>
                                             </div>
-                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                                            <div className="risk-reasons-list">
                                                 {result.reasons.map((reason, rIdx) => (
-                                                    <div key={rIdx} style={{
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        gap: '0.5rem',
-                                                        fontSize: '0.875rem',
-                                                        color: '#334155',
-                                                        padding: '0.25rem 0'
-                                                    }}>
-                                                        <span style={{ color: result.riskLevel === 'CRITICAL' || result.riskLevel === 'HIGH' ? '#ef4444' : '#f59e0b' }}>⚠️</span>
+                                                    <div key={rIdx} className="risk-reason-item">
+                                                        <span className="warning-emoji">⚠️</span>
                                                         {reason}
                                                     </div>
                                                 ))}
                                             </div>
                                             {result.anomalyPatterns && result.anomalyPatterns.length > 0 && (
-                                                <div style={{
-                                                    marginTop: '0.75rem',
-                                                    paddingTop: '0.75rem',
-                                                    borderTop: '1px solid rgba(0,0,0,0.08)',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    gap: '0.5rem',
-                                                    flexWrap: 'wrap'
-                                                }}>
-                                                    <strong style={{ fontSize: '0.8rem', color: '#64748b' }}>Patterns:</strong>
+                                                <div className="anomaly-patterns-container">
+                                                    <strong className="patterns-label">Patterns:</strong>
                                                     {result.anomalyPatterns.map((pattern, pIdx) => (
-                                                        <span key={pIdx} style={{
-                                                            background: '#818cf8',
-                                                            color: 'white',
-                                                            padding: '0.2rem 0.6rem',
-                                                            borderRadius: '999px',
-                                                            fontSize: '0.75rem',
-                                                            fontWeight: '500'
-                                                        }}>
+                                                        <span key={pIdx} className="pattern-pill">
                                                             {pattern.type || pattern}
                                                         </span>
                                                     ))}
@@ -592,4 +874,4 @@ const CSVImport = ({ user }) => {
     );
 };
 
-export default CSVImport;
+export default IntegrityChecker;

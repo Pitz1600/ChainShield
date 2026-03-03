@@ -32,7 +32,7 @@ function Sidebar({ user, activeView, setActiveView, onLogout, isMobileMenuOpen, 
 
   // Official and admin menu items
   const officialMenuItems = [
-    { id: 'csvimport', icon: 'upload', label: 'CSV Import', roles: ['barangay_official', 'administrator'] },
+    { id: 'integrity_checker', icon: 'shield', label: 'Integrity Checker', roles: ['barangay_official', 'administrator'] },
     { id: 'analytics', icon: 'chart', label: 'Analytics', roles: ['barangay_official', 'administrator'] },
   ];
 
