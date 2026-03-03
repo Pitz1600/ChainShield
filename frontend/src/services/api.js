@@ -37,6 +37,13 @@ api.interceptors.request.use(async (config) => {
       config.headers['X-CSRF-Token'] = csrfToken;
     }
   }
+
+  // Add Authorization header from localStorage if available
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers['Authorization'] = `Bearer ${token}`;
+  }
+
   return config;
 }, (error) => {
   return Promise.reject(error);
@@ -147,6 +154,15 @@ export const authAPI = {
   updateProfile: (data) => api.put('/auth/update-profile', data),
   sendPasswordOtp: () => api.post('/auth/send-password-otp'),
   changePassword: (data) => api.post('/auth/change-password', data),
+
+  // Profile picture
+  uploadProfilePicture: (formData, onUploadProgress) => api.put('/auth/profile-picture', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    },
+    onUploadProgress
+  }),
+  deleteProfilePicture: () => api.delete('/auth/profile-picture'),
 
   // Recovery Codes
   getRecoveryCodeCount: () => api.get('/auth/2fa/recovery-codes/count'),

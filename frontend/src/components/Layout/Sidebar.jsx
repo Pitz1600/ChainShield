@@ -41,8 +41,6 @@ function Sidebar({ user, activeView, setActiveView, onLogout, isMobileMenuOpen, 
     { id: 'admin', icon: 'settings', label: 'Admin Panel', roles: ['administrator'] },
   ];
 
-  // Profile (everyone)
-  const profileMenuItem = { id: 'profile', icon: 'user', label: 'My Profile', roles: ['resident', 'barangay_official', 'administrator'] };
 
   // Build menu based on user role
   const getMenuItems = () => {
@@ -61,8 +59,6 @@ function Sidebar({ user, activeView, setActiveView, onLogout, isMobileMenuOpen, 
       items = [...items, ...adminMenuItems];
     }
 
-    // Add profile at the end
-    items = [...items, profileMenuItem];
 
     return items;
   };
@@ -84,6 +80,8 @@ function Sidebar({ user, activeView, setActiveView, onLogout, isMobileMenuOpen, 
   const cancelLogout = () => {
     setShowLogoutConfirm(false);
   };
+
+  const baseUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
 
   return (
     <>
@@ -135,6 +133,26 @@ function Sidebar({ user, activeView, setActiveView, onLogout, isMobileMenuOpen, 
           <button className="mobile-close-btn" onClick={toggleMobileMenu}>
             <X size={24} />
           </button>
+        </div>
+
+        <div className="sidebar-user-profile" onClick={() => setActiveView('profile')} style={{ cursor: 'pointer' }}>
+          <div className="user-avatar-container">
+            {user?.profilePicture ? (
+              <img
+                src={`${baseUrl}/uploads/${user.profilePicture}`}
+                alt="Profile"
+                className="user-avatar-img"
+              />
+            ) : (
+              <div className="user-avatar-placeholder">
+                {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
+              </div>
+            )}
+          </div>
+          <div className="user-info">
+            <span className="user-name">{user?.firstName} {user?.lastName}</span>
+            <span className="user-role">{user?.role?.replace('_', ' ')}</span>
+          </div>
         </div>
 
         <nav className="sidebar-nav">

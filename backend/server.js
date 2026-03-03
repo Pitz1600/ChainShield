@@ -32,6 +32,12 @@ if (!fs.existsSync(complaintsDir)) {
   fs.mkdirSync(complaintsDir, { recursive: true });
 }
 
+// Create profiles uploads subdirectory
+const profilesDir = path.join(__dirname, 'uploads', 'profiles');
+if (!fs.existsSync(profilesDir)) {
+  fs.mkdirSync(profilesDir, { recursive: true });
+}
+
 // Connect to MongoDB
 connectDB();
 
@@ -46,10 +52,11 @@ app.use(helmet({
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
       scriptSrc: ["'self'"],
-      imgSrc: ["'self'", "data:", "https:"],
+      imgSrc: ["'self'", "data:", "https:", "http://localhost:5000", "http://127.0.0.1:5000"],
     },
   },
   crossOriginEmbedderPolicy: false,
+  crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
 
 // CORS - Configure allowed origins
@@ -117,6 +124,9 @@ app.use((req, res, next) => {
 
 // Apply general rate limiting to all routes
 app.use('/api/', apiLimiter);
+
+// Static files middleware for uploads
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Audit Logging
 const auditLog = require('./middleware/auditLog');

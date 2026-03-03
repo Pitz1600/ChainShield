@@ -139,6 +139,10 @@ const userSchema = new mongoose.Schema({
   },
   emailChangeExpires: {
     type: Date
+  },
+  profilePicture: {
+    type: String,
+    default: null
   }
 }, { timestamps: true });
 

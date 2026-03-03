@@ -11,6 +11,9 @@ const auditLogSchema = new mongoose.Schema({
         type: String,
         enum: [
             'feedback_submitted',
+            'feedback_approved',
+            'feedback_rejected',
+            'feedback_deleted',
             'feedback_auto_approved',
             'feedback_flagged',
             'feedback_removed',
@@ -47,6 +50,9 @@ const auditLogSchema = new mongoose.Schema({
             'admin_update_user',
             'admin_create_user',
             'admin_delete_user',
+            // Profile Picture Actions
+            'profile_picture_update',
+            'profile_picture_delete',
             // System Actions
             'db_reset'
         ],
@@ -58,16 +64,16 @@ const auditLogSchema = new mongoose.Schema({
     userId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        required: true,
+        required: false,
         index: true
     },
     userRole: {
         type: String,
-        required: true
+        required: false
     },
     username: {
         type: String,
-        required: true
+        required: false
     },
 
     // Related Resources

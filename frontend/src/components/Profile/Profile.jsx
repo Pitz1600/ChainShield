@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { User, Edit, Lock, Mail, Building, Target, Send, X, Shield, Smartphone, Copy, CheckCircle, AlertTriangle } from 'lucide-react';
-import api from '../../services/api';
+import { User, Edit, Lock, Mail, Building, Target, Send, X, Shield, Smartphone, Copy, CheckCircle, AlertTriangle, Camera, Trash2 } from 'lucide-react';
+import api, { authAPI } from '../../services/api';
 import '../../styles/Profile.css';
 import '../../styles/ColorfulIcons.css';
 
+/**
+ * Profile Component
+ * Restored as a dedicated page for new tab access.
+ */
 function Profile({ user }) {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -11,10 +15,10 @@ function Profile({ user }) {
   const [showRecoveryModal, setShowRecoveryModal] = useState(false);
 
   const [editForm, setEditForm] = useState({
-    firstName: user.firstName || '',
-    lastName: user.lastName || '',
-    birthday: user.birthday ? new Date(user.birthday).toISOString().split('T')[0] : '',
-    email: user.email,
+    firstName: user?.firstName || '',
+    lastName: user?.lastName || '',
+    birthday: user?.birthday ? new Date(user.birthday).toISOString().split('T')[0] : '',
+    email: user?.email || '',
     otp: ''
   });
 
@@ -46,7 +50,22 @@ function Profile({ user }) {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [copied, setCopied] = useState(false);
+
+  // Sync edit form if user changes
+  useEffect(() => {
+    if (user) {
+      setEditForm(prev => ({
+        ...prev,
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        birthday: user.birthday ? new Date(user.birthday).toISOString().split('T')[0] : '',
+        email: user.email || ''
+      }));
+    }
+  }, [user]);
 
   // Modals Open/Close
   const handleOpenEditModal = () => {
@@ -84,7 +103,7 @@ function Profile({ user }) {
   // OTP Handlers
   const handleSendEditOTP = async () => {
     try {
-      await api.post('/auth/send-profile-otp');
+      await authAPI.sendProfileOtp();
       setEditOtpSent(true);
       setMessage('OTP sent to your email!');
     } catch (err) { setError(err.response?.data?.message || 'Failed to send OTP'); }
@@ -92,7 +111,7 @@ function Profile({ user }) {
 
   const handleSendPasswordOTP = async () => {
     try {
-      await api.post('/auth/send-password-otp');
+      await authAPI.sendPasswordOtp();
       setPasswordOtpSent(true);
       setMessage('OTP sent to your email!');
     } catch (err) { setError(err.response?.data?.message || 'Failed to send OTP'); }
@@ -106,12 +125,61 @@ function Profile({ user }) {
     } catch (err) { setError(err.response?.data?.error || 'Failed to send OTP'); }
   };
 
+  // Profile Picture Handlers
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      setError('File size too large. Maximum limit is 2MB.');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('profilePicture', file);
+
+    setUploading(true);
+    setUploadProgress(0);
+    setError('');
+    setMessage('');
+
+    try {
+      await authAPI.uploadProfilePicture(formData, (progressEvent) => {
+        const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+        setUploadProgress(progress);
+      });
+      setMessage('Profile picture updated successfully!');
+      setTimeout(() => window.location.reload(), 1000);
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to upload profile picture');
+    } finally {
+      setUploading(false);
+      setUploadProgress(0);
+    }
+  };
+
+  const handleDeletePicture = async () => {
+    if (!window.confirm('Are you sure you want to remove your profile picture?')) return;
+
+    setUploading(true);
+    setError('');
+    try {
+      await authAPI.deleteProfilePicture();
+      setMessage('Profile picture removed');
+      setTimeout(() => window.location.reload(), 1000);
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to delete profile picture');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   // Submit Handlers
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     if (!editOtpSent) { setError('Please request OTP first'); return; }
     try {
-      await api.put('/auth/update-profile', editForm);
+      await authAPI.updateProfile(editForm);
       setMessage('Profile updated successfully!');
       setTimeout(() => window.location.reload(), 1500);
     } catch (err) { setError(err.response?.data?.message || 'Failed to update profile'); }
@@ -121,7 +189,7 @@ function Profile({ user }) {
     e.preventDefault();
     if (passwordForm.newPassword !== passwordForm.confirmPassword) { setError('New passwords do not match'); return; }
     try {
-      await api.post('/auth/change-password', {
+      await authAPI.changePassword({
         currentPassword: passwordForm.currentPassword,
         newPassword: passwordForm.newPassword,
         otp: passwordForm.otp
@@ -136,7 +204,7 @@ function Profile({ user }) {
     setLoading(true); setError('');
     try {
       if (twoFactorForm.mode === 'disable') {
-        await api.post('/auth/2fa/disable', { password: twoFactorForm.password, otp: twoFactorForm.otp });
+        await authAPI.disable2FA({ password: twoFactorForm.password, otp: twoFactorForm.otp });
         setMessage('2FA has been disabled successfully!');
         setTimeout(() => window.location.reload(), 1500);
       } else {
@@ -154,7 +222,7 @@ function Profile({ user }) {
     e.preventDefault();
     setLoading(true); setError('');
     try {
-      const response = await api.post('/auth/2fa/verify-setup', { totpCode: twoFactorForm.totpCode });
+      const response = await authAPI.verifySetup2FA({ totpCode: twoFactorForm.totpCode });
       setRecoveryCodes(response.data.recoveryCodes);
       setTwoFactorForm({ ...twoFactorForm, mode: 'recovery' });
       setMessage('2FA enabled successfully!');
@@ -166,7 +234,7 @@ function Profile({ user }) {
     e.preventDefault();
     setLoading(true); setError('');
     try {
-      const response = await api.post('/auth/2fa/recovery-codes/regenerate', {
+      const response = await authAPI.regenerateRecoveryCodes({
         password: recoveryForm.password,
         otp: recoveryForm.otp
       });
@@ -185,107 +253,156 @@ function Profile({ user }) {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const baseUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
+
+  if (!user) return null;
+
   return (
-    <div className="profile-container">
-      {/* Hero Header */}
-      <div className="page-hero profile-hero">
-        <span className="hero-tag">USER PROFILE</span>
-        <h2 className="hero-title">{user.username}, this is your hub</h2>
-        <p className="hero-subtitle">Review personal details and manage account security.</p>
-        <div className="profile-stats">
-          <div className="profile-stat">
-            <div className="stat-label">Account Created</div>
-            <div className="stat-value">{user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}</div>
-          </div>
-          <div className="profile-stat">
-            <div className="stat-label">Last Updated</div>
-            <div className="stat-value">{user.updatedAt ? new Date(user.updatedAt).toLocaleDateString() : 'N/A'}</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Info Cards */}
-      <div className="profile-cards">
-        {[
-          { icon: <User size={24} />, label: 'Full Name', value: user.username, hint: 'Official record name', color: '#3b82f6' },
-          { icon: <Mail size={24} />, label: 'Email', value: user.email, hint: 'Login address', color: '#22c55e' },
-          { icon: <Target size={24} />, label: 'Role', value: user.role, hint: 'Access level', color: '#8b5cf6' }
-        ].map((item, i) => (
-          <div key={i} className="profile-info-card">
-            <div className="info-item">
-              <div className="info-icon" style={{ background: `${item.color}20`, color: item.color }}>{item.icon}</div>
-              <div className="info-content">
-                <div className="info-label">{item.label}</div>
-                <div className="info-value">{item.value}</div>
-                <div className="info-hint">{item.hint}</div>
+    <div className="profile-page-view">
+      <div className="profile-container">
+        {/* Hero Header */}
+        <div className="page-hero profile-hero">
+          <div className="profile-hero-content">
+            <div className="profile-avatar-wrapper">
+              <div className={`profile-avatar-container ${uploading ? 'uploading' : ''}`}>
+                {user.profilePicture ? (
+                  <img
+                    src={`${baseUrl}/uploads/${user.profilePicture}`}
+                    alt="Profile"
+                    className="profile-avatar-img"
+                  />
+                ) : (
+                  <div className="profile-avatar-placeholder">
+                    {user.firstName?.charAt(0)}{user.lastName?.charAt(0)}
+                  </div>
+                )}
+                <label className="avatar-edit-badge" title="Change Profile Picture">
+                  <Camera size={16} />
+                  <input type="file" onChange={handleFileChange} hidden accept="image/*" />
+                </label>
+                {user.profilePicture && (
+                  <button
+                    className="avatar-delete-badge"
+                    onClick={handleDeletePicture}
+                    title="Remove Profile Picture"
+                    disabled={uploading}
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                )}
               </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Main Sections */}
-      <div className="profile-section">
-        <div className="section-header">
-          <h3 className="section-title">Contact Information</h3>
-          <button className="edit-btn" onClick={handleOpenEditModal}><Edit size={16} /> Edit details</button>
-        </div>
-        <div className="contact-info">
-          <div className="contact-row"><span className="contact-label">First Name</span><span className="contact-value">{user.firstName}</span></div>
-          <div className="contact-row"><span className="contact-label">Last Name</span><span className="contact-value">{user.lastName}</span></div>
-          {user.birthday && <div className="contact-row"><span className="contact-label">Birthday</span><span className="contact-value">{new Date(user.birthday).toLocaleDateString()}</span></div>}
-          <div className="contact-row"><span className="contact-label">Email Address</span><span className="contact-value">{user.email}</span></div>
-        </div>
-      </div>
-
-      <div className="profile-section">
-        <h3 className="section-title">Security</h3>
-        <p className="section-subtitle">Manage account protection.</p>
-        <div className="security-controls">
-          <div className="security-item">
-            <div className="security-info">
-              <span className="security-label">Account Password</span>
-              <span className="security-desc">Update your login credentials</span>
-            </div>
-            <button className="edit-btn secondary" onClick={handleOpenPasswordModal}><Lock size={16} /> Change Password</button>
-          </div>
-
-          <div className="security-item">
-            <div className="security-info">
-              <div className="security-label-group">
-                <span className="security-label">Two-Factor Authentication (2FA)</span>
-                <span className={`status-badge ${user.twoFactorEnabled ? 'enabled' : 'disabled'}`}>{user.twoFactorEnabled ? 'Enabled' : 'Disabled'}</span>
-              </div>
-              <span className="security-desc">Extra security for your account</span>
-            </div>
-            <div className="security-actions">
-              {user.twoFactorEnabled ? (
-                <>
-                  <button className="edit-btn secondary" onClick={() => handleOpen2faModal('setup')}><Smartphone size={16} /> Change 2FA</button>
-                  <button className="edit-btn danger" onClick={() => handleOpen2faModal('disable')}><Shield size={16} /> Disable 2FA</button>
-                </>
-              ) : <button className="edit-btn success" onClick={() => handleOpen2faModal('setup')}><Shield size={16} /> Enable 2FA</button>}
-            </div>
-          </div>
-
-          {user.twoFactorEnabled && (
-            <div className="security-item">
-              <div className="security-info">
-                <div className="security-label-group">
-                  <span className="security-label">Recovery Codes</span>
-                  <span className={`status-badge ${user.recoveryCodeCount > 0 ? 'enabled' : 'disabled'}`}>{user.recoveryCodeCount} remaining</span>
+              {uploading && (
+                <div className="avatar-uploading-overlay">
+                  <div className="upload-progress-container">
+                    <div className="upload-progress-bar" style={{ width: `${uploadProgress}%` }}></div>
+                  </div>
+                  <span className="upload-progress-text">{uploadProgress}%</span>
                 </div>
-                <span className="security-desc">Backup access in case of device loss</span>
-              </div>
-              <button className="edit-btn secondary" onClick={handleOpenRecoveryModal}><Lock size={16} /> Manage Codes</button>
+              )}
             </div>
-          )}
+            <div className="hero-text-content">
+              <span className="hero-tag">USER PROFILE</span>
+              <h2 className="hero-title">{user.firstName}, this is your hub</h2>
+              <p className="hero-subtitle">Review personal details and manage account security.</p>
+            </div>
+          </div>
+          <div className="profile-stats">
+            <div className="profile-stat">
+              <div className="stat-label">Account Created</div>
+              <div className="stat-value">{user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}</div>
+            </div>
+            <div className="profile-stat">
+              <div className="stat-label">Last Updated</div>
+              <div className="stat-value">{user.updatedAt ? new Date(user.updatedAt).toLocaleDateString() : 'N/A'}</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="profile-content-area">
+          {/* Info Cards */}
+          <div className="profile-cards">
+            {[
+              { icon: <User size={24} />, label: 'Full Name', value: `${user.firstName} ${user.lastName}`, hint: 'Official record name', color: '#3b82f6' },
+              { icon: <Mail size={24} />, label: 'Email', value: user.email, hint: 'Login address', color: '#22c55e' },
+              { icon: <Target size={24} />, label: 'Role', value: user.role.replace('_', ' '), hint: 'Access level', color: '#8b5cf6' }
+            ].map((item, i) => (
+              <div key={i} className="profile-info-card">
+                <div className="info-item">
+                  <div className="info-icon" style={{ background: `${item.color}20`, color: item.color }}>{item.icon}</div>
+                  <div className="info-content">
+                    <div className="info-label">{item.label}</div>
+                    <div className="info-value">{item.value}</div>
+                    <div className="info-hint">{item.hint}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Main Sections */}
+          <div className="profile-section">
+            <div className="section-header">
+              <h3 className="section-title">Contact Information</h3>
+              <button className="edit-btn" onClick={handleOpenEditModal}><Edit size={16} /> Edit details</button>
+            </div>
+            <div className="contact-info">
+              <div className="contact-row"><span className="contact-label">First Name</span><span className="contact-value">{user.firstName}</span></div>
+              <div className="contact-row"><span className="contact-label">Last Name</span><span className="contact-value">{user.lastName}</span></div>
+              {user.birthday && <div className="contact-row"><span className="contact-label">Birthday</span><span className="contact-value">{new Date(user.birthday).toLocaleDateString()}</span></div>}
+              <div className="contact-row"><span className="contact-label">Email Address</span><span className="contact-value">{user.email}</span></div>
+            </div>
+          </div>
+
+          <div className="profile-section">
+            <h3 className="section-title">Security</h3>
+            <p className="section-subtitle">Manage account protection.</p>
+            <div className="security-controls">
+              <div className="security-item">
+                <div className="security-info">
+                  <span className="security-label">Account Password</span>
+                  <span className="security-desc">Update your login credentials</span>
+                </div>
+                <button className="edit-btn secondary" onClick={handleOpenPasswordModal}><Lock size={16} /> Change Password</button>
+              </div>
+
+              <div className="security-item">
+                <div className="security-info">
+                  <div className="security-label-group">
+                    <span className="security-label">Two-Factor Authentication (2FA)</span>
+                    <span className={`status-badge ${user.twoFactorEnabled ? 'enabled' : 'disabled'}`}>{user.twoFactorEnabled ? 'Enabled' : 'Disabled'}</span>
+                  </div>
+                  <span className="security-desc">Extra security for your account</span>
+                </div>
+                <div className="security-actions">
+                  {user.twoFactorEnabled ? (
+                    <>
+                      <button className="edit-btn secondary" onClick={() => handleOpen2faModal('setup')}><Smartphone size={16} /> Change 2FA</button>
+                      <button className="edit-btn danger" onClick={() => handleOpen2faModal('disable')}><Shield size={16} /> Disable 2FA</button>
+                    </>
+                  ) : <button className="edit-btn success" onClick={() => handleOpen2faModal('setup')}><Shield size={16} /> Enable 2FA</button>}
+                </div>
+              </div>
+
+              {user.twoFactorEnabled && (
+                <div className="security-item">
+                  <div className="security-info">
+                    <div className="security-label-group">
+                      <span className="security-label">Recovery Codes</span>
+                      <span className={`status-badge ${user.recoveryCodeCount > 0 ? 'enabled' : 'disabled'}`}>{user.recoveryCodeCount} remaining</span>
+                    </div>
+                    <span className="security-desc">Backup access in case of device loss</span>
+                  </div>
+                  <button className="edit-btn secondary" onClick={handleOpenRecoveryModal}><Lock size={16} /> Manage Codes</button>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Modals Implementation */}
+      {/* Modals Implementation (Nested) */}
       {showEditModal && (
-        <div className="modal-overlay">
+        <div className="modal-overlay profile-submodal">
           <div className="modal-content">
             <div className="modal-header"><h3 className="modal-title">Edit Profile</h3><button className="modal-close" onClick={handleCloseEditModal}><X /></button></div>
             <div className="modal-form">
@@ -304,7 +421,7 @@ function Profile({ user }) {
       )}
 
       {showPasswordModal && (
-        <div className="modal-overlay">
+        <div className="modal-overlay profile-submodal">
           <div className="modal-content">
             <div className="modal-header"><h3 className="modal-title">Change Password</h3><button className="modal-close" onClick={handleClosePasswordModal}><X /></button></div>
             <div className="modal-form">
@@ -323,7 +440,7 @@ function Profile({ user }) {
       )}
 
       {show2faModal && (
-        <div className="modal-overlay">
+        <div className="modal-overlay profile-submodal">
           <div className="modal-content">
             <div className="modal-header">
               <h3 className="modal-title">{twoFactorForm.mode === 'disable' ? 'Disable 2FA' : twoFactorForm.mode === 'recovery' ? 'Your Recovery Codes' : 'Secure Your Account'}</h3>
@@ -364,7 +481,7 @@ function Profile({ user }) {
       )}
 
       {showRecoveryModal && (
-        <div className="modal-overlay">
+        <div className="modal-overlay profile-submodal">
           <div className="modal-content">
             <div className="modal-header"><h3 className="modal-title">Regenerate Recovery Codes</h3><button className="modal-close" onClick={handleCloseRecoveryModal}><X /></button></div>
             <div className="modal-form">

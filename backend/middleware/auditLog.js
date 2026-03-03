@@ -100,20 +100,26 @@ const auditLogMiddleware = (req, res, next) => {
             // Actually, for simplicity and safety, let's log if we have a user OR if it's a critical auth path.
 
             if (!userId && !req.originalUrl.includes('/auth/login')) {
-                // If generic public access, maybe skip?
-                // Let's log it anyway as Anonymous to be safe with "log everything".
+                // For non-login routes without a user, we skip logging to avoid noise/validation errors
+                return;
             }
 
-            const logEntry = new AuditLog({
-                user: userId,
-                action: readableAction,
-                details: `${req.method} ${req.originalUrl}`,
-                ip: req.ip || req.connection.remoteAddress,
-                userAgent: req.get('User-Agent'),
-                timestamp: new Date()
-            });
+            // Extract details as an object for better frontend parsing
+            const logDetails = {
+                method: req.method,
+                url: req.originalUrl,
+                statusCode: res.statusCode
+            };
 
-            await logEntry.save();
+            await AuditLog.logAction({
+                action: readableAction,
+                userId: userId,
+                userRole: req.user ? req.user.role : 'anonymous',
+                username: req.user ? `${req.user.firstName} ${req.user.lastName}` : 'anonymous',
+                details: logDetails,
+                ipAddress: req.ip || req.get('x-forwarded-for') || req.connection.remoteAddress,
+                userAgent: req.get('User-Agent')
+            });
         } catch (error) {
             console.error('Audit Log Error:', error);
             // Do not crash the app

@@ -5,15 +5,34 @@ const Feedback = require('../models/Feedback');
 // @access  Public or Authenticated (assuming authenticated for now)
 exports.getAllFeedbacks = async (req, res) => {
     try {
-        const { search } = req.query;
+        const { search, status } = req.query;
         let query = {};
+
+        // Filter by status (approved/pending)
+        if (status === 'pending') {
+            query.actionStatus = 'pending_approval';
+
+            // If not admin/official, they can only see their own pending posts
+            if (req.user && req.user.role === 'resident') {
+                query.author = req.user._id;
+            }
+        } else {
+            // Default to approved only (status 'none')
+            // HOWEVER, we also want authors to see their own pending posts in the main feed
+            if (req.user) {
+                query.$or = [
+                    { actionStatus: 'none' },
+                    { author: req.user._id }
+                ];
+            } else {
+                query.actionStatus = 'none';
+            }
+        }
 
         if (search) {
             const searchRegex = new RegExp(search, 'i');
-
-            // To search by author name, we need to populate first, but mongoose doesn't support regex on populated fields directly in find().
-            // We'll use aggregate or a two-step process. A simpler way is to find users matching the name, then find feedbacks by those users or matching content.
             const User = require('../models/User');
+            // ... (rest of search logic remains similar but inside the existing query)
             const matchingUsers = await User.find({
                 $or: [
                     { firstName: searchRegex },
@@ -23,18 +42,26 @@ exports.getAllFeedbacks = async (req, res) => {
             }).select('_id');
             const userIds = matchingUsers.map(u => u._id);
 
-            query = {
+            const searchFilter = {
                 $or: [
                     { content: searchRegex },
                     { author: { $in: userIds } },
                     { 'replies.content': searchRegex }
                 ]
             };
+
+            // Merge search filter with status filter
+            if (query.$or) {
+                // If we have the complex $or for author visibility, we need to be careful
+                query = { $and: [query, searchFilter] };
+            } else {
+                Object.assign(query, searchFilter);
+            }
         }
 
         const feedbacks = await Feedback.find(query)
-            .populate('author', 'firstName lastName email role')
-            .populate('replies.author', 'firstName lastName email role')
+            .populate('author', 'firstName lastName email role profilePicture')
+            .populate('replies.author', 'firstName lastName email role profilePicture')
             .sort({ createdAt: -1 }); // Newest to oldest (latest on top)
 
         res.status(200).json(feedbacks);
@@ -56,11 +83,25 @@ exports.createFeedback = async (req, res) => {
 
         const feedback = await Feedback.create({
             author: req.user._id,
-            content
+            content,
+            actionStatus: 'pending_approval' // Explicitly set even if default
         });
 
         const populatedFeedback = await Feedback.findById(feedback._id)
-            .populate('author', 'firstName lastName email role');
+            .populate('author', 'firstName lastName email role profilePicture');
+
+        // Log the feedback creation
+        const AuditLog = require('../models/AuditLog');
+        await AuditLog.logAction({
+            action: 'feedback_submitted',
+            userId: req.user._id,
+            userRole: req.user.role,
+            username: `${req.user.firstName} ${req.user.lastName}`,
+            feedbackId: feedback._id,
+            details: { type: 'post', content: content.substring(0, 100) },
+            ipAddress: req.ip,
+            userAgent: req.get('User-Agent')
+        });
 
         res.status(201).json(populatedFeedback);
     } catch (error) {
@@ -75,32 +116,28 @@ exports.createFeedback = async (req, res) => {
 exports.updateFeedback = async (req, res) => {
     try {
         const { content } = req.body;
-        let feedback = await Feedback.findById(req.params.id);
+        let feedback = await Feedback.findById(req.params.id)
+            .populate('author', 'firstName lastName email role profilePicture')
+            .populate('replies.author', 'firstName lastName email role profilePicture');
 
         if (!feedback) {
             return res.status(404).json({ error: 'Feedback not found' });
         }
 
-        // Check ownership or role
-        const isAuthor = feedback.author.toString() === req.user._id.toString();
-        const isAdmin = req.user.role === 'administrator';
-        const isOfficial = req.user.role === 'barangay_official';
-
-        if (!isAuthor && !isAdmin && !isOfficial) {
-            return res.status(403).json({ error: 'Not authorized to update this feedback' });
+        // PREVENT EDITING OF PENDING APPROVAL POSTS
+        if (feedback.actionStatus === 'pending_approval') {
+            return res.status(400).json({ error: 'Cannot edit a post that is pending approval. Please delete and repost if necessary.' });
         }
 
-        if (isAdmin) {
-            // Admins can update immediately
-            feedback.content = content || feedback.content;
-            feedback.actionStatus = 'none';
-            feedback.pendingEditContent = null;
-        } else {
-            // Residents and Officials queue the edit
-            if (content && content !== feedback.content) {
-                feedback.pendingEditContent = content;
-                feedback.actionStatus = 'pending_edit';
-            }
+        // Only authors can update their own posts. Admins/Officials are view-only in the public feed.
+        if (feedback.author.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ error: 'Not authorized to update this feedback. Only the author can perform this action.' });
+        }
+
+        // Residents and Officials (if they managed to post) queue the edit
+        if (content && content !== feedback.content) {
+            feedback.pendingEditContent = content;
+            feedback.actionStatus = 'pending_edit';
         }
 
         await feedback.save();
@@ -127,29 +164,16 @@ exports.deleteFeedback = async (req, res) => {
             return res.status(404).json({ error: 'Feedback not found' });
         }
 
-        // Check ownership or role
-        const isAuthor = feedback.author.toString() === req.user._id.toString();
-        const isAdmin = req.user.role === 'administrator';
-        const isOfficial = req.user.role === 'barangay_official';
-
-        if (!isAuthor && !isAdmin && !isOfficial) {
-            return res.status(403).json({ error: 'Not authorized to delete this feedback' });
-        }
-
-        if (isAdmin) {
+        // If author or admin, delete immediately (skip moderation)
+        if (feedback.author.toString() === req.user._id.toString() || req.user.role === 'administrator') {
             await feedback.deleteOne();
-            return res.status(200).json({ message: 'Feedback removed' });
-        } else {
-            // Residents and Officials queue the deletion
-            feedback.actionStatus = 'pending_delete';
-            await feedback.save();
-
-            const updatedFeedback = await Feedback.findById(feedback._id)
-                .populate('author', 'firstName lastName email role')
-                .populate('replies.author', 'firstName lastName email role');
-
-            return res.status(200).json({ message: 'Deletion pending admin approval', feedback: updatedFeedback });
+            return res.status(200).json({ message: 'Feedback deleted successfully' });
         }
+
+        // Otherwise (though permissions currently limit this to author), queue for deletion
+        feedback.actionStatus = 'pending_delete';
+        await feedback.save();
+        res.status(200).json({ message: 'Deletion requested', feedback });
     } catch (error) {
         console.error('Error deleting feedback:', error);
         res.status(500).json({ error: 'Server Error' });
@@ -161,6 +185,11 @@ exports.deleteFeedback = async (req, res) => {
 // @access  Private (Resident, Official, Admin)
 exports.addReply = async (req, res) => {
     try {
+        // Admins and Officials are view-only and cannot reply
+        if (req.user.role === 'administrator' || req.user.role === 'barangay_official') {
+            return res.status(403).json({ error: 'Administrators and Barangay Officials cannot post replies.' });
+        }
+
         const { content } = req.body;
         if (!content) {
             return res.status(400).json({ error: 'Content is required' });
@@ -172,17 +201,35 @@ exports.addReply = async (req, res) => {
             return res.status(404).json({ error: 'Feedback not found' });
         }
 
+        if (feedback.actionStatus === 'pending_approval') {
+            return res.status(400).json({ error: 'Cannot reply to a post that is pending approval.' });
+        }
+
         const newReply = {
             author: req.user._id,
-            content
+            content,
+            actionStatus: 'none' // Auto-approved
         };
 
         feedback.replies.push(newReply);
         await feedback.save();
 
         const updatedFeedback = await Feedback.findById(feedback._id)
-            .populate('author', 'firstName lastName email role')
-            .populate('replies.author', 'firstName lastName email role');
+            .populate('author', 'firstName lastName email role profilePicture')
+            .populate('replies.author', 'firstName lastName email role profilePicture');
+
+        // Log the reply action
+        const AuditLog = require('../models/AuditLog');
+        await AuditLog.logAction({
+            action: 'feedback_submitted',
+            userId: req.user._id,
+            userRole: req.user.role,
+            username: `${req.user.firstName} ${req.user.lastName}`,
+            feedbackId: feedback._id,
+            details: { type: 'reply', content: content.substring(0, 100) },
+            ipAddress: req.ip,
+            userAgent: req.get('User-Agent')
+        });
 
         res.status(201).json(updatedFeedback);
     } catch (error) {
@@ -208,26 +255,20 @@ exports.updateReply = async (req, res) => {
             return res.status(404).json({ error: 'Reply not found' });
         }
 
-        // Check ownership or role
-        const isAuthor = reply.author.toString() === req.user._id.toString();
-        const isAdmin = req.user.role === 'administrator';
-        const isOfficial = req.user.role === 'barangay_official';
-
-        if (!isAuthor && !isAdmin && !isOfficial) {
-            return res.status(403).json({ error: 'Not authorized to update this reply' });
+        // PREVENT EDITING OF PENDING APPROVAL REPLIES
+        if (reply.actionStatus === 'pending_approval') {
+            return res.status(400).json({ error: 'Cannot edit a reply that is pending approval.' });
         }
 
-        if (isAdmin) {
-            // Admins can update immediately
-            reply.content = content || reply.content;
-            reply.actionStatus = 'none';
-            reply.pendingEditContent = null;
-        } else {
-            // Residents and Officials queue the edit
-            if (content && content !== reply.content) {
-                reply.pendingEditContent = content;
-                reply.actionStatus = 'pending_edit';
-            }
+        // Only authors can update their own replies.
+        if (reply.author.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ error: 'Not authorized to update this reply. Only the author can perform this action.' });
+        }
+
+        // Residents queue the edit
+        if (content && content !== reply.content) {
+            reply.pendingEditContent = content;
+            reply.actionStatus = 'pending_edit';
         }
 
         await feedback.save();
@@ -248,21 +289,66 @@ exports.updateReply = async (req, res) => {
 // @access  Private (Admin)
 exports.approveAction = async (req, res) => {
     try {
-        const feedback = await Feedback.findById(req.params.id);
+        const feedback = await Feedback.findById(req.params.id)
+            .populate('author', 'firstName lastName email role profilePicture')
+            .populate('replies.author', 'firstName lastName email role profilePicture');
         if (!feedback) return res.status(404).json({ error: 'Feedback not found' });
 
-        if (req.user.role !== 'administrator') {
-            return res.status(403).json({ error: 'Not authorized to approve actions' });
+        if (req.user.role !== 'administrator' && req.user.role !== 'barangay_official') {
+            return res.status(403).json({ error: 'Not authorized to perform this action' });
         }
 
         if (feedback.actionStatus === 'pending_delete') {
-            await feedback.deleteOne();
+            await Feedback.findByIdAndDelete(feedback._id);
+
+            // Log the approval (which results in deletion)
+            const AuditLog = require('../models/AuditLog');
+            await AuditLog.logAction({
+                action: 'feedback_deleted', // Or 'feedback_approved_deletion'
+                userId: req.user._id,
+                userRole: req.user.role,
+                username: `${req.user.firstName} ${req.user.lastName}`,
+                feedbackId: feedback._id,
+                details: { status: 'pending_delete', content: feedback.content.substring(0, 100) },
+                ipAddress: req.ip,
+                userAgent: req.get('User-Agent')
+            });
             return res.status(200).json({ message: 'Feedback removed' });
+        } else if (feedback.actionStatus === 'pending_approval') {
+            feedback.actionStatus = 'none';
+            await feedback.save();
+
+            // Log the approval
+            const AuditLog = require('../models/AuditLog');
+            await AuditLog.logAction({
+                action: 'feedback_approved',
+                userId: req.user._id,
+                userRole: req.user.role,
+                username: `${req.user.firstName} ${req.user.lastName}`,
+                feedbackId: feedback._id,
+                details: { status: 'pending_approval', content: feedback.content.substring(0, 100) },
+                ipAddress: req.ip,
+                userAgent: req.get('User-Agent')
+            });
         } else if (feedback.actionStatus === 'pending_edit' && feedback.pendingEditContent) {
+            const oldContent = feedback.content;
             feedback.content = feedback.pendingEditContent;
             feedback.actionStatus = 'none';
             feedback.pendingEditContent = null;
             await feedback.save();
+
+            // Log the approval
+            const AuditLog = require('../models/AuditLog');
+            await AuditLog.logAction({
+                action: 'feedback_approved',
+                userId: req.user._id,
+                userRole: req.user.role,
+                username: `${req.user.firstName} ${req.user.lastName}`,
+                feedbackId: feedback._id,
+                details: { status: 'pending_edit', oldContent: oldContent.substring(0, 100), newContent: feedback.content.substring(0, 100) },
+                ipAddress: req.ip,
+                userAgent: req.get('User-Agent')
+            });
         }
 
         const updated = await Feedback.findById(feedback._id)
@@ -284,8 +370,27 @@ exports.rejectAction = async (req, res) => {
         const feedback = await Feedback.findById(req.params.id);
         if (!feedback) return res.status(404).json({ error: 'Feedback not found' });
 
-        if (req.user.role !== 'administrator') {
-            return res.status(403).json({ error: 'Not authorized to reject actions' });
+        if (req.user.role !== 'administrator' && req.user.role !== 'barangay_official') {
+            return res.status(403).json({ error: 'Not authorized to perform this action' });
+        }
+
+        if (feedback.actionStatus === 'pending_approval') {
+            await Feedback.findByIdAndDelete(feedback._id);
+
+            // Log the rejection
+            const AuditLog = require('../models/AuditLog');
+            await AuditLog.logAction({
+                action: 'feedback_rejected',
+                userId: req.user._id,
+                userRole: req.user.role,
+                username: `${req.user.firstName} ${req.user.lastName}`,
+                feedbackId: feedback._id,
+                details: { status: 'pending_approval', content: feedback.content.substring(0, 100) },
+                ipAddress: req.ip,
+                userAgent: req.get('User-Agent')
+            });
+
+            return res.status(200).json({ message: 'Feedback rejected and deleted' });
         }
 
         if (feedback.actionStatus === 'pending_edit' || feedback.actionStatus === 'pending_delete') {
@@ -313,8 +418,8 @@ exports.approveReplyAction = async (req, res) => {
         const feedback = await Feedback.findById(req.params.id);
         if (!feedback) return res.status(404).json({ error: 'Feedback not found' });
 
-        if (req.user.role !== 'administrator') {
-            return res.status(403).json({ error: 'Not authorized to approve actions' });
+        if (req.user.role !== 'administrator' && req.user.role !== 'barangay_official') {
+            return res.status(403).json({ error: 'Not authorized to perform this action' });
         }
 
         const reply = feedback.replies.id(req.params.replyId);
@@ -349,12 +454,33 @@ exports.rejectReplyAction = async (req, res) => {
         const feedback = await Feedback.findById(req.params.id);
         if (!feedback) return res.status(404).json({ error: 'Feedback not found' });
 
-        if (req.user.role !== 'administrator') {
-            return res.status(403).json({ error: 'Not authorized to reject actions' });
+        if (req.user.role !== 'administrator' && req.user.role !== 'barangay_official') {
+            return res.status(403).json({ error: 'Not authorized to perform this action' });
         }
 
         const reply = feedback.replies.id(req.params.replyId);
         if (!reply) return res.status(404).json({ error: 'Reply not found' });
+
+        if (reply.actionStatus === 'pending_approval') {
+            const content = reply.content;
+            feedback.replies.pull(reply._id);
+            await feedback.save();
+
+            // Log the rejection
+            const AuditLog = require('../models/AuditLog');
+            await AuditLog.logAction({
+                action: 'feedback_rejected',
+                userId: req.user._id,
+                userRole: req.user.role,
+                username: `${req.user.firstName} ${req.user.lastName}`,
+                feedbackId: feedback._id,
+                details: { type: 'reply', status: 'pending_approval', content: content.substring(0, 100) },
+                ipAddress: req.ip,
+                userAgent: req.get('User-Agent')
+            });
+
+            return res.status(200).json({ message: 'Reply rejected and deleted' });
+        }
 
         if (reply.actionStatus === 'pending_edit' || reply.actionStatus === 'pending_delete') {
             reply.actionStatus = 'rejected';
@@ -390,30 +516,13 @@ exports.deleteReply = async (req, res) => {
             return res.status(404).json({ error: 'Reply not found' });
         }
 
-        // Check ownership or role
-        const isAuthor = reply.author.toString() === req.user._id.toString();
-        const isAdmin = req.user.role === 'administrator';
-        const isOfficial = req.user.role === 'barangay_official';
-
-        if (!isAuthor && !isAdmin && !isOfficial) {
-            return res.status(403).json({ error: 'Not authorized to delete this reply' });
+        // Only authors can delete their own replies.
+        if (reply.author.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ error: 'Not authorized to delete this reply. Only the author can perform this action.' });
         }
 
-        if (isAdmin) {
-            feedback.replies.pull(req.params.replyId);
-            await feedback.save();
-            return res.status(200).json({ message: 'Reply removed' });
-        } else {
-            // Residents and Officials queue the deletion
-            reply.actionStatus = 'pending_delete';
-            await feedback.save();
-
-            const updatedFeedback = await Feedback.findById(feedback._id)
-                .populate('author', 'firstName lastName email role')
-                .populate('replies.author', 'firstName lastName email role');
-
-            return res.status(200).json({ message: 'Reply deletion pending admin approval', feedback: updatedFeedback });
-        }
+        // Residents queue the deletion
+        reply.actionStatus = 'pending_delete';
     } catch (error) {
         console.error('Error deleting reply:', error);
         res.status(500).json({ error: 'Server Error' });

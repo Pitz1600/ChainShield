@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import Welcome from './components/Auth/Welcome';
 import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
@@ -9,6 +9,8 @@ import ResetPassword from './components/Auth/ResetPassword';
 import MainLayout from './components/Layout/MainLayout';
 import IdleTimer from './components/Auth/IdleTimer';
 import { authAPI } from './services/api';
+
+const Feedbacks = lazy(() => import('./components/Feedbacks/Feedbacks'));
 
 function App() {
   const [view, setView] = useState('welcome');
@@ -80,17 +82,17 @@ function App() {
       console.error('[Logout] API call failed:', err.message);
       // Continue with logout even if API call fails
     }
-    
+
     // Clear all frontend auth state immediately
     localStorage.removeItem('user');
     sessionStorage.clear();
     setIsAuthenticated(false);
     setUser(null);
     setPendingUser(null);
-    
+
     // Navigate to welcome view
     setView('welcome');
-    
+
     // NOTE: Don't verify token is blacklisted here - the response interceptor
     // would redirect us back to /setup-2fa if token is invalid (403 + onboardingRequired)
     // Let logout complete cleanly by not making any authenticated requests

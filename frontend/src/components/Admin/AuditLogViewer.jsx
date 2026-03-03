@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, AlertTriangle, Flag, RefreshCw, Filter, Eye, XCircle, CheckCircle, Clock } from 'lucide-react';
+import { FileText, AlertTriangle, RefreshCw, Eye, Clock } from 'lucide-react';
 import api from '../../services/api';
 import '../../styles/AdminPanel.css';
 
@@ -15,12 +15,11 @@ function AuditLogViewer() {
     });
     const [pagination, setPagination] = useState({});
     const [summary, setSummary] = useState({});
-    const [selectedLog, setSelectedLog] = useState(null);
-    const [flagModalOpen, setFlagModalOpen] = useState(false);
-    const [flagReason, setFlagReason] = useState('');
+    const [, setSelectedLog] = useState(null);
 
     useEffect(() => {
         fetchAuditLogs();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [filters]);
 
     const fetchAuditLogs = async () => {
@@ -47,30 +46,8 @@ function AuditLogViewer() {
         }
     };
 
-    const handleFlagFeedback = async (feedbackId) => {
-        if (!flagReason.trim()) {
-            alert('Please provide a reason for flagging this feedback');
-            return;
-        }
-
-        try {
-            await api.post(`/feedback/${feedbackId}/flag`, { reason: flagReason });
-            alert('✅ Feedback flagged and removed from training dataset');
-            setFlagModalOpen(false);
-            setFlagReason('');
-            setSelectedLog(null);
-            fetchAuditLogs();
-        } catch (error) {
-            console.error('Error flagging feedback:', error);
-            alert('Error: ' + (error.response?.data?.error || 'Error flagging feedback'));
-        }
-    };
-
     const getActionIcon = (action) => {
         switch (action) {
-            case 'feedback_submitted': return <FileText size={16} />;
-            case 'feedback_auto_approved': return <CheckCircle size={16} />;
-            case 'feedback_flagged': return <Flag size={16} />;
             case 'analyst_rate_limited': return <Clock size={16} />;
             case 'model_retrained': return <RefreshCw size={16} />;
             default: return <Eye size={16} />;
@@ -79,9 +56,6 @@ function AuditLogViewer() {
 
     const getActionColor = (action) => {
         switch (action) {
-            case 'feedback_submitted': return '#3b82f6';
-            case 'feedback_auto_approved': return '#10b981';
-            case 'feedback_flagged': return '#ef4444';
             case 'analyst_rate_limited': return '#f59e0b';
             case 'model_retrained': return '#8b5cf6';
             default: return '#6b7280';
@@ -90,18 +64,17 @@ function AuditLogViewer() {
 
     const getRoleStyle = (role) => {
         switch (role) {
-            case 'administrator': return { backgroundColor: '#ede9fe', color: '#7c3aed', border: '1px solid #ddd6fe' }; // Purple
-            case 'barangay_official': return { backgroundColor: '#dbeafe', color: '#2563eb', border: '1px solid #bfdbfe' }; // Blue
-            case 'analyst': return { backgroundColor: '#fef3c7', color: '#d97706', border: '1px solid #fde68a' }; // Amber
-            case 'investigator': return { backgroundColor: '#ccfbf1', color: '#0f766e', border: '1px solid #99f6e4' }; // Teal
-            case 'resident': return { backgroundColor: '#f3f4f6', color: '#4b5563', border: '1px solid #e5e7eb' }; // Gray
+            case 'administrator': return { backgroundColor: '#ede9fe', color: '#7c3aed', border: '1px solid #ddd6fe' };
+            case 'barangay_official': return { backgroundColor: '#dbeafe', color: '#2563eb', border: '1px solid #bfdbfe' };
+            case 'analyst': return { backgroundColor: '#fef3c7', color: '#d97706', border: '1px solid #fde68a' };
+            case 'investigator': return { backgroundColor: '#ccfbf1', color: '#0f766e', border: '1px solid #99f6e4' };
+            case 'resident': return { backgroundColor: '#f3f4f6', color: '#4b5563', border: '1px solid #e5e7eb' };
             default: return { backgroundColor: '#f3f4f6', color: '#6b7280', border: '1px solid #e5e7eb' };
         }
     };
 
     return (
         <div className="audit-log-viewer">
-            {/* Hero Section - Matching Reference Design */}
             <div className="admin-hero audit-hero">
                 <div className="hero-text-section">
                     <div className="hero-label">INTEGRITY MONITORING WORKSPACE</div>
@@ -112,7 +85,6 @@ function AuditLogViewer() {
                     </p>
                 </div>
 
-                {/* Glassmorphic Stats Row */}
                 <div className="hero-stats-row">
                     <div className="hero-stat-card">
                         <div className="hero-stat-icon" style={{ background: 'rgba(239, 68, 68, 0.2)' }}>
@@ -125,16 +97,6 @@ function AuditLogViewer() {
                     </div>
 
                     <div className="hero-stat-card">
-                        <div className="hero-stat-icon" style={{ background: 'rgba(239, 68, 68, 0.2)' }}>
-                            <Flag size={28} color="#ef4444" />
-                        </div>
-                        <div className="hero-stat-info">
-                            <div className="hero-stat-value">{logs.filter(l => l.action === 'feedback_flagged').length}</div>
-                            <div className="hero-stat-label">FLAGGED</div>
-                        </div>
-                    </div>
-
-                    <div className="hero-stat-card">
                         <div className="hero-stat-icon" style={{ background: 'rgba(59, 130, 246, 0.2)' }}>
                             <Eye size={28} color="#3b82f6" />
                         </div>
@@ -143,20 +105,9 @@ function AuditLogViewer() {
                             <div className="hero-stat-label">TOTAL LOGS</div>
                         </div>
                     </div>
-
-                    <div className="hero-stat-card">
-                        <div className="hero-stat-icon" style={{ background: 'rgba(16, 185, 129, 0.2)' }}>
-                            <CheckCircle size={28} color="#10b981" />
-                        </div>
-                        <div className="hero-stat-info">
-                            <div className="hero-stat-value">{logs.filter(l => l.action === 'feedback_auto_approved').length}</div>
-                            <div className="hero-stat-label">AUTO-APPROVED</div>
-                        </div>
-                    </div>
                 </div>
             </div>
 
-            {/* Filters */}
             <div className="filters-section">
                 <div className="filter-group">
                     <label>Action Type:</label>
@@ -165,9 +116,6 @@ function AuditLogViewer() {
                         onChange={(e) => setFilters({ ...filters, action: e.target.value, page: 1 })}
                     >
                         <option value="">All Actions</option>
-                        <option value="feedback_submitted">Feedback Submitted</option>
-                        <option value="feedback_auto_approved">Auto Approved</option>
-                        <option value="feedback_flagged">Flagged</option>
                         <option value="analyst_rate_limited">Rate Limited</option>
                         <option value="model_retrained">Model Retrained</option>
                     </select>
@@ -199,7 +147,6 @@ function AuditLogViewer() {
                 </div>
             </div>
 
-            {/* Logs Table */}
             {loading ? (
                 <div className="loading">Loading audit logs...</div>
             ) : (
@@ -226,8 +173,8 @@ function AuditLogViewer() {
 
                                     <div className="log-body">
                                         <div className="log-user">
-                                            <strong>{log.userId?.username || log.username || 'Unknown'}</strong>
-                                            <span className="role-badge" style={getRoleStyle(log.userRole)}>{log.userRole?.replace(/_/g, ' ').toUpperCase()}</span>
+                                            <strong>{log.user?.username || log.userId?.username || log.username || 'INTERNAL SYSTEM'}</strong>
+                                            <span className="role-badge" style={getRoleStyle(log.userRole)}>{log.userRole?.replace(/_/g, ' ').toUpperCase() || 'SYSTEM'}</span>
                                         </div>
 
                                         {log.isSuspicious && (
@@ -248,31 +195,21 @@ function AuditLogViewer() {
                                                 {log.details.predictedRisk && (
                                                     <span>AI Risk: {log.details.predictedRisk}</span>
                                                 )}
+                                                {/* Generic fallback for middleware logs */}
+                                                {!log.details.actualFraud && !log.details.predictedRisk && (
+                                                    <span className="generic-details">
+                                                        {log.details.method} {log.details.url} {log.details.statusCode && `(${log.details.statusCode})`}
+                                                        {typeof log.details === 'string' && log.details}
+                                                    </span>
+                                                )}
                                             </div>
                                         )}
                                     </div>
-
-                                    {log.isSuspicious && log.feedbackId && (
-                                        <div className="log-actions">
-                                            <button
-                                                className="flag-btn"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setSelectedLog(log);
-                                                    setFlagModalOpen(true);
-                                                }}
-                                            >
-                                                <Flag size={14} />
-                                                Flag as Malicious
-                                            </button>
-                                        </div>
-                                    )}
                                 </div>
                             ))
                         )}
                     </div>
 
-                    {/* Pagination */}
                     {pagination.pages > 1 && (
                         <div className="pagination">
                             <button
@@ -291,42 +228,6 @@ function AuditLogViewer() {
                         </div>
                     )}
                 </>
-            )}
-
-            {/* Flag Modal */}
-            {flagModalOpen && selectedLog && (
-                <div className="modal-overlay" onClick={() => setFlagModalOpen(false)}>
-                    <div className="modal-content" onClick={e => e.stopPropagation()}>
-                        <div className="modal-header">
-                            <h3>Flag Malicious Feedback</h3>
-                            <button className="close-btn" onClick={() => setFlagModalOpen(false)}>×</button>
-                        </div>
-                        <div className="modal-body">
-                            <p><strong>User:</strong> {selectedLog.userId?.username}</p>
-                            <p><strong>Suspicious Reason:</strong> {selectedLog.suspiciousReason}</p>
-
-                            <label>Reason for Flagging:</label>
-                            <textarea
-                                value={flagReason}
-                                onChange={(e) => setFlagReason(e.target.value)}
-                                placeholder="Explain why this feedback is malicious..."
-                                rows={4}
-                            />
-                        </div>
-                        <div className="modal-footer">
-                            <button className="cancel-btn" onClick={() => setFlagModalOpen(false)}>
-                                Cancel
-                            </button>
-                            <button
-                                className="flag-confirm-btn"
-                                onClick={() => handleFlagFeedback(selectedLog.feedbackId)}
-                            >
-                                <Flag size={16} />
-                                Flag & Remove from Training
-                            </button>
-                        </div>
-                    </div>
-                </div>
             )}
         </div>
     );

@@ -14,6 +14,7 @@ const {
     validateOTP,
     validateTOTP
 } = require('../middleware/validators');
+const { uploadProfile } = require('../middleware/upload');
 
 // ==========================================
 // PUBLIC ROUTES (rate-limited)
@@ -61,6 +62,10 @@ router.get('/profile', authMiddleware, authController.getProfile);
 // Profile update with OTP
 router.post('/send-profile-otp', authMiddleware, otpResendLimiter, authController.sendProfileOtp);
 router.put('/update-profile', authMiddleware, otpVerificationLimiter, authController.updateProfile);
+
+// Profile picture
+router.put('/profile-picture', authMiddleware, uploadProfile.single('profilePicture'), authController.uploadProfilePicture);
+router.delete('/profile-picture', authMiddleware, authController.deleteProfilePicture);
 
 // Password change with OTP
 router.post('/send-password-otp', authMiddleware, otpResendLimiter, authController.sendPasswordOtp);
