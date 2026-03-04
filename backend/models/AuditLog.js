@@ -54,7 +54,17 @@ const auditLogSchema = new mongoose.Schema({
             'profile_picture_update',
             'profile_picture_delete',
             // System Actions
-            'db_reset'
+            'db_reset',
+            // Transactions
+            'transactions_imported_csv',
+            'transaction_verified',
+            'transaction_denied',
+            'Viewed Feedbacks',
+            'Viewed Auth',
+            'Viewed transaction alerts',
+            'Viewed Analytics',
+            'Viewed system alerts',
+            'Updated Transactions'
         ],
         required: true,
         index: true

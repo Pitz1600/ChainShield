@@ -15,6 +15,7 @@ import joblib
 import os
 from pathlib import Path
 from datetime import datetime
+import time
 
 # =========================
 # PATH SETUP (CRITICAL)
@@ -167,6 +168,9 @@ def predict():
         features = extract_features(data)
         print(f"  🔢 Features:    {[round(f, 4) for f in features]}")
 
+        # --- TIMING: AI Prediction Process ---
+        start_time = time.time()
+        
         # --- Ensemble Model Prediction ---
         ensemble = get_ensemble_detector()
         network_features = data.get('networkFeatures', {})
@@ -209,6 +213,11 @@ def predict():
         for fname, fval in sorted_shap[:3]:
             direction = "↑ risk" if fval > 0 else "↓ risk"
             print(f"       • {fname}: {fval:+.4f} ({direction})")
+
+        # --- END TIMING ---
+        end_time = time.time()
+        prediction_time = end_time - start_time
+        print(f"  ⏱️  Prediction Time: {prediction_time:.4f} seconds")
 
         # --- Final Prediction Summary ---
         level_emoji = {"CRITICAL": "🔴", "HIGH": "🟠", "MEDIUM": "🟡", "LOW": "🟢"}.get(risk_level, "⚪")

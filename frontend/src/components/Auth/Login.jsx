@@ -25,6 +25,7 @@ function Login({ onLogin, onNavigate }) {
   const [userId, setUserId] = useState(null);
   const [rememberDevice, setRememberDevice] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
+  const [rateLimitSeconds, setRateLimitSeconds] = useState(0);
 
   // Handle OAuth redirect result (?oauth=success or ?error=...)
   useEffect(() => {
@@ -77,6 +78,16 @@ function Login({ onLogin, onNavigate }) {
     return () => clearInterval(timer);
   }, [resendCooldown]);
 
+  useEffect(() => {
+    let timer;
+    if (rateLimitSeconds > 0) {
+      timer = setInterval(() => {
+        setRateLimitSeconds((prev) => Math.max(prev - 1, 0));
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [rateLimitSeconds]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -123,7 +134,13 @@ function Login({ onLogin, onNavigate }) {
         onLogin(null, data.user);
       }
     } catch (err) {
-      if (err.response?.data?.error) {
+      if (err.response?.status === 429) {
+        const retryAfterHeader = err.response.headers?.['ratelimit-reset'] || err.response.headers?.['retry-after'];
+        const bodySeconds = err.response.data?.retryAfterSeconds;
+        const seconds = bodySeconds ?? (retryAfterHeader ? Number(retryAfterHeader) : 0);
+        if (seconds && !Number.isNaN(seconds)) setRateLimitSeconds(seconds);
+        setError(err.response?.data?.error || 'Too many attempts. Please wait.');
+      } else if (err.response?.data?.error) {
         setError(err.response.data.error);
       } else {
         setError('Login failed. Please check your credentials or server status.');
@@ -441,9 +458,17 @@ function Login({ onLogin, onNavigate }) {
             </div>
           )}
 
-          {step === 'credentials' && renderCredentialsStep()}
-          {step === 'totp' && renderTotpStep()}
-          {step === 'otp' && renderOtpStep()}
+      {step === 'credentials' && renderCredentialsStep()}
+      {step === 'totp' && renderTotpStep()}
+      {step === 'otp' && renderOtpStep()}
+      {rateLimitSeconds > 0 && (
+        <div className="alert-box info">
+          <span className="alert-icon"><AlertCircle size={20} /></span>
+          <span className="alert-message">
+            Login locked for about {Math.ceil(rateLimitSeconds / 60)} minute(s). {rateLimitSeconds}s remaining.
+          </span>
+        </div>
+      )}
 
           <div className="auth-footer">
             <p className="footer-text">

@@ -15,6 +15,7 @@ function AlertsManagement({ embedded = false }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const itemsPerPage = 12;
+  const [viewMode, setViewMode] = useState('cards'); // cards | table
 
   useEffect(() => {
     fetchAlerts();
@@ -91,6 +92,9 @@ function AlertsManagement({ embedded = false }) {
         alert.issuer?.toLowerCase().includes(searchTerm.toLowerCase());
       return matchesSearch;
     });
+
+  const pagedAlerts = filteredAlerts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  useEffect(() => setTotalPages(Math.max(1, Math.ceil(filteredAlerts.length / itemsPerPage))), [filteredAlerts.length]);
 
   const handleInvestigate = (alert) => {
     setSelectedAlert(alert);
@@ -196,11 +200,51 @@ function AlertsManagement({ embedded = false }) {
         </div>
       ) : (
         <>
-          <div className="alerts-grid">
-            {filteredAlerts.map(alert => (
-              <AlertCard key={alert.id} alert={alert} onInvestigate={handleInvestigate} />
-            ))}
+          <div className="alerts-toolbar">
+            <div className="view-toggle">
+              <button className={`view-btn ${viewMode === 'cards' ? 'active' : ''}`} onClick={() => setViewMode('cards')} type="button">Cards</button>
+              <button className={`view-btn ${viewMode === 'table' ? 'active' : ''}`} onClick={() => setViewMode('table')} type="button">Table</button>
+            </div>
           </div>
+
+          {viewMode === 'cards' ? (
+            <div className="alerts-grid">
+              {pagedAlerts.map(alert => (
+                <AlertCard key={alert.id} alert={alert} onInvestigate={handleInvestigate} />
+              ))}
+            </div>
+          ) : (
+            <div className="alerts-table-wrapper">
+              <table className="alerts-table">
+                <thead>
+                  <tr>
+                    <th>Txn ID</th>
+                    <th>Severity</th>
+                    <th>Type</th>
+                    <th>Agency</th>
+                    <th>Amount</th>
+                    <th>Risk</th>
+                    <th>Age</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pagedAlerts.map(alert => (
+                    <tr key={alert.id} onClick={() => handleInvestigate(alert)} className="clickable-row">
+                      <td className="font-mono">{alert.documentId}</td>
+                      <td><span className={`sev-pill sev-${alert.severity}`}>{alert.severity.toUpperCase()}</span></td>
+                      <td>{alert.type}</td>
+                      <td>{alert.issuer}</td>
+                      <td>₱{Number(alert.amount || 0).toLocaleString()}</td>
+                      <td><span className={`risk-chip ${alert.riskScore >=80 ? 'risk-critical': alert.riskScore>=60?'risk-high':alert.riskScore>=40?'risk-medium':'risk-low'}`}>{alert.riskScore}</span></td>
+                      <td>{alert.time}</td>
+                      <td><button className="btn-outline" onClick={(e) => { e.stopPropagation(); handleInvestigate(alert); }}>View</button></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
 
           {/* Pagination Controls */}
           {totalPages > 1 && (
@@ -212,36 +256,7 @@ function AlertsManagement({ embedded = false }) {
               >
                 <ChevronLeft size={16} style={{ marginRight: '4px', display: 'inline' }} /> Previous
               </button>
-
-              <div className="pagination-info">
-                <span className="page-numbers">
-                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                    let pageNum;
-                    if (totalPages <= 5) {
-                      pageNum = i + 1;
-                    } else if (currentPage <= 3) {
-                      pageNum = i + 1;
-                    } else if (currentPage >= totalPages - 2) {
-                      pageNum = totalPages - 4 + i;
-                    } else {
-                      pageNum = currentPage - 2 + i;
-                    }
-                    return (
-                      <button
-                        key={pageNum}
-                        className={`page-number ${currentPage === pageNum ? 'active' : ''}`}
-                        onClick={() => setCurrentPage(pageNum)}
-                      >
-                        {pageNum}
-                      </button>
-                    );
-                  })}
-                </span>
-                <span className="page-text">
-                  Page {currentPage} of {totalPages}
-                </span>
-              </div>
-
+              <div className="pagination-info">Page {currentPage} of {totalPages}</div>
               <button
                 className="pagination-btn"
                 onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}

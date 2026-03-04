@@ -26,11 +26,15 @@ const IntegrityChecker = ({ user }) => {
     const [file, setFile] = useState(null);
     const [uploading, setUploading] = useState(false);
     const [results, setResults] = useState(null);
+    const [approvingId, setApprovingId] = useState(null);
+    const [selectedTx, setSelectedTx] = useState(null);
+    const [actionMessage, setActionMessage] = useState('');
     const [error, setError] = useState(null);
     const [tablePage, setTablePage] = useState(1);
     const [detailsPage, setDetailsPage] = useState(1);
     const TABLE_PAGE_SIZE = 10;
     const DETAILS_PAGE_SIZE = 5;
+    const TOAST_DURATION = 4000;
 
     // Manual Entry State
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -44,6 +48,95 @@ const IntegrityChecker = ({ user }) => {
     }]);
     const [currentRowIndex, setCurrentRowIndex] = useState(0);
     const [modalError, setModalError] = useState(null);
+
+    const RESULTS_CACHE_KEY = 'integrity_checker_results_v1';
+
+    // Load cached results on mount to survive refresh
+    React.useEffect(() => {
+        try {
+            const cached = localStorage.getItem(RESULTS_CACHE_KEY);
+            if (cached) {
+                const parsed = JSON.parse(cached);
+                setResults(parsed);
+            }
+        } catch (e) {
+            console.warn('Failed to load cached results', e);
+        }
+    }, []);
+
+    // Persist results whenever they change
+    React.useEffect(() => {
+        try {
+            if (results && results.results && results.results.length > 0) {
+                localStorage.setItem(RESULTS_CACHE_KEY, JSON.stringify(results));
+            } else {
+                localStorage.removeItem(RESULTS_CACHE_KEY);
+            }
+        } catch (e) {
+            console.warn('Failed to cache results', e);
+        }
+    }, [results]);
+
+    // Auto-hide toast after a short duration
+    React.useEffect(() => {
+        if (!actionMessage) return;
+        const timer = setTimeout(() => setActionMessage(''), TOAST_DURATION);
+        return () => clearTimeout(timer);
+    }, [actionMessage]);
+
+    const handleApprove = async (tx) => {
+        setApprovingId(tx.transactionId);
+        try {
+            await api.put(`/transactions/${tx.transactionId}/approve`);
+            setResults(prev => ({
+                ...prev,
+                results: prev.results.filter(r => r.transactionId !== tx.transactionId)
+            }));
+            setSelectedTx(null);
+            try { localStorage.setItem('tx_refresh', String(Date.now())); } catch (e) {}
+            setActionMessage(`Approved ${tx.transactionId} successfully.`);
+        } catch (err) {
+            alert('Approve failed: ' + (err.response?.data?.error || err.message));
+        } finally {
+            setApprovingId(null);
+        }
+    };
+
+    const handleFlag = async (tx) => {
+        setApprovingId(tx.transactionId);
+        try {
+            await api.put(`/transactions/${tx.transactionId}/verify`, { status: 'Flagged' });
+            setResults(prev => ({
+                ...prev,
+                results: prev.results.filter(r => r.transactionId !== tx.transactionId)
+            }));
+            setSelectedTx(null);
+            try { localStorage.setItem('tx_refresh', String(Date.now())); } catch (e) {}
+            setActionMessage(`Flagged ${tx.transactionId} for manual review.`);
+        } catch (err) {
+            alert('Flag failed: ' + (err.response?.data?.error || err.message));
+        } finally {
+            setApprovingId(null);
+        }
+    };
+
+    const handleDeny = async (tx) => {
+        setApprovingId(tx.transactionId);
+        try {
+            await api.delete(`/transactions/${tx.transactionId}`);
+            setResults(prev => ({
+                ...prev,
+                results: prev.results.filter(r => r.transactionId !== tx.transactionId)
+            }));
+            setSelectedTx(null);
+            try { localStorage.setItem('tx_refresh', String(Date.now())); } catch (e) {}
+            setActionMessage(`Denied and removed ${tx.transactionId}.`);
+        } catch (err) {
+            alert('Deny failed: ' + (err.response?.data?.error || err.message));
+        } finally {
+            setApprovingId(null);
+        }
+    };
 
     const formatCurrencyDisplay = (value) => {
         if (!value && value !== 0) return '';
@@ -231,6 +324,11 @@ const IntegrityChecker = ({ user }) => {
 
     return (
         <div className="csv-import-container">
+            {actionMessage && (
+                <div className="toast toast-floating success">
+                    <CheckCircle size={18} style={{ marginRight: '6px' }} /> {actionMessage}
+                </div>
+            )}
             <div className="page-hero integrity-checker-hero">
                 <span className="hero-tag">INTEGRITY CHECKER</span>
                 <h2 className="hero-title">Transaction Integrity Verification</h2>
@@ -529,7 +627,7 @@ const IntegrityChecker = ({ user }) => {
                     <div className="results-container animate-fade-in">
                         <div className="results-header">
                             <h3><CheckCircle size={24} className="success-icon" /> Integrity Check Complete</h3>
-                            <p>{results.message}</p>
+                            <p>{results.message || 'AI analysis done. All rows are now pending official verification before blockchain/DB write.'}</p>
                             {results.mappingConfidence && (
                                 <p className="mapping-confidence">
                                     <BarChart size={16} className="mapping-icon" /> Column Detection Confidence: <strong>{results.mappingConfidence}%</strong>
@@ -609,11 +707,17 @@ const IntegrityChecker = ({ user }) => {
                                                 <th>Risk Category</th>
                                                 <th>Blockchain Hash</th>
                                                 <th>Status</th>
+                                                <th className="actions-col">Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {tableSlice.map((result, idx) => (
-                                                <tr key={idx} className={`result-row ${result.flagged ? 'flagged-row' : ''}`} style={{ animationDelay: `${idx * 0.05}s` }}>
+                                                <tr
+                                                    key={idx}
+                                                    className={`result-row ${result.flagged ? 'flagged-row' : ''}`}
+                                                    style={{ animationDelay: `${idx * 0.05}s` }}
+                                                    onClick={() => setSelectedTx(result)}
+                                                >
                                                     <td data-label="Row">{result.row}</td>
                                                     <td data-label="Transaction ID" className="transaction-id">{result.transactionId}</td>
                                                     <td data-label="Type">{result.transactionType}</td>
@@ -662,6 +766,11 @@ const IntegrityChecker = ({ user }) => {
                                                         ) : (
                                                             <span className="badge badge-success"><CheckCircle size={14} className="badge-icon" /> Clean</span>
                                                         )}
+                                                    </td>
+                                                    <td data-label="Actions" className="actions-cell">
+                                                        <div className="actions-buttons">
+                                                            <button type="button" className="btn-review" onClick={() => setSelectedTx(result)}>Review</button>
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             ))}
@@ -849,6 +958,77 @@ const IntegrityChecker = ({ user }) => {
                                 </div>
                             </div>
                         )}
+                    </div>
+                )}
+
+                {selectedTx && (
+                    <div className="tx-modal-overlay">
+                        <div className="tx-modal">
+                            <div className="tx-modal-header">
+                                <h3>Review Transaction</h3>
+                                <button className="close-btn" onClick={() => setSelectedTx(null)}>&times;</button>
+                            </div>
+                            <div className="tx-modal-body">
+                                <div className="tx-grid">
+                                    <div className="tx-grid-row">
+                                        <div className="tx-grid-col">
+                                            <label>ID</label>
+                                            <div className="font-mono">{selectedTx.transactionId}</div>
+                                        </div>
+                                        <div className="tx-grid-col">
+                                            <label>Type</label>
+                                            <div>{selectedTx.transactionType}</div>
+                                        </div>
+                                    </div>
+                                    <div className="tx-grid-row">
+                                        <div className="tx-grid-col">
+                                            <label>Amount</label>
+                                            <div className="font-bold">₱{selectedTx.amount?.toLocaleString()}</div>
+                                        </div>
+                                        <div className="tx-grid-col">
+                                            <label>Risk</label>
+                                            <div>{selectedTx.riskScore} ({selectedTx.riskLevel})</div>
+                                        </div>
+                                    </div>
+                                    <div className="tx-grid-row">
+                                        <div className="tx-grid-col">
+                                            <label>From</label>
+                                            <div>{selectedTx.fromAddress || '—'}</div>
+                                        </div>
+                                        <div className="tx-grid-col">
+                                            <label>To</label>
+                                            <div>{selectedTx.toAddress || '—'}</div>
+                                        </div>
+                                    </div>
+                                    <div className="tx-grid-row">
+                                        <div className="tx-grid-col">
+                                            <label>Blockchain</label>
+                                            <div>{selectedTx.blockchainTxId ? 'Recorded' : 'Not recorded'}</div>
+                                        </div>
+                                        <div className="tx-grid-col">
+                                            <label>Status</label>
+                                            <div>{selectedTx.flagged ? 'Flagged' : 'Clean'}</div>
+                                        </div>
+                                    </div>
+                                    {selectedTx.reasons && selectedTx.reasons.length > 0 && (
+                                        <div className="tx-grid-desc">
+                                            <label>Reasons</label>
+                                            <ul>
+                                                {selectedTx.reasons.map((r, i) => <li key={i}>{r}</li>)}
+                                            </ul>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                            <div className="tx-modal-footer">
+                                <div className="tx-modal-actions">
+                                    <button className="btn-verify" disabled={approvingId === selectedTx.transactionId} onClick={() => handleApprove(selectedTx)}>Approve</button>
+                                    <button className="btn-flag" disabled={approvingId === selectedTx.transactionId} onClick={() => handleFlag(selectedTx)}>Flag</button>
+                                    <button className="btn-flag" disabled={approvingId === selectedTx.transactionId} onClick={() => handleDeny(selectedTx)}>Deny</button>
+                                </div>
+                                <button className="btn-close" onClick={() => setSelectedTx(null)}>Close</button>
+                            </div>
+                        </div>
                     </div>
                 )}
 
