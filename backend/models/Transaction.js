@@ -63,6 +63,19 @@ const transactionSchema = new mongoose.Schema({
     default: Date.now,
     index: true
   },
+  description: {
+    type: String,
+    trim: true
+  },
+  verificationStatus: {
+    type: String,
+    enum: ['Pending', 'Verified', 'Suspicious'],
+    default: 'Pending',
+    index: true
+  },
+  verifiedBy: {
+    type: String
+  },
   metadata: {
     type: Map,
     of: mongoose.Schema.Types.Mixed

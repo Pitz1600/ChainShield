@@ -6,7 +6,8 @@ import MyTransactions from './MyTransactions';
 import '../../styles/TransactionsPage.css';
 
 function TransactionsPage({ user }) {
-    const [activeTab, setActiveTab] = useState('alerts');
+    const isResident = user?.role === 'resident';
+    const [activeTab, setActiveTab] = useState(isResident ? 'history' : 'alerts');
     const [alertCount, setAlertCount] = useState(0);
     const [historyCount, setHistoryCount] = useState(0);
 
@@ -87,14 +88,16 @@ function TransactionsPage({ user }) {
 
             {/* Tabs */}
             <div className="transactions-tabs">
-                <button
-                    className={`tab-button ${activeTab === 'alerts' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('alerts')}
-                >
-                    <AlertTriangle size={18} />
-                    <span>Alerts</span>
-                    {alertCount > 0 && <span className="tab-badge">{alertCount}</span>}
-                </button>
+                {!isResident && (
+                    <button
+                        className={`tab-button ${activeTab === 'alerts' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('alerts')}
+                    >
+                        <AlertTriangle size={18} />
+                        <span>Alerts</span>
+                        {alertCount > 0 && <span className="tab-badge">{alertCount}</span>}
+                    </button>
+                )}
                 <button
                     className={`tab-button ${activeTab === 'history' ? 'active' : ''}`}
                     onClick={() => setActiveTab('history')}

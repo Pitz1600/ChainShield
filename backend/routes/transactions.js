@@ -63,5 +63,6 @@ router.post('/', auth, requireOfficial, transactionController.createTransaction)
 router.get('/', auth, transactionController.getTransactions);
 router.get('/alerts', auth, transactionController.getAlerts);
 router.get('/:id', auth, transactionController.getTransactionById);
+router.put('/:id/verify', auth, requireOfficial, transactionController.updateVerificationStatus);
 
 module.exports = router;
