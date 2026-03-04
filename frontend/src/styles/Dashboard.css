@@ -234,6 +234,108 @@
   color: #854d0e;
 }
 
+/* Dataset Table Styles */
+.dataset-scroll-container {
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #ffffff;
+  margin-top: 1rem;
+}
+
+.dataset-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.875rem;
+}
+
+.dataset-table th {
+  position: sticky;
+  top: 0;
+  background: #f8fafc;
+  padding: 12px 16px;
+  font-weight: 600;
+  color: #475569;
+  border-bottom: 1px solid #e2e8f0;
+  z-index: 10;
+}
+
+.dataset-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #334155;
+  vertical-align: middle;
+}
+
+.dataset-table tr:hover td {
+  background-color: #f8fafc;
+}
+
+.dataset-table tr:last-child td {
+  border-bottom: none;
+}
+
+.record-id {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.8rem;
+  color: #64748b;
+  background: #f1f5f9;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.description-cell {
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.amount-value {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.align-right {
+  text-align: right;
+}
+
+.card-actions {
+  display: flex;
+  align-items: center;
+}
+
+.dataset-badge {
+  background: #e0e7ff;
+  color: #4338ca;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* Custom Scrollbar for the container */
+.dataset-scroll-container::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.dataset-scroll-container::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.dataset-scroll-container::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.dataset-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
 /* Dashboard Pagination */
 .dashboard-pagination {
   display: flex;

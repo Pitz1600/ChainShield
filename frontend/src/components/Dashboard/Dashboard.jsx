@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Mail, AlertTriangle, AlertCircle, TrendingUp, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Mail, AlertTriangle, AlertCircle, TrendingUp, CheckCircle, ChevronLeft, ChevronRight, FileSpreadsheet } from 'lucide-react';
 import api from '../../services/api';
+import csvRaw from '../../assets/randomized_1000_dataset.csv?raw';
 import '../../styles/Dashboard.css';
 import '../../styles/ColorfulIcons.css';
 
@@ -13,6 +14,7 @@ function Dashboard({ user, onNavigate }) { // Ensure onNavigate is destructured
   });
   const [inflationRate, setInflationRate] = useState(null);
   const [recentAlerts, setRecentAlerts] = useState([]);
+  const [datasetRecords, setDatasetRecords] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const alertsPerPage = 5;
 
@@ -31,7 +33,38 @@ function Dashboard({ user, onNavigate }) { // Ensure onNavigate is destructured
   useEffect(() => {
     fetchDashboardData();
     fetchInflationRate();
+    parseDataset();
   }, []);
+
+  const parseDataset = () => {
+    try {
+      const lines = csvRaw.trim().split('\n');
+      if (lines.length > 1) {
+        const headers = lines[0].split(',');
+        const records = [];
+
+        // Render only the first 100 rows for performance
+        // Start from 1 to skip headers, up to 101 or length
+        const maxRecords = Math.min(lines.length, 101);
+
+        for (let i = 1; i < maxRecords; i++) {
+          // A simple split by comma works if there are no quoted commas in the CSV
+          // Since it's a generated dataset for demonstration, typically it's clean
+          const values = lines[i].split(',');
+          if (values.length === headers.length) {
+            const row = {};
+            headers.forEach((header, index) => {
+              row[header.trim()] = values[index]?.trim() || '';
+            });
+            records.push(row);
+          }
+        }
+        setDatasetRecords(records);
+      }
+    } catch (error) {
+      console.error('Error parsing dataset CSV:', error);
+    }
+  };
 
   const fetchDashboardData = async () => {
     try {
@@ -249,6 +282,51 @@ function Dashboard({ user, onNavigate }) { // Ensure onNavigate is destructured
             </div>
           </div>
         </div>
+        <div className="dashboard-card" style={{ gridColumn: 'span 2' }}>
+          <div className="card-header">
+            <div>
+              <h3 className="card-title">Barangay Pantal 2025 AI Training Dataset</h3>
+              <p className="card-subtitle">Showing latest 100 sample transactions used to train the fraud detection model</p>
+            </div>
+            <div className="card-actions">
+              <span className="dataset-badge">100/1000 Records</span>
+            </div>
+          </div>
+          <div className="dataset-scroll-container">
+            <table className="dataset-table">
+              <thead>
+                <tr>
+                  <th>Record ID</th>
+                  <th>Date</th>
+                  <th>Payee</th>
+                  <th>Description</th>
+                  <th className="align-right">Amount (PHP)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {datasetRecords.map((record, index) => (
+                  <tr key={index}>
+                    <td className="record-id">{record.record_id}</td>
+                    <td>{record.post_date}</td>
+                    <td>{record.payee_name}</td>
+                    <td className="description-cell">{record.description_raw}</td>
+                    <td className="align-right amount-value">
+                      {parseFloat(record.debit_amount || record.credit_amount || 0).toLocaleString('en-PH', { style: 'currency', currency: 'PHP' })}
+                    </td>
+                  </tr>
+                ))}
+                {datasetRecords.length === 0 && (
+                  <tr>
+                    <td colSpan="5" style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
+                      Loading dataset...
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </div>
     </div>
   );
