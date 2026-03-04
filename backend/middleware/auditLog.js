@@ -12,7 +12,7 @@ const actionMap = [
     { method: 'GET', path: '/api/auth/me', action: 'Unimportant' }, // Skip logging this potentially noisy one? Or log as "Checked profile"
 
     // Transactions
-    { method: 'POST', path: '/api/transactions/import', action: 'Imported transactions via CSV' },
+    { method: 'POST', path: '/api/transactions/import', action: 'transactions_imported_csv' },
     { method: 'GET', path: '/api/transactions/template', action: 'Downloaded transaction template' },
     { method: 'GET', path: '/api/transactions/my-transactions', action: 'Viewed personal transactions' },
     { method: 'POST', path: '/api/transactions', action: 'Created a new transaction' },
@@ -21,6 +21,11 @@ const actionMap = [
 
     // Alerts
     { method: 'GET', path: '/api/alerts', action: 'Viewed system alerts' },
+    { method: 'GET', path: '/api/feedbacks', action: 'Viewed Feedbacks' },
+    { method: 'GET', path: '/api/auth', action: 'Viewed Auth' },
+    { method: 'GET', path: '/api/transactions/alerts', action: 'Viewed transaction alerts' },
+    { method: 'GET', path: '/api/analytics', action: 'Viewed Analytics' },
+    { method: 'GET', path: '/api/transactions/alerts/stats', action: 'Viewed transaction alerts' },
 
     // Admin
     { method: 'GET', path: '/api/admin/users', action: 'Viewed user list' },

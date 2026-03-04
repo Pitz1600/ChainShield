@@ -83,7 +83,7 @@ ChainShield empowers barangays to modernize their operations and audit processes
 | Rate Limiting | ✅ | Redis-backed, 5 login attempts/15min (OWASP) |
 | CSRF Protection | ✅ | Double-submit cookie pattern (HMAC-signed) |
 | Input Validation | ✅ | express-validator + mongoSanitize + XSS filter |
-| File Encryption | ✅ | AES-256-CBC per-file encryption at rest |
+| File Encryption | ❌ | Upload files are stored as plaintext on disk |
 | Audit Logging | ✅ | All actions logged with IP, user agent, timestamp |
 | HTTPS / TLS | ✅ | Enforced in production via Nginx/reverse proxy |
 | Container Security | ✅ | Non-root Docker user (nodeuser, UID 1001) |

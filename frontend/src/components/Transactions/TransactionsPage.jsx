@@ -7,7 +7,7 @@ import '../../styles/TransactionsPage.css';
 
 function TransactionsPage({ user }) {
     const isResident = user?.role === 'resident';
-    const [activeTab, setActiveTab] = useState(isResident ? 'history' : 'alerts');
+    const [activeTab, setActiveTab] = useState(isResident ? 'ledger' : 'alerts');
     const [alertCount, setAlertCount] = useState(0);
     const [historyCount, setHistoryCount] = useState(0);
 
@@ -99,11 +99,11 @@ function TransactionsPage({ user }) {
                     </button>
                 )}
                 <button
-                    className={`tab-button ${activeTab === 'history' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('history')}
+                    className={`tab-button ${activeTab === 'ledger' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('ledger')}
                 >
                     <List size={18} />
-                    <span>History</span>
+                    <span>All Transactions</span>
                     {historyCount > 0 && <span className="tab-badge">{historyCount}</span>}
                 </button>
             </div>
@@ -111,7 +111,7 @@ function TransactionsPage({ user }) {
             {/* Tab Content */}
             <div className="tab-content">
                 {activeTab === 'alerts' && <AlertsManagement embedded={true} />}
-                {activeTab === 'history' && <MyTransactions user={user} embedded={true} />}
+                {activeTab === 'ledger' && <MyTransactions user={user} embedded={true} />}
             </div>
         </div>
     );

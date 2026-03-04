@@ -1,63 +1,18 @@
 const Transaction = require('../models/Transaction');
 const riskDetectionService = require('../services/fraudDetection');
 const blockchainService = require('../services/blockchainService');
+const multiStagePipeline = require('../services/multiStageFraudPipeline');
 
 exports.createTransaction = async (req, res) => {
   try {
-    const transaction = new Transaction(req.body);
+    const input = req.body;
+    const { results } = await multiStagePipeline.processBatch([input], { requireApproval: true });
+    const first = results[0];
+    const saved = await Transaction.findById(first.transactionId);
 
-    // Generate transaction hash if not provided
-    if (!transaction.txHash) {
-      transaction.txHash = blockchainService.generateTxHash(transaction);
-    }
-
-    // Run comprehensive risk assessment (includes blockchain recording)
-    const riskAnalysis = await riskDetectionService.analyzeTransaction(transaction);
-
-    // Update transaction with risk analysis results
-    transaction.riskScore = riskAnalysis.riskScore;
-    transaction.riskLevel = riskAnalysis.riskLevel;
-    transaction.flagged = riskAnalysis.isFraudulent;
-    transaction.blockchainTxId = riskAnalysis.blockchainTxId;
-    transaction.blockNumber = riskAnalysis.blockchainBlockNumber;
-    transaction.gasUsed = riskAnalysis.gasUsed;
-
-    // Store network features from graph analysis
-    if (riskAnalysis.networkFeatures) {
-      transaction.networkAnalysis = {
-        degree: riskAnalysis.networkFeatures.degree || 0,
-        inDegree: riskAnalysis.networkFeatures.inDegree || 0,
-        outDegree: riskAnalysis.networkFeatures.outDegree || 0,
-        clusteringCoefficient: riskAnalysis.networkFeatures.clusteringCoefficient || 0,
-        betweennessCentrality: riskAnalysis.networkFeatures.betweennessCentrality || 0
-      };
-    }
-
-    // Store fraud patterns detected
-    if (riskAnalysis.graphPatterns && riskAnalysis.graphPatterns.length > 0) {
-      transaction.fraudPatterns = riskAnalysis.graphPatterns.map(pattern => ({
-        type: pattern.type,
-        severity: pattern.severity,
-        description: pattern.description
-      }));
-    }
-
-    await transaction.save();
-
-    // Create alert if flagged
-    if (riskAnalysis.isFraudulent) {
-      await riskDetectionService.createAlert(transaction, riskAnalysis);
-    }
-
-    // Return transaction with fraud analysis details
     res.status(201).json({
-      ...transaction.toObject(),
-      fraudAnalysis: {
-        reasons: riskAnalysis.reasons,
-        graphPatterns: riskAnalysis.graphPatterns,
-        blockchainTxId: riskAnalysis.blockchainTxId,
-        shapValues: riskAnalysis.shapValues
-      }
+      transaction: saved,
+      fraudAnalysis: first
     });
   } catch (error) {
     console.error('Transaction creation error:', error);
@@ -86,6 +41,11 @@ exports.getTransactions = async (req, res) => {
     if (riskLevel) query.riskLevel = riskLevel;
     if (agency) query.agency = agency;
     if (programName) query.programName = programName;
+
+    // exclude staged unless explicitly requested
+    if (req.query.includeStaged !== 'true') {
+      query.staged = { $ne: true };
+    }
 
     const transactions = await Transaction.find(query)
       .sort({ timestamp: -1 })
@@ -157,6 +117,21 @@ exports.getAlerts = async (req, res) => {
   } catch (error) {
     console.error('Get alerts error:', error);
     res.status(500).json({ error: error.message });
+  }
+};
+
+// Batch processing endpoint
+exports.processBatch = async (req, res) => {
+  try {
+    const txs = req.body.transactions || [];
+    if (!Array.isArray(txs) || txs.length === 0) {
+      return res.status(400).json({ error: 'transactions array required' });
+    }
+    const result = await multiStagePipeline.processBatch(txs, { requireApproval: true });
+    res.json(result);
+  } catch (err) {
+    console.error('Batch processing error:', err);
+    res.status(500).json({ error: err.message });
   }
 };
 
@@ -242,6 +217,10 @@ exports.getMyTransactions = async (req, res) => {
       if (dateTo) query.timestamp.$lte = new Date(dateTo);
     }
 
+    if (req.query.includeStaged !== 'true') {
+      query.staged = { $ne: true };
+    }
+
     const transactions = await Transaction.find(query)
       .sort({ timestamp: -1 })
       .limit(limit * 1)
@@ -288,7 +267,7 @@ exports.updateVerificationStatus = async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
 
-    if (!['Pending', 'Verified', 'Suspicious'].includes(status)) {
+    if (!['Pending', 'Verified', 'Suspicious', 'Flagged', 'Denied', 'Rejected'].includes(status)) {
       return res.status(400).json({ error: 'Invalid verification status' });
     }
 
@@ -298,13 +277,28 @@ exports.updateVerificationStatus = async (req, res) => {
       return res.status(404).json({ error: 'Transaction not found' });
     }
 
-    transaction.verificationStatus = status;
+    transaction.verificationStatus = status === 'Denied' ? 'Rejected' : status;
 
-    // Determine who verified based on action
-    if (status === 'Pending') {
-      transaction.verifiedBy = undefined; // Cleared on Undo
+    // Determine verifier identity
+    if (transaction.verificationStatus === 'Pending') {
+      transaction.verifiedBy = undefined; // cleared on undo
     } else {
-      transaction.verifiedBy = req.user.role || 'Admin';
+      transaction.verifiedBy = req.user?.name || req.user?.fullName || req.user?.email || req.user?.role || 'Official';
+    }
+
+    // If approved and flagged, record on-chain (once)
+    if (transaction.verificationStatus === 'Verified' && transaction.flagged && !transaction.blockchainTxId) {
+      try {
+        const receipt = await blockchainService.recordSuspiciousEvidence(
+          transaction.txHash,
+          transaction.riskScore || 0
+        );
+        transaction.blockchainTxId = receipt.transactionHash;
+        transaction.blockNumber = receipt.blockNumber;
+        transaction.gasUsed = receipt.gasUsed;
+      } catch (err) {
+        console.warn('Blockchain logging on verify failed:', err.message);
+      }
     }
 
     await transaction.save();
@@ -315,11 +309,68 @@ exports.updateVerificationStatus = async (req, res) => {
       transaction: {
         _id: transaction._id,
         verificationStatus: transaction.verificationStatus,
-        verifiedBy: transaction.verifiedBy
+        verifiedBy: transaction.verifiedBy,
+        blockchainTxId: transaction.blockchainTxId,
+        blockNumber: transaction.blockNumber
       }
     });
   } catch (error) {
     console.error('Update verification status error:', error);
     res.status(500).json({ error: error.message });
+  }
+};
+
+// Hard delete for rejected transactions (only officials/admins)
+exports.deleteTransaction = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const tx = await Transaction.findById(id);
+    if (!tx) return res.status(404).json({ error: 'Transaction not found' });
+    await tx.deleteOne();
+    return res.json({ success: true, message: 'Transaction deleted', id });
+  } catch (err) {
+    console.error('Delete transaction error:', err);
+    return res.status(500).json({ error: err.message });
+  }
+};
+
+// Approve staged transaction and optionally record blockchain if flagged
+exports.approveTransaction = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const tx = await Transaction.findById(id);
+    if (!tx) return res.status(404).json({ error: 'Transaction not found' });
+
+    tx.verificationStatus = 'Verified';
+    tx.verifiedBy = req.user?.name || req.user?.fullName || req.user?.email || req.user?.role || 'Official';
+    tx.staged = false;
+
+    if (tx.flagged && !tx.blockchainTxId) {
+      try {
+        const receipt = await blockchainService.recordSuspiciousEvidence(tx.txHash, tx.riskScore || 0);
+        tx.blockchainTxId = receipt.transactionHash;
+        tx.blockNumber = receipt.blockNumber;
+        tx.gasUsed = receipt.gasUsed;
+      } catch (err) {
+        console.warn('Blockchain logging on approve failed:', err.message);
+      }
+    }
+
+    if (tx.verificationStatus !== 'Pending') tx.staged = false;
+    await tx.save();
+
+    res.json({
+      success: true,
+      transaction: {
+        _id: tx._id,
+        verificationStatus: tx.verificationStatus,
+        verifiedBy: tx.verifiedBy,
+        blockchainTxId: tx.blockchainTxId,
+        blockNumber: tx.blockNumber
+      }
+    });
+  } catch (err) {
+    console.error('Approve transaction error:', err);
+    res.status(500).json({ error: err.message });
   }
 };
