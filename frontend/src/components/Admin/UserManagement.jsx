@@ -209,8 +209,8 @@ function UserManagement() {
                                             {user.firstName?.charAt(0) || user.username?.charAt(0)}
                                         </div>
                                         <div className="user-info">
-                                            <span className="user-name">{user.firstName} {user.lastName}</span>
-                                            <span className="user-sub">{user.position}</span>
+                                            <span className="user-mgmt-user-name">{user.firstName} {user.lastName}</span>
+                                            <span className="user-mgmt-user-sub">{user.position}</span>
                                         </div>
                                     </div>
                                 </td>

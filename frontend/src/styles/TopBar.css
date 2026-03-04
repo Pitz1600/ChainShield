@@ -210,14 +210,14 @@
   align-items: flex-end;
 }
 
-.user-name {
+.top-bar-user-name {
   font-size: clamp(0.625rem, 1.5vw, 0.875rem);
   font-weight: 600;
   color: #1e293b;
   line-height: 1.2;
 }
 
-.user-role {
+.top-bar-user-role {
   font-size: clamp(0.5rem, 1.2vw, 0.75rem);
   color: #64748b;
   text-transform: capitalize;

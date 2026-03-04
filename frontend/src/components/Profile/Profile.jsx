@@ -324,7 +324,7 @@ function Profile({ user }) {
             {[
               { icon: <User size={24} />, label: 'Full Name', value: `${user.firstName} ${user.lastName}`, hint: 'Official record name', color: '#3b82f6' },
               { icon: <Mail size={24} />, label: 'Email', value: user.email, hint: 'Login address', color: '#22c55e' },
-              { icon: <Target size={24} />, label: 'Role', value: user.role.replace('_', ' '), hint: 'Access level', color: '#8b5cf6' }
+              { icon: <Target size={24} />, label: 'Role', value: user.role.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase()), hint: 'Access level', color: '#8b5cf6' }
             ].map((item, i) => (
               <div key={i} className="profile-info-card">
                 <div className="info-item">

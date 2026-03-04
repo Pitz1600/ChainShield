@@ -43,20 +43,6 @@ function TopBar({ user, toggleMobileMenu, setActiveView }) {
           </div>
         </div>
         <div className="top-bar-actions">
-          <button
-            className="icon-btn"
-            title="Search"
-            aria-label="Search"
-          >
-            <Search size={24} />
-          </button>
-          <button
-            className="icon-btn notification"
-            title="Alerts"
-            aria-label="View alerts"
-          >
-            <Bell size={24} /> <span className="notification-dot"></span>
-          </button>
           <div
             className="user-profile"
             title={`${user?.username || 'User'} (${user?.role || 'Role'})`}
@@ -64,8 +50,8 @@ function TopBar({ user, toggleMobileMenu, setActiveView }) {
             style={{ cursor: 'pointer' }}
           >
             <div className="user-info">
-              <span className="user-name">{user?.username || 'User'}</span>
-              <span className="user-role">{user?.role || 'Role'}</span>
+              <span className="top-bar-user-name">{user?.username || 'User'}</span>
+              <span className="top-bar-user-role">{user?.role || 'Role'}</span>
             </div>
             <div className="user-avatar">
               {user?.profilePicture ? (

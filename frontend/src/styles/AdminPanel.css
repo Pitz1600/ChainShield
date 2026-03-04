@@ -236,14 +236,14 @@
   flex-direction: column;
 }
 
-.user-name {
+.user-mgmt-user-name {
   font-weight: 600;
   color: #1e293b;
   font-size: 0.95rem;
   display: block;
 }
 
-.user-sub {
+.user-mgmt-user-sub {
   font-size: 0.85rem;
   color: #64748b;
   margin-top: 2px;
@@ -622,6 +622,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1.25rem 1.5rem;
+  padding: 20px;
   /* Reduced gap */
   /* More horizontal gap */
 }
