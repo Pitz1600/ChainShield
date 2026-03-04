@@ -179,6 +179,10 @@ function Sidebar({ user, activeView, setActiveView, onLogout, isMobileMenuOpen, 
         </nav>
 
         <div className="sidebar-footer">
+          <div className="sidebar-disclaimer">
+            <span className="sidebar-disclaimer-icon"><AlertTriangle size={16} /></span>
+            <p><strong>Disclaimer:</strong> AI model uses Barangay Pantal 2025 general fund data to scan transactions.</p>
+          </div>
           <button onClick={handleLogoutClick} className="logout-btn">
             <span><LogOut size={18} /></span>
             <span>Logout Portal</span>

@@ -101,6 +101,11 @@ function Welcome({ onNavigate }) {
             <span className="notice-icon"><Lock size={20} /></span>
             <span className="notice-text">All document transactions are encrypted and stored on blockchain. This system complies with barangay security standards.</span>
           </div>
+
+          <div className="disclaimer-notice">
+            <span className="disclaimer-icon"><AlertTriangle size={20} /></span>
+            <span className="disclaimer-text"><strong>Disclaimer:</strong> The AI model used to distinguish between valid and invalid transactions was trained using the general fund data from Barangay Pantal for the year 2025.</span>
+          </div>
         </div>
       </div>
     </div>
