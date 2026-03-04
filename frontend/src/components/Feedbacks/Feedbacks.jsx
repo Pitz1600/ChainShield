@@ -46,12 +46,30 @@ function Feedbacks({ user, initialTab = 'public' }) {
 
     return (
         <div className="feedbacks-page">
-            <div className="feedbacks-header">
-                <div className="title-section">
-                    <MessageSquare size={32} className="header-icon" />
-                    <h1 className="page-title">Community Feedbacks</h1>
+            <div className="feedbacks-hero">
+                <div className="hero-left">
+                    <span className="hero-tag">COMMUNITY FEEDBACK</span>
+                    <h1 className="hero-title">What people are saying</h1>
+                    <p className="hero-subtitle">Share insights, flag issues, and see how officials respond.</p>
+                    <div className="hero-actions">
+                        <button className="primary-btn" onClick={() => setIsModalOpen(true)}>
+                            <Plus size={18} /> Leave Feedback
+                        </button>
+                        <button className="ghost-btn" onClick={triggerRefresh}>
+                            Refresh Feed
+                        </button>
+                    </div>
                 </div>
-                <p className="page-subtitle">Share your thoughts, read community posts, and engage with your barangay.</p>
+                <div className="hero-right">
+                    <div className="hero-stat">
+                        <span className="stat-label">Active Posts</span>
+                        <span className="stat-value">{feedbacks.length}</span>
+                    </div>
+                    <div className="hero-stat muted">
+                        <span className="stat-label">Moderation Queue</span>
+                        <span className="stat-value">{activeTab === 'moderation' ? feedbacks.length : '—'}</span>
+                    </div>
+                </div>
             </div>
 
             {(isAdmin(user) || isOfficial(user)) && (

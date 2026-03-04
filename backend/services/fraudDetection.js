@@ -3,7 +3,6 @@ const Transaction = require('../models/Transaction');
 const axios = require('axios');
 const blockchainService = require('./blockchainService');
 const economicDataService = require('./economicDataService');
-const inflationService = require('./inflationService');
 const ModelVersion = require('../models/ModelVersion');
 
 class RiskAssessmentService {
@@ -149,7 +148,7 @@ class RiskAssessmentService {
   }
 
   /**
-   * Prepare ML features including graph analytics, transaction history, and inflation data
+   * Prepare ML features including graph analytics and transaction history (inflation removed)
    */
   async prepareMLFeatures(transaction, graphAnalysis) {
     try {
@@ -175,26 +174,12 @@ class RiskAssessmentService {
         timeDiff = (new Date(transaction.timestamp || Date.now()) - new Date(lastTransaction.timestamp)) / 1000;
       }
 
-      // Get current inflation rate
-      const inflationRate = await inflationService.getCurrentRate();
-
-      // Calculate inflation-adjusted amount
-      const inflationAdjustedAmount = inflationService.adjustForInflation(
-        transaction.amount,
-        inflationRate
-      );
-
       // Calculate historical average for this transaction type
       const avgAmount = await Transaction.aggregate([
         { $match: { transactionType: transaction.transactionType } },
         { $group: { _id: null, avg: { $avg: '$amount' } } }
       ]);
       const historicalAvg = avgAmount.length > 0 ? avgAmount[0].avg : transaction.amount;
-
-      // Calculate inflation-adjusted deviation score
-      const inflationAdjustedDeviation = Math.abs(
-        (inflationAdjustedAmount - historicalAvg) / historicalAvg
-      );
 
       // Extract network features from graph analysis
       const networkFeatures = graphAnalysis.networkFeatures || {};
@@ -210,11 +195,10 @@ class RiskAssessmentService {
         address_degree: networkFeatures.degree || 0,
         circular_pattern: hasCircularPattern,
         time_diff: Math.max(timeDiff, 0),
-        // New inflation-based features
-        inflation_rate: inflationRate,
-        inflation_adjusted_amount: inflationAdjustedAmount,
-        inflation_deviation_score: Math.min(inflationAdjustedDeviation, 1.0), // Normalized
-        economic_context_risk: this.calculateEconomicContextRisk(inflationRate, inflationAdjustedDeviation)
+        inflation_rate: 0,
+        inflation_adjusted_amount: transaction.amount,
+        inflation_deviation_score: 0,
+        economic_context_risk: 0
       };
     } catch (error) {
       console.error('Error preparing ML features:', error.message);
@@ -224,7 +208,7 @@ class RiskAssessmentService {
         address_degree: 0,
         circular_pattern: 0,
         time_diff: 86400,
-        inflation_rate: 3.5, // Default fallback
+        inflation_rate: 0,
         inflation_adjusted_amount: transaction.amount,
         inflation_deviation_score: 0,
         economic_context_risk: 0
@@ -232,15 +216,9 @@ class RiskAssessmentService {
     }
   }
 
-  /**
-   * Calculate economic context risk based on inflation and deviation
-   */
-  calculateEconomicContextRisk(inflationRate, deviation) {
-    // Higher inflation = more tolerance for price variations
-    // Lower inflation = stricter anomaly detection
-    const inflationFactor = Math.max(0, (10 - inflationRate) / 10); // Normalize to 0-1
-    const economicRisk = deviation * inflationFactor;
-    return Math.min(economicRisk, 1.0);
+  // Inflation risk removed
+  calculateEconomicContextRisk() {
+    return 0;
   }
 
   /**

@@ -23,7 +23,7 @@ const transactionSchema = new mongoose.Schema({
   // Barangay Context
   transactionType: {
     type: String,
-    enum: ['Social Welfare', 'Procurement', 'Grant', 'Tax', 'Revenue', 'Other'],
+    enum: ['Social Welfare', 'Procurement', 'Grant', 'Tax', 'Revenue', 'Emergency Funds', 'Other'],
     required: true,
     index: true
   },
@@ -63,13 +63,18 @@ const transactionSchema = new mongoose.Schema({
     default: Date.now,
     index: true
   },
+  staged: {
+    type: Boolean,
+    default: false,
+    index: true
+  },
   description: {
     type: String,
     trim: true
   },
   verificationStatus: {
     type: String,
-    enum: ['Pending', 'Verified', 'Suspicious'],
+    enum: ['Pending', 'Verified', 'Suspicious', 'Flagged', 'Rejected'],
     default: 'Pending',
     index: true
   },

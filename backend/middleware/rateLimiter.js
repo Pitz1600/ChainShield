@@ -1,4 +1,5 @@
 const rateLimit = require('express-rate-limit');
+const { ipKeyGenerator } = require('express-rate-limit');
 
 /**
  * Rate Limiter Configurations for ChainShield
@@ -54,19 +55,30 @@ try {
 }
 
 
-// Login rate limiter - HARDENED: 5 attempts per 15 minutes (OWASP recommendation)
-// SECURITY FIX (V4): Reduced from 20 to 5 to prevent credential stuffing attacks
+// Login rate limiter - per-account, 5 attempts per 5 minutes
 const loginLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 5, // 5 requests per window — industry standard
+    windowMs: 5 * 60 * 1000, // 5 minutes
+    max: 5,
     store: makeStore('login'),
-    message: {
-        error: 'Too many login attempts. Please try again in 15 minutes.',
-        retryAfter: '15 minutes'
+    keyGenerator: (req) => {
+        // Prefer authenticated user id (rare for login) else email, else IP
+        if (req.user && req.user.id) return `user:${req.user.id}`;
+        if (req.body && req.body.email) return `email:${String(req.body.email).toLowerCase()}`;
+        return ipKeyGenerator(req);
+    },
+    handler: (req, res, _next, options) => {
+        const resetMs = Math.max(0, req.rateLimit?.resetTime - Date.now());
+        const resetSeconds = Math.ceil(resetMs / 1000);
+        const resetMinutes = Math.ceil(resetSeconds / 60);
+        return res.status(options.statusCode).json({
+            error: `Too many login attempts. Try again in about ${resetMinutes} minute(s).`,
+            retryAfterSeconds: resetSeconds,
+            retryAfterMinutes: resetMinutes
+        });
     },
     standardHeaders: true,
     legacyHeaders: false,
-    skipSuccessfulRequests: true, // Don't count successful logins
+    skipSuccessfulRequests: true,
 });
 
 // OTP verification limiter - 10 attempts per 10 minutes
