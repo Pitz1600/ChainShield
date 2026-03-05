@@ -1,0 +1,301 @@
+record_id,post_date,payer_name,payee_name,debit_amount,credit_amount,currency,description_raw
+TX-CLEAN-20000,2025-01-08,Public Works Department,Local Supplier,36565.01,0.0,PHP,Community assistance payout
+TX-CLEAN-20001,2025-01-06,DSWD,Local Supplier,43066.83,0.0,PHP,Regular operational expense
+TX-CLEAN-20002,2024-12-15,Public Works Department,Community Store,46612.82,0.0,PHP,Routine municipal payment
+TX-CLEAN-20003,2024-11-27,Barangay Pantal,Utility Services Co,46763.03,0.0,PHP,Regular operational expense
+TX-CLEAN-20004,2024-11-07,Barangay Pantal,Community Store,48960.87,0.0,PHP,Regular operational expense
+TX-CLEAN-20005,2024-12-08,Barangay Pantal,Office Depot PH,46230.98,0.0,PHP,Routine municipal payment
+TX-CLEAN-20006,2024-12-25,Barangay Pantal,Local Supplier,8746.08,0.0,PHP,Office supplies purchase
+TX-CLEAN-20007,2024-11-01,DSWD,Utility Services Co,46169.63,0.0,PHP,Community assistance payout
+TX-CLEAN-20008,2024-11-26,Municipal Development Office,Utility Services Co,5521.99,0.0,PHP,Community assistance payout
+TX-CLEAN-20009,2024-12-16,City Treasury,Utility Services Co,38308.47,0.0,PHP,Community assistance payout
+TX-CLEAN-20010,2024-12-26,City Treasury,Utility Services Co,21945.91,0.0,PHP,Office supplies purchase
+TX-CLEAN-20011,2025-01-04,DSWD,Community Store,9557.73,0.0,PHP,Community assistance payout
+TX-CLEAN-20012,2024-12-22,Public Works Department,Community Store,37907.94,0.0,PHP,Office supplies purchase
+TX-CLEAN-20013,2025-01-08,Public Works Department,Office Depot PH,7243.12,0.0,PHP,Maintenance service payment
+TX-CLEAN-20014,2024-12-25,DSWD,Local Supplier,15127.11,0.0,PHP,Routine municipal payment
+TX-CLEAN-20015,2024-12-28,Public Works Department,Municipal Services,15137.77,0.0,PHP,Community assistance payout
+TX-CLEAN-20016,2025-01-17,Barangay Pantal,Community Store,12434.01,0.0,PHP,Regular operational expense
+TX-CLEAN-20017,2025-01-07,DSWD,Local Supplier,26047.54,0.0,PHP,Routine municipal payment
+TX-CLEAN-20018,2025-01-02,Public Works Department,Local Supplier,23165.93,0.0,PHP,Community assistance payout
+TX-CLEAN-20019,2024-11-07,Municipal Development Office,Utility Services Co,36866.18,0.0,PHP,Office supplies purchase
+TX-CLEAN-20020,2025-01-21,Municipal Development Office,Community Store,47856.47,0.0,PHP,Routine municipal payment
+TX-CLEAN-20021,2024-12-23,Barangay Pantal,Local Supplier,39139.64,0.0,PHP,Regular operational expense
+TX-CLEAN-20022,2025-01-28,Public Works Department,Office Depot PH,49509.1,0.0,PHP,Community assistance payout
+TX-CLEAN-20023,2024-11-15,Barangay Pantal,Community Store,41656.01,0.0,PHP,Maintenance service payment
+TX-CLEAN-20024,2025-01-11,Barangay Pantal,Local Supplier,7437.81,0.0,PHP,Office supplies purchase
+TX-CLEAN-20025,2024-11-04,Barangay Pantal,Office Depot PH,30433.63,0.0,PHP,Maintenance service payment
+TX-CLEAN-20026,2024-12-11,Municipal Development Office,Municipal Services,38191.61,0.0,PHP,Regular operational expense
+TX-CLEAN-20027,2024-12-12,Barangay Pantal,Local Supplier,17584.48,0.0,PHP,Routine municipal payment
+TX-CLEAN-20028,2024-12-07,Public Works Department,Community Store,24787.06,0.0,PHP,Community assistance payout
+TX-CLEAN-20029,2024-12-17,DSWD,Community Store,9186.72,0.0,PHP,Regular operational expense
+TX-CLEAN-20030,2024-11-15,Public Works Department,Community Store,28868.44,0.0,PHP,Regular operational expense
+TX-CLEAN-20031,2024-12-06,Public Works Department,Local Supplier,25264.47,0.0,PHP,Routine municipal payment
+TX-CLEAN-20032,2025-01-23,DSWD,Local Supplier,23890.99,0.0,PHP,Regular operational expense
+TX-CLEAN-20033,2024-12-19,Public Works Department,Community Store,6682.89,0.0,PHP,Regular operational expense
+TX-CLEAN-20034,2024-12-18,Barangay Pantal,Office Depot PH,44910.19,0.0,PHP,Community assistance payout
+TX-CLEAN-20035,2024-11-18,Barangay Pantal,Municipal Services,40915.09,0.0,PHP,Routine municipal payment
+TX-CLEAN-20036,2024-12-13,Barangay Pantal,Community Store,32895.25,0.0,PHP,Community assistance payout
+TX-CLEAN-20037,2024-12-26,Municipal Development Office,Utility Services Co,31413.48,0.0,PHP,Regular operational expense
+TX-CLEAN-20038,2024-12-24,Barangay Pantal,Utility Services Co,49386.7,0.0,PHP,Regular operational expense
+TX-CLEAN-20039,2025-01-12,DSWD,Community Store,12922.96,0.0,PHP,Maintenance service payment
+TX-CLEAN-20040,2024-11-23,Barangay Pantal,Community Store,35481.69,0.0,PHP,Maintenance service payment
+TX-CLEAN-20041,2024-11-08,Public Works Department,Office Depot PH,9860.24,0.0,PHP,Regular operational expense
+TX-CLEAN-20042,2024-11-19,Municipal Development Office,Community Store,12963.53,0.0,PHP,Routine municipal payment
+TX-CLEAN-20043,2024-12-24,City Treasury,Local Supplier,18958.35,0.0,PHP,Office supplies purchase
+TX-CLEAN-20044,2024-11-13,Barangay Pantal,Office Depot PH,39295.11,0.0,PHP,Community assistance payout
+TX-CLEAN-20045,2024-11-06,Municipal Development Office,Community Store,39469.63,0.0,PHP,Maintenance service payment
+TX-CLEAN-20046,2025-01-08,Public Works Department,Office Depot PH,13696.02,0.0,PHP,Office supplies purchase
+TX-CLEAN-20047,2024-12-31,Public Works Department,Utility Services Co,13111.34,0.0,PHP,Regular operational expense
+TX-CLEAN-20048,2025-01-07,City Treasury,Community Store,19210.66,0.0,PHP,Routine municipal payment
+TX-CLEAN-20049,2025-01-19,Public Works Department,Municipal Services,34786.66,0.0,PHP,Maintenance service payment
+TX-CLEAN-20050,2024-12-07,City Treasury,Community Store,9085.45,0.0,PHP,Regular operational expense
+TX-CLEAN-20051,2024-11-15,Barangay Pantal,Office Depot PH,11223.57,0.0,PHP,Regular operational expense
+TX-CLEAN-20052,2025-01-07,DSWD,Office Depot PH,18130.2,0.0,PHP,Maintenance service payment
+TX-CLEAN-20053,2025-01-28,Municipal Development Office,Office Depot PH,30960.16,0.0,PHP,Community assistance payout
+TX-CLEAN-20054,2024-11-17,City Treasury,Office Depot PH,35283.69,0.0,PHP,Regular operational expense
+TX-CLEAN-20055,2024-12-06,Public Works Department,Local Supplier,49640.0,0.0,PHP,Maintenance service payment
+TX-CLEAN-20056,2025-01-10,DSWD,Utility Services Co,12633.07,0.0,PHP,Regular operational expense
+TX-CLEAN-20057,2024-12-28,Public Works Department,Utility Services Co,10077.3,0.0,PHP,Maintenance service payment
+TX-CLEAN-20058,2024-12-28,Municipal Development Office,Office Depot PH,23371.79,0.0,PHP,Office supplies purchase
+TX-CLEAN-20059,2024-11-20,City Treasury,Community Store,21579.09,0.0,PHP,Community assistance payout
+TX-CLEAN-20060,2025-01-01,Public Works Department,Municipal Services,19005.78,0.0,PHP,Community assistance payout
+TX-CLEAN-20061,2024-11-23,Barangay Pantal,Utility Services Co,31694.12,0.0,PHP,Maintenance service payment
+TX-CLEAN-20062,2024-11-30,City Treasury,Utility Services Co,35452.56,0.0,PHP,Regular operational expense
+TX-CLEAN-20063,2024-11-07,City Treasury,Utility Services Co,24561.3,0.0,PHP,Office supplies purchase
+TX-CLEAN-20064,2024-12-06,DSWD,Community Store,22803.83,0.0,PHP,Community assistance payout
+TX-CLEAN-20065,2024-12-19,Barangay Pantal,Community Store,25110.25,0.0,PHP,Routine municipal payment
+TX-CLEAN-20066,2024-11-23,DSWD,Utility Services Co,40626.2,0.0,PHP,Routine municipal payment
+TX-CLEAN-20067,2024-11-16,City Treasury,Office Depot PH,28656.65,0.0,PHP,Office supplies purchase
+TX-CLEAN-20068,2025-01-30,DSWD,Utility Services Co,26876.02,0.0,PHP,Routine municipal payment
+TX-CLEAN-20069,2025-01-23,Public Works Department,Local Supplier,12728.69,0.0,PHP,Regular operational expense
+TX-CLEAN-20070,2025-01-30,Municipal Development Office,Municipal Services,41454.49,0.0,PHP,Routine municipal payment
+TX-CLEAN-20071,2025-01-28,City Treasury,Community Store,37442.84,0.0,PHP,Routine municipal payment
+TX-CLEAN-20072,2024-12-27,Public Works Department,Municipal Services,47399.0,0.0,PHP,Routine municipal payment
+TX-CLEAN-20073,2025-01-07,Barangay Pantal,Office Depot PH,34264.44,0.0,PHP,Community assistance payout
+TX-CLEAN-20074,2024-12-27,Barangay Pantal,Utility Services Co,5010.61,0.0,PHP,Community assistance payout
+TX-CLEAN-20075,2024-11-16,DSWD,Municipal Services,39708.28,0.0,PHP,Regular operational expense
+TX-CLEAN-20076,2025-01-30,Public Works Department,Municipal Services,38232.07,0.0,PHP,Maintenance service payment
+TX-CLEAN-20077,2024-11-03,Municipal Development Office,Community Store,38833.81,0.0,PHP,Maintenance service payment
+TX-CLEAN-20078,2025-01-15,City Treasury,Community Store,48455.4,0.0,PHP,Regular operational expense
+TX-CLEAN-20079,2024-11-13,Public Works Department,Community Store,16995.72,0.0,PHP,Routine municipal payment
+TX-CLEAN-20080,2024-11-15,Municipal Development Office,Community Store,46626.91,0.0,PHP,Routine municipal payment
+TX-CLEAN-20081,2024-11-19,City Treasury,Municipal Services,28421.25,0.0,PHP,Routine municipal payment
+TX-CLEAN-20082,2025-01-20,Public Works Department,Local Supplier,48286.64,0.0,PHP,Regular operational expense
+TX-CLEAN-20083,2024-11-15,Municipal Development Office,Utility Services Co,28248.53,0.0,PHP,Regular operational expense
+TX-CLEAN-20084,2024-11-02,City Treasury,Utility Services Co,22770.65,0.0,PHP,Office supplies purchase
+TX-CLEAN-20085,2024-11-19,DSWD,Local Supplier,11096.68,0.0,PHP,Community assistance payout
+TX-CLEAN-20086,2024-12-16,DSWD,Utility Services Co,14527.77,0.0,PHP,Regular operational expense
+TX-CLEAN-20087,2024-12-01,Public Works Department,Community Store,12604.13,0.0,PHP,Maintenance service payment
+TX-CLEAN-20088,2024-12-11,Municipal Development Office,Municipal Services,45208.39,0.0,PHP,Regular operational expense
+TX-CLEAN-20089,2024-12-18,Municipal Development Office,Local Supplier,29076.57,0.0,PHP,Maintenance service payment
+TX-CLEAN-20090,2025-01-18,Municipal Development Office,Local Supplier,21782.11,0.0,PHP,Regular operational expense
+TX-CLEAN-20091,2025-01-22,Barangay Pantal,Local Supplier,29260.56,0.0,PHP,Regular operational expense
+TX-CLEAN-20092,2024-11-16,City Treasury,Utility Services Co,44933.52,0.0,PHP,Regular operational expense
+TX-CLEAN-20093,2025-01-14,DSWD,Office Depot PH,27651.99,0.0,PHP,Routine municipal payment
+TX-CLEAN-20094,2024-12-03,Public Works Department,Office Depot PH,18701.23,0.0,PHP,Routine municipal payment
+TX-CLEAN-20095,2024-11-08,Municipal Development Office,Community Store,7728.62,0.0,PHP,Office supplies purchase
+TX-CLEAN-20096,2025-01-30,Municipal Development Office,Municipal Services,10861.57,0.0,PHP,Routine municipal payment
+TX-CLEAN-20097,2024-12-13,DSWD,Local Supplier,39355.01,0.0,PHP,Routine municipal payment
+TX-CLEAN-20098,2025-01-22,Municipal Development Office,Office Depot PH,34145.78,0.0,PHP,Regular operational expense
+TX-CLEAN-20099,2025-01-19,City Treasury,Local Supplier,36272.49,0.0,PHP,Office supplies purchase
+TX-CLEAN-20100,2024-11-08,City Treasury,Office Depot PH,17219.19,0.0,PHP,Routine municipal payment
+TX-CLEAN-20101,2024-12-31,City Treasury,Municipal Services,48000.37,0.0,PHP,Office supplies purchase
+TX-CLEAN-20102,2024-12-19,Municipal Development Office,Utility Services Co,38557.95,0.0,PHP,Maintenance service payment
+TX-CLEAN-20103,2024-11-21,Barangay Pantal,Municipal Services,38266.07,0.0,PHP,Regular operational expense
+TX-CLEAN-20104,2024-12-09,Barangay Pantal,Office Depot PH,18489.75,0.0,PHP,Community assistance payout
+TX-CLEAN-20105,2024-11-13,Public Works Department,Utility Services Co,38511.73,0.0,PHP,Routine municipal payment
+TX-CLEAN-20106,2024-12-16,City Treasury,Community Store,27971.32,0.0,PHP,Community assistance payout
+TX-CLEAN-20107,2024-11-01,Public Works Department,Municipal Services,30333.0,0.0,PHP,Office supplies purchase
+TX-CLEAN-20108,2025-01-19,Municipal Development Office,Office Depot PH,40754.15,0.0,PHP,Office supplies purchase
+TX-CLEAN-20109,2025-01-06,Public Works Department,Community Store,39206.87,0.0,PHP,Office supplies purchase
+TX-CLEAN-20110,2025-01-29,Public Works Department,Municipal Services,41792.53,0.0,PHP,Office supplies purchase
+TX-CLEAN-20111,2024-12-10,City Treasury,Utility Services Co,19623.56,0.0,PHP,Regular operational expense
+TX-CLEAN-20112,2025-01-26,Barangay Pantal,Local Supplier,39890.46,0.0,PHP,Maintenance service payment
+TX-CLEAN-20113,2025-01-11,City Treasury,Community Store,17952.6,0.0,PHP,Regular operational expense
+TX-CLEAN-20114,2025-01-16,Barangay Pantal,Local Supplier,16024.28,0.0,PHP,Community assistance payout
+TX-CLEAN-20115,2025-01-20,Barangay Pantal,Office Depot PH,15489.37,0.0,PHP,Community assistance payout
+TX-CLEAN-20116,2024-12-20,City Treasury,Community Store,14126.54,0.0,PHP,Community assistance payout
+TX-CLEAN-20117,2024-12-25,Public Works Department,Office Depot PH,38710.78,0.0,PHP,Office supplies purchase
+TX-CLEAN-20118,2024-12-03,Barangay Pantal,Community Store,32569.34,0.0,PHP,Regular operational expense
+TX-CLEAN-20119,2024-12-08,Municipal Development Office,Local Supplier,29005.64,0.0,PHP,Routine municipal payment
+TX-CLEAN-20120,2025-01-02,City Treasury,Municipal Services,41798.36,0.0,PHP,Maintenance service payment
+TX-CLEAN-20121,2024-12-30,City Treasury,Municipal Services,11725.78,0.0,PHP,Regular operational expense
+TX-CLEAN-20122,2025-01-28,City Treasury,Municipal Services,18193.93,0.0,PHP,Maintenance service payment
+TX-CLEAN-20123,2025-01-08,Public Works Department,Local Supplier,8785.0,0.0,PHP,Community assistance payout
+TX-CLEAN-20124,2024-11-20,Public Works Department,Community Store,14902.4,0.0,PHP,Regular operational expense
+TX-CLEAN-20125,2024-11-15,City Treasury,Community Store,35117.86,0.0,PHP,Office supplies purchase
+TX-CLEAN-20126,2024-12-03,Public Works Department,Municipal Services,6212.54,0.0,PHP,Routine municipal payment
+TX-CLEAN-20127,2024-12-08,Municipal Development Office,Community Store,5029.38,0.0,PHP,Maintenance service payment
+TX-CLEAN-20128,2024-11-03,Municipal Development Office,Utility Services Co,44517.52,0.0,PHP,Regular operational expense
+TX-CLEAN-20129,2025-01-21,DSWD,Community Store,7196.07,0.0,PHP,Routine municipal payment
+TX-CLEAN-20130,2024-12-31,City Treasury,Office Depot PH,36223.43,0.0,PHP,Regular operational expense
+TX-CLEAN-20131,2024-11-12,DSWD,Community Store,14637.57,0.0,PHP,Routine municipal payment
+TX-CLEAN-20132,2024-12-03,Municipal Development Office,Local Supplier,47780.15,0.0,PHP,Routine municipal payment
+TX-CLEAN-20133,2024-11-03,Public Works Department,Community Store,15973.2,0.0,PHP,Maintenance service payment
+TX-CLEAN-20134,2024-12-12,DSWD,Community Store,10758.15,0.0,PHP,Community assistance payout
+TX-CLEAN-20135,2024-12-15,Barangay Pantal,Community Store,44420.19,0.0,PHP,Maintenance service payment
+TX-CLEAN-20136,2024-11-19,Public Works Department,Office Depot PH,11433.82,0.0,PHP,Routine municipal payment
+TX-CLEAN-20137,2025-01-24,Barangay Pantal,Municipal Services,46577.39,0.0,PHP,Routine municipal payment
+TX-CLEAN-20138,2024-11-12,Public Works Department,Municipal Services,17416.46,0.0,PHP,Office supplies purchase
+TX-CLEAN-20139,2025-01-09,City Treasury,Municipal Services,28790.15,0.0,PHP,Maintenance service payment
+TX-CLEAN-20140,2025-01-17,City Treasury,Municipal Services,37685.05,0.0,PHP,Regular operational expense
+TX-CLEAN-20141,2024-12-26,Municipal Development Office,Office Depot PH,30002.94,0.0,PHP,Routine municipal payment
+TX-CLEAN-20142,2024-12-19,DSWD,Office Depot PH,29242.73,0.0,PHP,Community assistance payout
+TX-CLEAN-20143,2025-01-18,Public Works Department,Local Supplier,48948.25,0.0,PHP,Regular operational expense
+TX-CLEAN-20144,2025-01-20,Barangay Pantal,Utility Services Co,31707.87,0.0,PHP,Routine municipal payment
+TX-CLEAN-20145,2025-01-24,DSWD,Municipal Services,38493.93,0.0,PHP,Office supplies purchase
+TX-CLEAN-20146,2024-12-12,City Treasury,Municipal Services,27727.67,0.0,PHP,Maintenance service payment
+TX-CLEAN-20147,2024-12-14,Public Works Department,Municipal Services,39757.13,0.0,PHP,Maintenance service payment
+TX-CLEAN-20148,2025-01-21,City Treasury,Local Supplier,15294.86,0.0,PHP,Regular operational expense
+TX-CLEAN-20149,2025-01-24,DSWD,Utility Services Co,21653.97,0.0,PHP,Community assistance payout
+TX-CLEAN-20150,2025-01-19,Public Works Department,Municipal Services,19131.11,0.0,PHP,Regular operational expense
+TX-CLEAN-20151,2024-12-16,Public Works Department,Community Store,15287.46,0.0,PHP,Maintenance service payment
+TX-CLEAN-20152,2025-01-06,Public Works Department,Community Store,47673.92,0.0,PHP,Routine municipal payment
+TX-CLEAN-20153,2024-11-09,Public Works Department,Municipal Services,33463.12,0.0,PHP,Routine municipal payment
+TX-CLEAN-20154,2024-12-30,Public Works Department,Local Supplier,43546.18,0.0,PHP,Maintenance service payment
+TX-CLEAN-20155,2024-11-08,DSWD,Local Supplier,29120.03,0.0,PHP,Regular operational expense
+TX-CLEAN-20156,2024-12-21,City Treasury,Office Depot PH,24293.64,0.0,PHP,Regular operational expense
+TX-CLEAN-20157,2025-01-07,City Treasury,Community Store,16770.46,0.0,PHP,Regular operational expense
+TX-CLEAN-20158,2024-12-09,City Treasury,Municipal Services,24978.54,0.0,PHP,Maintenance service payment
+TX-CLEAN-20159,2024-12-16,DSWD,Office Depot PH,49970.5,0.0,PHP,Community assistance payout
+TX-CLEAN-20160,2025-01-29,City Treasury,Municipal Services,44483.25,0.0,PHP,Regular operational expense
+TX-CLEAN-20161,2024-12-26,City Treasury,Utility Services Co,9682.78,0.0,PHP,Office supplies purchase
+TX-CLEAN-20162,2025-01-10,Barangay Pantal,Utility Services Co,25341.61,0.0,PHP,Maintenance service payment
+TX-CLEAN-20163,2025-01-27,Barangay Pantal,Office Depot PH,19370.97,0.0,PHP,Maintenance service payment
+TX-CLEAN-20164,2025-01-23,Public Works Department,Utility Services Co,37420.52,0.0,PHP,Community assistance payout
+TX-CLEAN-20165,2025-01-27,DSWD,Utility Services Co,40873.65,0.0,PHP,Regular operational expense
+TX-CLEAN-20166,2024-12-19,DSWD,Office Depot PH,33313.7,0.0,PHP,Regular operational expense
+TX-CLEAN-20167,2025-01-16,Barangay Pantal,Utility Services Co,33421.59,0.0,PHP,Routine municipal payment
+TX-CLEAN-20168,2025-01-29,DSWD,Office Depot PH,36291.34,0.0,PHP,Regular operational expense
+TX-CLEAN-20169,2024-11-06,City Treasury,Utility Services Co,22668.77,0.0,PHP,Maintenance service payment
+TX-CLEAN-20170,2024-12-25,Public Works Department,Municipal Services,7945.87,0.0,PHP,Office supplies purchase
+TX-CLEAN-20171,2024-11-19,Public Works Department,Utility Services Co,49357.24,0.0,PHP,Maintenance service payment
+TX-CLEAN-20172,2024-11-19,DSWD,Utility Services Co,23230.14,0.0,PHP,Office supplies purchase
+TX-CLEAN-20173,2025-01-06,City Treasury,Community Store,47792.87,0.0,PHP,Routine municipal payment
+TX-CLEAN-20174,2025-01-06,Municipal Development Office,Community Store,24059.94,0.0,PHP,Regular operational expense
+TX-CLEAN-20175,2024-12-11,DSWD,Utility Services Co,42254.3,0.0,PHP,Routine municipal payment
+TX-CLEAN-20176,2024-12-16,DSWD,Municipal Services,26114.54,0.0,PHP,Maintenance service payment
+TX-CLEAN-20177,2025-01-15,Municipal Development Office,Utility Services Co,47977.49,0.0,PHP,Regular operational expense
+TX-CLEAN-20178,2024-11-15,City Treasury,Office Depot PH,5169.65,0.0,PHP,Office supplies purchase
+TX-CLEAN-20179,2025-01-14,Barangay Pantal,Utility Services Co,31288.71,0.0,PHP,Office supplies purchase
+TX-CLEAN-20180,2024-12-04,Municipal Development Office,Municipal Services,30219.38,0.0,PHP,Community assistance payout
+TX-CLEAN-20181,2024-12-24,City Treasury,Utility Services Co,29126.47,0.0,PHP,Maintenance service payment
+TX-CLEAN-20182,2025-01-27,Public Works Department,Municipal Services,46130.82,0.0,PHP,Community assistance payout
+TX-CLEAN-20183,2024-12-16,DSWD,Office Depot PH,12273.35,0.0,PHP,Regular operational expense
+TX-CLEAN-20184,2024-11-03,DSWD,Utility Services Co,12788.6,0.0,PHP,Community assistance payout
+TX-CLEAN-20185,2024-11-07,City Treasury,Municipal Services,19268.58,0.0,PHP,Office supplies purchase
+TX-CLEAN-20186,2024-12-30,City Treasury,Utility Services Co,13557.32,0.0,PHP,Community assistance payout
+TX-CLEAN-20187,2024-11-26,Public Works Department,Municipal Services,34528.12,0.0,PHP,Regular operational expense
+TX-CLEAN-20188,2024-11-26,DSWD,Community Store,6929.47,0.0,PHP,Routine municipal payment
+TX-CLEAN-20189,2024-12-30,City Treasury,Utility Services Co,45146.97,0.0,PHP,Maintenance service payment
+TX-CLEAN-20190,2025-01-06,Municipal Development Office,Utility Services Co,49843.34,0.0,PHP,Routine municipal payment
+TX-CLEAN-20191,2024-11-04,Public Works Department,Municipal Services,42721.48,0.0,PHP,Routine municipal payment
+TX-CLEAN-20192,2024-11-09,City Treasury,Community Store,18349.34,0.0,PHP,Regular operational expense
+TX-CLEAN-20193,2024-11-12,Public Works Department,Municipal Services,46668.91,0.0,PHP,Routine municipal payment
+TX-CLEAN-20194,2024-11-28,DSWD,Office Depot PH,8874.07,0.0,PHP,Regular operational expense
+TX-CLEAN-20195,2025-01-25,Barangay Pantal,Municipal Services,19346.3,0.0,PHP,Office supplies purchase
+TX-CLEAN-20196,2025-01-07,DSWD,Municipal Services,29671.12,0.0,PHP,Regular operational expense
+TX-CLEAN-20197,2024-11-24,Municipal Development Office,Office Depot PH,8108.4,0.0,PHP,Regular operational expense
+TX-CLEAN-20198,2024-12-28,Barangay Pantal,Municipal Services,22450.08,0.0,PHP,Routine municipal payment
+TX-CLEAN-20199,2025-01-17,Public Works Department,Utility Services Co,9142.26,0.0,PHP,Community assistance payout
+TX-CLEAN-20200,2024-11-10,City Treasury,Community Store,14333.57,0.0,PHP,Maintenance service payment
+TX-CLEAN-20201,2024-12-03,DSWD,Municipal Services,37850.96,0.0,PHP,Office supplies purchase
+TX-CLEAN-20202,2025-01-24,Public Works Department,Community Store,22974.0,0.0,PHP,Maintenance service payment
+TX-CLEAN-20203,2024-12-26,Barangay Pantal,Municipal Services,27747.25,0.0,PHP,Community assistance payout
+TX-CLEAN-20204,2024-11-29,City Treasury,Community Store,19383.18,0.0,PHP,Office supplies purchase
+TX-CLEAN-20205,2024-11-04,Public Works Department,Office Depot PH,31483.91,0.0,PHP,Office supplies purchase
+TX-CLEAN-20206,2024-12-09,Municipal Development Office,Municipal Services,31581.8,0.0,PHP,Maintenance service payment
+TX-CLEAN-20207,2025-01-03,Barangay Pantal,Office Depot PH,6354.39,0.0,PHP,Community assistance payout
+TX-CLEAN-20208,2024-11-13,Municipal Development Office,Utility Services Co,18983.33,0.0,PHP,Routine municipal payment
+TX-CLEAN-20209,2024-12-30,Public Works Department,Local Supplier,16391.96,0.0,PHP,Community assistance payout
+TX-CLEAN-20210,2025-01-29,City Treasury,Municipal Services,26513.99,0.0,PHP,Maintenance service payment
+TX-CLEAN-20211,2024-11-23,Municipal Development Office,Municipal Services,27389.7,0.0,PHP,Office supplies purchase
+TX-CLEAN-20212,2024-11-13,City Treasury,Office Depot PH,8499.69,0.0,PHP,Regular operational expense
+TX-CLEAN-20213,2024-11-26,Municipal Development Office,Municipal Services,42135.33,0.0,PHP,Regular operational expense
+TX-CLEAN-20214,2024-12-18,Municipal Development Office,Office Depot PH,45249.81,0.0,PHP,Community assistance payout
+TX-CLEAN-20215,2024-11-06,Barangay Pantal,Community Store,19787.07,0.0,PHP,Community assistance payout
+TX-CLEAN-20216,2024-11-06,Municipal Development Office,Community Store,28319.87,0.0,PHP,Maintenance service payment
+TX-CLEAN-20217,2024-11-30,Barangay Pantal,Office Depot PH,12818.69,0.0,PHP,Routine municipal payment
+TX-CLEAN-20218,2024-12-22,Barangay Pantal,Community Store,36317.34,0.0,PHP,Routine municipal payment
+TX-CLEAN-20219,2024-11-18,Municipal Development Office,Community Store,11119.95,0.0,PHP,Maintenance service payment
+TX-CLEAN-20220,2024-11-30,Municipal Development Office,Office Depot PH,42064.25,0.0,PHP,Maintenance service payment
+TX-CLEAN-20221,2025-01-30,Municipal Development Office,Office Depot PH,12625.59,0.0,PHP,Community assistance payout
+TX-CLEAN-20222,2025-01-12,Barangay Pantal,Community Store,44401.25,0.0,PHP,Community assistance payout
+TX-CLEAN-20223,2025-01-19,DSWD,Community Store,28821.84,0.0,PHP,Regular operational expense
+TX-CLEAN-20224,2024-12-02,City Treasury,Office Depot PH,17142.91,0.0,PHP,Regular operational expense
+TX-CLEAN-20225,2025-01-09,Public Works Department,Local Supplier,18933.15,0.0,PHP,Regular operational expense
+TX-CLEAN-20226,2025-01-11,City Treasury,Office Depot PH,39210.98,0.0,PHP,Routine municipal payment
+TX-CLEAN-20227,2024-11-25,Public Works Department,Local Supplier,33952.08,0.0,PHP,Regular operational expense
+TX-CLEAN-20228,2024-12-15,Public Works Department,Municipal Services,16299.29,0.0,PHP,Office supplies purchase
+TX-CLEAN-20229,2024-12-10,Barangay Pantal,Local Supplier,28742.77,0.0,PHP,Regular operational expense
+TX-CLEAN-20230,2025-01-15,Barangay Pantal,Community Store,20378.41,0.0,PHP,Maintenance service payment
+TX-CLEAN-20231,2024-11-11,DSWD,Office Depot PH,23322.91,0.0,PHP,Regular operational expense
+TX-CLEAN-20232,2024-11-06,Barangay Pantal,Local Supplier,11261.76,0.0,PHP,Office supplies purchase
+TX-CLEAN-20233,2024-12-16,Public Works Department,Municipal Services,6852.9,0.0,PHP,Community assistance payout
+TX-CLEAN-20234,2025-01-23,Barangay Pantal,Local Supplier,49449.57,0.0,PHP,Community assistance payout
+TX-CLEAN-20235,2024-11-02,Barangay Pantal,Municipal Services,48611.95,0.0,PHP,Maintenance service payment
+TX-CLEAN-20236,2024-12-23,Municipal Development Office,Utility Services Co,32263.46,0.0,PHP,Office supplies purchase
+TX-CLEAN-20237,2024-12-14,Municipal Development Office,Municipal Services,39189.33,0.0,PHP,Office supplies purchase
+TX-CLEAN-20238,2025-01-03,City Treasury,Utility Services Co,17453.19,0.0,PHP,Regular operational expense
+TX-CLEAN-20239,2024-11-23,Public Works Department,Utility Services Co,48898.98,0.0,PHP,Community assistance payout
+TX-CLEAN-20240,2024-12-07,DSWD,Community Store,29989.64,0.0,PHP,Community assistance payout
+TX-CLEAN-20241,2024-12-28,Public Works Department,Utility Services Co,8714.82,0.0,PHP,Routine municipal payment
+TX-CLEAN-20242,2024-12-26,Barangay Pantal,Utility Services Co,36084.23,0.0,PHP,Community assistance payout
+TX-CLEAN-20243,2024-12-14,Public Works Department,Office Depot PH,38461.37,0.0,PHP,Maintenance service payment
+TX-CLEAN-20244,2024-11-22,City Treasury,Community Store,27357.23,0.0,PHP,Maintenance service payment
+TX-CLEAN-20245,2024-12-08,Public Works Department,Municipal Services,10217.23,0.0,PHP,Regular operational expense
+TX-CLEAN-20246,2024-11-30,Municipal Development Office,Utility Services Co,33578.99,0.0,PHP,Routine municipal payment
+TX-CLEAN-20247,2025-01-20,Municipal Development Office,Municipal Services,9552.22,0.0,PHP,Routine municipal payment
+TX-CLEAN-20248,2024-11-20,Municipal Development Office,Municipal Services,37964.64,0.0,PHP,Regular operational expense
+TX-CLEAN-20249,2024-12-26,DSWD,Municipal Services,48532.27,0.0,PHP,Maintenance service payment
+TX-CLEAN-20250,2024-12-04,Barangay Pantal,Office Depot PH,14850.58,0.0,PHP,Community assistance payout
+TX-CLEAN-20251,2024-12-29,Public Works Department,Municipal Services,36748.2,0.0,PHP,Office supplies purchase
+TX-CLEAN-20252,2024-11-10,Municipal Development Office,Municipal Services,40383.8,0.0,PHP,Community assistance payout
+TX-CLEAN-20253,2024-12-22,DSWD,Local Supplier,22807.19,0.0,PHP,Maintenance service payment
+TX-CLEAN-20254,2025-01-22,DSWD,Office Depot PH,47865.69,0.0,PHP,Office supplies purchase
+TX-CLEAN-20255,2024-12-02,Public Works Department,Utility Services Co,34249.78,0.0,PHP,Regular operational expense
+TX-CLEAN-20256,2024-11-06,Barangay Pantal,Utility Services Co,17776.22,0.0,PHP,Regular operational expense
+TX-CLEAN-20257,2025-01-06,City Treasury,Office Depot PH,6929.75,0.0,PHP,Office supplies purchase
+TX-CLEAN-20258,2024-12-05,Public Works Department,Office Depot PH,25209.18,0.0,PHP,Community assistance payout
+TX-CLEAN-20259,2025-01-12,Barangay Pantal,Municipal Services,24505.4,0.0,PHP,Routine municipal payment
+TX-CLEAN-20260,2024-12-02,Municipal Development Office,Municipal Services,11935.36,0.0,PHP,Community assistance payout
+TX-CLEAN-20261,2024-11-16,Municipal Development Office,Local Supplier,42530.52,0.0,PHP,Regular operational expense
+TX-CLEAN-20262,2025-01-03,DSWD,Utility Services Co,32774.01,0.0,PHP,Community assistance payout
+TX-CLEAN-20263,2025-01-14,DSWD,Local Supplier,12574.81,0.0,PHP,Regular operational expense
+TX-CLEAN-20264,2024-11-05,Barangay Pantal,Local Supplier,44229.23,0.0,PHP,Routine municipal payment
+TX-CLEAN-20265,2025-01-28,DSWD,Utility Services Co,22783.31,0.0,PHP,Regular operational expense
+TX-CLEAN-20266,2025-01-19,Municipal Development Office,Local Supplier,31792.79,0.0,PHP,Maintenance service payment
+TX-CLEAN-20267,2025-01-26,Public Works Department,Office Depot PH,18612.68,0.0,PHP,Community assistance payout
+TX-CLEAN-20268,2024-12-25,Barangay Pantal,Utility Services Co,18105.9,0.0,PHP,Routine municipal payment
+TX-CLEAN-20269,2024-11-28,Municipal Development Office,Utility Services Co,28195.28,0.0,PHP,Office supplies purchase
+TX-CLEAN-20270,2024-12-17,Municipal Development Office,Local Supplier,9832.84,0.0,PHP,Regular operational expense
+TX-CLEAN-20271,2024-12-18,Public Works Department,Utility Services Co,8039.34,0.0,PHP,Office supplies purchase
+TX-CLEAN-20272,2024-12-03,DSWD,Community Store,30318.91,0.0,PHP,Regular operational expense
+TX-CLEAN-20273,2024-11-04,DSWD,Community Store,32853.31,0.0,PHP,Routine municipal payment
+TX-CLEAN-20274,2024-11-24,Barangay Pantal,Office Depot PH,27942.63,0.0,PHP,Regular operational expense
+TX-CLEAN-20275,2024-12-14,Municipal Development Office,Community Store,44375.39,0.0,PHP,Office supplies purchase
+TX-CLEAN-20276,2024-11-22,Municipal Development Office,Municipal Services,6765.12,0.0,PHP,Regular operational expense
+TX-CLEAN-20277,2024-11-07,Public Works Department,Utility Services Co,13124.53,0.0,PHP,Maintenance service payment
+TX-CLEAN-20278,2024-11-02,City Treasury,Utility Services Co,37589.52,0.0,PHP,Regular operational expense
+TX-CLEAN-20279,2025-01-17,DSWD,Community Store,33396.23,0.0,PHP,Office supplies purchase
+TX-CLEAN-20280,2024-11-11,City Treasury,Municipal Services,46470.76,0.0,PHP,Maintenance service payment
+TX-CLEAN-20281,2024-11-11,Barangay Pantal,Municipal Services,8563.84,0.0,PHP,Maintenance service payment
+TX-CLEAN-20282,2024-11-19,City Treasury,Community Store,12425.83,0.0,PHP,Routine municipal payment
+TX-CLEAN-20283,2025-01-01,Public Works Department,Utility Services Co,29781.91,0.0,PHP,Maintenance service payment
+TX-CLEAN-20284,2024-11-06,City Treasury,Local Supplier,36329.85,0.0,PHP,Regular operational expense
+TX-CLEAN-20285,2024-12-31,DSWD,Utility Services Co,45991.34,0.0,PHP,Maintenance service payment
+TX-CLEAN-20286,2025-01-22,Barangay Pantal,Office Depot PH,48382.19,0.0,PHP,Routine municipal payment
+TX-CLEAN-20287,2024-11-29,Barangay Pantal,Local Supplier,13296.51,0.0,PHP,Maintenance service payment
+TX-CLEAN-20288,2024-12-01,Barangay Pantal,Community Store,48083.48,0.0,PHP,Routine municipal payment
+TX-CLEAN-20289,2024-11-15,Municipal Development Office,Community Store,5313.22,0.0,PHP,Maintenance service payment
+TX-CLEAN-20290,2024-12-28,Barangay Pantal,Municipal Services,24123.95,0.0,PHP,Routine municipal payment
+TX-CLEAN-20291,2024-11-10,DSWD,Utility Services Co,24494.49,0.0,PHP,Regular operational expense
+TX-CLEAN-20292,2024-12-30,City Treasury,Local Supplier,10671.92,0.0,PHP,Routine municipal payment
+TX-CLEAN-20293,2025-01-28,Barangay Pantal,Municipal Services,39636.1,0.0,PHP,Regular operational expense
+TX-CLEAN-20294,2024-12-14,DSWD,Utility Services Co,49620.64,0.0,PHP,Regular operational expense
+TX-CLEAN-20295,2024-11-06,DSWD,Local Supplier,39396.25,0.0,PHP,Community assistance payout
+TX-CLEAN-20296,2025-01-18,Municipal Development Office,Office Depot PH,39492.87,0.0,PHP,Regular operational expense
+TX-CLEAN-20297,2024-12-10,Barangay Pantal,Municipal Services,8415.36,0.0,PHP,Community assistance payout
+TX-CLEAN-20298,2025-01-21,Barangay Pantal,Office Depot PH,14445.75,0.0,PHP,Routine municipal payment
+TX-CLEAN-20299,2025-01-03,City Treasury,Community Store,46891.29,0.0,PHP,Community assistance payout

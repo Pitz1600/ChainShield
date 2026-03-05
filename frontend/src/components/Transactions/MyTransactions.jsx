@@ -85,7 +85,7 @@ function MyTransactions({ user, embedded = false }) {
     setCurrentPage(1);
   };
 
-  const isAdminOrAuditor = ['administrator', 'auditor', 'barangay_official'].includes(user?.role);
+  const isAdminOrAuditor = ['administrator', 'auditor'].includes(user?.role);
 
   const handleAction = async (status) => {
     if (!selectedTx || !isAdminOrAuditor) return;
@@ -104,8 +104,13 @@ function MyTransactions({ user, embedded = false }) {
     }
   };
 
-  const handleReject = async () => {
+  const handleApprove = async () => handleAction('Verified');
+  const handleFlag = async () => handleAction('Flagged');
+  // Decline action removed — use Flag/Approve/Delete instead
+
+  const handleDelete = async () => {
     if (!selectedTx || !isAdminOrAuditor) return;
+    if (!window.confirm('Are you sure you want to delete this transaction? This action cannot be undone.')) return;
     setActionLoading(true);
     try {
       await api.delete(`/transactions/${selectedTx._id}`);
@@ -498,19 +503,29 @@ function MyTransactions({ user, embedded = false }) {
                     {isAdminOrAuditor ? (
                       <>
                         {(selectedTx.verificationStatus === 'Pending' || selectedTx.verificationStatus === 'Suspicious') && (
-                          <>
-                            <button className="btn-verify" disabled={actionLoading} onClick={() => handleAction('Verified')}>
-                              Approve & Record (if flagged)
+                          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                            <button className="btn-flag" disabled={actionLoading} onClick={handleFlag}>
+                              Flag
                             </button>
-                            <button className="btn-flag" disabled={actionLoading} onClick={() => handleReject()}>
-                              Deny & Delete
+                            <button className="btn-verify" disabled={actionLoading} onClick={handleApprove}>
+                              Approve
                             </button>
-                          </>
+                            {/* Decline removed */}
+                            <button className="btn-delete" disabled={actionLoading} onClick={handleDelete}>
+                              Delete
+                            </button>
+                          </div>
                         )}
-                        {(selectedTx.verificationStatus === 'Verified' || selectedTx.verificationStatus === 'Rejected') && (
-                          <button className="btn-undo" disabled={actionLoading} onClick={() => handleAction('Pending')}>
-                            Undo Action
-                          </button>
+
+                        {(selectedTx.verificationStatus === 'Verified' || selectedTx.verificationStatus === 'Rejected' || selectedTx.verificationStatus === 'Flagged') && (
+                          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                            <button className="btn-undo" disabled={actionLoading} onClick={() => handleAction('Pending')}>
+                              Undo Action
+                            </button>
+                            <button className="btn-delete" disabled={actionLoading} onClick={handleDelete}>
+                              Delete
+                            </button>
+                          </div>
                         )}
                       </>
                     ) : (

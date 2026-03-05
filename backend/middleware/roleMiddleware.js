@@ -51,6 +51,15 @@ const PERMISSIONS = {
         'validate_documents',
         'generate_reports',
     ],
+    // Auditor permissions — blockchain transaction verification and audit logging
+    auditor: [
+        'view_public_records',
+        'track_transactions',
+        'view_analytics',
+        'view_audit_logs',
+        'verify_transactions',
+        'generate_audit_reports',
+    ],
 
     // Administrator permissions (includes all permissions)
     administrator: [
