@@ -64,7 +64,7 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['resident', 'barangay_official', 'administrator', 'analyst', 'investigator'],
+    enum: ['resident', 'barangay_official', 'administrator', 'analyst', 'investigator', 'auditor'],
     default: 'resident'
   },
   position: String,

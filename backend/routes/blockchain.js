@@ -3,7 +3,7 @@ const router = express.Router();
 const crypto = require('crypto');
 const blockchainService = require('../services/blockchainService');
 const auth = require('../middleware/auth');
-const { requireAdmin } = require('../middleware/roleMiddleware');
+const { requireAdmin, requireRole } = require('../middleware/roleMiddleware');
 
 // Verify blockchain connection - Enhanced admin endpoint
 router.get('/status', auth, requireAdmin, async (req, res) => {
@@ -49,8 +49,8 @@ router.get('/status', auth, requireAdmin, async (req, res) => {
   }
 });
 
-// Verify transaction on blockchain
-router.post('/verify', auth, async (req, res) => {
+// Verify transaction on blockchain (Auditor/Admin only)
+router.post('/verify', auth, requireRole(['auditor', 'administrator']), async (req, res) => {
   try {
     const { txHash } = req.body;
     if (!txHash) {

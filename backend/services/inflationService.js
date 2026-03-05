@@ -12,7 +12,7 @@ class InflationService {
 
     /**
      * Fetch inflation data from World Bank API
-     * Endpoint: https://api.worldbank.org/v2/country/PHL/indicator/FP.CPI.TOTL.ZG
+     * Endpoint: https://api.worldbank.org/v2/country/PHL/i  ndicator/FP.CPI.TOTL.ZG
      * Returns annual inflation rate for Philippines
      */
     async fetchFromWorldBank() {

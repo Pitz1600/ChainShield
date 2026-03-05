@@ -7,7 +7,7 @@ services:
     container_name: chainshield-mongodb
     restart: unless-stopped
     ports:
-      - "27017:27017"
+      - "${MONGO_HOST_PORT:-27018}:27017"
     environment:
       MONGO_INITDB_DATABASE: chainshield
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
@@ -35,7 +35,7 @@ services:
     ports:
       - "5000:5000"
     env_file:
-      - /.env
+      - .env
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       MONGODB_URI: ${MONGODB_URI}

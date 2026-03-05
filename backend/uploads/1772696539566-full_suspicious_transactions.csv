@@ -1,0 +1,301 @@
+record_id,post_date,payer_name,payee_name,debit_amount,credit_amount,currency,description_raw
+TX-SUSP-10000,2024-10-05,Barangay Pantal,Prime Equipment Supply,557927.85,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10001,2024-12-17,Barangay Pantal,Global Builders Inc,2431886.26,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10002,2024-11-04,DSWD,Prime Equipment Supply,345203.0,0.0,PHP,Large contractor settlement
+TX-SUSP-10003,2024-11-09,Municipal Development Office,Rapid Supply Co,2127962.03,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10004,2024-10-23,City Treasury,Global Builders Inc,428165.36,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10005,2024-11-28,City Treasury,Metro Infrastructure Ltd,1938921.0,0.0,PHP,Large contractor settlement
+TX-SUSP-10006,2024-10-14,DSWD,Global Builders Inc,1319075.1,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10007,2024-10-29,City Treasury,Prime Equipment Supply,1038297.7,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10008,2024-12-15,Barangay Pantal,Metro Infrastructure Ltd,539875.12,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10009,2024-11-21,Municipal Development Office,Rapid Supply Co,985669.82,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10010,2024-11-05,Municipal Development Office,Prime Equipment Supply,1195822.74,0.0,PHP,High value equipment procurement
+TX-SUSP-10011,2024-11-02,City Treasury,ABC Construction,1767485.88,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10012,2024-11-26,Municipal Development Office,Prime Equipment Supply,619963.72,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10013,2024-10-14,Barangay Pantal,Metro Infrastructure Ltd,1055058.83,0.0,PHP,Large contractor settlement
+TX-SUSP-10014,2024-10-23,Municipal Development Office,Prime Equipment Supply,1734995.96,0.0,PHP,High value equipment procurement
+TX-SUSP-10015,2024-12-16,Barangay Pantal,Metro Infrastructure Ltd,1503762.95,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10016,2024-11-21,Public Works Department,Metro Infrastructure Ltd,815755.59,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10017,2024-10-03,Barangay Pantal,Global Builders Inc,1072339.53,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10018,2024-10-31,Municipal Development Office,Global Builders Inc,964774.21,0.0,PHP,High value equipment procurement
+TX-SUSP-10019,2024-11-18,Public Works Department,ABC Construction,867489.9,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10020,2024-10-29,City Treasury,Rapid Supply Co,1188625.16,0.0,PHP,High value equipment procurement
+TX-SUSP-10021,2024-12-22,City Treasury,Prime Equipment Supply,1041482.72,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10022,2024-12-27,Barangay Pantal,Metro Infrastructure Ltd,644994.06,0.0,PHP,High value equipment procurement
+TX-SUSP-10023,2024-10-31,Municipal Development Office,Prime Equipment Supply,2125786.75,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10024,2024-12-29,Municipal Development Office,Prime Equipment Supply,2410126.33,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10025,2024-12-30,Public Works Department,Prime Equipment Supply,2472568.04,0.0,PHP,High value equipment procurement
+TX-SUSP-10026,2024-10-01,Barangay Pantal,Rapid Supply Co,668320.18,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10027,2024-12-24,DSWD,Rapid Supply Co,1877743.99,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10028,2024-11-24,Public Works Department,Global Builders Inc,1618283.71,0.0,PHP,Large contractor settlement
+TX-SUSP-10029,2024-11-05,City Treasury,Rapid Supply Co,1231398.48,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10030,2024-11-14,Public Works Department,Metro Infrastructure Ltd,2091267.32,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10031,2024-11-21,Public Works Department,Rapid Supply Co,918670.41,0.0,PHP,High value equipment procurement
+TX-SUSP-10032,2024-10-04,Barangay Pantal,Rapid Supply Co,2459501.6,0.0,PHP,High value equipment procurement
+TX-SUSP-10033,2024-11-19,DSWD,Prime Equipment Supply,2422364.27,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10034,2024-10-31,Municipal Development Office,Prime Equipment Supply,1587488.93,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10035,2024-11-13,Public Works Department,Metro Infrastructure Ltd,2147543.02,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10036,2024-12-24,Barangay Pantal,Metro Infrastructure Ltd,449322.06,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10037,2024-10-20,Public Works Department,Rapid Supply Co,1754336.54,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10038,2024-10-01,Barangay Pantal,Rapid Supply Co,1263356.53,0.0,PHP,Large contractor settlement
+TX-SUSP-10039,2024-10-18,City Treasury,ABC Construction,2097337.54,0.0,PHP,High value equipment procurement
+TX-SUSP-10040,2024-10-28,Public Works Department,Metro Infrastructure Ltd,1779035.05,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10041,2024-10-04,Public Works Department,ABC Construction,764215.43,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10042,2024-12-18,Public Works Department,Metro Infrastructure Ltd,1929946.54,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10043,2024-11-12,Municipal Development Office,Global Builders Inc,338894.88,0.0,PHP,Large contractor settlement
+TX-SUSP-10044,2024-12-13,DSWD,Metro Infrastructure Ltd,2174238.38,0.0,PHP,Large contractor settlement
+TX-SUSP-10045,2024-12-30,Municipal Development Office,Rapid Supply Co,2018767.11,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10046,2024-10-28,Barangay Pantal,Global Builders Inc,1713152.14,0.0,PHP,High value equipment procurement
+TX-SUSP-10047,2024-10-19,City Treasury,ABC Construction,1033382.47,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10048,2024-10-12,Public Works Department,Global Builders Inc,1660740.03,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10049,2024-12-08,DSWD,Prime Equipment Supply,2054519.71,0.0,PHP,High value equipment procurement
+TX-SUSP-10050,2024-11-11,Public Works Department,Prime Equipment Supply,2100874.6,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10051,2024-12-25,City Treasury,Metro Infrastructure Ltd,1775654.99,0.0,PHP,Large contractor settlement
+TX-SUSP-10052,2024-12-27,Municipal Development Office,Prime Equipment Supply,720137.66,0.0,PHP,Large contractor settlement
+TX-SUSP-10053,2024-10-21,Public Works Department,Metro Infrastructure Ltd,2484827.16,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10054,2024-11-27,Municipal Development Office,Global Builders Inc,2187620.08,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10055,2024-10-10,Barangay Pantal,Global Builders Inc,2299182.01,0.0,PHP,Large contractor settlement
+TX-SUSP-10056,2024-12-16,Municipal Development Office,Rapid Supply Co,2162657.2,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10057,2024-11-05,Public Works Department,Metro Infrastructure Ltd,2366881.17,0.0,PHP,High value equipment procurement
+TX-SUSP-10058,2024-10-13,Municipal Development Office,ABC Construction,2043681.77,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10059,2024-12-21,City Treasury,ABC Construction,1198257.02,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10060,2024-11-18,City Treasury,Metro Infrastructure Ltd,532342.79,0.0,PHP,High value equipment procurement
+TX-SUSP-10061,2024-11-01,Public Works Department,Rapid Supply Co,2274104.52,0.0,PHP,Large contractor settlement
+TX-SUSP-10062,2024-12-20,Public Works Department,ABC Construction,2277019.24,0.0,PHP,High value equipment procurement
+TX-SUSP-10063,2024-11-30,DSWD,Rapid Supply Co,2361520.63,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10064,2024-10-22,DSWD,Metro Infrastructure Ltd,1324840.58,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10065,2024-11-24,Municipal Development Office,ABC Construction,1828444.48,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10066,2024-11-18,DSWD,Metro Infrastructure Ltd,1712101.91,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10067,2024-10-03,DSWD,Metro Infrastructure Ltd,1680041.47,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10068,2024-10-11,Barangay Pantal,ABC Construction,1891304.39,0.0,PHP,Large contractor settlement
+TX-SUSP-10069,2024-10-09,Barangay Pantal,Global Builders Inc,590493.43,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10070,2024-11-03,Barangay Pantal,Global Builders Inc,1394398.22,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10071,2024-12-22,Public Works Department,Metro Infrastructure Ltd,1185007.27,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10072,2024-11-18,City Treasury,Global Builders Inc,1189745.26,0.0,PHP,High value equipment procurement
+TX-SUSP-10073,2024-11-24,City Treasury,Prime Equipment Supply,1934583.92,0.0,PHP,Large contractor settlement
+TX-SUSP-10074,2024-10-29,City Treasury,Metro Infrastructure Ltd,505780.42,0.0,PHP,Large contractor settlement
+TX-SUSP-10075,2024-11-10,City Treasury,Prime Equipment Supply,507149.97,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10076,2024-10-24,Public Works Department,Rapid Supply Co,818194.34,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10077,2024-10-22,DSWD,Rapid Supply Co,1933423.09,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10078,2024-11-25,City Treasury,Rapid Supply Co,414538.45,0.0,PHP,Large contractor settlement
+TX-SUSP-10079,2024-10-25,Barangay Pantal,Metro Infrastructure Ltd,2408766.84,0.0,PHP,Large contractor settlement
+TX-SUSP-10080,2024-10-16,City Treasury,Rapid Supply Co,2303042.05,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10081,2024-12-29,City Treasury,Global Builders Inc,2052982.67,0.0,PHP,Large contractor settlement
+TX-SUSP-10082,2024-11-09,City Treasury,Prime Equipment Supply,2452999.1,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10083,2024-11-21,City Treasury,ABC Construction,496084.39,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10084,2024-12-09,Public Works Department,Rapid Supply Co,1430553.9,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10085,2024-10-19,Municipal Development Office,ABC Construction,505933.04,0.0,PHP,Large contractor settlement
+TX-SUSP-10086,2024-10-24,Municipal Development Office,Prime Equipment Supply,2016552.89,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10087,2024-11-28,DSWD,Rapid Supply Co,1285144.1,0.0,PHP,High value equipment procurement
+TX-SUSP-10088,2024-12-22,DSWD,Rapid Supply Co,1487218.16,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10089,2024-11-05,DSWD,Metro Infrastructure Ltd,732878.69,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10090,2024-11-02,Public Works Department,Prime Equipment Supply,373270.61,0.0,PHP,High value equipment procurement
+TX-SUSP-10091,2024-11-17,DSWD,Prime Equipment Supply,1762226.81,0.0,PHP,Large contractor settlement
+TX-SUSP-10092,2024-10-10,DSWD,Metro Infrastructure Ltd,1925368.83,0.0,PHP,High value equipment procurement
+TX-SUSP-10093,2024-11-07,Barangay Pantal,Prime Equipment Supply,621127.92,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10094,2024-11-27,City Treasury,Rapid Supply Co,921580.72,0.0,PHP,Large contractor settlement
+TX-SUSP-10095,2024-12-16,City Treasury,Global Builders Inc,937726.86,0.0,PHP,Large contractor settlement
+TX-SUSP-10096,2024-10-26,City Treasury,ABC Construction,2280541.54,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10097,2024-12-09,DSWD,Metro Infrastructure Ltd,2052004.33,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10098,2024-10-12,Public Works Department,Global Builders Inc,2194081.23,0.0,PHP,High value equipment procurement
+TX-SUSP-10099,2024-12-23,Public Works Department,ABC Construction,917506.0,0.0,PHP,Large contractor settlement
+TX-SUSP-10100,2024-11-16,City Treasury,Global Builders Inc,433687.43,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10101,2024-12-30,Municipal Development Office,Rapid Supply Co,1201818.09,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10102,2024-10-23,Municipal Development Office,Prime Equipment Supply,1222438.07,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10103,2024-10-14,Public Works Department,Prime Equipment Supply,1741415.55,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10104,2024-11-30,Public Works Department,Metro Infrastructure Ltd,1951661.1,0.0,PHP,High value equipment procurement
+TX-SUSP-10105,2024-10-12,City Treasury,Prime Equipment Supply,1432177.93,0.0,PHP,Large contractor settlement
+TX-SUSP-10106,2024-12-26,City Treasury,Prime Equipment Supply,1241204.47,0.0,PHP,High value equipment procurement
+TX-SUSP-10107,2024-12-22,Barangay Pantal,Global Builders Inc,536898.03,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10108,2024-11-05,Municipal Development Office,Global Builders Inc,2301254.34,0.0,PHP,High value equipment procurement
+TX-SUSP-10109,2024-12-06,Barangay Pantal,Rapid Supply Co,2437570.38,0.0,PHP,High value equipment procurement
+TX-SUSP-10110,2024-12-03,Barangay Pantal,Metro Infrastructure Ltd,1626522.04,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10111,2024-11-22,Municipal Development Office,Global Builders Inc,1816409.82,0.0,PHP,Large contractor settlement
+TX-SUSP-10112,2024-11-14,Municipal Development Office,Rapid Supply Co,2189706.14,0.0,PHP,Large contractor settlement
+TX-SUSP-10113,2024-12-02,Barangay Pantal,Metro Infrastructure Ltd,509384.48,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10114,2024-11-13,DSWD,Metro Infrastructure Ltd,2098794.17,0.0,PHP,High value equipment procurement
+TX-SUSP-10115,2024-11-03,DSWD,ABC Construction,384905.57,0.0,PHP,High value equipment procurement
+TX-SUSP-10116,2024-10-18,DSWD,Prime Equipment Supply,2425511.72,0.0,PHP,High value equipment procurement
+TX-SUSP-10117,2024-10-05,Public Works Department,ABC Construction,1762460.78,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10118,2024-12-24,City Treasury,Global Builders Inc,915355.29,0.0,PHP,High value equipment procurement
+TX-SUSP-10119,2024-11-26,Barangay Pantal,Prime Equipment Supply,860399.38,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10120,2024-12-09,Municipal Development Office,Rapid Supply Co,1371658.97,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10121,2024-10-29,City Treasury,ABC Construction,1802813.47,0.0,PHP,Large contractor settlement
+TX-SUSP-10122,2024-12-15,City Treasury,Rapid Supply Co,2448862.14,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10123,2024-10-31,DSWD,Prime Equipment Supply,1778547.49,0.0,PHP,Large contractor settlement
+TX-SUSP-10124,2024-10-30,City Treasury,Rapid Supply Co,1585152.36,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10125,2024-11-19,City Treasury,Global Builders Inc,2120112.03,0.0,PHP,Large contractor settlement
+TX-SUSP-10126,2024-12-24,Municipal Development Office,Prime Equipment Supply,2281646.19,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10127,2024-11-25,Public Works Department,Prime Equipment Supply,848648.17,0.0,PHP,High value equipment procurement
+TX-SUSP-10128,2024-12-06,Municipal Development Office,Rapid Supply Co,1734338.22,0.0,PHP,Large contractor settlement
+TX-SUSP-10129,2024-11-14,Municipal Development Office,Rapid Supply Co,931133.56,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10130,2024-12-23,Public Works Department,Global Builders Inc,1127346.26,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10131,2024-12-21,DSWD,Prime Equipment Supply,2410139.45,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10132,2024-10-07,Municipal Development Office,ABC Construction,993800.54,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10133,2024-12-01,Public Works Department,Rapid Supply Co,1182503.95,0.0,PHP,Large contractor settlement
+TX-SUSP-10134,2024-10-15,Municipal Development Office,ABC Construction,2221599.71,0.0,PHP,Large contractor settlement
+TX-SUSP-10135,2024-10-19,City Treasury,Metro Infrastructure Ltd,1463432.1,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10136,2024-10-25,DSWD,Rapid Supply Co,1878531.87,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10137,2024-12-15,City Treasury,Metro Infrastructure Ltd,959136.02,0.0,PHP,High value equipment procurement
+TX-SUSP-10138,2024-12-22,DSWD,Metro Infrastructure Ltd,871906.51,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10139,2024-11-21,Barangay Pantal,Prime Equipment Supply,1962770.94,0.0,PHP,Large contractor settlement
+TX-SUSP-10140,2024-10-03,DSWD,ABC Construction,1556131.27,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10141,2024-12-21,Municipal Development Office,Metro Infrastructure Ltd,1768144.21,0.0,PHP,Large contractor settlement
+TX-SUSP-10142,2024-11-13,Municipal Development Office,ABC Construction,2482200.11,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10143,2024-10-22,DSWD,ABC Construction,2282764.18,0.0,PHP,Large contractor settlement
+TX-SUSP-10144,2024-11-19,Barangay Pantal,Global Builders Inc,1585915.46,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10145,2024-12-27,Barangay Pantal,ABC Construction,1859314.73,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10146,2024-12-10,Municipal Development Office,Prime Equipment Supply,2436115.17,0.0,PHP,Large contractor settlement
+TX-SUSP-10147,2024-11-25,City Treasury,Metro Infrastructure Ltd,1171942.63,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10148,2024-10-20,Public Works Department,Prime Equipment Supply,1962932.13,0.0,PHP,Large contractor settlement
+TX-SUSP-10149,2024-11-21,Public Works Department,Metro Infrastructure Ltd,2100112.29,0.0,PHP,Large contractor settlement
+TX-SUSP-10150,2024-10-17,Public Works Department,ABC Construction,2338410.6,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10151,2024-12-08,Municipal Development Office,Global Builders Inc,822700.25,0.0,PHP,Large contractor settlement
+TX-SUSP-10152,2024-11-09,Barangay Pantal,Rapid Supply Co,1294483.08,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10153,2024-10-11,Barangay Pantal,Metro Infrastructure Ltd,1755639.02,0.0,PHP,High value equipment procurement
+TX-SUSP-10154,2024-12-21,DSWD,Prime Equipment Supply,1355071.59,0.0,PHP,Large contractor settlement
+TX-SUSP-10155,2024-10-13,Municipal Development Office,Prime Equipment Supply,2204865.41,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10156,2024-10-11,DSWD,Prime Equipment Supply,2105107.3,0.0,PHP,Large contractor settlement
+TX-SUSP-10157,2024-11-25,DSWD,Prime Equipment Supply,1497389.25,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10158,2024-11-12,Barangay Pantal,Global Builders Inc,1972747.04,0.0,PHP,Large contractor settlement
+TX-SUSP-10159,2024-10-04,Public Works Department,Global Builders Inc,2445638.74,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10160,2024-12-03,Municipal Development Office,Prime Equipment Supply,492440.82,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10161,2024-12-12,Barangay Pantal,Metro Infrastructure Ltd,514582.47,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10162,2024-11-17,Barangay Pantal,Prime Equipment Supply,2008486.93,0.0,PHP,Large contractor settlement
+TX-SUSP-10163,2024-11-12,City Treasury,Rapid Supply Co,1112140.85,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10164,2024-12-01,Barangay Pantal,Prime Equipment Supply,1773801.17,0.0,PHP,High value equipment procurement
+TX-SUSP-10165,2024-11-14,DSWD,Rapid Supply Co,697888.59,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10166,2024-10-03,Public Works Department,ABC Construction,310025.77,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10167,2024-10-24,City Treasury,Rapid Supply Co,1081172.52,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10168,2024-10-17,Barangay Pantal,Prime Equipment Supply,1917523.37,0.0,PHP,High value equipment procurement
+TX-SUSP-10169,2024-10-23,Municipal Development Office,Rapid Supply Co,2386295.19,0.0,PHP,High value equipment procurement
+TX-SUSP-10170,2024-12-11,Public Works Department,Metro Infrastructure Ltd,1666781.02,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10171,2024-11-13,DSWD,ABC Construction,2231338.41,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10172,2024-10-02,Municipal Development Office,Metro Infrastructure Ltd,1001439.94,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10173,2024-11-02,DSWD,ABC Construction,2387253.38,0.0,PHP,High value equipment procurement
+TX-SUSP-10174,2024-12-06,Public Works Department,ABC Construction,646291.17,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10175,2024-12-12,Municipal Development Office,Rapid Supply Co,1675984.51,0.0,PHP,High value equipment procurement
+TX-SUSP-10176,2024-11-26,Public Works Department,Global Builders Inc,1123264.89,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10177,2024-12-08,DSWD,Metro Infrastructure Ltd,834262.67,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10178,2024-10-09,City Treasury,Rapid Supply Co,2005722.31,0.0,PHP,High value equipment procurement
+TX-SUSP-10179,2024-10-04,Public Works Department,Metro Infrastructure Ltd,818197.15,0.0,PHP,High value equipment procurement
+TX-SUSP-10180,2024-10-14,Municipal Development Office,Rapid Supply Co,1982976.96,0.0,PHP,Large contractor settlement
+TX-SUSP-10181,2024-12-07,Public Works Department,Global Builders Inc,1172452.04,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10182,2024-10-13,DSWD,Metro Infrastructure Ltd,1849807.66,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10183,2024-10-15,DSWD,Prime Equipment Supply,1642619.95,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10184,2024-10-21,Public Works Department,ABC Construction,1481216.28,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10185,2024-10-31,DSWD,Global Builders Inc,786674.84,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10186,2024-12-12,City Treasury,Global Builders Inc,1962704.52,0.0,PHP,Large contractor settlement
+TX-SUSP-10187,2024-12-20,Public Works Department,Global Builders Inc,1147468.07,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10188,2024-12-17,Barangay Pantal,ABC Construction,1590608.65,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10189,2024-12-01,Public Works Department,ABC Construction,1420181.97,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10190,2024-12-30,Municipal Development Office,ABC Construction,315622.28,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10191,2024-12-15,Public Works Department,Metro Infrastructure Ltd,1593866.77,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10192,2024-10-01,Municipal Development Office,Metro Infrastructure Ltd,630539.43,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10193,2024-10-08,City Treasury,Prime Equipment Supply,854636.75,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10194,2024-12-21,DSWD,Prime Equipment Supply,1131588.04,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10195,2024-11-14,Public Works Department,ABC Construction,740173.73,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10196,2024-11-19,Municipal Development Office,ABC Construction,2216271.23,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10197,2024-10-14,Barangay Pantal,ABC Construction,1025687.12,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10198,2024-10-23,DSWD,ABC Construction,620592.9,0.0,PHP,Large contractor settlement
+TX-SUSP-10199,2024-12-11,Municipal Development Office,Global Builders Inc,1020609.42,0.0,PHP,High value equipment procurement
+TX-SUSP-10200,2024-10-04,DSWD,Metro Infrastructure Ltd,2165910.15,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10201,2024-10-01,Municipal Development Office,Metro Infrastructure Ltd,2162854.68,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10202,2024-10-10,DSWD,Global Builders Inc,1314417.82,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10203,2024-10-13,Municipal Development Office,Metro Infrastructure Ltd,1520877.39,0.0,PHP,Large contractor settlement
+TX-SUSP-10204,2024-11-13,DSWD,Rapid Supply Co,1147892.18,0.0,PHP,Large contractor settlement
+TX-SUSP-10205,2024-12-09,City Treasury,Global Builders Inc,2138904.81,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10206,2024-11-14,City Treasury,Global Builders Inc,2186722.04,0.0,PHP,High value equipment procurement
+TX-SUSP-10207,2024-12-01,Municipal Development Office,ABC Construction,1833393.98,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10208,2024-11-29,Public Works Department,Rapid Supply Co,1559548.87,0.0,PHP,Large contractor settlement
+TX-SUSP-10209,2024-10-28,City Treasury,Rapid Supply Co,619870.52,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10210,2024-11-17,DSWD,ABC Construction,702260.67,0.0,PHP,Large contractor settlement
+TX-SUSP-10211,2024-12-04,Public Works Department,Metro Infrastructure Ltd,1475693.0,0.0,PHP,High value equipment procurement
+TX-SUSP-10212,2024-10-31,DSWD,Metro Infrastructure Ltd,1155069.8,0.0,PHP,High value equipment procurement
+TX-SUSP-10213,2024-12-25,DSWD,Prime Equipment Supply,2314912.67,0.0,PHP,Large contractor settlement
+TX-SUSP-10214,2024-10-07,Public Works Department,Metro Infrastructure Ltd,1579546.66,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10215,2024-11-05,Municipal Development Office,Global Builders Inc,838986.26,0.0,PHP,High value equipment procurement
+TX-SUSP-10216,2024-11-30,City Treasury,Prime Equipment Supply,2249572.54,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10217,2024-11-01,Municipal Development Office,Global Builders Inc,1832101.86,0.0,PHP,Large contractor settlement
+TX-SUSP-10218,2024-11-26,Municipal Development Office,Metro Infrastructure Ltd,983549.53,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10219,2024-11-07,Barangay Pantal,Prime Equipment Supply,2051290.73,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10220,2024-10-05,City Treasury,Prime Equipment Supply,1220986.06,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10221,2024-11-09,City Treasury,ABC Construction,2310983.7,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10222,2024-11-11,City Treasury,Metro Infrastructure Ltd,1565128.11,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10223,2024-11-27,Public Works Department,Rapid Supply Co,1898709.08,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10224,2024-12-13,Municipal Development Office,Prime Equipment Supply,899566.86,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10225,2024-12-14,Public Works Department,ABC Construction,802650.38,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10226,2024-10-07,Municipal Development Office,Rapid Supply Co,2120083.67,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10227,2024-10-23,Municipal Development Office,ABC Construction,362200.74,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10228,2024-12-23,Barangay Pantal,ABC Construction,386061.49,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10229,2024-12-28,DSWD,ABC Construction,1718238.51,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10230,2024-11-07,Barangay Pantal,Metro Infrastructure Ltd,1786354.95,0.0,PHP,Large contractor settlement
+TX-SUSP-10231,2024-10-15,Barangay Pantal,ABC Construction,1833055.9,0.0,PHP,Large contractor settlement
+TX-SUSP-10232,2024-12-28,Municipal Development Office,Global Builders Inc,2043330.05,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10233,2024-10-14,Public Works Department,Rapid Supply Co,980381.58,0.0,PHP,High value equipment procurement
+TX-SUSP-10234,2024-12-29,DSWD,Global Builders Inc,1789864.47,0.0,PHP,Large contractor settlement
+TX-SUSP-10235,2024-11-22,Barangay Pantal,Metro Infrastructure Ltd,980287.58,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10236,2024-11-17,City Treasury,Prime Equipment Supply,2137124.39,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10237,2024-10-29,City Treasury,Global Builders Inc,1779085.91,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10238,2024-10-18,Public Works Department,Metro Infrastructure Ltd,934355.72,0.0,PHP,Large contractor settlement
+TX-SUSP-10239,2024-12-15,Barangay Pantal,ABC Construction,2221069.62,0.0,PHP,Large contractor settlement
+TX-SUSP-10240,2024-12-13,DSWD,Metro Infrastructure Ltd,812486.68,0.0,PHP,High value equipment procurement
+TX-SUSP-10241,2024-11-05,Municipal Development Office,Global Builders Inc,2023516.11,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10242,2024-12-06,City Treasury,Global Builders Inc,1989214.68,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10243,2024-12-16,Barangay Pantal,Global Builders Inc,572780.95,0.0,PHP,High value equipment procurement
+TX-SUSP-10244,2024-11-27,DSWD,Metro Infrastructure Ltd,1317623.43,0.0,PHP,Large contractor settlement
+TX-SUSP-10245,2024-12-18,Public Works Department,Prime Equipment Supply,1644540.03,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10246,2024-12-06,DSWD,Prime Equipment Supply,926022.09,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10247,2024-10-30,Municipal Development Office,Metro Infrastructure Ltd,1327528.49,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10248,2024-11-06,DSWD,Rapid Supply Co,371725.4,0.0,PHP,High value equipment procurement
+TX-SUSP-10249,2024-11-05,Public Works Department,Global Builders Inc,738965.8,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10250,2024-10-11,DSWD,ABC Construction,2360746.89,0.0,PHP,Large contractor settlement
+TX-SUSP-10251,2024-11-28,Barangay Pantal,Global Builders Inc,884272.84,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10252,2024-12-13,City Treasury,Prime Equipment Supply,1624816.32,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10253,2024-12-03,DSWD,Prime Equipment Supply,1550184.7,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10254,2024-11-04,DSWD,ABC Construction,1545028.28,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10255,2024-11-22,Municipal Development Office,Prime Equipment Supply,2235420.74,0.0,PHP,High value equipment procurement
+TX-SUSP-10256,2024-11-17,DSWD,Metro Infrastructure Ltd,1301663.76,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10257,2024-10-26,City Treasury,Prime Equipment Supply,1374052.2,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10258,2024-11-29,Barangay Pantal,Global Builders Inc,460369.99,0.0,PHP,High value equipment procurement
+TX-SUSP-10259,2024-10-14,Municipal Development Office,Prime Equipment Supply,2005843.79,0.0,PHP,Large contractor settlement
+TX-SUSP-10260,2024-11-14,City Treasury,Global Builders Inc,2170613.06,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10261,2024-11-26,Municipal Development Office,ABC Construction,1007185.75,0.0,PHP,Large contractor settlement
+TX-SUSP-10262,2024-11-28,Municipal Development Office,Global Builders Inc,781292.4,0.0,PHP,High value equipment procurement
+TX-SUSP-10263,2024-11-10,Barangay Pantal,Metro Infrastructure Ltd,1089954.04,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10264,2024-10-26,City Treasury,ABC Construction,2047240.78,0.0,PHP,Large contractor settlement
+TX-SUSP-10265,2024-10-05,DSWD,ABC Construction,1423519.31,0.0,PHP,High value equipment procurement
+TX-SUSP-10266,2024-12-26,City Treasury,Metro Infrastructure Ltd,996507.56,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10267,2024-12-04,DSWD,Metro Infrastructure Ltd,720743.69,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10268,2024-11-28,City Treasury,Prime Equipment Supply,1449896.44,0.0,PHP,High value equipment procurement
+TX-SUSP-10269,2024-12-16,Municipal Development Office,ABC Construction,2377709.54,0.0,PHP,Large contractor settlement
+TX-SUSP-10270,2024-10-07,DSWD,Global Builders Inc,1597444.49,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10271,2024-12-01,City Treasury,Rapid Supply Co,2441767.9,0.0,PHP,Large contractor settlement
+TX-SUSP-10272,2024-11-06,Municipal Development Office,Prime Equipment Supply,554694.43,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10273,2024-10-04,Barangay Pantal,Rapid Supply Co,1718967.17,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10274,2024-10-28,Municipal Development Office,Prime Equipment Supply,2350045.41,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10275,2024-12-02,Municipal Development Office,Global Builders Inc,1775592.16,0.0,PHP,Large contractor settlement
+TX-SUSP-10276,2024-12-13,DSWD,ABC Construction,1371944.06,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10277,2024-10-31,Public Works Department,Prime Equipment Supply,2148024.78,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10278,2024-11-07,Municipal Development Office,Rapid Supply Co,1511580.21,0.0,PHP,Large contractor settlement
+TX-SUSP-10279,2024-11-06,DSWD,Rapid Supply Co,1690059.48,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10280,2024-12-30,Municipal Development Office,Rapid Supply Co,788151.05,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10281,2024-11-02,Municipal Development Office,Prime Equipment Supply,829945.83,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10282,2024-10-22,Public Works Department,Metro Infrastructure Ltd,1311774.89,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10283,2024-12-02,Barangay Pantal,Prime Equipment Supply,2213188.77,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10284,2024-10-22,Barangay Pantal,Metro Infrastructure Ltd,1096385.41,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10285,2024-11-26,Municipal Development Office,ABC Construction,638870.55,0.0,PHP,Large contractor settlement
+TX-SUSP-10286,2024-10-02,Public Works Department,Rapid Supply Co,315112.73,0.0,PHP,High value equipment procurement
+TX-SUSP-10287,2024-11-15,Public Works Department,Metro Infrastructure Ltd,1763457.2,0.0,PHP,Large contractor settlement
+TX-SUSP-10288,2024-11-27,City Treasury,Global Builders Inc,769833.86,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10289,2024-10-30,DSWD,Prime Equipment Supply,795379.55,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10290,2024-11-04,Municipal Development Office,Metro Infrastructure Ltd,1354971.53,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10291,2024-10-09,Public Works Department,Global Builders Inc,782598.95,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10292,2024-11-24,Public Works Department,Global Builders Inc,392463.72,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10293,2024-12-30,Municipal Development Office,Rapid Supply Co,521989.22,0.0,PHP,High value equipment procurement
+TX-SUSP-10294,2024-10-08,DSWD,Global Builders Inc,890854.97,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10295,2024-10-24,Public Works Department,Rapid Supply Co,317889.89,0.0,PHP,Emergency public works funding transfer
+TX-SUSP-10296,2024-11-29,City Treasury,Metro Infrastructure Ltd,1509812.65,0.0,PHP,Emergency infrastructure procurement
+TX-SUSP-10297,2024-11-09,City Treasury,Global Builders Inc,2333802.7,0.0,PHP,High value equipment procurement
+TX-SUSP-10298,2024-11-23,Municipal Development Office,ABC Construction,664679.71,0.0,PHP,Bulk construction materials payment
+TX-SUSP-10299,2024-12-08,DSWD,Global Builders Inc,2407075.43,0.0,PHP,High value equipment procurement
