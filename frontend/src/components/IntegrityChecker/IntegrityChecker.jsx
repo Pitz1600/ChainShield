@@ -1022,9 +1022,14 @@ const IntegrityChecker = ({ user }) => {
                             </div>
                             <div className="tx-modal-footer">
                                 <div className="tx-modal-actions">
-                                    <button className="btn-verify" disabled={approvingId === selectedTx.transactionId} onClick={() => handleApprove(selectedTx)}>Approve</button>
-                                    <button className="btn-flag" disabled={approvingId === selectedTx.transactionId} onClick={() => handleFlag(selectedTx)}>Flag</button>
-                                    <button className="btn-flag" disabled={approvingId === selectedTx.transactionId} onClick={() => handleDeny(selectedTx)}>Deny</button>
+                                    {user?.role === 'auditor' ? (
+                                        <>
+                                            <button className="btn-verify" disabled={approvingId === selectedTx.transactionId} onClick={() => handleApprove(selectedTx)}>Approve</button>
+                                            <button className="btn-flag" disabled={approvingId === selectedTx.transactionId} onClick={() => handleFlag(selectedTx)}>Flag</button>
+                                        </>
+                                    ) : (
+                                        <div style={{ color: '#64748b', fontSize: '0.9rem' }}>Approval and flagging are restricted to Auditors.</div>
+                                    )}
                                 </div>
                                 <button className="btn-close" onClick={() => setSelectedTx(null)}>Close</button>
                             </div>

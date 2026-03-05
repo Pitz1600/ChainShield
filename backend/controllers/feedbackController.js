@@ -516,13 +516,25 @@ exports.deleteReply = async (req, res) => {
             return res.status(404).json({ error: 'Reply not found' });
         }
 
-        // Only authors can delete their own replies.
-        if (reply.author.toString() !== req.user._id.toString()) {
-            return res.status(403).json({ error: 'Not authorized to delete this reply. Only the author can perform this action.' });
+        const isOwner = reply.author.toString() === req.user._id.toString();
+        const isAdmin = req.user.role === 'administrator';
+        const isOfficial = req.user.role === 'barangay_official';
+
+        if (!isOwner && !isAdmin && !isOfficial) {
+            return res.status(403).json({ error: 'Not authorized to delete this reply.' });
         }
 
-        // Residents queue the deletion
+        // Keep reply deletion behavior consistent with feedback deletion.
+        // Authors and admins can remove immediately, otherwise queue for moderation.
+        if (isOwner || isAdmin) {
+            feedback.replies.pull(req.params.replyId);
+            await feedback.save();
+            return res.status(200).json({ message: 'Reply deleted successfully' });
+        }
+
         reply.actionStatus = 'pending_delete';
+        await feedback.save();
+        return res.status(200).json({ message: 'Reply deletion requested', feedback });
     } catch (error) {
         console.error('Error deleting reply:', error);
         res.status(500).json({ error: 'Server Error' });

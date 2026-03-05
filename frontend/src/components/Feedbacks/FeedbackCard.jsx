@@ -259,27 +259,33 @@ function FeedbackCard({ feedback, currentUser, onRefresh }) {
                     </div>
                 </div>
 
-                {/* Only show Edit/Delete if it's the owner AND they are allowed to participate (not an Admin/Official) */}
-                {isOwner(feedback.author._id) && canParticipate() && !isEditing && (
+                {/* Edit (owner-only) and Delete (owner or admin) buttons */}
+                {!isEditing && (
                     <div className="action-menu">
-                        <button
-                            className="action-btn edit"
-                            onClick={() => {
-                                setEditContent(feedback.content);
-                                setIsEditing(true);
-                            }}
-                            disabled={(feedback.actionStatus === 'pending_approval' || feedback.actionStatus === 'pending_edit' || feedback.actionStatus === 'pending_delete') && isOwner(feedback.author._id) && !canModerate()}
-                            title={feedback.actionStatus === 'pending_approval' ? "Cannot edit during moderation (Delete and repost instead)" : (feedback.actionStatus === 'pending_edit' || feedback.actionStatus === 'pending_delete') && !canModerate() ? "Action pending approval" : "Edit message"}
-                        >
-                            <Edit2 size={16} />
-                        </button>
-                        <button
-                            className="action-btn delete"
-                            onClick={() => openDeleteModal('feedback')}
-                            disabled={(feedback.actionStatus === 'pending_edit' || feedback.actionStatus === 'pending_delete') && isOwner(feedback.author._id) && !canModerate()}
-                        >
-                            <Trash2 size={16} />
-                        </button>
+                        {(isOwner(feedback.author._id) && canParticipate()) && (
+                            <button
+                                className="action-btn edit"
+                                onClick={() => {
+                                    setEditContent(feedback.content);
+                                    setIsEditing(true);
+                                }}
+                                disabled={(feedback.actionStatus === 'pending_approval' || feedback.actionStatus === 'pending_edit' || feedback.actionStatus === 'pending_delete') && isOwner(feedback.author._id) && !canModerate()}
+                                title={feedback.actionStatus === 'pending_approval' ? "Cannot edit during moderation (Delete and repost instead)" : (feedback.actionStatus === 'pending_edit' || feedback.actionStatus === 'pending_delete') && !canModerate() ? "Action pending approval" : "Edit message"}
+                            >
+                                <Edit2 size={16} />
+                            </button>
+                        )}
+
+                        {((isOwner(feedback.author._id) && canParticipate()) || isAdmin(currentUser)) && (
+                            <button
+                                className="action-btn delete"
+                                onClick={() => openDeleteModal('feedback')}
+                                disabled={(feedback.actionStatus === 'pending_edit' || feedback.actionStatus === 'pending_delete') && isOwner(feedback.author._id) && !canModerate()}
+                                title={(feedback.actionStatus === 'pending_edit' || feedback.actionStatus === 'pending_delete') && !canModerate() ? "Action pending approval" : "Delete message"}
+                            >
+                                <Trash2 size={16} />
+                            </button>
+                        )}
                     </div>
                 )}
             </div>
@@ -382,6 +388,19 @@ function FeedbackCard({ feedback, currentUser, onRefresh }) {
                                             className="reply-action-btn delete"
                                             onClick={() => openDeleteModal('reply', reply._id)}
                                             disabled={(reply.actionStatus === 'pending_edit' || reply.actionStatus === 'pending_delete') && isOwner(reply.author._id) && !canModerate()}
+                                            title="Delete reply"
+                                        >
+                                            <Trash2 size={14} />
+                                        </button>
+                                    </div>
+                                )}
+
+                                {/* Admins can also delete any reply */}
+                                {isAdmin(currentUser) && !isOwner(reply.author._id) && (
+                                    <div className="reply-actions">
+                                        <button
+                                            className="reply-action-btn delete"
+                                            onClick={() => openDeleteModal('reply', reply._id)}
                                             title="Delete reply"
                                         >
                                             <Trash2 size={14} />
