@@ -1,5 +1,5 @@
 .dashboard-container {
-  padding: 0;
+  padding: 1rem 0 0;
   max-width: 100%;
 }
 
@@ -668,6 +668,10 @@
 }
 
 @media (max-width: 768px) {
+  .dashboard-container {
+    padding-top: 0.75rem;
+  }
+
   .dashboard-hero {
     padding: 2rem 1.5rem;
   }

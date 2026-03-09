@@ -1,18 +1,18 @@
 .profile-container {
-  padding: 2rem;
-  max-width: 1400px;
+  padding: 0 2rem 2rem;
+  max-width: var(--layout-max-width);
   margin: 0 auto;
 }
 
 /* Modern Hero Banner for Profile */
 .profile-hero {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 3rem 2.5rem;
-  border-radius: 1.5rem;
+  padding: 2rem 2.5rem;
+  border-radius: 1rem;
   margin-bottom: 2rem;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
 }
 
 .profile-hero::before {
@@ -353,7 +353,7 @@
 
 @media (max-width: 768px) {
   .profile-container {
-    padding: 1rem;
+    padding: 0 1rem 1rem;
   }
 
   .profile-hero {
@@ -975,12 +975,17 @@
     text-align: center;
     gap: 1.5rem;
   }
+
+  .profile-page-view {
+    padding-top: 0.75rem;
+  }
 }
 
 /* Page View Wrapper */
 .profile-page-view {
   min-height: 100vh;
   background: #f8fafc;
+  padding-top: 1rem;
   padding-bottom: 4rem;
 }
 

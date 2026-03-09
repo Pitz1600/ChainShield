@@ -1,5 +1,5 @@
 .analytics-container {
-  padding: 0;
+  padding: 1rem 0 0;
   max-width: 100%;
 }
 
@@ -87,6 +87,108 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.analytics-toolbar {
+  max-width: var(--layout-max-width);
+  margin: 0 auto 1rem auto;
+  padding: 0 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.analytics-toolbar-left,
+.analytics-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.toolbar-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.toolbar-select {
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+  padding: 0.45rem 0.6rem;
+  background: #fff;
+  color: #0f172a;
+  font-size: 0.875rem;
+}
+
+.toolbar-select:focus {
+  outline: 2px solid #c7d2fe;
+  border-color: #6366f1;
+}
+
+.toolbar-refresh-btn {
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  border-radius: 0.5rem;
+  padding: 0.45rem 0.7rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.toolbar-refresh-btn:hover:not(:disabled) {
+  background: #f8fafc;
+}
+
+.toolbar-refresh-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.toolbar-updated {
+  font-size: 0.8125rem;
+  color: #64748b;
+}
+
+.analytics-error-banner {
+  max-width: var(--layout-max-width);
+  margin: 0 auto 1rem auto;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #991b1b;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.analytics-loading-state,
+.analytics-empty-state {
+  padding: 1rem;
+  border: 1px dashed #cbd5e1;
+  border-radius: 0.75rem;
+  text-align: center;
+  color: #64748b;
+  background: #f8fafc;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Analytics Cards */
@@ -362,6 +464,27 @@
 }
 
 @media (max-width: 768px) {
+  .analytics-container {
+    padding-top: 0.75rem;
+  }
+
+  .analytics-toolbar {
+    padding: 0 1rem;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .analytics-toolbar-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .analytics-error-banner {
+    margin: 0 1rem 1rem 1rem;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
   .analytics-hero {
     padding: 2rem 1.5rem;
   }

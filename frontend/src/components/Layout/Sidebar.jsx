@@ -116,14 +116,6 @@ function Sidebar({ user, activeView, setActiveView, onLogout, isMobileMenuOpen, 
       <aside className={`sidebar ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
         <div className="sidebar-header">
           <div className="sidebar-logo">
-            <div className="logo-icon">
-              <img
-                src="/ChainShield_logo.png"
-                alt="ChainShield Logo"
-                className="logo-sidebar"
-                draggable="false"
-              />
-            </div>
             <div className="logo-text">
               <h2 className="logo-title">CHAINSHIELD</h2>
               <p className="logo-subtitle">Barangay Portal</p>

@@ -78,3 +78,36 @@
 - Renamed components and styles from `CSVImport` to `IntegrityChecker`.
 - Updated navigation shortcuts and labels in the Sidebar.
 - Implemented client-side CSV generation for manual data payloads.
+
+---
+
+## [2026-03-10] - UI Alignment, Real Analytics Data, and Sidebar Branding Cleanup
+
+### Top Bar and Page Spacing
+- Removed the top-right profile block from the header (`Administrator` + avatar).
+- Rebalanced the top bar structure so it remains visually stable after profile removal.
+- Fixed `SECURE // ENCRYPTED` badge wrapping/overflow behavior.
+- Added consistent top spacing below the sticky top bar for Dashboard, Analytics, and Profile.
+
+### Analytics (Real Data Only)
+- Reworked Analytics cards and table to use backend data only from project endpoints.
+- Removed hardcoded/placeholder KPI values (e.g., static accuracy/response/risk prevented values).
+- Added robust fetch states:
+  - loading state
+  - refresh state
+  - error state with retry
+  - last updated timestamp
+- Added severity filtering and server-backed table pagination.
+- Ensured risk distribution and ratio cards are derived from live transaction/alert counts.
+
+### Profile Tab Consistency
+- Matched Profile page container rhythm with other tabs:
+  - `max-width: var(--layout-max-width)`
+  - aligned horizontal gutters
+  - aligned hero radius, shadow, and spacing style
+
+### Sidebar Branding
+- Removed standalone sidebar logo element and leftover shape styles (square/circle artifacts).
+- Kept centered text branding (`CHAINSHIELD`, `BARANGAY PORTAL`).
+- Added logo back as a watermark behind brand text (instead of a separate icon block).
+- Tuned watermark size and visibility based on feedback, ending at full opacity as requested.
