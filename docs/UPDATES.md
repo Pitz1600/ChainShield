@@ -78,3 +78,52 @@
 - Renamed components and styles from `CSVImport` to `IntegrityChecker`.
 - Updated navigation shortcuts and labels in the Sidebar.
 - Implemented client-side CSV generation for manual data payloads.
+
+---
+
+## [2026-03-09] Dashboard and Integrity Checker UI Refresh
+
+### Admin Panel and Audit Monitoring
+- Reworked the Admin Panel tabs to remove clutter and present cleaner workspace sections for user management, audit logs, and user sessions.
+- Added a dedicated `User Sessions` table view with online/offline filtering, last seen tracking, and last logout visibility for quicker operational monitoring.
+- Improved the Audit Logs workspace to emphasize real audit activity, session presence, and system action visibility rather than a generic placeholder log feed.
+- Removed unnecessary admin navigation clutter such as the extra Community Feedback tab inside the Admin Panel flow.
+
+### Transactions and Alerts Workspace
+- Standardized the `Alerts` and `All Transactions` experience around table-based workflows to reduce visual noise from mixed card/table layouts.
+- Removed redundant UI elements such as the denied filter tab and extra table/card labels where they were not adding value.
+- Restored and aligned transaction moderation actions so review flows consistently expose approve, flag, deny, and delete controls where appropriate.
+- Cleaned transaction detail modal layouts to improve spacing, remove broken overflow cases, and keep labels/values aligned across transaction records.
+
+### Feedback Moderation and Permissions
+- Tightened feedback permissions so administrators act as moderators rather than authors; posting is restricted to residents and barangay officials.
+- Extended the moderation workflow so edited feedback content and edited replies also require approval before becoming visible.
+- Preserved approval/rejection handling for both new submissions and edits, keeping moderation states explicit in the UI and backend flow.
+
+### Dashboard Workspace
+- Expanded the dashboard lower section to reduce empty space and make the page feel complete.
+- Added richer monitoring panels including risk trend, risk snapshot, top agencies at risk, alert age distribution, and verification queue views.
+- Improved card sizing and responsive layout behavior so the dashboard fills wide screens more consistently while still collapsing cleanly on smaller breakpoints.
+
+### Integrity Checker Results Overhaul
+- Converted detected column mappings into a structured table for easier review.
+- Converted risk detection details from stacked cards into a table-style layout with clearer scanning for row, score, level, triggers, and patterns.
+- Refined the checked transactions table styling, amount formatting, and text fallbacks to avoid broken symbols and inconsistent rendering.
+- Added a `Clear Results` action that resets current result tables, closes the review modal, resets pagination, and clears cached local Integrity Checker results.
+- Improved the review/error experience so validation failures are easier to scan and manual cleanup of imported rows is more practical.
+
+### Error Handling UX
+- Reworked the error output into a styled error table instead of a raw text dump.
+- Added a scrollable error panel with sticky headers and row badges so long import validation failures remain readable.
+
+### Risk Category Fix
+- Fixed missing `Risk Category` values in Integrity Checker import results.
+- Updated the multi-stage fraud pipeline to compute and return `anomalyCategory` for staged CSV/manual imports.
+- Added a frontend fallback that derives a readable category from transaction type, reasons, and anomaly patterns for older cached results.
+
+### Technical Changes
+- Updated `backend/services/multiStageFraudPipeline.js` to classify anomaly categories during staged batch processing.
+- Updated `backend/controllers/csvImportController.js` to include `anomalyCategory` in returned import results.
+- Updated `frontend/src/components/IntegrityChecker/IntegrityChecker.jsx` and `frontend/src/styles/IntegrityChecker.css` for the new table layouts, clear-results action, and polished error presentation.
+- Updated `frontend/src/components/Dashboard/Dashboard.jsx` and `frontend/src/styles/Dashboard.css` to support the expanded dashboard analytics panels and responsive card layout.
+- Updated admin, feedback, audit, transactions, and session-management views to match the cleaner table-first moderation workflow introduced during the March UI pass.
