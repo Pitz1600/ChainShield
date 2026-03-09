@@ -4,6 +4,34 @@ import api from '../../services/api';
 import '../../styles/AdminPanel.css';
 
 function UserManagement() {
+    const managedRoleOptions = ['resident', 'barangay_official', 'auditor', 'administrator', 'analyst'];
+    const createRoleGuidance = {
+        resident: {
+            tone: 'neutral',
+            title: 'Resident account',
+            text: 'Login uses email + password. OTP may be required on untrusted devices.'
+        },
+        barangay_official: {
+            tone: 'warning',
+            title: 'Barangay Official account',
+            text: 'Email OTP is required on every login. 2FA setup is optional.'
+        },
+        auditor: {
+            tone: 'info',
+            title: 'Auditor account',
+            text: 'Email OTP is required on every login. 2FA setup is optional.'
+        },
+        administrator: {
+            tone: 'critical',
+            title: 'Administrator onboarding',
+            text: 'User must change password, change email, and complete mandatory 2FA setup before full access.'
+        },
+        analyst: {
+            tone: 'neutral',
+            title: 'Analyst account',
+            text: 'Read-oriented analytics/fraud access with standard credential validation.'
+        }
+    };
     const [users, setUsers] = useState([]);
     const [stats, setStats] = useState({ totalUsers: 0, activeUsers: 0, pendingVerification: 0 });
     const [loading, setLoading] = useState(true);
@@ -265,7 +293,7 @@ function UserManagement() {
             {/* Edit User Modal */}
             {isEditModalOpen && (
                 <div className="modal-overlay">
-                    <div className="edit-modal">
+                    <div className="edit-modal create-user-modal">
                         <div className="modal-header">
                             <h3>Edit User</h3>
                             <button className="close-modal-btn" onClick={() => setIsEditModalOpen(false)}>
@@ -322,11 +350,11 @@ function UserManagement() {
                                             onChange={(e) => setEditFormData({ ...editFormData, role: e.target.value })}
                                             disabled={editingUser && editingUser._id === currentUser.id}
                                         >
-                                            <option value="resident">Resident</option>
-                                            <option value="barangay_official">Barangay Official</option>
-                                            <option value="administrator">Administrator</option>
-                                            <option value="analyst">Analyst</option>
-                                            <option value="investigator">Investigator</option>
+                                            {managedRoleOptions.map((role) => (
+                                                <option key={role} value={role}>
+                                                    {role.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
+                                                </option>
+                                            ))}
                                         </select>
                                     </div>
                                     <div className="form-group">
@@ -353,7 +381,7 @@ function UserManagement() {
             {/* Create User Modal */}
             {isCreateModalOpen && (
                 <div className="modal-overlay">
-                    <div className="edit-modal">
+                    <div className="edit-modal create-user-modal">
                         <div className="modal-header">
                             <h3>Create New User</h3>
                             <button className="close-modal-btn" onClick={() => setIsCreateModalOpen(false)}>
@@ -399,6 +427,7 @@ function UserManagement() {
                                             className="form-input"
                                             value={createFormData.email}
                                             onChange={(e) => setCreateFormData({ ...createFormData, email: e.target.value })}
+                                            autoComplete="email"
                                             required
                                         />
                                     </div>
@@ -409,9 +438,11 @@ function UserManagement() {
                                             className="form-input"
                                             value={createFormData.password}
                                             onChange={(e) => setCreateFormData({ ...createFormData, password: e.target.value })}
+                                            autoComplete="new-password"
                                             required
-                                            minLength={6}
+                                            minLength={8}
                                         />
+                                        <div className="form-hint">Minimum 8 chars, uppercase, lowercase, number, and special character.</div>
                                     </div>
                                     <div className="form-group">
                                         <label className="form-label">Role</label>
@@ -420,12 +451,16 @@ function UserManagement() {
                                             value={createFormData.role}
                                             onChange={(e) => setCreateFormData({ ...createFormData, role: e.target.value })}
                                         >
-                                            <option value="resident">Resident</option>
-                                            <option value="barangay_official">Barangay Official</option>
-                                            <option value="administrator">Administrator</option>
-                                            <option value="analyst">Analyst</option>
-                                            <option value="investigator">Investigator</option>
+                                            {managedRoleOptions.map((role) => (
+                                                <option key={role} value={role}>
+                                                    {role.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
+                                                </option>
+                                            ))}
                                         </select>
+                                    </div>
+                                    <div className={`form-group full-width role-policy-hint ${createRoleGuidance[createFormData.role]?.tone || 'neutral'}`}>
+                                        <div className="role-policy-title">{createRoleGuidance[createFormData.role]?.title || 'Role policy'}</div>
+                                        <div className="role-policy-text">{createRoleGuidance[createFormData.role]?.text || ''}</div>
                                     </div>
                                     <div className="form-group full-width">
                                         <label className="form-label">Position / Title</label>

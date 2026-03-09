@@ -1,5 +1,5 @@
 import React from 'react';
-import { Menu, Search, Bell } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import '../../styles/TopBar.css';
 import '../../styles/ColorfulIcons.css';
 
@@ -43,20 +43,6 @@ function TopBar({ user, toggleMobileMenu, setActiveView }) {
           </div>
         </div>
         <div className="top-bar-actions">
-          <button
-            className="icon-btn"
-            title="Search"
-            aria-label="Search"
-          >
-            <Search size={24} />
-          </button>
-          <button
-            className="icon-btn notification"
-            title="Alerts"
-            aria-label="View alerts"
-          >
-            <Bell size={24} /> <span className="notification-dot"></span>
-          </button>
           <div
             className="user-profile"
             title={`${user?.username || 'User'} (${user?.role || 'Role'})`}

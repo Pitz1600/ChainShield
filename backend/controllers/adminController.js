@@ -102,8 +102,8 @@ exports.updateUserRole = async (req, res) => {
         const { userId } = req.params;
         const { role } = req.body;
 
-        // Validate role (SECURITY: Administrator role restricted to scripts only)
-        const validRoles = ['resident', 'barangay_official'];
+        // Validate role
+        const validRoles = ['resident', 'barangay_official', 'auditor', 'administrator', 'analyst'];
         if (!validRoles.includes(role)) {
             return res.status(400).json({ error: 'Invalid role' });
         }
@@ -119,6 +119,9 @@ exports.updateUserRole = async (req, res) => {
         }
 
         user.role = role;
+        if (role === 'administrator') {
+            user._allowAdminChange = true;
+        }
         await user.save();
 
         res.json({
@@ -219,7 +222,16 @@ exports.updateUser = async (req, res) => {
         if (firstName) user.firstName = firstName;
         if (lastName) user.lastName = lastName;
         if (birthday !== undefined) user.birthday = birthday;
-        if (role) user.role = role;
+        if (role) {
+            const validRoles = ['resident', 'barangay_official', 'auditor', 'administrator', 'analyst'];
+            if (!validRoles.includes(role)) {
+                return res.status(400).json({ error: 'Invalid role' });
+            }
+            user.role = role;
+            if (role === 'administrator') {
+                user._allowAdminChange = true;
+            }
+        }
         if (position !== undefined) user.position = position;
         if (isActive !== undefined) user.isActive = isActive;
         if (isVerified !== undefined) user.isVerified = isVerified;
@@ -320,13 +332,25 @@ exports.getAuditLogs = async (req, res) => {
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit)
-            .populate('userId', 'username firstName lastName email role');
+            .populate('userId', 'username firstName lastName email role isActive lastSeenAt lastLogoutAt');
 
         const total = await AuditLog.countDocuments(query);
 
         // Map logs to match frontend expectations if necessary
         // Frontend expects: log.user (obj), log.action, log.details, log.ip, log.timestamp (or createdAt)
-        const formattedLogs = logs.map(log => ({
+        const now = Date.now();
+        const formattedLogs = logs.map(log => {
+            const userDoc = log.userId;
+            const lastSeenAt = userDoc?.lastSeenAt ? new Date(userDoc.lastSeenAt) : null;
+            const lastLogoutAt = userDoc?.lastLogoutAt ? new Date(userDoc.lastLogoutAt) : null;
+            const isOnline = Boolean(
+                userDoc?.isActive &&
+                lastSeenAt &&
+                now - lastSeenAt.getTime() <= 2 * 60 * 1000 &&
+                (!lastLogoutAt || lastSeenAt.getTime() > lastLogoutAt.getTime())
+            );
+
+            return ({
             _id: log._id,
             action: log.action,
             details: log.details || {},
@@ -335,17 +359,59 @@ exports.getAuditLogs = async (req, res) => {
             createdAt: log.createdAt,
             isSuspicious: log.isSuspicious,
             suspiciousReason: log.suspiciousReason,
-            user: log.userId ? {
-                username: log.userId.username,
-                email: log.userId.email,
-                role: log.userId.role
+            user: userDoc ? {
+                username: userDoc.username,
+                email: userDoc.email,
+                role: userDoc.role
             } : {
                 username: log.username || 'INTERNAL SYSTEM',
                 role: log.userRole || 'system'
             },
             userId: log.userId,
-            userRole: log.userRole
-        }));
+            userRole: log.userRole,
+            userPresence: userDoc ? {
+                isOnline,
+                lastSeenAt,
+                lastLogoutAt,
+                isActive: userDoc.isActive
+            } : null
+            });
+        });
+
+        const users = await User.find({})
+            .select('firstName lastName email role isActive lastSeenAt lastLogoutAt')
+            .sort({ firstName: 1, lastName: 1 });
+
+        const presence = users.map((u) => {
+            const lastSeenAt = u.lastSeenAt ? new Date(u.lastSeenAt) : null;
+            const lastLogoutAt = u.lastLogoutAt ? new Date(u.lastLogoutAt) : null;
+            const isOnline = Boolean(
+                u.isActive &&
+                lastSeenAt &&
+                now - lastSeenAt.getTime() <= 2 * 60 * 1000 &&
+                (!lastLogoutAt || lastSeenAt.getTime() > lastLogoutAt.getTime())
+            );
+            return {
+                userId: u._id,
+                username: `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.email,
+                email: u.email,
+                role: u.role,
+                isActive: u.isActive,
+                isOnline,
+                lastSeenAt,
+                lastLogoutAt
+            };
+        });
+
+        const onlineCount = presence.filter(p => p.isOnline).length;
+        const offlineCount = presence.filter(p => !p.isOnline).length;
+
+        const actionCounts = await AuditLog.aggregate([
+            { $match: query },
+            { $group: { _id: '$action', count: { $sum: 1 } } },
+            { $sort: { count: -1 } },
+            { $limit: 20 }
+        ]);
 
         res.json({
             success: true,
@@ -360,8 +426,13 @@ exports.getAuditLogs = async (req, res) => {
                 suspiciousLast7Days: await AuditLog.countDocuments({
                     isSuspicious: true,
                     createdAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) }
-                })
-            }
+                }),
+                onlineCount,
+                offlineCount,
+                totalUsers: presence.length,
+                actionCounts
+            },
+            presence
         });
     } catch (error) {
         console.error('Get Audit Logs Error:', error);
@@ -370,7 +441,6 @@ exports.getAuditLogs = async (req, res) => {
 };
 /**
  * Create a new user (admin only)
- * SECURITY: Cannot create administrators via UI
  */
 exports.createUser = async (req, res) => {
     try {
@@ -381,9 +451,24 @@ exports.createUser = async (req, res) => {
             return res.status(400).json({ error: 'All fields are required' });
         }
 
-        // SECURITY: Block administrator creation via UI
-        if (role === 'administrator') {
-            return res.status(403).json({ error: 'Administrator accounts can only be created via authorized system scripts.' });
+        // Restrict allowed roles for this endpoint to operational roles requested by product
+        const creatableRoles = ['administrator', 'auditor', 'barangay_official', 'resident'];
+        if (!creatableRoles.includes(role)) {
+            return res.status(400).json({ error: 'Invalid role for user creation.' });
+        }
+
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(String(email).trim())) {
+            return res.status(400).json({ error: 'Invalid email format.' });
+        }
+
+        // Validate password strength
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        if (!passwordRegex.test(password)) {
+            return res.status(400).json({
+                error: 'Password must be at least 8 characters with uppercase, lowercase, number, and special character.'
+            });
         }
 
         // Check for existing user
@@ -392,17 +477,13 @@ exports.createUser = async (req, res) => {
             return res.status(400).json({ error: 'Request denied. Please try again.' });
         }
 
-        // Generate temporary password for admin-created users
-        const crypto = require('crypto');
-        const tempPassword = password || crypto.randomBytes(8).toString('base64url');
-
         // Create user with forced onboarding
         const user = new User({
             firstName,
             lastName,
             birthday: birthday || null,
-            email,
-            password: tempPassword,
+            email: String(email).trim().toLowerCase(),
+            password,
             role,
             position,
             isVerified: false,
@@ -410,6 +491,11 @@ exports.createUser = async (req, res) => {
             mustChangePassword: true,
             mustSetup2FA: role === 'administrator'
         });
+
+        // Explicitly allow administrator role assignment through this authorized admin flow
+        if (role === 'administrator') {
+            user._allowAdminChange = true;
+        }
 
         await user.save();
 

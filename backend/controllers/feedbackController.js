@@ -73,9 +73,13 @@ exports.getAllFeedbacks = async (req, res) => {
 
 // @desc    Create a new feedback
 // @route   POST /api/feedbacks
-// @access  Private (Resident, Official, Admin)
+// @access  Private (Resident, Barangay Official)
 exports.createFeedback = async (req, res) => {
     try {
+        if (!['resident', 'barangay_official'].includes(req.user.role)) {
+            return res.status(403).json({ error: 'Only residents and barangay officials can post feedback.' });
+        }
+
         const { content } = req.body;
         if (!content) {
             return res.status(400).json({ error: 'Content is required' });
@@ -124,8 +128,8 @@ exports.updateFeedback = async (req, res) => {
             return res.status(404).json({ error: 'Feedback not found' });
         }
 
-        // PREVENT EDITING OF PENDING APPROVAL POSTS
-        if (feedback.actionStatus === 'pending_approval') {
+        // Prevent editing while any moderation request is pending
+        if (['pending_approval', 'pending_edit', 'pending_delete'].includes(feedback.actionStatus)) {
             return res.status(400).json({ error: 'Cannot edit a post that is pending approval. Please delete and repost if necessary.' });
         }
 
@@ -134,10 +138,15 @@ exports.updateFeedback = async (req, res) => {
             return res.status(403).json({ error: 'Not authorized to update this feedback. Only the author can perform this action.' });
         }
 
-        // Residents and Officials (if they managed to post) queue the edit
+        // Admin cannot post/edit community content; moderation only.
+        if (req.user.role === 'administrator') {
+            return res.status(403).json({ error: 'Administrators cannot edit posts. Moderation only.' });
+        }
+
+        // Any edit goes back to approval flow.
         if (content && content !== feedback.content) {
             feedback.pendingEditContent = content;
-            feedback.actionStatus = 'pending_edit';
+            feedback.actionStatus = 'pending_approval';
         }
 
         await feedback.save();
@@ -182,12 +191,12 @@ exports.deleteFeedback = async (req, res) => {
 
 // @desc    Add a reply to a feedback
 // @route   POST /api/feedbacks/:id/replies
-// @access  Private (Resident, Official, Admin)
+// @access  Private (Resident, Barangay Official)
 exports.addReply = async (req, res) => {
     try {
-        // Admins and Officials are view-only and cannot reply
-        if (req.user.role === 'administrator' || req.user.role === 'barangay_official') {
-            return res.status(403).json({ error: 'Administrators and Barangay Officials cannot post replies.' });
+        // Admin is moderation-only for community feedback.
+        if (req.user.role === 'administrator') {
+            return res.status(403).json({ error: 'Administrators cannot post replies.' });
         }
 
         const { content } = req.body;
@@ -255,8 +264,8 @@ exports.updateReply = async (req, res) => {
             return res.status(404).json({ error: 'Reply not found' });
         }
 
-        // PREVENT EDITING OF PENDING APPROVAL REPLIES
-        if (reply.actionStatus === 'pending_approval') {
+        // Prevent editing while any moderation request is pending
+        if (['pending_approval', 'pending_edit', 'pending_delete'].includes(reply.actionStatus)) {
             return res.status(400).json({ error: 'Cannot edit a reply that is pending approval.' });
         }
 
@@ -265,10 +274,15 @@ exports.updateReply = async (req, res) => {
             return res.status(403).json({ error: 'Not authorized to update this reply. Only the author can perform this action.' });
         }
 
-        // Residents queue the edit
+        // Admin cannot post/edit community content; moderation only.
+        if (req.user.role === 'administrator') {
+            return res.status(403).json({ error: 'Administrators cannot edit replies. Moderation only.' });
+        }
+
+        // Any edit goes back to approval flow.
         if (content && content !== reply.content) {
             reply.pendingEditContent = content;
-            reply.actionStatus = 'pending_edit';
+            reply.actionStatus = 'pending_approval';
         }
 
         await feedback.save();
@@ -315,6 +329,11 @@ exports.approveAction = async (req, res) => {
             });
             return res.status(200).json({ message: 'Feedback removed' });
         } else if (feedback.actionStatus === 'pending_approval') {
+            const approvalType = feedback.pendingEditContent ? 'edit' : 'post';
+            if (feedback.pendingEditContent) {
+                feedback.content = feedback.pendingEditContent;
+                feedback.pendingEditContent = null;
+            }
             feedback.actionStatus = 'none';
             await feedback.save();
 
@@ -326,7 +345,11 @@ exports.approveAction = async (req, res) => {
                 userRole: req.user.role,
                 username: `${req.user.firstName} ${req.user.lastName}`,
                 feedbackId: feedback._id,
-                details: { status: 'pending_approval', content: feedback.content.substring(0, 100) },
+                details: {
+                    status: 'pending_approval',
+                    type: approvalType,
+                    content: feedback.content.substring(0, 100)
+                },
                 ipAddress: req.ip,
                 userAgent: req.get('User-Agent')
             });
@@ -375,6 +398,15 @@ exports.rejectAction = async (req, res) => {
         }
 
         if (feedback.actionStatus === 'pending_approval') {
+            // New posts pending approval are removed on rejection.
+            // Edited posts pending approval should keep original content.
+            if (feedback.pendingEditContent) {
+                feedback.actionStatus = 'none';
+                feedback.pendingEditContent = null;
+                await feedback.save();
+                return res.status(200).json({ message: 'Edited feedback rejected. Original post kept.' });
+            }
+
             await Feedback.findByIdAndDelete(feedback._id);
 
             // Log the rejection
@@ -428,6 +460,11 @@ exports.approveReplyAction = async (req, res) => {
         if (reply.actionStatus === 'pending_delete') {
             feedback.replies.pull(req.params.replyId);
             await feedback.save();
+        } else if (reply.actionStatus === 'pending_approval' && reply.pendingEditContent) {
+            reply.content = reply.pendingEditContent;
+            reply.actionStatus = 'none';
+            reply.pendingEditContent = null;
+            await feedback.save();
         } else if (reply.actionStatus === 'pending_edit' && reply.pendingEditContent) {
             reply.content = reply.pendingEditContent;
             reply.actionStatus = 'none';
@@ -462,6 +499,15 @@ exports.rejectReplyAction = async (req, res) => {
         if (!reply) return res.status(404).json({ error: 'Reply not found' });
 
         if (reply.actionStatus === 'pending_approval') {
+            // New replies pending approval are removed on rejection.
+            // Edited replies pending approval should keep original content.
+            if (reply.pendingEditContent) {
+                reply.actionStatus = 'none';
+                reply.pendingEditContent = null;
+                await feedback.save();
+                return res.status(200).json({ message: 'Edited reply rejected. Original reply kept.' });
+            }
+
             const content = reply.content;
             feedback.replies.pull(reply._id);
             await feedback.save();

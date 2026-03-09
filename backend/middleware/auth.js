@@ -42,6 +42,15 @@ module.exports = async (req, res, next) => {
 
     req.user = user;
 
+    // Lightweight presence tracking for audit visibility.
+    // Update at most once every 30 seconds per user.
+    const now = Date.now();
+    const lastSeen = user.lastSeenAt ? new Date(user.lastSeenAt).getTime() : 0;
+    if (!lastSeen || now - lastSeen > 30 * 1000) {
+      User.updateOne({ _id: user._id }, { $set: { lastSeenAt: new Date(now) } }).catch(() => { });
+      user.lastSeenAt = new Date(now);
+    }
+
     // SECURITY: If this is a scoped onboarding token, only allow onboarding routes
     if (decoded.scope) {
       const allowedPaths = {

@@ -64,13 +64,21 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['resident', 'barangay_official', 'administrator', 'analyst', 'investigator'],
+    enum: ['resident', 'barangay_official', 'administrator', 'auditor', 'analyst', 'investigator'],
     default: 'resident'
   },
   position: String,
   isActive: {
     type: Boolean,
     default: true
+  },
+  lastSeenAt: {
+    type: Date,
+    default: null
+  },
+  lastLogoutAt: {
+    type: Date,
+    default: null
   },
 
   // ==========================================

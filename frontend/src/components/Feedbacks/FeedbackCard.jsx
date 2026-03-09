@@ -29,8 +29,9 @@ function FeedbackCard({ feedback, currentUser, onRefresh }) {
     const isPrivileged = (user) => isAdmin(user) || isOfficial(user);
     const isOwner = (authorId) => currentUser?._id === authorId;
 
-    // Admins and Officials are strictly view-only in the community feed
-    const canParticipate = () => !isAdmin(currentUser) && !isOfficial(currentUser);
+    // Admin is moderation-only in the community feed.
+    // Residents and barangay officials can participate.
+    const canParticipate = () => !isAdmin(currentUser);
 
     // Admins and Officials can moderate moderation items
     const canModerate = () => isAdmin(currentUser) || isOfficial(currentUser);
@@ -150,6 +151,7 @@ function FeedbackCard({ feedback, currentUser, onRefresh }) {
 
     const PendingActionAlert = ({ entity, type }) => {
         const isDelete = entity.actionStatus === 'pending_delete';
+        const isPendingEditLike = entity.actionStatus === 'pending_edit' || (entity.actionStatus === 'pending_approval' && entity.pendingEditContent);
         const isRejected = entity.actionStatus === 'rejected';
 
         const alertStyle = isDelete ? {
@@ -166,12 +168,13 @@ function FeedbackCard({ feedback, currentUser, onRefresh }) {
                     <AlertCircle size={14} className="pending-icon" style={iconStyle} />
                     <span className="pending-title">
                         {isDelete ? 'Deletion Pending Admin Approval' :
-                            entity.actionStatus === 'pending_approval' ? 'Waiting for Approval' :
+                            isPendingEditLike ? 'Edit Pending Admin Approval' :
+                                entity.actionStatus === 'pending_approval' ? 'Waiting for Approval' :
                                 'Edit Pending Admin Approval'}
                     </span>
                     {isRejected && <span className="status-rejected">(Previously Rejected)</span>}
                 </div>
-                {!isDelete && entity.actionStatus === 'pending_edit' && entity.pendingEditContent && (
+                {!isDelete && isPendingEditLike && entity.pendingEditContent && (
                     <div className="pending-content-preview">
                         <strong>Proposed Change:</strong> "{entity.pendingEditContent}"
                     </div>
@@ -180,7 +183,11 @@ function FeedbackCard({ feedback, currentUser, onRefresh }) {
                     <div className="pending-actions">
                         <button
                             className="btn-approve-sm"
-                            onClick={() => openApproveModal(type, entity._id !== feedback._id ? entity._id : null, entity.actionStatus)}
+                            onClick={() => openApproveModal(
+                                type,
+                                entity._id !== feedback._id ? entity._id : null,
+                                isPendingEditLike ? 'pending_edit' : entity.actionStatus
+                            )}
                         >
                             <CheckCircle size={14} /> Approve
                         </button>
@@ -316,7 +323,7 @@ function FeedbackCard({ feedback, currentUser, onRefresh }) {
                 )}
             </div>
 
-            {!(isAdmin(currentUser) || isOfficial(currentUser)) && feedback.actionStatus !== 'pending_approval' && (
+            {!isAdmin(currentUser) && feedback.actionStatus !== 'pending_approval' && (
                 <div className="feedback-footer">
                     <button
                         className="reply-toggle-btn"

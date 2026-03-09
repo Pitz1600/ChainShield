@@ -144,13 +144,15 @@ exports.getMyTransactions = async (req, res) => {
       type,
       status,
       dateFrom,
-      dateTo
+      dateTo,
+      sortBy = 'timestamp',
+      sortOrder = 'desc'
     } = req.query;
 
     // Build query to only show user's transactions
     // Build query - Residents see only their own, Officials/Admins see all
     let query = {};
-    const isOfficial = ['administrator', 'barangay_official', 'analyst', 'investigator'].includes(req.user.role);
+    const isOfficial = ['administrator', 'barangay_official', 'auditor', 'analyst', 'investigator'].includes(req.user.role);
 
     if (!isOfficial) {
       query = {
@@ -221,11 +223,16 @@ exports.getMyTransactions = async (req, res) => {
       query.staged = { $ne: true };
     }
 
+    // Build dynamic sort
+    const allowedSortFields = { timestamp: 'timestamp', riskScore: 'riskScore', status: 'verificationStatus' };
+    const sortField = allowedSortFields[sortBy] || 'timestamp';
+    const sortDir = sortOrder === 'asc' ? 1 : -1;
+
     const transactions = await Transaction.find(query)
-      .sort({ timestamp: -1 })
+      .sort({ [sortField]: sortDir })
       .limit(limit * 1)
       .skip((page - 1) * limit)
-      .select('transactionId transactionType amount status timestamp blockchainTxId riskScore riskLevel flagged verificationStatus verifiedBy fromAddress toAddress description');
+      .select('transactionId transactionType amount status timestamp blockchainTxId blockNumber riskScore riskLevel flagged verificationStatus verifiedBy fromAddress toAddress description fraudPatterns metadata networkFeatures');
 
     const count = await Transaction.countDocuments(query);
 
@@ -371,6 +378,60 @@ exports.approveTransaction = async (req, res) => {
     });
   } catch (err) {
     console.error('Approve transaction error:', err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Batch action: approve, flag, or delete multiple transactions
+exports.batchAction = async (req, res) => {
+  try {
+    const { ids, action } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ error: 'ids array is required' });
+    }
+    if (!['approve', 'flag', 'delete'].includes(action)) {
+      return res.status(400).json({ error: 'action must be approve, flag, or delete' });
+    }
+
+    const verifierName = req.user?.name || req.user?.fullName || req.user?.email || req.user?.role || 'Official';
+    const results = { success: [], failed: [] };
+
+    for (const id of ids) {
+      try {
+        const tx = await Transaction.findById(id);
+        if (!tx) { results.failed.push({ id, reason: 'Not found' }); continue; }
+
+        if (action === 'delete') {
+          await tx.deleteOne();
+          results.success.push({ id, action: 'deleted' });
+        } else if (action === 'approve') {
+          tx.verificationStatus = 'Verified';
+          tx.verifiedBy = verifierName;
+          tx.staged = false;
+          if (tx.flagged && !tx.blockchainTxId) {
+            try {
+              const receipt = await blockchainService.recordSuspiciousEvidence(tx.txHash, tx.riskScore || 0);
+              tx.blockchainTxId = receipt.transactionHash;
+              tx.blockNumber = receipt.blockNumber;
+            } catch (e) { /* blockchain optional */ }
+          }
+          await tx.save();
+          results.success.push({ id, action: 'approved', blockchainTxId: tx.blockchainTxId || null });
+        } else if (action === 'flag') {
+          tx.verificationStatus = 'Flagged';
+          tx.flagged = true;
+          tx.verifiedBy = verifierName;
+          await tx.save();
+          results.success.push({ id, action: 'flagged' });
+        }
+      } catch (err) {
+        results.failed.push({ id, reason: err.message });
+      }
+    }
+
+    res.json({ success: true, results });
+  } catch (err) {
+    console.error('Batch action error:', err);
     res.status(500).json({ error: err.message });
   }
 };

@@ -27,6 +27,16 @@ export const PERMISSIONS = {
         'view_verification_results',
     ],
 
+    auditor: [
+        'view_public_records',
+        'track_transactions',
+        'view_analytics',
+        'view_fraud_cases',
+        'view_verification_results',
+        'monitor_logs',
+        'generate_reports',
+    ],
+
     administrator: [
         'view_public_records',
         'verify_documents',
@@ -107,6 +117,7 @@ export const getRoleName = (role) => {
         resident: 'Resident',
         barangay_official: 'Barangay Official',
         administrator: 'Administrator',
+        auditor: 'Auditor',
         analyst: 'Analyst',
         investigator: 'Investigator',
     };

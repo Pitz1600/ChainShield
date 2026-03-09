@@ -31,6 +31,17 @@ const PERMISSIONS = {
         'view_verification_results',
     ],
 
+    // Auditor permissions (read-only monitoring + logs)
+    auditor: [
+        'view_public_records',
+        'track_transactions',
+        'view_analytics',
+        'view_fraud_cases',
+        'view_verification_results',
+        'monitor_logs',
+        'generate_reports',
+    ],
+
     // SECURITY FIX (V1): Analyst permissions — read-only fraud investigation access
     analyst: [
         'view_public_records',
@@ -144,7 +155,7 @@ const requireFraudAccess = (req, res, next) => {
         return res.status(401).json({ error: 'Authentication required' });
     }
 
-    const allowedRoles = ['administrator', 'analyst', 'investigator'];
+    const allowedRoles = ['administrator', 'auditor', 'analyst', 'investigator'];
 
     if (!allowedRoles.includes(req.user.role)) {
         return res.status(403).json({

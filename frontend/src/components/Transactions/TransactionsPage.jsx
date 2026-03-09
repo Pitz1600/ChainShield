@@ -9,6 +9,9 @@ function TransactionsPage({ user }) {
     const isResident = user?.role === 'resident';
     const [activeTab, setActiveTab] = useState(isResident ? 'ledger' : 'alerts');
     const [alertCount, setAlertCount] = useState(0);
+    const [criticalCount, setCriticalCount] = useState(0);
+    const [highCount, setHighCount] = useState(0);
+    const [mediumCount, setMediumCount] = useState(0);
     const [historyCount, setHistoryCount] = useState(0);
 
     // Fetch counts for tab badges
@@ -19,8 +22,12 @@ function TransactionsPage({ user }) {
     const fetchCounts = async () => {
         try {
             // Fetch alert count
-            const alertsResponse = await api.get('/transactions/alerts');
-            setAlertCount(alertsResponse.data.alerts?.length || 0);
+            const alertsResponse = await api.get('/transactions/alerts?limit=5000');
+            const allAlerts = alertsResponse.data.alerts || [];
+            setAlertCount(allAlerts.length || 0);
+            setCriticalCount(allAlerts.filter((a) => Number(a.riskScore || 0) >= 80).length);
+            setHighCount(allAlerts.filter((a) => Number(a.riskScore || 0) >= 60 && Number(a.riskScore || 0) < 80).length);
+            setMediumCount(allAlerts.filter((a) => Number(a.riskScore || 0) >= 40 && Number(a.riskScore || 0) < 60).length);
 
             // Fetch history count
             const historyResponse = await api.get('/transactions/my-transactions');
@@ -59,7 +66,7 @@ function TransactionsPage({ user }) {
                             <AlertTriangle size={28} color="#ef4444" />
                         </div>
                         <div className="hero-stat-info">
-                            <div className="hero-stat-value">2</div>
+                            <div className="hero-stat-value">{criticalCount}</div>
                             <div className="hero-stat-label">CRITICAL</div>
                         </div>
                     </div>
@@ -69,7 +76,7 @@ function TransactionsPage({ user }) {
                             <AlertTriangle size={28} color="#f97316" />
                         </div>
                         <div className="hero-stat-info">
-                            <div className="hero-stat-value">2</div>
+                            <div className="hero-stat-value">{highCount}</div>
                             <div className="hero-stat-label">HIGH RISK</div>
                         </div>
                     </div>
@@ -79,7 +86,7 @@ function TransactionsPage({ user }) {
                             <FileText size={28} color="#22c55e" />
                         </div>
                         <div className="hero-stat-info">
-                            <div className="hero-stat-value">0</div>
+                            <div className="hero-stat-value">{mediumCount}</div>
                             <div className="hero-stat-label">MEDIUM RISK</div>
                         </div>
                     </div>

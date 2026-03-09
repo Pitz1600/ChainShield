@@ -87,6 +87,7 @@ class MultiStageFraudPipeline {
         ...behavior.reasons,
         ...(graphRes.fraudPatterns ? graphRes.fraudPatterns.map((p) => p.type) : [])
       ];
+      const anomalyCategory = this.classifyAnomalyCategory(tx, combinedReasons, graphRes.fraudPatterns || []);
 
       const decision = riskScore >= 60;
       if (decision) flagged += 1;
@@ -131,6 +132,7 @@ class MultiStageFraudPipeline {
         txHash: txDoc.txHash,
         riskScore,
         riskLevel: txDoc.riskLevel,
+        anomalyCategory,
         flagged: decision,
         reasons: combinedReasons,
         graphRisk: components.graph,
@@ -216,6 +218,33 @@ class MultiStageFraudPipeline {
     if (score >= 60) return 'HIGH';
     if (score >= 40) return 'MEDIUM';
     return 'LOW';
+  }
+
+  classifyAnomalyCategory(transaction, reasons = [], fraudPatterns = []) {
+    const reasonsStr = reasons.join(' ').toLowerCase();
+    const patternTypes = fraudPatterns.map((pattern) => String(pattern.type || '')).join(' ').toLowerCase();
+    const categoryText = `${reasonsStr} ${patternTypes}`;
+
+    if (categoryText.includes('welfare') || transaction.transactionType === 'Social Welfare') {
+      return 'Welfare Anomaly';
+    }
+    if (categoryText.includes('procurement') || transaction.transactionType === 'Procurement') {
+      return 'Procurement Anomaly';
+    }
+    if (categoryText.includes('tax') || transaction.transactionType === 'Tax') {
+      return 'Tax Anomaly';
+    }
+    if (categoryText.includes('rapid sequential') || categoryText.includes('circular movement') || categoryText.includes('collusion')) {
+      return 'Network Pattern Anomaly';
+    }
+    if (categoryText.includes('unusual amount') || categoryText.includes('amount')) {
+      return 'Amount Anomaly';
+    }
+    if (categoryText.includes('timing') || categoryText.includes('unusual transaction time')) {
+      return 'Timing Anomaly';
+    }
+
+    return 'Other';
   }
 }
 

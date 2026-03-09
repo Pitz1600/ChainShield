@@ -81,6 +81,7 @@ exports.importTransactions = async (req, res) => {
             transactionType: mappedTxs[idx]?.transactionType,
             riskScore: r.riskScore,
             riskLevel: r.riskLevel,
+            anomalyCategory: r.anomalyCategory || 'Other',
             flagged: r.flagged,
             reasons: r.reasons,
             graphRisk: r.graphRisk,

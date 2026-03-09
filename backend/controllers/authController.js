@@ -243,16 +243,13 @@ exports.login = async (req, res) => {
       }
     }
 
-    // CHECK 3: Device detection (Email OTP for non-2FA users)
-    // Variables userAgent, clientIp, isTrusted already defined above
+    // CHECK 3: OTP verification for non-2FA users
+    // - auditor + barangay_official: OTP on every login
+    // - all other non-2FA users: OTP only on untrusted device
+    const requiresOtpEveryLogin = ['auditor', 'barangay_official'].includes(user.role);
+    const shouldRequireEmailOtp = !user.twoFactorEnabled && !user.mustChangePassword && (requiresOtpEveryLogin || !isTrusted);
 
-    // CHECK 3: Device detection (Email OTP for non-2FA users)
-    // Variables userAgent, clientIp, isTrusted already defined above
-
-    // SKIP DEVICE CHECK if user must change password (e.g. fresh admin reset)
-    // This prevents lockout since they can't access the old email (admin@chainshield.local)
-    if (!isTrusted && !user.twoFactorEnabled && !user.mustChangePassword) {
-      // New device for users WITHOUT 2FA → require email OTP
+    if (shouldRequireEmailOtp) {
       const otp = generateOTP();
       const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
 
@@ -292,9 +289,9 @@ exports.login = async (req, res) => {
 
       return res.json({
         otpRequired: true,
-        newDeviceDetected: true,
+        newDeviceDetected: !isTrusted,
         userId: user._id,
-        message: 'New device detected. OTP sent to your email.'
+        message: 'Verification code sent to your email.'
       });
     }
 
@@ -593,21 +590,32 @@ exports.forceChangePassword = async (req, res) => {
     user.mustChangePassword = false;
 
     // Handle Email Update if provided
+    // Administrators must change to a different email during onboarding.
     let emailChanged = false;
+    if (user.role === 'administrator') {
+      if (!newEmail || String(newEmail).trim().toLowerCase() === String(user.email).trim().toLowerCase()) {
+        return res.status(400).json({
+          error: 'Administrator onboarding requires changing to a new email address.'
+        });
+      }
+    }
+
     if (newEmail && newEmail !== user.email) {
       // Validate email format
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(newEmail)) {
+      const normalizedEmail = String(newEmail).trim().toLowerCase();
+
+      if (!emailRegex.test(normalizedEmail)) {
         return res.status(400).json({ error: 'Invalid email format.' });
       }
 
       // Check if email already exists
-      const existingUser = await User.findOne({ email: newEmail });
+      const existingUser = await User.findOne({ email: normalizedEmail });
       if (existingUser) {
         return res.status(400).json({ error: 'Email is already in use.' });
       }
 
-      user.email = newEmail;
+      user.email = normalizedEmail;
       user.isVerified = false; // Require verification for new email
       emailChanged = true;
     }
@@ -1630,6 +1638,13 @@ exports.logout = async (req, res) => {
       }
 
       if (req.user) {
+        await User.findByIdAndUpdate(req.user._id, {
+          $set: {
+            lastLogoutAt: new Date(),
+            lastSeenAt: new Date()
+          }
+        });
+
         await AuditLog.logAction({
           action: 'user_logout',
           userId: req.user._id,

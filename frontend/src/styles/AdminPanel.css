@@ -1,6 +1,6 @@
 .admin-panel {
   padding: 2rem;
-  max-width: 1400px;
+  max-width: var(--layout-max-width);
   margin: 0 auto;
 }
 
@@ -247,6 +247,42 @@
   font-size: 0.85rem;
   color: #64748b;
   margin-top: 2px;
+}
+
+/* Keep table user text readable regardless of global user-name styles */
+.data-table .user-info .user-name {
+  color: #0f172a !important;
+}
+
+.data-table .user-info .user-sub {
+  color: #475569 !important;
+}
+
+.sessions-user-cell {
+  min-width: 240px;
+  text-align: left;
+}
+
+.sessions-user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0.2rem;
+}
+
+.sessions-user-name {
+  color: #0f172a;
+  font-weight: 700;
+  font-size: 0.98rem;
+  line-height: 1.2;
+}
+
+.sessions-user-email {
+  color: #64748b;
+  font-size: 0.86rem;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
 }
 
 .status-badge {
@@ -531,6 +567,10 @@
   flex-direction: column;
 }
 
+.create-user-modal {
+  max-width: 720px;
+}
+
 @keyframes modalSlideUp {
   from {
     opacity: 0;
@@ -635,6 +675,74 @@
   grid-column: 1 / -1;
 }
 
+.form-hint {
+  margin-top: 0.45rem;
+  font-size: 0.78rem;
+  color: #64748b;
+  line-height: 1.35;
+}
+
+.role-policy-hint {
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  padding: 0.8rem 0.9rem;
+  margin-top: -0.15rem;
+}
+
+.role-policy-title {
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.25rem;
+}
+
+.role-policy-text {
+  font-size: 0.84rem;
+  line-height: 1.4;
+}
+
+.role-policy-hint.neutral {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+}
+
+.role-policy-hint.neutral .role-policy-title,
+.role-policy-hint.neutral .role-policy-text {
+  color: #334155;
+}
+
+.role-policy-hint.info {
+  border-color: #bae6fd;
+  background: #f0f9ff;
+}
+
+.role-policy-hint.info .role-policy-title,
+.role-policy-hint.info .role-policy-text {
+  color: #0c4a6e;
+}
+
+.role-policy-hint.warning {
+  border-color: #fde68a;
+  background: #fffbeb;
+}
+
+.role-policy-hint.warning .role-policy-title,
+.role-policy-hint.warning .role-policy-text {
+  color: #92400e;
+}
+
+.role-policy-hint.critical {
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
+.role-policy-hint.critical .role-policy-title,
+.role-policy-hint.critical .role-policy-text {
+  color: #991b1b;
+}
+
 .form-label {
   display: block;
   font-size: 0.7rem;
@@ -672,6 +780,13 @@
   border-color: #6366f1;
   box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
   background: white;
+}
+
+.form-input:-webkit-autofill,
+.form-select:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px #f8fafc inset !important;
+  -webkit-text-fill-color: #1e293b !important;
+  transition: background-color 9999s ease-in-out 0s;
 }
 
 .toggle-group {

@@ -11,7 +11,7 @@
     gap: 1.5rem;
     margin: 1.5rem auto;
     border-radius: 1.5rem;
-    max-width: 1200px;
+    max-width: var(--layout-max-width);
 }
 
 /* Text Section */
@@ -113,12 +113,12 @@
     background: white;
     padding: 0.5rem 1rem 0;
     border-radius: 1rem 1rem 0 0;
-    max-width: 1200px;
+    max-width: var(--layout-max-width);
 }
 
 /* Tab Content Area */
 .transactions-page .tab-content {
-    max-width: 1200px;
+    max-width: var(--layout-max-width);
     margin: 0 auto;
     padding: 0 1.5rem 2rem;
 }

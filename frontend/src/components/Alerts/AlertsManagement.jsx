@@ -1,7 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Search, AlertTriangle, CheckCircle, AlertOctagon, Download, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import {
+  Search,
+  CheckCircle,
+  Download,
+  ChevronLeft,
+  ChevronRight,
+  X,
+  ArrowUpDown,
+  Link2
+} from 'lucide-react';
 import api from '../../services/api';
-import AlertCard from './AlertCard';
 import '../../styles/Alerts.css';
 
 function AlertsManagement({ embedded = false }) {
@@ -10,28 +18,39 @@ function AlertsManagement({ embedded = false }) {
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
   const [selectedAlert, setSelectedAlert] = useState(null);
+  const [fullTx, setFullTx] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [modalTab, setModalTab] = useState('details');
+  const [txLoading, setTxLoading] = useState(false);
+
+
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const itemsPerPage = 12;
-  const [viewMode, setViewMode] = useState('cards'); // cards | table
+
+  const [sortBy, setSortBy] = useState('timestamp');
+  const [sortOrder, setSortOrder] = useState('desc');
 
   useEffect(() => {
     fetchAlerts();
-  }, [filter]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filter, sortBy, sortOrder]);
 
   const fetchAlerts = async () => {
     try {
       setLoading(true);
       let endpoint = '/transactions/alerts?limit=5000';
+
       if (filter !== 'all') {
-        endpoint += (endpoint.includes('?') ? '&' : '?') + `severity=${filter}`;
+        endpoint += `&severity=${filter}`;
       }
 
+      endpoint += `&sortBy=${sortBy}&sortOrder=${sortOrder}`;
+
       const response = await api.get(endpoint);
-      const data = response.data;
-      setAlerts(data.alerts || []);
+      setAlerts(response.data.alerts || []);
       setError(null);
     } catch (err) {
       console.error('Error fetching alerts:', err);
@@ -55,13 +74,27 @@ function AlertsManagement({ embedded = false }) {
     const diffMins = Math.floor(diffMs / 60000);
 
     if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+    if (diffMins < 60) return `${diffMins}m ago`;
 
     const diffHours = Math.floor(diffMins / 60);
-    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
 
     const diffDays = Math.floor(diffHours / 24);
-    return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+    return `${diffDays}d ago`;
+  };
+
+  const riskColor = (score) => {
+    if (score >= 80) return '#ef4444';
+    if (score >= 60) return '#f97316';
+    if (score >= 40) return '#f59e0b';
+    return '#10b981';
+  };
+
+  const riskLabel = (score) => {
+    if (score >= 80) return 'CRITICAL';
+    if (score >= 60) return 'HIGH';
+    if (score >= 40) return 'MEDIUM';
+    return 'LOW';
   };
 
   const formatAlert = (transaction) => ({
@@ -72,7 +105,7 @@ function AlertsManagement({ embedded = false }) {
     documentType: transaction.transactionType,
     issuer: transaction.agency || 'Unknown',
     riskScore: transaction.riskScore,
-    status: 'open',
+    status: transaction.verificationStatus || 'Open',
     time: getTimeAgo(transaction.timestamp),
     amount: transaction.amount,
     programName: transaction.programName,
@@ -80,31 +113,53 @@ function AlertsManagement({ embedded = false }) {
     toAddress: transaction.toAddress,
     timestamp: transaction.timestamp,
     riskPatterns: transaction.fraudPatterns || [],
-    riskLevel: transaction.riskLevel
+    riskLevel: transaction.riskLevel,
+    beneficiaryType: transaction.beneficiaryType,
+    blockchainTxId: transaction.blockchainTxId,
+    blockNumber: transaction.blockNumber,
+    description: transaction.description
   });
 
   const filteredAlerts = alerts
     .map(formatAlert)
-    .filter(alert => {
-      const matchesSearch =
-        alert.documentId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        alert.type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        alert.issuer?.toLowerCase().includes(searchTerm.toLowerCase());
-      return matchesSearch;
+    .filter((alert) => {
+      const q = searchTerm.toLowerCase();
+      return (
+        alert.documentId?.toLowerCase().includes(q) ||
+        alert.type?.toLowerCase().includes(q) ||
+        alert.issuer?.toLowerCase().includes(q)
+      );
     });
 
-  const pagedAlerts = filteredAlerts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-  useEffect(() => setTotalPages(Math.max(1, Math.ceil(filteredAlerts.length / itemsPerPage))), [filteredAlerts.length]);
+  useEffect(() => {
+    const pages = Math.max(1, Math.ceil(filteredAlerts.length / itemsPerPage));
+    setTotalPages(pages);
+    if (currentPage > pages) setCurrentPage(pages);
+  }, [filteredAlerts.length, currentPage]);
 
-  const handleInvestigate = (alert) => {
+  const pagedAlerts = filteredAlerts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  const handleInvestigate = async (alert) => {
     setSelectedAlert(alert);
+    setModalTab('details');
     setShowModal(true);
+    setFullTx(null);
+    setTxLoading(true);
+
+    try {
+      const res = await api.get(`/transactions/${alert.id}`);
+      setFullTx(res.data);
+    } catch (err) {
+      console.warn('Could not fetch full transaction detail:', err?.message || err);
+    } finally {
+      setTxLoading(false);
+    }
   };
 
+
   const handleExportReport = () => {
-    // Create CSV content
     const headers = ['Transaction ID', 'Type', 'Agency', 'Amount', 'Risk Score', 'Severity', 'Timestamp', 'From Address', 'To Address'];
-    const rows = filteredAlerts.map(alert => [
+    const rows = filteredAlerts.map((alert) => [
       alert.documentId,
       alert.type,
       alert.issuer,
@@ -116,12 +171,8 @@ function AlertsManagement({ embedded = false }) {
       alert.toAddress || 'N/A'
     ]);
 
-    const csvContent = [
-      headers.join(','),
-      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
-    ].join('\n');
+    const csvContent = [headers.join(','), ...rows.map((row) => row.map((cell) => `"${cell}"`).join(','))].join('\n');
 
-    // Create download link
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
@@ -133,14 +184,98 @@ function AlertsManagement({ embedded = false }) {
     document.body.removeChild(link);
   };
 
+  const RiskGaugeSmall = ({ score = 0 }) => {
+    const color = riskColor(score);
+    const label = riskLabel(score);
+    const pct = Math.min(100, Math.max(0, score)) / 100;
+    const cx = 60;
+    const cy = 55;
+    const r = 42;
+    const startAngle = -Math.PI;
+
+    const polar = (angle) => ({ x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle) });
+
+    const bgStart = polar(startAngle);
+    const bgEnd = polar(0);
+    const fgAngle = startAngle + Math.PI * pct;
+    const fgEnd = polar(fgAngle);
+    const largeArc = pct > 0.5 ? 1 : 0;
+
+    const fgPath = pct <= 0
+      ? ''
+      : `M ${bgStart.x} ${bgStart.y} A ${r} ${r} 0 ${largeArc} 1 ${fgEnd.x} ${fgEnd.y}`;
+
+    return (
+      <div style={{ textAlign: 'center' }}>
+        <svg viewBox="0 0 120 70" style={{ width: 132, height: 'auto' }}>
+          <path
+            d={`M ${bgStart.x} ${bgStart.y} A ${r} ${r} 0 0 1 ${bgEnd.x} ${bgEnd.y}`}
+            stroke="#e2e8f0"
+            strokeWidth="10"
+            fill="none"
+            strokeLinecap="round"
+          />
+          {pct > 0 && (
+            <path
+              d={fgPath}
+              stroke={color}
+              strokeWidth="10"
+              fill="none"
+              strokeLinecap="round"
+              style={{ transition: 'all 0.6s ease' }}
+            />
+          )}
+          <text x={cx} y={cy - 4} textAnchor="middle" fontSize="16" fontWeight="900" fill={color}>{score}</text>
+          <text x={cx} y={cy + 12} textAnchor="middle" fontSize="7" fill="#64748b" fontWeight="700">{label}</text>
+        </svg>
+      </div>
+    );
+  };
+
+  const FormulaPanel = ({ score = 0, patterns = [] }) => {
+    const mean = 50;
+    const stddev = 25;
+    const z = ((score - mean) / stddev).toFixed(2);
+    const suspicious = Math.abs(parseFloat(z)) > 1.5;
+
+    return (
+      <div className="formula-card">
+        <h4 className="formula-title">Anomaly Analysis</h4>
+        <div className="formula-body">
+          <div className="formula-row"><span className="formula-label">Formula</span><span className="formula-val formula-eq">Z = (X - mu) / sigma</span></div>
+          <div className="formula-row"><span className="formula-label">Risk Score (X)</span><span className="formula-val">{score}</span></div>
+          <div className="formula-row"><span className="formula-label">Mean (mu)</span><span className="formula-val">{mean}</span></div>
+          <div className="formula-row"><span className="formula-label">Std Dev (sigma)</span><span className="formula-val">{stddev}</span></div>
+          <div className="formula-row">
+            <span className="formula-label">Z-Score</span>
+            <span className="formula-val formula-zscore" style={{ color: suspicious ? '#ef4444' : '#10b981' }}>
+              {z} {suspicious ? 'Anomalous' : 'Normal'}
+            </span>
+          </div>
+          <div className={`formula-verdict ${suspicious ? 'verdict-suspicious' : 'verdict-normal'}`}>
+            {suspicious ? `Suspicious: Z=${z} exceeds +/-1.5` : `Normal: Z=${z} within +/-1.5`}
+          </div>
+          {patterns.length > 0 && (
+            <div className="formula-patterns">
+              {patterns.map((p, idx) => (
+                <div key={idx} className="formula-pattern-item">
+                  <span className="pattern-type-pill">{p.type}</span>
+                  {p.description && <span className="pattern-desc">{p.description}</span>}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <div className="alerts-container">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '400px' }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ width: '40px', height: '40px', border: '4px solid #e2e8f0', borderTopColor: '#3b82f6', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto' }}></div>
-            <p style={{ marginTop: '1rem', color: '#64748b' }}>Loading alerts...</p>
-          </div>
+        <div className="alerts-empty-state">
+          <div className="alerts-spinner" />
+          <p>Loading alerts...</p>
         </div>
       </div>
     );
@@ -149,13 +284,16 @@ function AlertsManagement({ embedded = false }) {
   if (error) {
     return (
       <div className="alerts-container">
-        <div style={{ padding: '2rem', textAlign: 'center' }}>
-          <p style={{ color: '#ef4444', marginBottom: '1rem' }}>{error}</p>
+        <div className="alerts-empty-state">
+          <p className="alerts-error">{error}</p>
           <button onClick={fetchAlerts} className="btn-primary">Retry</button>
         </div>
       </div>
     );
   }
+
+  const tx = fullTx || selectedAlert;
+  const txRisk = Number(tx?.riskScore || 0);
 
   return (
     <div className="alerts-container">
@@ -167,204 +305,290 @@ function AlertsManagement({ embedded = false }) {
         </div>
       )}
 
-      <div className="filters-bar">
-        <div className="search-box">
-          <span className="search-icon"><Search size={18} color="#64748b" /></span>
+      <form className="alerts-filters" onSubmit={(e) => e.preventDefault()}>
+        <div className="alerts-search-wrap">
+          <Search size={18} className="alerts-search-icon" />
           <input
             type="text"
             placeholder="Search by transaction ID, agency, or risk type..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input"
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="alerts-search-input"
           />
         </div>
-        <div className="filter-buttons">
-          {['all', 'critical', 'high', 'medium'].map(f => (
-            <button
-              key={f}
-              className={`filter-btn ${filter === f ? 'active' : ''}`}
-              onClick={() => setFilter(f)}
-            >
-              {f.charAt(0).toUpperCase() + f.slice(1)}
-            </button>
-          ))}
-          <button className="export-btn" onClick={handleExportReport}><Download size={16} style={{ marginRight: '8px', display: 'inline' }} /> Export Report</button>
+
+        <div className="alerts-controls-wrap">
+          <div className="alerts-filter-chips">
+            {['all', 'critical', 'high', 'medium'].map((value) => (
+              <button
+                key={value}
+                type="button"
+                className={`alerts-chip ${filter === value ? 'active' : ''}`}
+                onClick={() => {
+                  setFilter(value);
+                  setCurrentPage(1);
+                }}
+              >
+                {value.charAt(0).toUpperCase() + value.slice(1)}
+              </button>
+            ))}
+          </div>
+
+          <select className="alerts-sort-select" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+            <option value="timestamp">Sort: Date</option>
+            <option value="riskScore">Sort: Risk Score</option>
+          </select>
+
+          <button
+            type="button"
+            className="alerts-sort-order-btn"
+            onClick={() => setSortOrder((prev) => (prev === 'desc' ? 'asc' : 'desc'))}
+            title={sortOrder === 'desc' ? 'Descending' : 'Ascending'}
+          >
+            <ArrowUpDown size={15} />
+          </button>
+
+          <button type="button" className="alerts-export-btn" onClick={handleExportReport}>
+            <Download size={16} /> Export Report
+          </button>
         </div>
-      </div>
+      </form>
 
       {filteredAlerts.length === 0 ? (
-        <div style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>
-          <p style={{ fontSize: '3rem', marginBottom: '1rem' }}><CheckCircle size={48} color="#10b981" /></p>
-          <h3 style={{ marginBottom: '0.5rem' }}>No alerts found</h3>
-          <p>All transactions are within normal parameters</p>
+        <div className="alerts-empty-state">
+          <CheckCircle size={40} color="#10b981" />
+          <h3>No alerts found</h3>
+          <p>All transactions are within normal parameters.</p>
         </div>
       ) : (
         <>
-          <div className="alerts-toolbar">
-            <div className="view-toggle">
-              <button className={`view-btn ${viewMode === 'cards' ? 'active' : ''}`} onClick={() => setViewMode('cards')} type="button">Cards</button>
-              <button className={`view-btn ${viewMode === 'table' ? 'active' : ''}`} onClick={() => setViewMode('table')} type="button">Table</button>
-            </div>
+          <div className="alerts-table-wrapper">
+            <table className="alerts-table">
+              <thead>
+                <tr>
+                  <th>Txn ID</th>
+                  <th>Severity</th>
+                  <th>Type</th>
+                  <th>Agency</th>
+                  <th>Amount</th>
+                  <th>Risk</th>
+                  <th>Age</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {pagedAlerts.map((alert) => (
+                  <tr key={alert.id} className="clickable-row" onClick={() => handleInvestigate(alert)}>
+                    <td className="font-mono">{alert.documentId}</td>
+                    <td><span className={`sev-pill sev-${alert.severity}`}>{alert.severity.toUpperCase()}</span></td>
+                    <td>{alert.type}</td>
+                    <td>{alert.issuer}</td>
+                    <td>PHP {Number(alert.amount || 0).toLocaleString()}</td>
+                    <td><span className={`risk-chip ${alert.riskScore >= 80 ? 'risk-critical' : alert.riskScore >= 60 ? 'risk-high' : alert.riskScore >= 40 ? 'risk-medium' : 'risk-low'}`}>{alert.riskScore}</span></td>
+                    <td>{alert.time}</td>
+                    <td>
+                      <button
+                        type="button"
+                        className="btn-outline"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleInvestigate(alert);
+                        }}
+                      >
+                        View
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
 
-          {viewMode === 'cards' ? (
-            <div className="alerts-grid">
-              {pagedAlerts.map(alert => (
-                <AlertCard key={alert.id} alert={alert} onInvestigate={handleInvestigate} />
-              ))}
-            </div>
-          ) : (
-            <div className="alerts-table-wrapper">
-              <table className="alerts-table">
-                <thead>
-                  <tr>
-                    <th>Txn ID</th>
-                    <th>Severity</th>
-                    <th>Type</th>
-                    <th>Agency</th>
-                    <th>Amount</th>
-                    <th>Risk</th>
-                    <th>Age</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {pagedAlerts.map(alert => (
-                    <tr key={alert.id} onClick={() => handleInvestigate(alert)} className="clickable-row">
-                      <td className="font-mono">{alert.documentId}</td>
-                      <td><span className={`sev-pill sev-${alert.severity}`}>{alert.severity.toUpperCase()}</span></td>
-                      <td>{alert.type}</td>
-                      <td>{alert.issuer}</td>
-                      <td>₱{Number(alert.amount || 0).toLocaleString()}</td>
-                      <td><span className={`risk-chip ${alert.riskScore >=80 ? 'risk-critical': alert.riskScore>=60?'risk-high':alert.riskScore>=40?'risk-medium':'risk-low'}`}>{alert.riskScore}</span></td>
-                      <td>{alert.time}</td>
-                      <td><button className="btn-outline" onClick={(e) => { e.stopPropagation(); handleInvestigate(alert); }}>View</button></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {/* Pagination Controls */}
           {totalPages > 1 && (
             <div className="pagination-container">
-              <button
-                className="pagination-btn"
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                disabled={currentPage === 1}
-              >
-                <ChevronLeft size={16} style={{ marginRight: '4px', display: 'inline' }} /> Previous
+              <button className="pagination-btn" onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))} disabled={currentPage === 1}>
+                <ChevronLeft size={16} /> Previous
               </button>
               <div className="pagination-info">Page {currentPage} of {totalPages}</div>
-              <button
-                className="pagination-btn"
-                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                disabled={currentPage === totalPages}
-              >
-                Next <ChevronRight size={16} style={{ marginLeft: '4px', display: 'inline' }} />
+              <button className="pagination-btn" onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))} disabled={currentPage === totalPages}>
+                Next <ChevronRight size={16} />
               </button>
             </div>
           )}
         </>
       )}
 
-      {/* Investigation Modal */}
       {showModal && selectedAlert && (
-        <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2><Search size={24} style={{ marginRight: '8px', display: 'inline', color: '#3b82f6' }} /> Alert Investigation</h2>
-              <button className="modal-close" onClick={() => setShowModal(false)}><X size={24} /></button>
+        <div className="tx-modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="tx-modal tx-modal-wide" onClick={(e) => e.stopPropagation()}>
+            <div className="tx-modal-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <h3 style={{ margin: 0 }}>Transaction Details</h3>
+                {txLoading && <div className="alerts-spinner small" />}
+              </div>
+              <button type="button" className="close-btn" onClick={() => setShowModal(false)}>
+                <X size={16} />
+              </button>
             </div>
-            <div className="modal-body">
-              <div className="investigation-section">
-                <h3>Transaction Details</h3>
-                <div className="detail-grid">
-                  <div className="detail-item">
-                    <span className="detail-label">Transaction ID:</span>
-                    <span className="detail-value">{selectedAlert.documentId}</span>
+
+            <div className="risk-gauge-strip">
+              <div className="risk-gauge-strip-gauge">
+                <RiskGaugeSmall score={txRisk} />
+              </div>
+              <div className="risk-gauge-strip-info">
+                <div className="risk-gauge-strip-title">Live Risk Meter</div>
+                <div className="risk-gauge-strip-score" style={{ color: riskColor(txRisk) }}>
+                  {txRisk}<span style={{ fontSize: '0.9rem', color: '#94a3b8' }}>/100</span>
+                </div>
+                <div className="alerts-risk-legend">
+                  <span><span className="legend-dot" style={{ background: '#10b981' }} /> Low (0-39)</span>
+                  <span><span className="legend-dot" style={{ background: '#f59e0b' }} /> Medium (40-59)</span>
+                  <span><span className="legend-dot" style={{ background: '#f97316' }} /> High (60-79)</span>
+                  <span><span className="legend-dot" style={{ background: '#ef4444' }} /> Critical (80+)</span>
+                </div>
+                <div
+                  className="risk-gauge-strip-level"
+                  style={{
+                    marginTop: 8,
+                    background: txRisk >= 80 ? '#fee2e2' : txRisk >= 60 ? '#ffedd5' : txRisk >= 40 ? '#fef3c7' : '#d1fae5',
+                    color: txRisk >= 80 ? '#991b1b' : txRisk >= 60 ? '#9a3412' : txRisk >= 40 ? '#92400e' : '#065f46'
+                  }}
+                >
+                  {tx?.riskLevel || riskLabel(txRisk)}
+                </div>
+              </div>
+            </div>
+
+            <div className="modal-tabs">
+              {[
+                { key: 'details', label: 'Details' },
+                { key: 'ai', label: 'AI Analysis' },
+                { key: 'csv', label: 'Import Data' }
+              ].map((tab) => (
+                <button
+                  key={tab.key}
+                  type="button"
+                  className={`modal-tab-btn ${modalTab === tab.key ? 'active' : ''}`}
+                  onClick={() => setModalTab(tab.key)}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="tx-modal-body tx-modal-body-wide">
+              {modalTab === 'details' && (
+                <div className="tx-grid">
+                  <div className="tx-grid-row">
+                    <div className="tx-grid-col">
+                      <label>Transaction ID</label>
+                      <div className="font-mono">{tx?.transactionId || tx?.documentId || tx?.id}</div>
+                    </div>
+                    <div className="tx-grid-col">
+                      <label>Date and Time</label>
+                      <div>{new Date(tx?.timestamp || tx?.createdAt).toLocaleString()}</div>
+                    </div>
                   </div>
-                  <div className="detail-item">
-                    <span className="detail-label">Type:</span>
-                    <span className="detail-value">{selectedAlert.documentType}</span>
+
+                  <div className="tx-grid-row">
+                    <div className="tx-grid-col">
+                      <label>Sender (From)</label>
+                      <div className="addr-ellipsis" title={tx?.fromAddress || ''}>{tx?.fromAddress || 'N/A'}</div>
+                    </div>
+                    <div className="tx-grid-col">
+                      <label>Receiver (To)</label>
+                      <div className="addr-ellipsis" title={tx?.toAddress || ''}>{tx?.toAddress || 'N/A'}</div>
+                    </div>
                   </div>
-                  <div className="detail-item">
-                    <span className="detail-label">Agency:</span>
-                    <span className="detail-value">{selectedAlert.issuer}</span>
+
+                  <div className="tx-grid-row">
+                    <div className="tx-grid-col">
+                      <label>Amount</label>
+                      <div className="font-bold amount-text">PHP {Number(tx?.amount || 0).toLocaleString()}</div>
+                    </div>
+                    <div className="tx-grid-col">
+                      <label>Transaction Type</label>
+                      <div>{tx?.transactionType || tx?.documentType || 'N/A'}</div>
+                    </div>
                   </div>
-                  {selectedAlert.programName && (
-                    <div className="detail-item">
-                      <span className="detail-label">Program:</span>
-                      <span className="detail-value">{selectedAlert.programName}</span>
+
+                  <div className="tx-grid-row">
+                    <div className="tx-grid-col">
+                      <label>Agency</label>
+                      <div>{tx?.agency || tx?.issuer || 'N/A'}</div>
+                    </div>
+                    <div className="tx-grid-col">
+                      <label>Beneficiary Type</label>
+                      <div>{tx?.beneficiaryType || 'N/A'}</div>
+                    </div>
+                  </div>
+
+                  <div className="tx-grid-row">
+                    <div className="tx-grid-col">
+                      <label>Blockchain Status</label>
+                      <div className={tx?.blockchainTxId ? 'chain-pill recorded' : 'chain-pill not-recorded'}>
+                        {tx?.blockchainTxId ? 'Recorded on Chain' : 'Not recorded'}
+                      </div>
+                    </div>
+                    <div className="tx-grid-col">
+                      <label>Block Number</label>
+                      <div>{tx?.blockNumber ? `#${tx.blockNumber}` : '-'}</div>
+                    </div>
+                  </div>
+
+                  {tx?.blockchainTxId && (
+                    <div className="tx-grid-desc">
+                      <label><Link2 size={12} style={{ display: 'inline', marginRight: 4 }} />Blockchain Tx Hash</label>
+                      <div className="hash-box">{tx.blockchainTxId}</div>
                     </div>
                   )}
-                  <div className="detail-item">
-                    <span className="detail-label">Amount:</span>
-                    <span className="detail-value">₱{selectedAlert.amount?.toLocaleString() || 'N/A'}</span>
-                  </div>
-                  <div className="detail-item">
-                    <span className="detail-label">Timestamp:</span>
-                    <span className="detail-value">{new Date(selectedAlert.timestamp).toLocaleString()}</span>
-                  </div>
-                </div>
-              </div>
 
-              <div className="investigation-section">
-                <h3>Risk Assessment</h3>
-                <div className="risk-assessment">
-                  <div className="risk-score-large">
-                    <div className="score-circle" style={{ borderColor: selectedAlert.severity === 'critical' ? '#ef4444' : selectedAlert.severity === 'high' ? '#f97316' : '#eab308' }}>
-                      <span className="score-number">{selectedAlert.riskScore}</span>
-                      <span className="score-label">Risk Score</span>
-                    </div>
-                    <div className="risk-level">
-                      <span className={`level-badge ${selectedAlert.severity}`}>{selectedAlert.riskLevel}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {selectedAlert.fraudPatterns && selectedAlert.fraudPatterns.length > 0 && (
-                <div className="investigation-section">
-                  <h3>Detected Patterns</h3>
-                  <div className="patterns-list">
-                    {selectedAlert.fraudPatterns.map((pattern, idx) => (
-                      <div key={idx} className="pattern-item">
-                        <div className="pattern-header">
-                          <span className="pattern-type"><AlertTriangle size={16} style={{ marginRight: '6px', color: '#f59e0b' }} /> {pattern.type}</span>
-                          <span className={`pattern-severity ${pattern.severity}`}>{pattern.severity}</span>
-                        </div>
-                        {pattern.description && (
-                          <p className="pattern-description">{pattern.description}</p>
-                        )}
-                      </div>
-                    ))}
+                  <div className="tx-grid-desc">
+                    <label>Description</label>
+                    <p>{tx?.description || tx?.type || 'N/A'}</p>
                   </div>
                 </div>
               )}
 
-              <div className="investigation-section">
-                <h3>Blockchain Details</h3>
-                <div className="detail-grid">
-                  <div className="detail-item">
-                    <span className="detail-label">From Address:</span>
-                    <span className="detail-value mono">{selectedAlert.fromAddress || 'N/A'}</span>
+              {modalTab === 'ai' && (
+                <FormulaPanel score={txRisk} patterns={tx?.fraudPatterns || tx?.riskPatterns || []} />
+              )}
+
+              {modalTab === 'csv' && (
+                <div>
+                  <div className="csv-details-banner">
+                    <div>
+                      <div className="csv-banner-title">CSV Import Source</div>
+                      <div className="csv-banner-sub">This transaction was imported from a CSV batch upload and processed through the AI pipeline.</div>
+                    </div>
                   </div>
-                  <div className="detail-item">
-                    <span className="detail-label">To Address:</span>
-                    <span className="detail-value mono">{selectedAlert.toAddress || 'N/A'}</span>
+
+                  <div className="csv-fields-grid">
+                    <div className="csv-field"><div className="csv-field-label">Transaction ID (Original)</div><div className="csv-field-value font-mono">{tx?.transactionId || tx?.documentId || '-'}</div></div>
+                    <div className="csv-field"><div className="csv-field-label">Payer Name (From)</div><div className="csv-field-value">{tx?.fromAddress || '-'}</div></div>
+                    <div className="csv-field"><div className="csv-field-label">Payee Name (To)</div><div className="csv-field-value">{tx?.toAddress || '-'}</div></div>
+                    <div className="csv-field"><div className="csv-field-label">Amount</div><div className="csv-field-value">PHP {Number(tx?.amount || 0).toLocaleString()}</div></div>
+                    <div className="csv-field"><div className="csv-field-label">Transaction Type</div><div className="csv-field-value">{tx?.transactionType || '-'}</div></div>
+                    <div className="csv-field"><div className="csv-field-label">Agency</div><div className="csv-field-value">{tx?.agency || '-'}</div></div>
+                    <div className="csv-field"><div className="csv-field-label">Program Name</div><div className="csv-field-value">{tx?.programName || '-'}</div></div>
+                    <div className="csv-field"><div className="csv-field-label">Beneficiary Type</div><div className="csv-field-value">{tx?.beneficiaryType || '-'}</div></div>
+                    <div className="csv-field"><div className="csv-field-label">Post Date</div><div className="csv-field-value">{new Date(tx?.timestamp || tx?.createdAt).toLocaleString()}</div></div>
                   </div>
                 </div>
-              </div>
+              )}
             </div>
-            <div className="modal-footer">
-              <button className="btn-secondary" onClick={() => setShowModal(false)}>Close</button>
+
+            <div className="tx-modal-footer">
+              <button type="button" className="btn-close" onClick={() => setShowModal(false)}>
+                Close
+              </button>
             </div>
           </div>
         </div>
       )}
-
     </div>
   );
 }

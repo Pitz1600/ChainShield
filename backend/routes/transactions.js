@@ -49,6 +49,7 @@ router.post('/', auth, requireOfficial, transactionController.createTransaction)
 router.post('/batch', auth, requireOfficial, transactionController.processBatch);
 router.get('/', auth, transactionController.getTransactions);
 router.get('/alerts', auth, transactionController.getAlerts);
+router.put('/batch-action', auth, requireOfficial, transactionController.batchAction);
 router.delete('/:id', auth, requireOfficial, transactionController.deleteTransaction);
 router.put('/:id/approve', auth, requireOfficial, transactionController.approveTransaction);
 router.get('/:id', auth, transactionController.getTransactionById);

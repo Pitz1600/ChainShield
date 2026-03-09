@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Lock, Upload, AlertCircle, CheckCircle, Clock, FileText, AlertTriangle, TrendingUp, Shield, BarChart, Info, Settings, Zap, Download, ChevronLeft, ChevronRight, Link, Clipboard, Circle, Plus, Trash2, X, Loader2 } from 'lucide-react';
+﻿import React, { useState } from 'react';
+import { Lock, Upload, AlertCircle, CheckCircle, Clock, FileText, AlertTriangle, TrendingUp, Shield, BarChart, Info, Settings, Zap, Download, ChevronLeft, ChevronRight, Link, Clipboard, Plus, Trash2, X, Loader2 } from 'lucide-react';
 import api from '../../services/api';
 import { isOfficial } from '../../utils/permissions';
 import '../../styles/IntegrityChecker.css';
@@ -84,6 +84,20 @@ const IntegrityChecker = ({ user }) => {
         return () => clearTimeout(timer);
     }, [actionMessage]);
 
+    const handleClearResults = () => {
+        setResults(null);
+        setSelectedTx(null);
+        setTablePage(1);
+        setDetailsPage(1);
+        setActionMessage('');
+        setError(null);
+        try {
+            localStorage.removeItem(RESULTS_CACHE_KEY);
+        } catch (e) {
+            console.warn('Failed to clear cached results', e);
+        }
+    };
+
     const handleApprove = async (tx) => {
         setApprovingId(tx.transactionId);
         try {
@@ -147,6 +161,28 @@ const IntegrityChecker = ({ user }) => {
             currency: 'PHP',
             minimumFractionDigits: 2
         }).format(number);
+    };
+
+    const getRiskCategory = (result) => {
+        if (result.anomalyCategory && result.anomalyCategory !== 'Other') return result.anomalyCategory;
+        if (result.riskCategory && result.riskCategory !== 'Other') return result.riskCategory;
+
+        const patternText = Array.isArray(result.anomalyPatterns)
+            ? result.anomalyPatterns.map((pattern) => String(pattern.type || pattern)).join(' ').toLowerCase()
+            : '';
+        const reasonText = Array.isArray(result.reasons) ? result.reasons.join(' ').toLowerCase() : '';
+        const combined = `${reasonText} ${patternText}`;
+
+        if (combined.includes('welfare') || result.transactionType === 'Social Welfare') return 'Welfare Anomaly';
+        if (combined.includes('procurement') || result.transactionType === 'Procurement') return 'Procurement Anomaly';
+        if (combined.includes('tax') || result.transactionType === 'Tax') return 'Tax Anomaly';
+        if (combined.includes('rapid sequential') || combined.includes('circular movement') || combined.includes('collusion')) {
+            return 'Network Pattern Anomaly';
+        }
+        if (combined.includes('unusual amount') || combined.includes('amount')) return 'Amount Anomaly';
+        if (combined.includes('timing') || combined.includes('unusual transaction time')) return 'Timing Anomaly';
+
+        return '-';
     };
 
     const handleAddManualRow = () => {
@@ -496,7 +532,7 @@ const IntegrityChecker = ({ user }) => {
                                     <div className="form-group">
                                         <label>Debit Amount (Payment Out)</label>
                                         <div className="currency-input-wrapper">
-                                            <span className="currency-symbol">₱</span>
+                                            <span className="currency-symbol">PHP</span>
                                             <input
                                                 type="text"
                                                 placeholder="0.00"
@@ -522,7 +558,7 @@ const IntegrityChecker = ({ user }) => {
                                     <div className="form-group">
                                         <label>Credit Amount (Funds In)</label>
                                         <div className="currency-input-wrapper">
-                                            <span className="currency-symbol">₱</span>
+                                            <span className="currency-symbol">PHP</span>
                                             <input
                                                 type="text"
                                                 placeholder="0.00"
@@ -626,13 +662,20 @@ const IntegrityChecker = ({ user }) => {
                 {results && (
                     <div className="results-container animate-fade-in">
                         <div className="results-header">
-                            <h3><CheckCircle size={24} className="success-icon" /> Integrity Check Complete</h3>
-                            <p>{results.message || 'AI analysis done. All rows are now pending official verification before blockchain/DB write.'}</p>
-                            {results.mappingConfidence && (
-                                <p className="mapping-confidence">
-                                    <BarChart size={16} className="mapping-icon" /> Column Detection Confidence: <strong>{results.mappingConfidence}%</strong>
-                                </p>
-                            )}
+                            <div className="results-header-main">
+                                <h3><CheckCircle size={24} className="success-icon" /> Integrity Check Complete</h3>
+                                <p>{results.message || 'AI analysis done. All rows are now pending official verification before blockchain/DB write.'}</p>
+                                {results.mappingConfidence && (
+                                    <p className="mapping-confidence">
+                                        <BarChart size={16} className="mapping-icon" /> Column Detection Confidence: <strong>{results.mappingConfidence}%</strong>
+                                    </p>
+                                )}
+                            </div>
+                            <div className="results-header-actions">
+                                <button type="button" className="btn-clear-results" onClick={handleClearResults}>
+                                    Clear Results
+                                </button>
+                            </div>
                         </div>
 
                         <div className="results-stats">
@@ -670,15 +713,30 @@ const IntegrityChecker = ({ user }) => {
 
                         {results.columnMappings && (
                             <div className="column-mappings">
-                                <h4><Clipboard size={18} style={{ marginRight: '4px', verticalAlign: 'text-bottom' }} /> Detected Column Mappings</h4>
-                                <div className="mappings-grid">
-                                    {Object.entries(results.columnMappings).map(([field, column]) => (
-                                        <div key={field} className="mapping-item">
-                                            <span className="field-name">{field}</span>
-                                            <span className="arrow">→</span>
-                                            <span className="column-name">{column}</span>
-                                        </div>
-                                    ))}
+                                <div className="section-title-row">
+                                    <h4><Clipboard size={18} style={{ marginRight: '4px', verticalAlign: 'text-bottom' }} /> Detected Column Mappings</h4>
+                                    <span className="section-count">{Object.keys(results.columnMappings).length} fields mapped</span>
+                                </div>
+                                <div className="mappings-table-wrapper">
+                                    <table className="mappings-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Field</th>
+                                                <th>Detected Column</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {Object.entries(results.columnMappings).map(([field, column]) => (
+                                                <tr key={field}>
+                                                    <td><code>{field}</code></td>
+                                                    <td>
+                                                        <span className="mapping-arrow">-&gt;</span>
+                                                        <span className="column-name">{column || '-'}</span>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         )}
@@ -689,10 +747,10 @@ const IntegrityChecker = ({ user }) => {
                             const tableSlice = results.results.slice(tableStart, tableStart + TABLE_PAGE_SIZE);
                             return (
                                 <div className="results-table-container">
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                                        <h4 style={{ margin: 0 }}>Checked Transactions with Risk Assessment</h4>
-                                        <span style={{ fontSize: '0.85rem', color: '#64748b' }}>
-                                            Showing {tableStart + 1}–{Math.min(tableStart + TABLE_PAGE_SIZE, results.results.length)} of {results.results.length}
+                                    <div className="table-header-row">
+                                        <h4>Checked Transactions with Risk Assessment</h4>
+                                        <span className="table-range-text">
+                                            Showing {tableStart + 1}-{Math.min(tableStart + TABLE_PAGE_SIZE, results.results.length)} of {results.results.length}
                                         </span>
                                     </div>
                                     <table className="results-table">
@@ -721,7 +779,7 @@ const IntegrityChecker = ({ user }) => {
                                                     <td data-label="Row">{result.row}</td>
                                                     <td data-label="Transaction ID" className="transaction-id">{result.transactionId}</td>
                                                     <td data-label="Type">{result.transactionType}</td>
-                                                    <td data-label="Amount" className="amount">₱{result.amount?.toLocaleString()}</td>
+                                                    <td data-label="Amount" className="amount">{formatCurrencyDisplay(result.amount)}</td>
                                                     <td data-label="Risk Score">
                                                         <span className={`risk-score risk-${result.riskLevel?.toLowerCase()}`}>
                                                             {result.riskScore}
@@ -733,8 +791,8 @@ const IntegrityChecker = ({ user }) => {
                                                         </span>
                                                     </td>
                                                     <td data-label="Risk Category">
-                                                        {result.anomalyCategory && result.anomalyCategory !== 'Other' ? (
-                                                            <span className="anomaly-type">{result.anomalyCategory}</span>
+                                                        {getRiskCategory(result) !== '-' ? (
+                                                            <span className="anomaly-type">{getRiskCategory(result)}</span>
                                                         ) : (
                                                             <span className="no-anomaly">-</span>
                                                         )}
@@ -803,7 +861,7 @@ const IntegrityChecker = ({ user }) => {
                                                     return acc;
                                                 }, [])
                                                 .map((p, i) => p === '...' ? (
-                                                    <span key={`dots-${i}`} style={{ color: '#94a3b8', padding: '0 0.25rem' }}>…</span>
+                                                    <span key={`dots-${i}`} style={{ color: '#94a3b8', padding: '0 0.25rem' }}>...</span>
                                                 ) : (
                                                     <button key={p} onClick={() => setTablePage(p)} style={{
                                                         width: '2rem', height: '2rem', borderRadius: '8px',
@@ -842,51 +900,67 @@ const IntegrityChecker = ({ user }) => {
                             const detailSlice = detailResults.slice(detailStart, detailStart + DETAILS_PAGE_SIZE);
                             return (
                                 <div className="risk-details">
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                                        <h4 style={{ margin: 0 }}>🔍 Risk Detection Details</h4>
-                                        <span style={{ fontSize: '0.85rem', color: '#64748b' }}>
-                                            Showing {detailStart + 1}–{Math.min(detailStart + DETAILS_PAGE_SIZE, detailResults.length)} of {detailResults.length}
+                                    <div className="section-title-row">
+                                        <h4>Risk Detection Details</h4>
+                                        <span className="section-count">
+                                            Showing {detailStart + 1} to {Math.min(detailStart + DETAILS_PAGE_SIZE, detailResults.length)} of {detailResults.length}
                                         </span>
                                     </div>
-                                    {detailSlice.map((result, idx) => (
-                                        <div key={idx} className={`risk-detail-card risk-${result.riskLevel?.toLowerCase()}`} style={{ animationDelay: `${idx * 0.1}s` }}>
-                                            <div className="risk-card-header">
-                                                <div className="risk-card-title">
-                                                    Row {result.row} — <span className="tx-id-highlight">{result.transactionId}</span>
-                                                    {result.riskScore !== undefined && (
-                                                        <span className="risk-score-text">
-                                                            Score: {result.riskScore}/100
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                <span className={`risk-card-badge risk-${result.riskLevel?.toLowerCase()}`}>
-                                                    {result.riskLevel === 'CRITICAL' && <><Circle size={10} fill="currentColor" className="circle-icon" /> CRITICAL</>}
-                                                    {result.riskLevel === 'HIGH' && <><Circle size={10} fill="currentColor" className="circle-icon" /> HIGH</>}
-                                                    {result.riskLevel === 'MEDIUM' && <><Circle size={10} fill="currentColor" className="circle-icon" /> MEDIUM</>}
-                                                    {result.riskLevel === 'LOW' && <><Circle size={10} fill="currentColor" className="circle-icon" /> LOW</>}
-                                                    {!result.riskLevel && <><Circle size={10} className="circle-icon" /> N/A</>}
-                                                </span>
-                                            </div>
-                                            <div className="risk-reasons-list">
-                                                {result.reasons.map((reason, rIdx) => (
-                                                    <div key={rIdx} className="risk-reason-item">
-                                                        <span className="warning-emoji">⚠️</span>
-                                                        {reason}
-                                                    </div>
-                                                ))}
-                                            </div>
-                                            {result.anomalyPatterns && result.anomalyPatterns.length > 0 && (
-                                                <div className="anomaly-patterns-container">
-                                                    <strong className="patterns-label">Patterns:</strong>
-                                                    {result.anomalyPatterns.map((pattern, pIdx) => (
-                                                        <span key={pIdx} className="pattern-pill">
-                                                            {pattern.type || pattern}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-                                    ))}
+                                    <div className="risk-details-table-wrapper">
+                                        <table className="risk-details-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Row</th>
+                                                    <th>Transaction</th>
+                                                    <th>Score</th>
+                                                    <th>Level</th>
+                                                    <th>Triggers</th>
+                                                    <th>Patterns</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {detailSlice.map((result, idx) => {
+                                                    const reasons = Array.isArray(result.reasons) ? result.reasons : [];
+                                                    const patterns = Array.isArray(result.anomalyPatterns) ? result.anomalyPatterns : [];
+                                                    return (
+                                                        <tr key={`${result.transactionId || 'row'}-${idx}`}>
+                                                            <td>{result.row}</td>
+                                                            <td className="transaction-id">{result.transactionId}</td>
+                                                            <td>
+                                                                <span className={`risk-score risk-${result.riskLevel?.toLowerCase()}`}>
+                                                                    {result.riskScore ?? 0}
+                                                                </span>
+                                                            </td>
+                                                            <td>
+                                                                <span className={`badge badge-${result.riskLevel?.toLowerCase()}`}>
+                                                                    {result.riskLevel || 'N/A'}
+                                                                </span>
+                                                            </td>
+                                                            <td>
+                                                                <div className="risk-chip-list">
+                                                                    {reasons.length > 0 ? reasons.map((reason, rIdx) => (
+                                                                        <span key={`${result.transactionId || 'row'}-reason-${rIdx}`} className="risk-chip">
+                                                                            <AlertTriangle size={12} />
+                                                                            {reason}
+                                                                        </span>
+                                                                    )) : <span className="no-anomaly">-</span>}
+                                                                </div>
+                                                            </td>
+                                                            <td>
+                                                                <div className="risk-chip-list">
+                                                                    {patterns.length > 0 ? patterns.map((pattern, pIdx) => (
+                                                                        <span key={`${result.transactionId || 'row'}-pattern-${pIdx}`} className="pattern-pill">
+                                                                            {pattern.type || pattern}
+                                                                        </span>
+                                                                    )) : <span className="no-anomaly">-</span>}
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })}
+                                            </tbody>
+                                        </table>
+                                    </div>
                                     {totalDetailPages > 1 && (
                                         <div style={{
                                             display: 'flex', justifyContent: 'center', alignItems: 'center',
@@ -914,7 +988,7 @@ const IntegrityChecker = ({ user }) => {
                                                     return acc;
                                                 }, [])
                                                 .map((p, i) => p === '...' ? (
-                                                    <span key={`dots-${i}`} style={{ color: '#94a3b8', padding: '0 0.25rem' }}>…</span>
+                                                    <span key={`dots-${i}`} style={{ color: '#94a3b8', padding: '0 0.25rem' }}>...</span>
                                                 ) : (
                                                     <button key={p} onClick={() => setDetailsPage(p)} style={{
                                                         width: '2rem', height: '2rem', borderRadius: '8px',
@@ -948,13 +1022,29 @@ const IntegrityChecker = ({ user }) => {
 
                         {results.errors && results.errors.length > 0 && (
                             <div className="errors-container">
-                                <h4><AlertTriangle size={20} style={{ display: 'inline', marginRight: '8px', color: '#ef4444' }} /> Errors ({results.errors.length})</h4>
-                                <div className="errors-list">
-                                    {results.errors.map((err, idx) => (
-                                        <div key={idx} className="error-item">
-                                            <strong>Row {err.row}:</strong> {err.error}
-                                        </div>
-                                    ))}
+                                <div className="section-title-row errors-head">
+                                    <h4><AlertTriangle size={18} style={{ marginRight: '6px', color: '#ef4444' }} /> Errors ({results.errors.length})</h4>
+                                    <span className="section-count">Review and fix invalid rows before re-uploading.</span>
+                                </div>
+                                <div className="errors-table-wrapper">
+                                    <table className="errors-table">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Row</th>
+                                                <th>Error Message</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {results.errors.map((err, idx) => (
+                                                <tr key={idx}>
+                                                    <td>{idx + 1}</td>
+                                                    <td><span className="error-row-badge">Row {err.row}</span></td>
+                                                    <td>{err.error}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         )}
@@ -983,7 +1073,7 @@ const IntegrityChecker = ({ user }) => {
                                     <div className="tx-grid-row">
                                         <div className="tx-grid-col">
                                             <label>Amount</label>
-                                            <div className="font-bold">₱{selectedTx.amount?.toLocaleString()}</div>
+                                            <div className="font-bold">{formatCurrencyDisplay(selectedTx.amount)}</div>
                                         </div>
                                         <div className="tx-grid-col">
                                             <label>Risk</label>
@@ -993,11 +1083,11 @@ const IntegrityChecker = ({ user }) => {
                                     <div className="tx-grid-row">
                                         <div className="tx-grid-col">
                                             <label>From</label>
-                                            <div>{selectedTx.fromAddress || '—'}</div>
+                                            <div>{selectedTx.fromAddress || '-'}</div>
                                         </div>
                                         <div className="tx-grid-col">
                                             <label>To</label>
-                                            <div>{selectedTx.toAddress || '—'}</div>
+                                            <div>{selectedTx.toAddress || '-'}</div>
                                         </div>
                                     </div>
                                     <div className="tx-grid-row">
@@ -1055,3 +1145,4 @@ const IntegrityChecker = ({ user }) => {
 };
 
 export default IntegrityChecker;
+

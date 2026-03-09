@@ -13,6 +13,7 @@ function Feedbacks({ user, initialTab = 'public' }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [activeTab, setActiveTab] = useState(initialTab);
     const [refreshTrigger, setRefreshTrigger] = useState(0);
+    const canPost = user?.role === 'resident' || user?.role === 'barangay_official';
 
     useEffect(() => {
         fetchFeedbacks();
@@ -52,9 +53,11 @@ function Feedbacks({ user, initialTab = 'public' }) {
                     <h1 className="hero-title">What people are saying</h1>
                     <p className="hero-subtitle">Share insights, flag issues, and see how officials respond.</p>
                     <div className="hero-actions">
-                        <button className="primary-btn" onClick={() => setIsModalOpen(true)}>
-                            <Plus size={18} /> Leave Feedback
-                        </button>
+                        {canPost && (
+                            <button className="primary-btn" onClick={() => setIsModalOpen(true)}>
+                                <Plus size={18} /> Leave Feedback
+                            </button>
+                        )}
                         <button className="ghost-btn" onClick={triggerRefresh}>
                             Refresh Feed
                         </button>
@@ -102,7 +105,7 @@ function Feedbacks({ user, initialTab = 'public' }) {
                     <button type="submit" className="search-btn">Search</button>
                 </form>
 
-                {!(isAdmin(user) || isOfficial(user)) && (
+                {canPost && (
                     <button className="create-feedback-btn" onClick={() => setIsModalOpen(true)}>
                         <Plus size={20} />
                         <span>New Post</span>
@@ -136,7 +139,7 @@ function Feedbacks({ user, initialTab = 'public' }) {
                 )}
             </div>
 
-            {isModalOpen && (
+            {isModalOpen && canPost && (
                 <FeedbackModal
                     onClose={() => setIsModalOpen(false)}
                     onSuccess={triggerRefresh}
