@@ -9,6 +9,7 @@ const QRCode = require('qrcode');
 const emailService = require('../services/emailService');
 const fs = require('fs');
 const path = require('path');
+const { normalizeEmail, findUserByEmail } = require('../utils/emailNormalization');
 
 // Artificial delay to prevent timing attacks and user enumeration
 const authDelay = () => new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 400));
@@ -30,15 +31,16 @@ const generateOnboardingToken = (userId, scope) => {
 exports.register = async (req, res) => {
   try {
     const { firstName, lastName, birthday, email, password, role, position } = req.body;
+    const normalizedEmail = normalizeEmail(email);
 
-    // SECURITY: Block admin registration via public endpoint
-    if (role === 'admin' || role === 'administrator') {
+    // SECURITY: Public registration is resident-only.
+    if (role && role !== 'resident') {
       return res.status(403).json({
         error: 'Registration failed. Please check your input and try again.'
       });
     }
 
-    const existingUser = await User.findOne({ email });
+    const existingUser = await findUserByEmail(User, normalizedEmail);
     if (existingUser) {
       // SECURITY: Generic error to prevent user enumeration
       return res.status(400).json({ error: 'Registration failed. Please check your input and try again.' });
@@ -52,9 +54,9 @@ exports.register = async (req, res) => {
       firstName,
       lastName,
       birthday: birthday || null,
-      email,
+      email: normalizedEmail,
       password,
-      role,
+      role: 'resident',
       position,
       isVerified: false,
       otp,
@@ -67,7 +69,7 @@ exports.register = async (req, res) => {
 
     // Send OTP via email
     try {
-      await emailService.sendOTPEmail(email, otp, user.username);
+      await emailService.sendOTPEmail(normalizedEmail, otp, user.username);
     } catch (emailError) {
       console.error('Failed to send OTP email:', emailError);
     }
@@ -106,7 +108,7 @@ exports.register = async (req, res) => {
       username: user.username,
       ipAddress: req.ip,
       userAgent: req.get('User-Agent'),
-      details: { email }
+      details: { email: normalizedEmail }
     });
   } catch (error) {
     console.error('[Registration Error]', error.message);
@@ -120,8 +122,11 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   try {
     const { email, password, totpCode, rememberDevice } = req.body;
+    const normalizedEmail = normalizeEmail(email);
+    const normalizedPassword = String(password || '').trim();
 
-    const user = await User.findOne({ email }).select('+twoFactorSecret +recoveryCodes +failedLoginAttempts +lockUntil');
+    const user = await findUserByEmail(User, normalizedEmail, '+twoFactorSecret +recoveryCodes +failedLoginAttempts +lockUntil');
+    console.log(`[LOGIN-DEBUG] Attempt email=${normalizedEmail} found=${Boolean(user)}`);
 
     // SECURITY: Artificial delay for all auth responses
     await authDelay();
@@ -136,7 +141,10 @@ exports.login = async (req, res) => {
 
     // 2. Verify user existence and password
     // SECURITY: Use generic message for both non-existent user and wrong password
-    if (!user || !(await user.comparePassword(password))) {
+    if (!user || !(await user.comparePassword(normalizedPassword))) {
+      if (user) {
+        console.log(`[LOGIN-DEBUG] Password mismatch for ${normalizedEmail}`);
+      }
       if (user) {
         user.failedLoginAttempts += 1;
 
@@ -182,6 +190,16 @@ exports.login = async (req, res) => {
     // Check if user account is active
     if (!user.isActive) {
       return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    // Self-heal legacy admin-created operational accounts that were left unverified by older flows.
+    if (
+      !user.isVerified &&
+      !user.mustChangePassword &&
+      ['administrator', 'barangay_official', 'auditor', 'analyst', 'investigator'].includes(user.role)
+    ) {
+      user.isVerified = true;
+      await user.save();
     }
 
     // CHECK 1: Must change password (new accounts)
@@ -377,7 +395,7 @@ exports.login = async (req, res) => {
       username: user.username,
       ipAddress: req.ip,
       userAgent: req.get('User-Agent'),
-      details: { email, twoFactor: user.twoFactorEnabled }
+      details: { email: normalizedEmail, twoFactor: user.twoFactorEnabled }
     });
   } catch (error) {
     console.error('[Login Error]', error.message);
@@ -593,7 +611,7 @@ exports.forceChangePassword = async (req, res) => {
     // Administrators must change to a different email during onboarding.
     let emailChanged = false;
     if (user.role === 'administrator') {
-      if (!newEmail || String(newEmail).trim().toLowerCase() === String(user.email).trim().toLowerCase()) {
+      if (!newEmail || normalizeEmail(newEmail) === normalizeEmail(user.email)) {
         return res.status(400).json({
           error: 'Administrator onboarding requires changing to a new email address.'
         });
@@ -603,15 +621,15 @@ exports.forceChangePassword = async (req, res) => {
     if (newEmail && newEmail !== user.email) {
       // Validate email format
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      const normalizedEmail = String(newEmail).trim().toLowerCase();
+      const normalizedEmail = normalizeEmail(newEmail);
 
       if (!emailRegex.test(normalizedEmail)) {
         return res.status(400).json({ error: 'Invalid email format.' });
       }
 
       // Check if email already exists
-      const existingUser = await User.findOne({ email: normalizedEmail });
-      if (existingUser) {
+      const existingUser = await findUserByEmail(User, normalizedEmail);
+      if (existingUser && String(existingUser._id) !== String(user._id)) {
         return res.status(400).json({ error: 'Email is already in use.' });
       }
 
@@ -671,6 +689,13 @@ exports.forceChangePassword = async (req, res) => {
         email: user.email,
         message: 'Password changed. Please verify your new email address.'
       });
+    }
+
+    // For admin-provisioned accounts that were previously unverified, complete verification
+    // once password onboarding is successfully finished without an email change.
+    if (!user.isVerified) {
+      user.isVerified = true;
+      await user.save();
     }
 
     // If must also setup 2FA, return that requirement
@@ -1034,8 +1059,9 @@ exports.requestEmailChange = async (req, res) => {
     }
 
     // Check if new email is available
-    const existing = await User.findOne({ email: newEmail });
-    if (existing) {
+    const normalizedNewEmail = normalizeEmail(newEmail);
+    const existing = await findUserByEmail(User, normalizedNewEmail);
+    if (existing && String(existing._id) !== String(user._id)) {
       // Generic error — don't reveal if email exists
       return res.status(400).json({ error: 'Request denied. Please try again.' });
     }
@@ -1045,7 +1071,7 @@ exports.requestEmailChange = async (req, res) => {
     const otpNew = generateOTP();
     const expires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
-    user.pendingEmail = newEmail;
+    user.pendingEmail = normalizedNewEmail;
     user.emailChangeOtpOld = otpOld;
     user.emailChangeOtpNew = otpNew;
     user.emailChangeExpires = expires;
@@ -1054,7 +1080,7 @@ exports.requestEmailChange = async (req, res) => {
     // Send OTPs
     try {
       await emailService.sendEmailChangeOTP(user.email, otpOld, true);
-      await emailService.sendEmailChangeOTP(newEmail, otpNew, false);
+      await emailService.sendEmailChangeOTP(normalizedNewEmail, otpNew, false);
     } catch (emailError) {
       console.error('Failed to send email change OTPs:', emailError);
     }
@@ -1066,7 +1092,7 @@ exports.requestEmailChange = async (req, res) => {
       username: user.username,
       ipAddress: req.ip,
       userAgent: req.get('User-Agent'),
-      details: { oldEmail: user.email, newEmail }
+      details: { oldEmail: user.email, newEmail: normalizedNewEmail }
     });
 
     res.json({
@@ -1124,11 +1150,12 @@ exports.confirmEmailChange = async (req, res) => {
 exports.forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
+    const normalizedEmail = normalizeEmail(email);
 
     // ALWAYS return generic response — prevent enumeration
     const genericResponse = { success: true, message: 'If an account with that email exists, a reset link has been sent.' };
 
-    const user = await User.findOne({ email });
+    const user = await findUserByEmail(User, normalizedEmail);
     if (!user) {
       // Log but return generic
       return res.json(genericResponse);

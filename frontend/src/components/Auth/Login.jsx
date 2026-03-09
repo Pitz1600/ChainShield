@@ -106,7 +106,10 @@ function Login({ onLogin, onNavigate }) {
         return;
       }
 
-      const payload = { email: formData.email, password: formData.password };
+      const payload = {
+        email: String(formData.email || '').trim().toLowerCase(),
+        password: String(formData.password || '').trim()
+      };
 
       // Include TOTP code if on that step
       if (step === 'totp') {

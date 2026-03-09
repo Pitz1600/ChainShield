@@ -5,6 +5,14 @@ import '../../styles/AdminPanel.css';
 
 function UserManagement() {
     const managedRoleOptions = ['resident', 'barangay_official', 'auditor', 'administrator', 'analyst'];
+    const rolePositionOptions = {
+        resident: ['Resident'],
+        barangay_official: ['Barangay Captain', 'Barangay Secretary', 'Barangay Treasurer', 'Barangay Kagawad', 'Barangay Clerk'],
+        auditor: ['Internal Auditor', 'Compliance Auditor', 'Financial Auditor'],
+        administrator: ['System Administrator'],
+        analyst: ['Fraud Analyst', 'Data Analyst']
+    };
+    const getDefaultPositionForRole = (role) => rolePositionOptions[role]?.[0] || '';
     const createRoleGuidance = {
         resident: {
             tone: 'neutral',
@@ -36,6 +44,8 @@ function UserManagement() {
     const [stats, setStats] = useState({ totalUsers: 0, activeUsers: 0, pendingVerification: 0 });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [createError, setCreateError] = useState('');
+    const [createSuccess, setCreateSuccess] = useState('');
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
     const [editFormData, setEditFormData] = useState({
@@ -56,8 +66,9 @@ function UserManagement() {
         birthday: '',
         email: '',
         password: '',
+        confirmPassword: '',
         role: 'resident',
-        position: ''
+        position: getDefaultPositionForRole('resident')
     });
     const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
 
@@ -120,8 +131,16 @@ function UserManagement() {
 
     const handleCreateUser = async (e) => {
         e.preventDefault();
+        setCreateError('');
+        setCreateSuccess('');
+        if (createFormData.password !== createFormData.confirmPassword) {
+            setCreateError('Passwords do not match.');
+            return;
+        }
         try {
-            await api.post('/admin/users', createFormData);
+            const payload = { ...createFormData };
+            delete payload.confirmPassword;
+            await api.post('/admin/users', payload);
             setIsCreateModalOpen(false);
             setCreateFormData({
                 firstName: '',
@@ -129,14 +148,33 @@ function UserManagement() {
                 birthday: '',
                 email: '',
                 password: '',
+                confirmPassword: '',
                 role: 'resident',
-                position: ''
+                position: getDefaultPositionForRole('resident')
             });
             fetchUsers();
             fetchStats(); // Update stats
+            setCreateSuccess('User created successfully. Ask the user to log in and complete first-password onboarding.');
         } catch (err) {
-            alert(err.response?.data?.error || err.message);
+            setCreateError(err.response?.data?.error || err.message);
         }
+    };
+
+    const handleCreateRoleChange = (nextRole) => {
+        setCreateFormData({
+            ...createFormData,
+            role: nextRole,
+            position: getDefaultPositionForRole(nextRole)
+        });
+    };
+
+    const handleEditRoleChange = (nextRole) => {
+        const keepPosition = rolePositionOptions[nextRole]?.includes(editFormData.position);
+        setEditFormData({
+            ...editFormData,
+            role: nextRole,
+            position: keepPosition ? editFormData.position : getDefaultPositionForRole(nextRole)
+        });
     };
 
     const handleDeleteUser = async (userId) => {
@@ -214,6 +252,11 @@ function UserManagement() {
                     Create User
                 </button>
             </div>
+            {createSuccess && (
+                <div className="success-banner" style={{ marginBottom: '1rem' }}>
+                    {createSuccess}
+                </div>
+            )}
 
             {/* Users Table */}
             <div className="table-container">
@@ -347,7 +390,7 @@ function UserManagement() {
                                         <select
                                             className="form-select"
                                             value={editFormData.role}
-                                            onChange={(e) => setEditFormData({ ...editFormData, role: e.target.value })}
+                                            onChange={(e) => handleEditRoleChange(e.target.value)}
                                             disabled={editingUser && editingUser._id === currentUser.id}
                                         >
                                             {managedRoleOptions.map((role) => (
@@ -359,13 +402,18 @@ function UserManagement() {
                                     </div>
                                     <div className="form-group">
                                         <label className="form-label">Position / Title</label>
-                                        <input
-                                            type="text"
-                                            className="form-input"
+                                        <select
+                                            className="form-select"
                                             value={editFormData.position}
                                             onChange={(e) => setEditFormData({ ...editFormData, position: e.target.value })}
-                                            placeholder="e.g. Captain, Secretary"
-                                        />
+                                        >
+                                            {[
+                                                ...(rolePositionOptions[editFormData.role] || []),
+                                                ...((editFormData.position && !(rolePositionOptions[editFormData.role] || []).includes(editFormData.position)) ? [editFormData.position] : [])
+                                            ].map((position) => (
+                                                <option key={position} value={position}>{position}</option>
+                                            ))}
+                                        </select>
                                     </div>
                                 </div>
                                 <div className="modal-footer">
@@ -389,6 +437,11 @@ function UserManagement() {
                             </button>
                         </div>
                         <div className="modal-content">
+                            {createError && (
+                                <div className="error-banner" style={{ margin: '0 1.5rem 1rem' }}>
+                                    {createError}
+                                </div>
+                            )}
                             <form onSubmit={handleCreateUser}>
                                 <div className="form-grid">
                                     <div className="form-group">
@@ -445,11 +498,23 @@ function UserManagement() {
                                         <div className="form-hint">Minimum 8 chars, uppercase, lowercase, number, and special character.</div>
                                     </div>
                                     <div className="form-group">
+                                        <label className="form-label">Confirm Password</label>
+                                        <input
+                                            type="password"
+                                            className="form-input"
+                                            value={createFormData.confirmPassword}
+                                            onChange={(e) => setCreateFormData({ ...createFormData, confirmPassword: e.target.value })}
+                                            autoComplete="new-password"
+                                            required
+                                            minLength={8}
+                                        />
+                                    </div>
+                                    <div className="form-group">
                                         <label className="form-label">Role</label>
                                         <select
                                             className="form-select"
                                             value={createFormData.role}
-                                            onChange={(e) => setCreateFormData({ ...createFormData, role: e.target.value })}
+                                            onChange={(e) => handleCreateRoleChange(e.target.value)}
                                         >
                                             {managedRoleOptions.map((role) => (
                                                 <option key={role} value={role}>
@@ -464,13 +529,15 @@ function UserManagement() {
                                     </div>
                                     <div className="form-group full-width">
                                         <label className="form-label">Position / Title</label>
-                                        <input
-                                            type="text"
-                                            className="form-input"
+                                        <select
+                                            className="form-select"
                                             value={createFormData.position}
                                             onChange={(e) => setCreateFormData({ ...createFormData, position: e.target.value })}
-                                            placeholder="e.g. Captain, Secretary"
-                                        />
+                                        >
+                                            {(rolePositionOptions[createFormData.role] || ['']).map((position) => (
+                                                <option key={position} value={position}>{position}</option>
+                                            ))}
+                                        </select>
                                     </div>
                                 </div>
                                 <div className="modal-footer">

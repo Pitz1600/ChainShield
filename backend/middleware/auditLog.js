@@ -4,19 +4,19 @@ const AuditLog = require('../models/AuditLog');
 // We use regex-like logic or startsWith in the function below to match these
 const actionMap = [
     // Auth
-    { method: 'POST', path: '/api/auth/register', action: 'Registered a new account' },
-    { method: 'POST', path: '/api/auth/login', action: 'Logged in' },
-    { method: 'POST', path: '/api/auth/logout', action: 'Logged out' },
-    { method: 'POST', path: '/api/auth/forgotpassword', action: 'Requested password reset' },
-    { method: 'PUT', path: '/api/auth/resetpassword', action: 'Reset password' },
+    { method: 'POST', path: '/api/auth/register', action: 'user_register' },
+    { method: 'POST', path: '/api/auth/login', action: 'user_login' },
+    { method: 'POST', path: '/api/auth/logout', action: 'user_logout' },
+    { method: 'POST', path: '/api/auth/forgotpassword', action: 'password_reset_requested' },
+    { method: 'PUT', path: '/api/auth/resetpassword', action: 'password_reset_completed' },
     { method: 'GET', path: '/api/auth/me', action: 'Unimportant' }, // Skip logging this potentially noisy one? Or log as "Checked profile"
 
     // Transactions
     { method: 'POST', path: '/api/transactions/import', action: 'transactions_imported_csv' },
-    { method: 'GET', path: '/api/transactions/template', action: 'Downloaded transaction template' },
-    { method: 'GET', path: '/api/transactions/my-transactions', action: 'Viewed personal transactions' },
-    { method: 'POST', path: '/api/transactions', action: 'Created a new transaction' },
-    { method: 'GET', path: '/api/transactions', action: 'Viewed all transactions' },
+    { method: 'GET', path: '/api/transactions/template', action: 'Unimportant' },
+    { method: 'GET', path: '/api/transactions/my-transactions', action: 'Unimportant' },
+    { method: 'POST', path: '/api/transactions', action: 'Unimportant' },
+    { method: 'GET', path: '/api/transactions', action: 'Unimportant' },
     { method: 'GET', path: '/api/transactions/alerts', action: 'Viewed transaction alerts' },
 
     // Alerts
@@ -28,9 +28,9 @@ const actionMap = [
     { method: 'GET', path: '/api/transactions/alerts/stats', action: 'Viewed transaction alerts' },
 
     // Admin
-    { method: 'GET', path: '/api/admin/users', action: 'Viewed user list' },
-    { method: 'PUT', path: '/api/admin/users', action: 'Updated a user' },
-    { method: 'DELETE', path: '/api/admin/users', action: 'Deleted a user' },
+    { method: 'GET', path: '/api/admin/users', action: 'Unimportant' },
+    { method: 'PUT', path: '/api/admin/users', action: 'admin_update_user' },
+    { method: 'DELETE', path: '/api/admin/users', action: 'admin_delete_user' },
 
     // Complaints
     { method: 'POST', path: '/api/complaints', action: 'Filed a complaint' },
@@ -50,23 +50,14 @@ const getReadableAction = (method, originalUrl) => {
 
     // 2. Pattern matching (simple startsWith for now, can be expanded to regex if needed)
     if (urlPath.startsWith('/api/transactions/') && method === 'GET') {
-        return 'Viewed transaction details';
+        return 'Unimportant';
     }
     if (urlPath.startsWith('/api/complaints/') && method === 'GET') {
-        return 'Viewed complaint details';
+        return 'Unimportant';
     }
 
-    // 3. Fallback generic readable
-    const resource = urlPath.split('/')[2]; // e.g., 'transactions' from /api/transactions
-    const prettyResource = resource ? resource.charAt(0).toUpperCase() + resource.slice(1) : 'Resource';
-
-    switch (method) {
-        case 'GET': return `Viewed ${prettyResource}`;
-        case 'POST': return `Created ${prettyResource}`;
-        case 'PUT': return `Updated ${prettyResource}`;
-        case 'DELETE': return `Deleted ${prettyResource}`;
-        default: return `${method} ${prettyResource}`;
-    }
+    // 3. Fallback to skip unknown/non-enum actions
+    return 'Unimportant';
 };
 
 const auditLogMiddleware = (req, res, next) => {

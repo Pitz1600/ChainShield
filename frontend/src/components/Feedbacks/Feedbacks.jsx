@@ -13,7 +13,7 @@ function Feedbacks({ user, initialTab = 'public' }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [activeTab, setActiveTab] = useState(initialTab);
     const [refreshTrigger, setRefreshTrigger] = useState(0);
-    const canPost = user?.role === 'resident' || user?.role === 'barangay_official';
+    const canPost = ['resident', 'barangay_official', 'auditor'].includes(user?.role);
 
     useEffect(() => {
         fetchFeedbacks();

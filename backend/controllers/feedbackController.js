@@ -73,11 +73,11 @@ exports.getAllFeedbacks = async (req, res) => {
 
 // @desc    Create a new feedback
 // @route   POST /api/feedbacks
-// @access  Private (Resident, Barangay Official)
+// @access  Private (Resident, Barangay Official, Auditor)
 exports.createFeedback = async (req, res) => {
     try {
-        if (!['resident', 'barangay_official'].includes(req.user.role)) {
-            return res.status(403).json({ error: 'Only residents and barangay officials can post feedback.' });
+        if (!['resident', 'barangay_official', 'auditor'].includes(req.user.role)) {
+            return res.status(403).json({ error: 'Only residents, barangay officials, and auditors can post feedback.' });
         }
 
         const { content } = req.body;

@@ -111,3 +111,27 @@
 - Kept centered text branding (`CHAINSHIELD`, `BARANGAY PORTAL`).
 - Added logo back as a watermark behind brand text (instead of a separate icon block).
 - Tuned watermark size and visibility based on feedback, ending at full opacity as requested.
+
+---
+
+## [2026-03-10] - Authentication Reliability and Auditor Posting Access
+
+### Account Creation and Login Fixes
+- Fixed account creation/login mismatch for Gmail addresses with dot variants (e.g., `first.last@gmail.com` and `firstlast@gmail.com`).
+- Added centralized email normalization and lookup fallback to treat Gmail dot/alias forms consistently.
+- Applied normalization to:
+  - admin user creation
+  - admin invitation flow
+  - login
+  - registration duplicate checks
+  - forgot-password lookup
+  - onboarding email change and secure email-change request flow
+- Prevented duplicate accounts across equivalent Gmail variants.
+
+### Admin-Provisioned Account Stability
+- Hardened admin-created user flow to avoid invalid login behavior caused by inconsistent email handling.
+- Kept onboarding requirements intact while ensuring created operational accounts remain usable.
+
+### Auditor Role Capability Update
+- Enabled `auditor` accounts to create community feedback posts (same post-creation capability as resident/barangay official for feedback submission).
+- Updated both backend permission checks and frontend UI visibility logic for post creation actions.

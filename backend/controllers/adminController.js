@@ -3,6 +3,7 @@ const AuditLog = require('../models/AuditLog');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const emailService = require('../services/emailService');
+const { normalizeEmail, findUserByEmail } = require('../utils/emailNormalization');
 
 /**
  * Admin Controller
@@ -43,9 +44,10 @@ exports.getAllUsers = async (req, res) => {
 exports.inviteAdmin = async (req, res) => {
     try {
         const { email, username } = req.body;
+        const normalizedEmail = normalizeEmail(email);
 
         // Check if user already exists
-        const existingUser = await User.findOne({ email });
+        const existingUser = await findUserByEmail(User, normalizedEmail);
         if (existingUser) {
             return res.status(400).json({ error: 'Request denied. Please try again.' });
         }
@@ -57,7 +59,7 @@ exports.inviteAdmin = async (req, res) => {
         // Create pending admin user
         const user = new User({
             username,
-            email,
+            email: normalizedEmail,
             password: crypto.randomBytes(32).toString('hex'), // Temporary random password
             role: 'administrator',
             isVerified: false,
@@ -71,7 +73,7 @@ exports.inviteAdmin = async (req, res) => {
 
         // Send invitation email
         try {
-            await emailService.sendAdminInvitation(email, inviteToken, req.user.username);
+            await emailService.sendAdminInvitation(normalizedEmail, inviteToken, req.user.username);
 
             res.status(201).json({
                 success: true,
@@ -445,34 +447,36 @@ exports.getAuditLogs = async (req, res) => {
 exports.createUser = async (req, res) => {
     try {
         const { firstName, lastName, birthday, email, password, role, position } = req.body;
+        const normalizedEmail = normalizeEmail(email);
+        const normalizedPassword = String(password || '').trim();
 
         // Basic validation
-        if (!firstName || !lastName || !email || !password || !role) {
+        if (!firstName || !lastName || !email || !normalizedPassword || !role) {
             return res.status(400).json({ error: 'All fields are required' });
         }
 
         // Restrict allowed roles for this endpoint to operational roles requested by product
-        const creatableRoles = ['administrator', 'auditor', 'barangay_official', 'resident'];
+        const creatableRoles = ['administrator', 'auditor', 'barangay_official', 'resident', 'analyst'];
         if (!creatableRoles.includes(role)) {
             return res.status(400).json({ error: 'Invalid role for user creation.' });
         }
 
         // Validate email format
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(String(email).trim())) {
+        if (!emailRegex.test(String(email || '').trim())) {
             return res.status(400).json({ error: 'Invalid email format.' });
         }
 
         // Validate password strength
         const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-        if (!passwordRegex.test(password)) {
+        if (!passwordRegex.test(normalizedPassword)) {
             return res.status(400).json({
                 error: 'Password must be at least 8 characters with uppercase, lowercase, number, and special character.'
             });
         }
 
         // Check for existing user
-        const existingUser = await User.findOne({ email });
+        const existingUser = await findUserByEmail(User, normalizedEmail);
         if (existingUser) {
             return res.status(400).json({ error: 'Request denied. Please try again.' });
         }
@@ -482,11 +486,14 @@ exports.createUser = async (req, res) => {
             firstName,
             lastName,
             birthday: birthday || null,
-            email: String(email).trim().toLowerCase(),
-            password,
+            email: normalizedEmail,
+            password: normalizedPassword,
             role,
             position,
-            isVerified: false,
+            invitedBy: req.user._id,
+            // Admin-provisioned accounts are trusted records; onboarding still enforces password change
+            // (and mandatory 2FA for admins) before full access.
+            isVerified: true,
             isActive: true,
             mustChangePassword: true,
             mustSetup2FA: role === 'administrator'
