@@ -408,13 +408,13 @@ function Login({ onLogin, onNavigate }) {
   );
 
   return (
-    <div className="auth-container">
+    <div className="auth-container login-page">
       <div className="auth-sidebar">
         <div className="auth-sidebar-content">
           <div className="sidebar-brand" onClick={() => onNavigate('welcome')} style={{ cursor: 'pointer' }}>
-            <div className="sidebar-logo"><img src="/ChainShield_logo.png" alt="ChainShield Logo" className="logo-image" /></div>
+            <div className="sidebar-logo"><img src="/ChainShield_logo.png" alt="ChainShield Logo" className="logo-image login-logo-image" /></div>
             <h2 className="sidebar-title">ChainShield</h2>
-            <p className="sidebar-subtitle">Transaction Verification System</p>
+            <p className="sidebar-subtitle">Barangay Transaction Integrity Monitoring System</p>
           </div>
 
           <div className="sidebar-illustration">

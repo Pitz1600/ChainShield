@@ -24,6 +24,38 @@
   text-align: center;
 }
 
+.login-page .sidebar-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: auto 0;
+}
+
+.login-page .sidebar-title {
+  text-align: center;
+}
+
+.login-page .auth-sidebar-content {
+  justify-content: center;
+}
+
+.login-page .sidebar-logo {
+  width: auto;
+  height: auto;
+  background: transparent;
+  border-radius: 0;
+  backdrop-filter: none;
+}
+
+.login-page .sidebar-illustration {
+  display: flex;
+}
+
+.login-page .sidebar-info {
+  display: block;
+}
+
 .sidebar-logo {
   width: 80px;
   height: 80px;
@@ -35,6 +67,12 @@
   font-size: 40px;
   margin: 0 auto 16px;
   backdrop-filter: blur(10px);
+}
+
+/* Match login logo image size to welcome page logo. */
+.login-logo-image {
+  height: 150px;
+  width: auto;
 }
 
 .sidebar-title {
