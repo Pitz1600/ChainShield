@@ -71,7 +71,7 @@ const loginLimiter = rateLimit({
         const resetSeconds = Math.ceil(resetMs / 1000);
         const resetMinutes = Math.ceil(resetSeconds / 60);
         return res.status(options.statusCode).json({
-            error: `Too many login attempts. Try again in about ${resetMinutes} minute(s).`,
+            error: 'Account is temporarily locked.',
             retryAfterSeconds: resetSeconds,
             retryAfterMinutes: resetMinutes
         });

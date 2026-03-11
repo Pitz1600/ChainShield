@@ -133,9 +133,12 @@ exports.login = async (req, res) => {
 
     // 1. Check if account is locked
     if (user && user.lockUntil && user.lockUntil > Date.now()) {
-      const remainingMinutes = Math.ceil((user.lockUntil - Date.now()) / (60 * 1000));
+      const remainingMs = Math.max(user.lockUntil - Date.now(), 0);
+      const remainingSeconds = Math.ceil(remainingMs / 1000);
       return res.status(401).json({
-        error: `Account is temporarily locked. Please try again in ${remainingMinutes} minutes.`
+        error: 'Account is temporarily locked.',
+        lockUntil: user.lockUntil,
+        retryAfterSeconds: remainingSeconds
       });
     }
 
@@ -150,7 +153,7 @@ exports.login = async (req, res) => {
 
         // Lock account after 5 failed attempts (OWASP Recommendation)
         if (user.failedLoginAttempts >= 5) {
-          user.lockUntil = Date.now() + 15 * 60 * 1000; // Lock for 15 minutes
+          user.lockUntil = Date.now() + 5 * 60 * 1000; // Lock for 5 minutes
           await AuditLog.logAction({
             action: 'suspicious_login',
             userId: user._id,
@@ -196,7 +199,7 @@ exports.login = async (req, res) => {
     if (
       !user.isVerified &&
       !user.mustChangePassword &&
-      ['administrator', 'barangay_official', 'auditor', 'analyst', 'investigator'].includes(user.role)
+      ['administrator', 'barangay_official', 'auditor'].includes(user.role)
     ) {
       user.isVerified = true;
       await user.save();

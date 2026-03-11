@@ -42,27 +42,6 @@ const PERMISSIONS = {
         'generate_reports',
     ],
 
-    // SECURITY FIX (V1): Analyst permissions — read-only fraud investigation access
-    analyst: [
-        'view_public_records',
-        'track_transactions',
-        'view_analytics',
-        'view_fraud_cases',
-        'view_verification_results',
-    ],
-
-    // SECURITY FIX (V1): Investigator permissions — fraud investigation + reporting
-    investigator: [
-        'view_public_records',
-        'track_transactions',
-        'view_analytics',
-        'view_fraud_cases',
-        'view_verification_results',
-        'respond_complaints',
-        'validate_documents',
-        'generate_reports',
-    ],
-
     // Administrator permissions (includes all permissions)
     administrator: [
         'view_public_records',
@@ -147,7 +126,7 @@ const requireAdmin = requireRole('administrator');
 const requireOfficial = requireRole(['barangay_official', 'administrator']);
 
 /**
- * Check if user can view flagged cases (analyst, investigator, or admin)
+ * Check if user can view flagged cases (auditor or admin)
  * Note: Keeping backward compatibility with old roles
  */
 const requireFraudAccess = (req, res, next) => {
@@ -155,11 +134,11 @@ const requireFraudAccess = (req, res, next) => {
         return res.status(401).json({ error: 'Authentication required' });
     }
 
-    const allowedRoles = ['administrator', 'auditor', 'analyst', 'investigator'];
+    const allowedRoles = ['administrator', 'auditor'];
 
     if (!allowedRoles.includes(req.user.role)) {
         return res.status(403).json({
-            error: 'Access denied. Case review access requires analyst, investigator, or administrator role.',
+            error: 'Access denied. Case review access requires auditor or administrator role.',
             userRole: req.user.role
         });
     }
@@ -175,3 +154,4 @@ module.exports = {
     requireFraudAccess,
     PERMISSIONS,
 };
+

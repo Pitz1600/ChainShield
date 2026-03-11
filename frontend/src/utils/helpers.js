@@ -14,10 +14,20 @@ export const truncateHash = (hash, length = 10) => {
 };
 
 export const getRiskLevel = (score) => {
-  if (score >= 80) return 'critical';
-  if (score >= 60) return 'high';
-  if (score >= 40) return 'medium';
+  if (score >= 90) return 'critical';
+  if (score >= 71) return 'high';
+  if (score >= 41) return 'medium';
   return 'low';
+};
+
+export const formatAddressLabel = (value) => {
+  if (!value) return '';
+  let label = String(value).trim();
+  if (label.toLowerCase().startsWith('0x')) {
+    label = label.slice(2);
+  }
+  label = label.replace(/0+$/g, '').trim();
+  return label || String(value).trim();
 };
 
 export const exportToCSV = (data, filename) => {

@@ -58,7 +58,7 @@ trustedDeviceSchema.statics.isDeviceTrusted = async function (userId, userAgent,
     const deviceHash = this.generateDeviceHash(userAgent);
     const ipHash = this.generateIpHash(ip);
 
-    const device = await this.findOne({
+    let device = await this.findOne({
         userId,
         deviceHash,
         ipHash,
@@ -67,6 +67,20 @@ trustedDeviceSchema.statics.isDeviceTrusted = async function (userId, userAgent,
 
     if (device) {
         // Update last used
+        device.lastUsed = new Date();
+        await device.save();
+        return true;
+    }
+
+    // Fallback: trust by device hash only (IP may change in local/proxy setups)
+    device = await this.findOne({
+        userId,
+        deviceHash,
+        expiresAt: { $gt: new Date() }
+    });
+
+    if (device) {
+        device.ipHash = ipHash;
         device.lastUsed = new Date();
         await device.save();
         return true;

@@ -57,7 +57,7 @@ class RiskAssessmentService {
       const analysis = {
         riskScore,
         riskLevel,
-        requiresReview: riskScore >= 60,
+        requiresReview: riskScore >= 71,
         anomalyCategory: this.classifyAnomalyCategory(transaction, reasons),
         reasons,
         shapValues: mlResponse.shapValues || {},
@@ -301,7 +301,7 @@ class RiskAssessmentService {
       return {
         riskScore: Math.round(riskScore),
         riskLevel: this.getRiskLevel(riskScore),
-        isFraudulent: riskScore >= 60,
+        isFraudulent: riskScore >= 71,
         anomalyCategory: this.classifyFraudType(transaction, []),
         explanation: ['ML prediction from free API'],
         shapValues: {},
@@ -350,7 +350,7 @@ class RiskAssessmentService {
     return {
       riskScore,
       riskLevel,
-      requiresReview: riskScore >= 60,
+      requiresReview: riskScore >= 71,
       anomalyCategory: this.classifyAnomalyCategory(transaction, reasons),
       reasons,
       shapValues: {},
@@ -386,9 +386,8 @@ class RiskAssessmentService {
    * Get risk level from score
    */
   getRiskLevel(riskScore) {
-    if (riskScore >= 80) return 'CRITICAL';
-    if (riskScore >= 60) return 'HIGH';
-    if (riskScore >= 40) return 'MEDIUM';
+    if (riskScore >= 71) return 'HIGH';
+    if (riskScore >= 41) return 'MEDIUM';
     return 'LOW';
   }
 
@@ -422,9 +421,9 @@ class RiskAssessmentService {
    * Calculate alert severity from risk score
    */
   calculateSeverity(riskScore) {
-    if (riskScore >= 80) return 'critical';
-    if (riskScore >= 60) return 'high';
-    if (riskScore >= 40) return 'medium';
+    if (riskScore >= 90) return 'critical';
+    if (riskScore >= 71) return 'high';
+    if (riskScore >= 41) return 'medium';
     return 'low';
   }
 }

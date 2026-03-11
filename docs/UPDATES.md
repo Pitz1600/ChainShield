@@ -135,3 +135,30 @@
 ### Auditor Role Capability Update
 - Enabled `auditor` accounts to create community feedback posts (same post-creation capability as resident/barangay official for feedback submission).
 - Updated both backend permission checks and frontend UI visibility logic for post creation actions.
+
+---
+
+## [2026-03-11] - Hybrid Fraud Detection, CSV Validation, UI Refinements, and Role Cleanup
+
+### Fraud Detection Pipeline
+- Implemented batch Z-score detection with risk scoring and high-risk alerting only.
+- Added behavior signals (velocity, repeated receiver, amount spike) and AI integration with ML service during CSV uploads.
+- Enforced high-risk blockchain recording and readable “Reason Why” output across key screens.
+
+### CSV Integrity Rules
+- CSV import now requires `agency` and `program_name` columns.
+- Row-level validation blocks missing agency or program name.
+- Updated the downloadable template to include required fields.
+
+### UI/UX Improvements
+- Added AI Combined/ML Score visibility in transaction modals.
+- Replaced clipped risk gauge with a horizontal risk bar in transaction details and alerts.
+- Improved Analytics data accuracy (live counts, staged totals), ratios, and layout alignment.
+- Added overflow protection and character limits for feedbacks/replies with counters.
+- Hidden “Unknown / N/A” agency/program labels when data is absent.
+
+### Role Cleanup
+- Removed `analyst` and `investigator` roles from backend and frontend role lists, permissions, and UI options.
+
+### Reliability Fixes
+- Improved trusted-device handling for 2FA to avoid unnecessary prompts after restarts.

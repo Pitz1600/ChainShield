@@ -635,8 +635,12 @@
   animation: none;
   border: none;
   padding: 0;
-  overflow-y: auto;
-  /* Internal scroll only */
+  overflow: hidden;
+  /* Internal scroll lives in the form grid */
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
 }
 
 .modal-content-body,
@@ -644,6 +648,21 @@
   padding: 1.5rem 1.75rem;
   /* Reduced padding */
   flex-grow: 1;
+}
+
+.modal-content form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.modal-content .form-grid {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 1.25rem 1.75rem 1.5rem;
+  scrollbar-gutter: stable;
 }
 
 .modal-footer {
@@ -935,4 +954,33 @@
   .audit-hero {
     padding: 2.5rem 1.5rem;
   }
+}
+
+/* Success banner (Create User) */
+.success-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%);
+  border: 1px solid #bbf7d0;
+  color: #065f46;
+  font-weight: 700;
+  box-shadow: 0 10px 20px -18px rgba(16, 185, 129, 0.6);
+}
+
+.success-banner::before {
+  content: '✓';
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #10b981;
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 800;
+  flex-shrink: 0;
 }

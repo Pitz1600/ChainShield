@@ -105,12 +105,7 @@ function Feedbacks({ user, initialTab = 'public' }) {
                     <button type="submit" className="search-btn">Search</button>
                 </form>
 
-                {canPost && (
-                    <button className="create-feedback-btn" onClick={() => setIsModalOpen(true)}>
-                        <Plus size={20} />
-                        <span>New Post</span>
-                    </button>
-                )}
+                
             </div>
 
             <div className="feedbacks-content">

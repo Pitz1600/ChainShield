@@ -105,7 +105,7 @@ exports.updateUserRole = async (req, res) => {
         const { role } = req.body;
 
         // Validate role
-        const validRoles = ['resident', 'barangay_official', 'auditor', 'administrator', 'analyst'];
+        const validRoles = ['resident', 'barangay_official', 'auditor', 'administrator'];
         if (!validRoles.includes(role)) {
             return res.status(400).json({ error: 'Invalid role' });
         }
@@ -225,7 +225,7 @@ exports.updateUser = async (req, res) => {
         if (lastName) user.lastName = lastName;
         if (birthday !== undefined) user.birthday = birthday;
         if (role) {
-            const validRoles = ['resident', 'barangay_official', 'auditor', 'administrator', 'analyst'];
+            const validRoles = ['resident', 'barangay_official', 'auditor', 'administrator'];
             if (!validRoles.includes(role)) {
                 return res.status(400).json({ error: 'Invalid role' });
             }
@@ -456,7 +456,7 @@ exports.createUser = async (req, res) => {
         }
 
         // Restrict allowed roles for this endpoint to operational roles requested by product
-        const creatableRoles = ['administrator', 'auditor', 'barangay_official', 'resident', 'analyst'];
+        const creatableRoles = ['administrator', 'auditor', 'barangay_official', 'resident'];
         if (!creatableRoles.includes(role)) {
             return res.status(400).json({ error: 'Invalid role for user creation.' });
         }

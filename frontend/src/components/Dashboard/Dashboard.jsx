@@ -66,9 +66,9 @@ function Dashboard({ user, onNavigate }) {
       }));
       setRecentAlerts(formattedAlerts);
 
-      const critical = data.alerts.filter(a => a.riskScore >= 80).length;
-      const high = data.alerts.filter(a => a.riskScore >= 60 && a.riskScore < 80).length;
-      const medium = data.alerts.filter(a => a.riskScore >= 40 && a.riskScore < 60).length;
+      const critical = data.alerts.filter(a => a.riskScore >= 90).length;
+      const high = data.alerts.filter(a => a.riskScore >= 71 && a.riskScore < 90).length;
+      const medium = data.alerts.filter(a => a.riskScore >= 41 && a.riskScore < 71).length;
       setStats({ total: data.count || formattedAlerts.length, critical, high, medium });
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -88,9 +88,9 @@ function Dashboard({ user, onNavigate }) {
   };
 
   const getSeverity = (riskScore) => {
-    if (riskScore >= 80) return 'critical';
-    if (riskScore >= 60) return 'high';
-    if (riskScore >= 40) return 'medium';
+    if (riskScore >= 90) return 'critical';
+    if (riskScore >= 71) return 'high';
+    if (riskScore >= 41) return 'medium';
     return 'low';
   };
 
@@ -334,7 +334,7 @@ function Dashboard({ user, onNavigate }) {
                       <strong>{item.agency}</strong>
                       <span>{item.count} alert{item.count === 1 ? '' : 's'}</span>
                     </div>
-                    <span className={`mini-pill ${item.avgRisk >= 80 ? 'critical' : item.avgRisk >= 60 ? 'high' : 'medium'}`}>
+                    <span className={`mini-pill ${item.avgRisk >= 90 ? 'critical' : item.avgRisk >= 71 ? 'high' : item.avgRisk >= 41 ? 'medium' : 'low'}`}>
                       {item.avgRisk}
                     </span>
                   </div>
@@ -406,13 +406,13 @@ function Dashboard({ user, onNavigate }) {
           ) : (
             <div className="rt-alerts-scroll">
               {rtAlerts.map(alert => {
-                const isHigh = alert.riskScore >= 80;
+                const isHigh = alert.riskScore >= 71;
                 const hasTxHash = !!alert.blockchainTxId;
                 return (
                   <div key={alert._id} className={`rt-alert-row ${isHigh ? 'rt-high' : ''}`}>
                     <div className="rt-alert-id font-mono">{alert.transactionId || alert._id?.toString().slice(-8)}</div>
                     <div className="rt-alert-amount">PHP {Number(alert.amount || 0).toLocaleString()}</div>
-                    <div className={`rt-alert-risk risk-chip ${alert.riskScore >= 80 ? 'risk-critical' : alert.riskScore >= 60 ? 'risk-high' : 'risk-medium'}`}>
+                    <div className={`rt-alert-risk risk-chip ${alert.riskScore >= 90 ? 'risk-critical' : alert.riskScore >= 71 ? 'risk-high' : alert.riskScore >= 41 ? 'risk-medium' : 'risk-low'}`}>
                       {alert.riskScore} Risk
                     </div>
                     <div className="rt-alert-time">{getTimeAgo(alert.timestamp)}</div>

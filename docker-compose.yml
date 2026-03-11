@@ -109,6 +109,10 @@ services:
     restart: unless-stopped
     ports:
       - "5001:5001"
+    env_file:
+      - ./.env
+    environment:
+      ML_API_SECRET: ${ML_API_SECRET:-chainshield_ml_internal_secret_dev}
     volumes:
       - ./ml_service:/app
       - ml_models:/app/models

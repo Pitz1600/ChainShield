@@ -118,8 +118,6 @@ export const getRoleName = (role) => {
         barangay_official: 'Barangay Official',
         administrator: 'Administrator',
         auditor: 'Auditor',
-        analyst: 'Analyst',
-        investigator: 'Investigator',
     };
 
     return roleNames[role] || role;

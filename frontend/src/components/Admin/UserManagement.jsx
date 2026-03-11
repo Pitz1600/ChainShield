@@ -4,13 +4,17 @@ import api from '../../services/api';
 import '../../styles/AdminPanel.css';
 
 function UserManagement() {
-    const managedRoleOptions = ['resident', 'barangay_official', 'auditor', 'administrator', 'analyst'];
+    const managedRoleOptions = ['resident', 'barangay_official', 'auditor', 'administrator'];
+    const formatRoleLabel = (role) => String(role || '').replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+    const formatUserRoleDisplay = (user) => {
+        if (user?.role === 'barangay_official' && user?.position) return user.position;
+        return formatRoleLabel(user?.role);
+    };
     const rolePositionOptions = {
         resident: ['Resident'],
         barangay_official: ['Barangay Captain', 'Barangay Secretary', 'Barangay Treasurer', 'Barangay Kagawad', 'Barangay Clerk'],
         auditor: ['Internal Auditor', 'Compliance Auditor', 'Financial Auditor'],
-        administrator: ['System Administrator'],
-        analyst: ['Fraud Analyst', 'Data Analyst']
+        administrator: ['System Administrator']
     };
     const getDefaultPositionForRole = (role) => rolePositionOptions[role]?.[0] || '';
     const createRoleGuidance = {
@@ -34,11 +38,6 @@ function UserManagement() {
             title: 'Administrator onboarding',
             text: 'User must change password, change email, and complete mandatory 2FA setup before full access.'
         },
-        analyst: {
-            tone: 'neutral',
-            title: 'Analyst account',
-            text: 'Read-oriented analytics/fraud access with standard credential validation.'
-        }
     };
     const [users, setUsers] = useState([]);
     const [stats, setStats] = useState({ totalUsers: 0, activeUsers: 0, pendingVerification: 0 });
@@ -287,7 +286,7 @@ function UserManagement() {
                                 </td>
                                 <td>
                                     <span className={`role-badge ${user.role}`}>
-                                        {user.role}
+                                        {formatUserRoleDisplay(user)}
                                     </span>
                                 </td>
                                 <td>
@@ -391,9 +390,11 @@ function UserManagement() {
                                             className="form-select"
                                             value={editFormData.role}
                                             onChange={(e) => handleEditRoleChange(e.target.value)}
-                                            disabled={editingUser && editingUser._id === currentUser.id}
+                                            disabled={editingUser && (editingUser._id === currentUser.id || editingUser.role === 'administrator')}
                                         >
-                                            {managedRoleOptions.map((role) => (
+                                            {managedRoleOptions
+                                                .filter((role) => role !== 'administrator' || editFormData.role === 'administrator')
+                                                .map((role) => (
                                                 <option key={role} value={role}>
                                                     {role.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
                                                 </option>

@@ -1,5 +1,8 @@
 const mongoose = require('mongoose');
 
+const MAX_FEEDBACK_LENGTH = 1000;
+const MAX_REPLY_LENGTH = 300;
+
 const replySchema = new mongoose.Schema({
     author: {
         type: mongoose.Schema.Types.ObjectId,
@@ -8,11 +11,13 @@ const replySchema = new mongoose.Schema({
     },
     content: {
         type: String,
-        required: true
+        required: true,
+        maxlength: MAX_REPLY_LENGTH
     },
     pendingEditContent: {
         type: String,
-        default: null
+        default: null,
+        maxlength: MAX_REPLY_LENGTH
     },
     actionStatus: {
         type: String,
@@ -31,11 +36,13 @@ const feedbackSchema = new mongoose.Schema({
     },
     content: {
         type: String,
-        required: true
+        required: true,
+        maxlength: MAX_FEEDBACK_LENGTH
     },
     pendingEditContent: {
         type: String,
-        default: null
+        default: null,
+        maxlength: MAX_FEEDBACK_LENGTH
     },
     actionStatus: {
         type: String,

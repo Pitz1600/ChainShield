@@ -5,12 +5,21 @@ import { MessageCircle, Edit2, Trash2, Send, X, AlertCircle, CheckCircle } from 
 import { isAdmin, isOfficial } from '../../utils/permissions';
 import ConfirmModal from './ConfirmModal';
 
+const MAX_FEEDBACK_LENGTH = 1000;
+const MAX_REPLY_LENGTH = 300;
+const FEEDBACK_PREVIEW_CHARS = 500;
+const REPLY_PREVIEW_CHARS = 220;
+
 function FeedbackCard({ feedback, currentUser, onRefresh }) {
     const [isEditing, setIsEditing] = useState(false);
     const [editContent, setEditContent] = useState(feedback.content);
     const [showReplyForm, setShowReplyForm] = useState(false);
     const [replyContent, setReplyContent] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [feedbackError, setFeedbackError] = useState('');
+    const [replyError, setReplyError] = useState('');
+    const [expandedFeedback, setExpandedFeedback] = useState(false);
+    const [expandedReplies, setExpandedReplies] = useState({});
 
     // Editing Replies state
     const [editingReplyId, setEditingReplyId] = useState(null);
@@ -27,7 +36,11 @@ function FeedbackCard({ feedback, currentUser, onRefresh }) {
     const closeApproveModal = () => setApproveModal({ isOpen: false, type: null, id: null, actionType: null });
 
     const isPrivileged = (user) => isAdmin(user) || isOfficial(user);
-    const isOwner = (authorId) => currentUser?._id === authorId;
+    const isOwner = (authorId) => {
+        if (!authorId) return false;
+        const currentId = currentUser?._id || currentUser?.id;
+        return currentId && String(currentId) === String(authorId);
+    };
 
     // Admin is moderation-only in the community feed.
     // Residents and barangay officials can participate.
@@ -37,17 +50,24 @@ function FeedbackCard({ feedback, currentUser, onRefresh }) {
     const canModerate = () => isAdmin(currentUser) || isOfficial(currentUser);
 
     const handleUpdate = async () => {
-        if (!editContent.trim() || editContent === feedback.content) {
+        const normalized = editContent.trim();
+        if (!normalized || normalized === feedback.content) {
             setIsEditing(false);
+            return;
+        }
+        if (normalized.length > MAX_FEEDBACK_LENGTH) {
+            setFeedbackError(`Feedback must be ${MAX_FEEDBACK_LENGTH} characters or fewer.`);
             return;
         }
         try {
             setIsSubmitting(true);
-            await feedbacksAPI.update(feedback._id, { content: editContent });
+            setFeedbackError('');
+            await feedbacksAPI.update(feedback._id, { content: normalized });
             setIsEditing(false);
             onRefresh();
         } catch (err) {
             console.error('Failed to update feedback:', err);
+            setFeedbackError(err.response?.data?.error || 'Unable to update feedback. Please try again.');
         } finally {
             setIsSubmitting(false);
         }
@@ -72,15 +92,25 @@ function FeedbackCard({ feedback, currentUser, onRefresh }) {
 
     const submitReply = async (e) => {
         e.preventDefault();
-        if (!replyContent.trim()) return;
+        const normalized = replyContent.trim();
+        if (!normalized) {
+            setReplyError('Reply cannot be empty.');
+            return;
+        }
+        if (normalized.length > MAX_REPLY_LENGTH) {
+            setReplyError(`Reply must be ${MAX_REPLY_LENGTH} characters or fewer.`);
+            return;
+        }
         try {
             setIsSubmitting(true);
-            await feedbacksAPI.addReply(feedback._id, { content: replyContent });
+            setReplyError('');
+            await feedbacksAPI.addReply(feedback._id, { content: normalized });
             setReplyContent('');
             setShowReplyForm(false);
             onRefresh();
         } catch (err) {
             console.error('Failed to post reply:', err);
+            setReplyError(err.response?.data?.error || 'Unable to post reply. Please try again.');
         } finally {
             setIsSubmitting(false);
         }
@@ -88,17 +118,24 @@ function FeedbackCard({ feedback, currentUser, onRefresh }) {
 
     const handleReplyUpdate = async (replyId) => {
         const reply = feedback.replies.find(r => r._id === replyId);
-        if (!replyEditContent.trim() || replyEditContent === reply.content) {
+        const normalized = replyEditContent.trim();
+        if (!normalized || normalized === reply.content) {
             setEditingReplyId(null);
+            return;
+        }
+        if (normalized.length > MAX_REPLY_LENGTH) {
+            setReplyError(`Reply must be ${MAX_REPLY_LENGTH} characters or fewer.`);
             return;
         }
         try {
             setIsSubmitting(true);
-            await feedbacksAPI.updateReply(feedback._id, replyId, { content: replyEditContent });
+            setReplyError('');
+            await feedbacksAPI.updateReply(feedback._id, replyId, { content: normalized });
             setEditingReplyId(null);
             onRefresh();
         } catch (err) {
             console.error('Failed to update reply:', err);
+            setReplyError(err.response?.data?.error || 'Unable to update reply. Please try again.');
         } finally {
             setIsSubmitting(false);
         }
@@ -145,7 +182,8 @@ function FeedbackCard({ feedback, currentUser, onRefresh }) {
         }
     };
 
-    const formatRoleName = (role) => {
+    const formatRoleName = (role, position) => {
+        if (role === 'barangay_official' && position) return position;
         return role.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
     };
 
@@ -252,7 +290,7 @@ function FeedbackCard({ feedback, currentUser, onRefresh }) {
                         <h4 className="author-name">{feedback.author.firstName} {feedback.author.lastName}</h4>
                         <div className="meta-row">
                             <span className={`role-badge ${getRoleBadgeClass(feedback.author.role)}`}>
-                                {formatRoleName(feedback.author.role)}
+                                {formatRoleName(feedback.author.role, feedback.author.position)}
                             </span>
                             <span className="timestamp">
                                 • {formatDistanceToNow(new Date(feedback.createdAt), { addSuffix: true })}
@@ -299,9 +337,17 @@ function FeedbackCard({ feedback, currentUser, onRefresh }) {
                         <textarea
                             className="edit-textarea"
                             value={editContent}
-                            onChange={(e) => setEditContent(e.target.value)}
+                            onChange={(e) => {
+                                setEditContent(e.target.value);
+                                if (feedbackError) setFeedbackError('');
+                            }}
                             disabled={isSubmitting}
+                            maxLength={MAX_FEEDBACK_LENGTH}
                         />
+                        <div className="character-count">
+                            {editContent.length}/{MAX_FEEDBACK_LENGTH}
+                        </div>
+                        {feedbackError && <div className="error-message">{feedbackError}</div>}
                         <div className="edit-actions">
                             <button
                                 className="btn-text"
@@ -319,7 +365,19 @@ function FeedbackCard({ feedback, currentUser, onRefresh }) {
                         </div>
                     </div>
                 ) : (
-                    <p className="content-text">{feedback.content}</p>
+                    <>
+                        <p className={`content-text ${!expandedFeedback && feedback.content.length > FEEDBACK_PREVIEW_CHARS ? 'clamped' : ''}`}>
+                            {feedback.content}
+                        </p>
+                        {feedback.content.length > FEEDBACK_PREVIEW_CHARS && (
+                            <button
+                                className="expand-btn"
+                                onClick={() => setExpandedFeedback(!expandedFeedback)}
+                            >
+                                {expandedFeedback ? 'Show less' : 'Show more'}
+                            </button>
+                        )}
+                    </>
                 )}
             </div>
 
@@ -343,8 +401,12 @@ function FeedbackCard({ feedback, currentUser, onRefresh }) {
                             className="reply-input"
                             placeholder="Write a reply..."
                             value={replyContent}
-                            onChange={(e) => setReplyContent(e.target.value)}
+                            onChange={(e) => {
+                                setReplyContent(e.target.value);
+                                if (replyError) setReplyError('');
+                            }}
                             disabled={isSubmitting}
+                            maxLength={MAX_REPLY_LENGTH}
                         />
                         <button
                             type="submit"
@@ -354,6 +416,10 @@ function FeedbackCard({ feedback, currentUser, onRefresh }) {
                             <Send size={16} />
                         </button>
                     </div>
+                    <div className="character-count subtle">
+                        {replyContent.length}/{MAX_REPLY_LENGTH}
+                    </div>
+                    {replyError && <div className="error-message">{replyError}</div>}
                 </form>
             )}
 
@@ -365,7 +431,7 @@ function FeedbackCard({ feedback, currentUser, onRefresh }) {
                                 <span className="reply-author">
                                     {reply.author.firstName} {reply.author.lastName}
                                     {reply.author.role !== 'resident' && (
-                                        <span className="reply-role"> ({formatRoleName(reply.author.role)})</span>
+                                        <span className="reply-role"> ({formatRoleName(reply.author.role, reply.author.position)})</span>
                                     )}
                                 </span>
                                 <span className="timestamp">
@@ -404,10 +470,18 @@ function FeedbackCard({ feedback, currentUser, onRefresh }) {
                                     <textarea
                                         className="edit-textarea reply-edit"
                                         value={replyEditContent}
-                                        onChange={(e) => setReplyEditContent(e.target.value)}
+                                        onChange={(e) => {
+                                            setReplyEditContent(e.target.value);
+                                            if (replyError) setReplyError('');
+                                        }}
                                         disabled={isSubmitting}
                                         rows={2}
+                                        maxLength={MAX_REPLY_LENGTH}
                                     />
+                                    <div className="character-count subtle">
+                                        {replyEditContent.length}/{MAX_REPLY_LENGTH}
+                                    </div>
+                                    {replyError && <div className="error-message">{replyError}</div>}
                                     <div className="edit-actions">
                                         <button
                                             className="btn-text-sm"
@@ -425,7 +499,19 @@ function FeedbackCard({ feedback, currentUser, onRefresh }) {
                                     </div>
                                 </div>
                             ) : (
-                                <p className="reply-content">{reply.content}</p>
+                                <>
+                                    <p className={`reply-content ${!expandedReplies[reply._id] && reply.content.length > REPLY_PREVIEW_CHARS ? 'clamped' : ''}`}>
+                                        {reply.content}
+                                    </p>
+                                    {reply.content.length > REPLY_PREVIEW_CHARS && (
+                                        <button
+                                            className="expand-btn small"
+                                            onClick={() => setExpandedReplies((prev) => ({ ...prev, [reply._id]: !prev[reply._id] }))}
+                                        >
+                                            {expandedReplies[reply._id] ? 'Show less' : 'Show more'}
+                                        </button>
+                                    )}
+                                </>
                             )}
                         </div>
                     ))}

@@ -25,12 +25,12 @@ function TransactionsPage({ user }) {
             const alertsResponse = await api.get('/transactions/alerts?limit=5000');
             const allAlerts = alertsResponse.data.alerts || [];
             setAlertCount(allAlerts.length || 0);
-            setCriticalCount(allAlerts.filter((a) => Number(a.riskScore || 0) >= 80).length);
-            setHighCount(allAlerts.filter((a) => Number(a.riskScore || 0) >= 60 && Number(a.riskScore || 0) < 80).length);
-            setMediumCount(allAlerts.filter((a) => Number(a.riskScore || 0) >= 40 && Number(a.riskScore || 0) < 60).length);
+            setCriticalCount(allAlerts.filter((a) => Number(a.riskScore || 0) >= 90).length);
+            setHighCount(allAlerts.filter((a) => Number(a.riskScore || 0) >= 71 && Number(a.riskScore || 0) < 90).length);
+            setMediumCount(allAlerts.filter((a) => Number(a.riskScore || 0) >= 41 && Number(a.riskScore || 0) < 71).length);
 
             // Fetch history count
-            const historyResponse = await api.get('/transactions/my-transactions');
+            const historyResponse = await api.get('/transactions/my-transactions', { params: { includeStaged: true } });
             setHistoryCount(historyResponse.data.count || 0);
         } catch (error) {
             console.error('Error fetching counts:', error);

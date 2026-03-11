@@ -13,6 +13,8 @@ class BlockchainService {
     this.contractAddress = process.env.CONTRACT_ADDRESS;
     this.account = process.env.BLOCKCHAIN_ACCOUNT;
     this.privateKey = process.env.BLOCKCHAIN_PRIVATE_KEY;
+    this.gasPriceCacheMs = Number(process.env.BLOCKCHAIN_GAS_PRICE_CACHE_MS || 10000);
+    this.includeBlockTimestamp = String(process.env.BLOCKCHAIN_INCLUDE_BLOCK_TIMESTAMP || '').toLowerCase() === 'true';
 
     this.web3 = null;
     if (this.rpcUrl && this.rpcUrl !== 'none') {
@@ -65,6 +67,8 @@ class BlockchainService {
     if (this.contractAddress && this.web3) {
       this.contract = new this.web3.eth.Contract(this.contractABI, this.contractAddress);
     }
+
+    this._gasPriceCache = { value: null, fetchedAt: 0 };
   }
 
   generateTxHash(transaction) {
@@ -96,7 +100,7 @@ class BlockchainService {
       throw new Error('Blockchain not configured. Set BLOCKCHAIN_RPC_URL, CONTRACT_ADDRESS, BLOCKCHAIN_ACCOUNT, BLOCKCHAIN_PRIVATE_KEY.');
     }
 
-    const gasPrice = await this.web3.eth.getGasPrice();
+    const gasPrice = await this.getGasPrice();
     const gasEstimate = await this.contract.methods
       .recordSuspicious(hashBytes32, riskScore, metaBytes32)
       .estimateGas({ from: this.account });
@@ -114,18 +118,38 @@ class BlockchainService {
     );
 
     const receipt = await this.web3.eth.sendSignedTransaction(signedTx.rawTransaction);
-    const block = await this.web3.eth.getBlock(receipt.blockNumber);
+
+    let timestamp = null;
+    if (this.includeBlockTimestamp) {
+      try {
+        const block = await this.web3.eth.getBlock(receipt.blockNumber);
+        timestamp = block.timestamp ? Number(block.timestamp) * 1000 : null;
+      } catch (_) {
+        timestamp = null;
+      }
+    }
 
     return {
       success: true,
       transactionHash: receipt.transactionHash,
       blockNumber: Number(receipt.blockNumber),
       blockHash: receipt.blockHash,
-      timestamp: block.timestamp ? Number(block.timestamp) * 1000 : Date.now(),
+      timestamp: timestamp || Date.now(),
       gasUsed: receipt.gasUsed?.toString(),
       method: 'smart_contract',
       riskScore
     };
+  }
+
+  async getGasPrice() {
+    if (!this.web3) throw new Error('Web3 not initialized.');
+    const now = Date.now();
+    if (this._gasPriceCache.value && now - this._gasPriceCache.fetchedAt < this.gasPriceCacheMs) {
+      return this._gasPriceCache.value;
+    }
+    const gasPrice = await this.web3.eth.getGasPrice();
+    this._gasPriceCache = { value: gasPrice, fetchedAt: now };
+    return gasPrice;
   }
 
   async verifySuspicious(txHash) {

@@ -91,11 +91,11 @@ exports.getAlerts = async (req, res) => {
     // Filter by severity if provided
     if (severity) {
       if (severity === 'critical') {
-        query.riskScore = { $gte: 80 };
+        query.riskScore = { $gte: 90 };
       } else if (severity === 'high') {
-        query.riskScore = { $gte: 60, $lt: 80 };
+        query.riskScore = { $gte: 71, $lt: 90 };
       } else if (severity === 'medium') {
-        query.riskScore = { $gte: 40, $lt: 60 };
+        query.riskScore = { $gte: 41, $lt: 71 };
       }
     }
 
@@ -103,7 +103,7 @@ exports.getAlerts = async (req, res) => {
       .sort({ timestamp: -1 })
       .limit(limit * 1)
       .skip((page - 1) * limit)
-      .select('transactionId transactionType agency programName amount fromAddress toAddress riskScore riskLevel flagged timestamp fraudPatterns');
+      .select('transactionId transactionType agency programName amount fromAddress toAddress riskScore riskLevel flagged timestamp fraudPatterns reasons mlUsed mlScore');
 
     const count = await Transaction.countDocuments(query);
 
@@ -152,7 +152,7 @@ exports.getMyTransactions = async (req, res) => {
     // Build query to only show user's transactions
     // Build query - Residents see only their own, Officials/Admins see all
     let query = {};
-    const isOfficial = ['administrator', 'barangay_official', 'auditor', 'analyst', 'investigator'].includes(req.user.role);
+    const isOfficial = ['administrator', 'barangay_official', 'auditor'].includes(req.user.role);
 
     if (!isOfficial) {
       query = {
@@ -232,7 +232,7 @@ exports.getMyTransactions = async (req, res) => {
       .sort({ [sortField]: sortDir })
       .limit(limit * 1)
       .skip((page - 1) * limit)
-      .select('transactionId transactionType amount status timestamp blockchainTxId blockNumber riskScore riskLevel flagged verificationStatus verifiedBy fromAddress toAddress description fraudPatterns metadata networkFeatures');
+      .select('transactionId transactionType amount status timestamp blockchainTxId blockNumber riskScore zScore riskLevel flagged velocityFlag receiverPatternFlag amountSpikeFlag mlUsed mlScore verificationStatus verifiedBy fromAddress toAddress description fraudPatterns reasons metadata networkFeatures agency programName');
 
     const count = await Transaction.countDocuments(query);
 
@@ -246,13 +246,22 @@ exports.getMyTransactions = async (req, res) => {
       date: txn.timestamp,
       blockchainHash: txn.blockchainTxId,
       riskScore: txn.riskScore,
+      zScore: txn.zScore,
       riskLevel: txn.riskLevel,
       flagged: txn.flagged,
+      reasons: txn.reasons,
+      velocityFlag: txn.velocityFlag,
+      receiverPatternFlag: txn.receiverPatternFlag,
+      amountSpikeFlag: txn.amountSpikeFlag,
+      mlUsed: txn.mlUsed,
+      mlScore: txn.mlScore,
       verificationStatus: txn.verificationStatus,
       verifiedBy: txn.verifiedBy,
       fromAddress: txn.fromAddress,
       toAddress: txn.toAddress,
-      description: txn.description
+      description: txn.description,
+      agency: txn.agency,
+      programName: txn.programName
     }));
 
     res.json({

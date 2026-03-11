@@ -22,7 +22,7 @@ async function testTwoFactorSetup() {
         firstName: 'Test',
         lastName: 'User',
         password: 'TestPassword123!',
-        role: 'analyst',
+        role: 'auditor',
         isVerified: true,
         mustChangePassword: false,
         mustSetup2FA: true,

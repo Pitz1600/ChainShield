@@ -45,7 +45,7 @@ exports.scanAndIngest = async (req, res) => {
         // Update transaction
         transaction.riskScore = fraudAnalysis.riskScore;
         transaction.riskLevel = fraudAnalysis.riskLevel;
-        transaction.flagged = fraudAnalysis.isFraudulent;
+        transaction.flagged = transaction.riskScore >= 71;
         transaction.blockchainTxId = fraudAnalysis.blockchainTxId;
         transaction.blockNumber = fraudAnalysis.blockchainBlockNumber;
 
@@ -62,8 +62,8 @@ exports.scanAndIngest = async (req, res) => {
         // Save transaction
         await transaction.save();
 
-        // Create alert if flagged
-        if (fraudAnalysis.isFraudulent) {
+        // Create alert only for HIGH risk
+        if (transaction.riskScore >= 71) {
           await fraudDetectionService.createAlert(transaction, fraudAnalysis);
         }
 

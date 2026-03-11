@@ -1,0 +1,22 @@
+﻿--------------------------------------------------------------------------------------
+                          ChainShield Performance Report
+--------------------------------------------------------------------------------------
+
+Scenario                   : B
+Generated (local)          : 2026-03-10 19:10:35
+
+AI Integrity Analysis
+Execution Time             : 8.4723 seconds
+Test Case                  : AI Integrity Checker
+Performance Rating         : CRITICAL
+
+Blockchain Gas Analysis
+Gas Cost (per tx)          : 612384 gas
+Transaction Type           : Contract Storage Update
+
+Transaction Analysis
+Execution Time             : 12.9037 seconds
+Test Case                  : Transaction Uploading
+Performance Rating         : CRITICAL
+
+--------------------------------------------------------------------------------------

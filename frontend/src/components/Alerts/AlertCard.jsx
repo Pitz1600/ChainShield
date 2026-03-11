@@ -1,9 +1,16 @@
 import React from 'react';
 import { Eye } from 'lucide-react';
 
+const isMeaningfulValue = (value) => {
+  if (value === null || value === undefined) return false;
+  const normalized = String(value).trim().toLowerCase();
+  if (!normalized) return false;
+  return !['n/a', 'na', '-', 'unknown', 'unknown agency', 'unknown program'].includes(normalized);
+};
+
 function AlertCard({ alert, onInvestigate }) {
   const severityClass = `sev-${alert.severity}`;
-  const riskClass = alert.riskScore >= 80 ? 'risk-critical' : alert.riskScore >= 60 ? 'risk-high' : alert.riskScore >= 40 ? 'risk-medium' : 'risk-low';
+  const riskClass = alert.riskScore >= 90 ? 'risk-critical' : alert.riskScore >= 71 ? 'risk-high' : alert.riskScore >= 41 ? 'risk-medium' : 'risk-low';
 
   return (
     <div className="alert-card">
@@ -23,7 +30,9 @@ function AlertCard({ alert, onInvestigate }) {
 
       <div className="alert-card-meta">
         <div><span>Transaction Type:</span><strong>{alert.documentType || 'N/A'}</strong></div>
-        <div><span>Agency:</span><strong>{alert.issuer || 'N/A'}</strong></div>
+        {isMeaningfulValue(alert.issuer) && (
+          <div><span>Agency:</span><strong>{alert.issuer}</strong></div>
+        )}
         <div><span>Amount:</span><strong>PHP {Number(alert.amount || 0).toLocaleString()}</strong></div>
         <div><span>Risk:</span><strong className={`risk-chip ${riskClass}`}>{alert.riskScore}</strong></div>
       </div>

@@ -1,5 +1,10 @@
 const Feedback = require('../models/Feedback');
 
+const MAX_FEEDBACK_LENGTH = 1000;
+const MAX_REPLY_LENGTH = 300;
+
+const normalizeContent = (value) => (typeof value === 'string' ? value.trim() : '');
+
 // @desc    Get all feedbacks
 // @route   GET /api/feedbacks
 // @access  Public or Authenticated (assuming authenticated for now)
@@ -60,8 +65,8 @@ exports.getAllFeedbacks = async (req, res) => {
         }
 
         const feedbacks = await Feedback.find(query)
-            .populate('author', 'firstName lastName email role profilePicture')
-            .populate('replies.author', 'firstName lastName email role profilePicture')
+            .populate('author', 'firstName lastName email role profilePicture position')
+            .populate('replies.author', 'firstName lastName email role profilePicture position')
             .sort({ createdAt: -1 }); // Newest to oldest (latest on top)
 
         res.status(200).json(feedbacks);
@@ -81,28 +86,33 @@ exports.createFeedback = async (req, res) => {
         }
 
         const { content } = req.body;
-        if (!content) {
+        const normalizedContent = normalizeContent(content);
+        if (!normalizedContent) {
             return res.status(400).json({ error: 'Content is required' });
         }
+        if (normalizedContent.length > MAX_FEEDBACK_LENGTH) {
+            return res.status(400).json({ error: `Content must be ${MAX_FEEDBACK_LENGTH} characters or fewer.` });
+        }
 
+        const isAutoApproved = req.user.role === 'barangay_official';
         const feedback = await Feedback.create({
             author: req.user._id,
-            content,
-            actionStatus: 'pending_approval' // Explicitly set even if default
+            content: normalizedContent,
+            actionStatus: isAutoApproved ? 'none' : 'pending_approval'
         });
 
         const populatedFeedback = await Feedback.findById(feedback._id)
-            .populate('author', 'firstName lastName email role profilePicture');
+            .populate('author', 'firstName lastName email role profilePicture position');
 
         // Log the feedback creation
         const AuditLog = require('../models/AuditLog');
         await AuditLog.logAction({
-            action: 'feedback_submitted',
+            action: isAutoApproved ? 'feedback_auto_approved' : 'feedback_submitted',
             userId: req.user._id,
             userRole: req.user.role,
             username: `${req.user.firstName} ${req.user.lastName}`,
             feedbackId: feedback._id,
-            details: { type: 'post', content: content.substring(0, 100) },
+            details: { type: 'post', content: normalizedContent.substring(0, 100) },
             ipAddress: req.ip,
             userAgent: req.get('User-Agent')
         });
@@ -120,9 +130,10 @@ exports.createFeedback = async (req, res) => {
 exports.updateFeedback = async (req, res) => {
     try {
         const { content } = req.body;
+        const normalizedContent = normalizeContent(content);
         let feedback = await Feedback.findById(req.params.id)
-            .populate('author', 'firstName lastName email role profilePicture')
-            .populate('replies.author', 'firstName lastName email role profilePicture');
+            .populate('author', 'firstName lastName email role profilePicture position')
+            .populate('replies.author', 'firstName lastName email role profilePicture position');
 
         if (!feedback) {
             return res.status(404).json({ error: 'Feedback not found' });
@@ -143,17 +154,31 @@ exports.updateFeedback = async (req, res) => {
             return res.status(403).json({ error: 'Administrators cannot edit posts. Moderation only.' });
         }
 
-        // Any edit goes back to approval flow.
-        if (content && content !== feedback.content) {
-            feedback.pendingEditContent = content;
-            feedback.actionStatus = 'pending_approval';
+        const isAutoApproved = req.user.role === 'barangay_official';
+        // Any edit goes back to approval flow unless auto-approved.
+        if (!normalizedContent) {
+            return res.status(400).json({ error: 'Content is required' });
+        }
+        if (normalizedContent.length > MAX_FEEDBACK_LENGTH) {
+            return res.status(400).json({ error: `Content must be ${MAX_FEEDBACK_LENGTH} characters or fewer.` });
+        }
+
+        if (normalizedContent && normalizedContent !== feedback.content) {
+            if (isAutoApproved) {
+                feedback.content = normalizedContent;
+                feedback.pendingEditContent = null;
+                feedback.actionStatus = 'none';
+            } else {
+                feedback.pendingEditContent = normalizedContent;
+                feedback.actionStatus = 'pending_approval';
+            }
         }
 
         await feedback.save();
 
         feedback = await Feedback.findById(feedback._id)
-            .populate('author', 'firstName lastName email role')
-            .populate('replies.author', 'firstName lastName email role');
+            .populate('author', 'firstName lastName email role position')
+            .populate('replies.author', 'firstName lastName email role position');
 
         res.status(200).json(feedback);
     } catch (error) {
@@ -200,8 +225,12 @@ exports.addReply = async (req, res) => {
         }
 
         const { content } = req.body;
-        if (!content) {
+        const normalizedContent = normalizeContent(content);
+        if (!normalizedContent) {
             return res.status(400).json({ error: 'Content is required' });
+        }
+        if (normalizedContent.length > MAX_REPLY_LENGTH) {
+            return res.status(400).json({ error: `Content must be ${MAX_REPLY_LENGTH} characters or fewer.` });
         }
 
         const feedback = await Feedback.findById(req.params.id);
@@ -216,7 +245,7 @@ exports.addReply = async (req, res) => {
 
         const newReply = {
             author: req.user._id,
-            content,
+            content: normalizedContent,
             actionStatus: 'none' // Auto-approved
         };
 
@@ -224,8 +253,8 @@ exports.addReply = async (req, res) => {
         await feedback.save();
 
         const updatedFeedback = await Feedback.findById(feedback._id)
-            .populate('author', 'firstName lastName email role profilePicture')
-            .populate('replies.author', 'firstName lastName email role profilePicture');
+            .populate('author', 'firstName lastName email role profilePicture position')
+            .populate('replies.author', 'firstName lastName email role profilePicture position');
 
         // Log the reply action
         const AuditLog = require('../models/AuditLog');
@@ -235,7 +264,7 @@ exports.addReply = async (req, res) => {
             userRole: req.user.role,
             username: `${req.user.firstName} ${req.user.lastName}`,
             feedbackId: feedback._id,
-            details: { type: 'reply', content: content.substring(0, 100) },
+            details: { type: 'reply', content: normalizedContent.substring(0, 100) },
             ipAddress: req.ip,
             userAgent: req.get('User-Agent')
         });
@@ -253,6 +282,7 @@ exports.addReply = async (req, res) => {
 exports.updateReply = async (req, res) => {
     try {
         const { content } = req.body;
+        const normalizedContent = normalizeContent(content);
         let feedback = await Feedback.findById(req.params.id);
 
         if (!feedback) {
@@ -280,9 +310,22 @@ exports.updateReply = async (req, res) => {
         }
 
         // Any edit goes back to approval flow.
-        if (content && content !== reply.content) {
-            reply.pendingEditContent = content;
-            reply.actionStatus = 'pending_approval';
+        if (!normalizedContent) {
+            return res.status(400).json({ error: 'Content is required' });
+        }
+        if (normalizedContent.length > MAX_REPLY_LENGTH) {
+            return res.status(400).json({ error: `Content must be ${MAX_REPLY_LENGTH} characters or fewer.` });
+        }
+
+        if (normalizedContent && normalizedContent !== reply.content) {
+            if (req.user.role === 'barangay_official') {
+                reply.content = normalizedContent;
+                reply.pendingEditContent = null;
+                reply.actionStatus = 'none';
+            } else {
+                reply.pendingEditContent = normalizedContent;
+                reply.actionStatus = 'pending_approval';
+            }
         }
 
         await feedback.save();
@@ -375,8 +418,8 @@ exports.approveAction = async (req, res) => {
         }
 
         const updated = await Feedback.findById(feedback._id)
-            .populate('author', 'firstName lastName email role')
-            .populate('replies.author', 'firstName lastName email role');
+            .populate('author', 'firstName lastName email role position')
+            .populate('replies.author', 'firstName lastName email role position');
 
         res.status(200).json(updated);
     } catch (error) {
@@ -432,8 +475,8 @@ exports.rejectAction = async (req, res) => {
         }
 
         const updated = await Feedback.findById(feedback._id)
-            .populate('author', 'firstName lastName email role')
-            .populate('replies.author', 'firstName lastName email role');
+            .populate('author', 'firstName lastName email role position')
+            .populate('replies.author', 'firstName lastName email role position');
 
         res.status(200).json(updated);
     } catch (error) {
@@ -473,8 +516,8 @@ exports.approveReplyAction = async (req, res) => {
         }
 
         const updated = await Feedback.findById(feedback._id)
-            .populate('author', 'firstName lastName email role')
-            .populate('replies.author', 'firstName lastName email role');
+            .populate('author', 'firstName lastName email role position')
+            .populate('replies.author', 'firstName lastName email role position');
 
         res.status(200).json(updated);
     } catch (error) {

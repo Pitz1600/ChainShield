@@ -2,6 +2,7 @@
 import { Lock, Upload, AlertCircle, CheckCircle, Clock, FileText, AlertTriangle, TrendingUp, Shield, BarChart, Info, Settings, Zap, Download, ChevronLeft, ChevronRight, Link, Clipboard, Plus, Trash2, X, Loader2 } from 'lucide-react';
 import api from '../../services/api';
 import { isOfficial } from '../../utils/permissions';
+import { formatAddressLabel } from '../../utils/helpers';
 import '../../styles/IntegrityChecker.css';
 
 const IntegrityChecker = ({ user }) => {
@@ -278,6 +279,7 @@ const IntegrityChecker = ({ user }) => {
 
             setResults(response.data);
             setIsModalOpen(false);
+            try { localStorage.setItem('tx_refresh', String(Date.now())); } catch (e) {}
 
             // Clear all manual entry form data after successful analysis
             setManualRows([{
@@ -349,6 +351,7 @@ const IntegrityChecker = ({ user }) => {
 
             setResults(response.data);
             setFile(null);
+            try { localStorage.setItem('tx_refresh', String(Date.now())); } catch (e) {}
             // Reset file input
             document.getElementById('csvFileInput').value = '';
         } catch (err) {
@@ -760,6 +763,8 @@ const IntegrityChecker = ({ user }) => {
                                                 <th>Transaction ID</th>
                                                 <th>Type</th>
                                                 <th>Amount</th>
+                                                <th>From</th>
+                                                <th>To</th>
                                                 <th>Risk Score</th>
                                                 <th>Risk Level</th>
                                                 <th>Risk Category</th>
@@ -780,6 +785,8 @@ const IntegrityChecker = ({ user }) => {
                                                     <td data-label="Transaction ID" className="transaction-id">{result.transactionId}</td>
                                                     <td data-label="Type">{result.transactionType}</td>
                                                     <td data-label="Amount" className="amount">{formatCurrencyDisplay(result.amount)}</td>
+                                                    <td data-label="From">{formatAddressLabel(result.fromAddress) || '-'}</td>
+                                                    <td data-label="To">{formatAddressLabel(result.toAddress) || '-'}</td>
                                                     <td data-label="Risk Score">
                                                         <span className={`risk-score risk-${result.riskLevel?.toLowerCase()}`}>
                                                             {result.riskScore}
@@ -914,14 +921,12 @@ const IntegrityChecker = ({ user }) => {
                                                     <th>Transaction</th>
                                                     <th>Score</th>
                                                     <th>Level</th>
-                                                    <th>Triggers</th>
-                                                    <th>Patterns</th>
+                                                    <th>Reason Why</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 {detailSlice.map((result, idx) => {
                                                     const reasons = Array.isArray(result.reasons) ? result.reasons : [];
-                                                    const patterns = Array.isArray(result.anomalyPatterns) ? result.anomalyPatterns : [];
                                                     return (
                                                         <tr key={`${result.transactionId || 'row'}-${idx}`}>
                                                             <td>{result.row}</td>
@@ -942,15 +947,6 @@ const IntegrityChecker = ({ user }) => {
                                                                         <span key={`${result.transactionId || 'row'}-reason-${rIdx}`} className="risk-chip">
                                                                             <AlertTriangle size={12} />
                                                                             {reason}
-                                                                        </span>
-                                                                    )) : <span className="no-anomaly">-</span>}
-                                                                </div>
-                                                            </td>
-                                                            <td>
-                                                                <div className="risk-chip-list">
-                                                                    {patterns.length > 0 ? patterns.map((pattern, pIdx) => (
-                                                                        <span key={`${result.transactionId || 'row'}-pattern-${pIdx}`} className="pattern-pill">
-                                                                            {pattern.type || pattern}
                                                                         </span>
                                                                     )) : <span className="no-anomaly">-</span>}
                                                                 </div>
@@ -1083,11 +1079,21 @@ const IntegrityChecker = ({ user }) => {
                                     <div className="tx-grid-row">
                                         <div className="tx-grid-col">
                                             <label>From</label>
-                                            <div>{selectedTx.fromAddress || '-'}</div>
+                                            <div>{formatAddressLabel(selectedTx.fromAddress) || '-'}</div>
                                         </div>
                                         <div className="tx-grid-col">
                                             <label>To</label>
-                                            <div>{selectedTx.toAddress || '-'}</div>
+                                            <div>{formatAddressLabel(selectedTx.toAddress) || '-'}</div>
+                                        </div>
+                                    </div>
+                                    <div className="tx-grid-row">
+                                        <div className="tx-grid-col">
+                                            <label>AI Combined</label>
+                                            <div>{selectedTx.mlUsed ? 'Yes' : 'No'}</div>
+                                        </div>
+                                        <div className="tx-grid-col">
+                                            <label>ML Score</label>
+                                            <div>{selectedTx.mlScore ?? '-'}</div>
                                         </div>
                                     </div>
                                     <div className="tx-grid-row">
@@ -1102,7 +1108,7 @@ const IntegrityChecker = ({ user }) => {
                                     </div>
                                     {selectedTx.reasons && selectedTx.reasons.length > 0 && (
                                         <div className="tx-grid-desc">
-                                            <label>Reasons</label>
+                                            <label>Reason Why</label>
                                             <ul>
                                                 {selectedTx.reasons.map((r, i) => <li key={i}>{r}</li>)}
                                             </ul>

@@ -94,8 +94,6 @@ function AuditLogViewer() {
             case 'administrator': return { backgroundColor: '#ede9fe', color: '#7c3aed', border: '1px solid #ddd6fe' };
             case 'barangay_official': return { backgroundColor: '#dbeafe', color: '#2563eb', border: '1px solid #bfdbfe' };
             case 'auditor': return { backgroundColor: '#ecfeff', color: '#0e7490', border: '1px solid #a5f3fc' };
-            case 'analyst': return { backgroundColor: '#fef3c7', color: '#d97706', border: '1px solid #fde68a' };
-            case 'investigator': return { backgroundColor: '#ccfbf1', color: '#0f766e', border: '1px solid #99f6e4' };
             case 'resident': return { backgroundColor: '#f3f4f6', color: '#4b5563', border: '1px solid #e5e7eb' };
             default: return { backgroundColor: '#f3f4f6', color: '#6b7280', border: '1px solid #e5e7eb' };
         }
@@ -107,7 +105,7 @@ function AuditLogViewer() {
         if (typeof rawRisk === 'number') {
             const normalized = Math.max(0, Math.min(100, rawRisk));
             if (normalized >= 70) return { label: 'High', score: normalized, color: '#dc2626', track: '#fee2e2' };
-            if (normalized >= 40) return { label: 'Medium', score: normalized, color: '#d97706', track: '#fef3c7' };
+            if (normalized >= 41) return { label: 'Medium', score: normalized, color: '#d97706', track: '#fef3c7' };
             return { label: 'Low', score: normalized, color: '#059669', track: '#d1fae5' };
         }
 

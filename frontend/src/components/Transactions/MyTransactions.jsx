@@ -6,6 +6,7 @@ import {
   Link2, Info
 } from 'lucide-react';
 import api from '../../services/api';
+import { formatAddressLabel } from '../../utils/helpers';
 import '../../styles/MyTransactions.css';
 import '../../styles/ColorfulIcons.css';
 
@@ -13,105 +14,60 @@ import '../../styles/ColorfulIcons.css';
 /*  Helpers                                                              */
 /* ------------------------------------------------------------------ */
 const riskClass = (score) => {
-  if (score >= 80) return 'risk-critical';
-  if (score >= 60) return 'risk-high';
-  if (score >= 40) return 'risk-medium';
+  if (score >= 90) return 'risk-critical';
+  if (score >= 71) return 'risk-high';
+  if (score >= 41) return 'risk-medium';
   return 'risk-low';
 };
 
 const RISK_COLOR = (score) => {
-  if (score >= 80) return '#ef4444';
-  if (score >= 60) return '#f97316';
-  if (score >= 40) return '#f59e0b';
+  if (score >= 90) return '#ef4444';
+  if (score >= 71) return '#f97316';
+  if (score >= 41) return '#f59e0b';
   return '#10b981';
 };
 
 const RISK_LABEL = (score) => {
-  if (score >= 80) return 'HIGH RISK';
-  if (score >= 60) return 'ELEVATED';
-  if (score >= 40) return 'MEDIUM';
+  if (score >= 90) return 'CRITICAL';
+  if (score >= 71) return 'HIGH';
+  if (score >= 41) return 'MEDIUM';
   return 'LOW RISK';
+};
+
+const isMeaningfulValue = (value) => {
+  if (value === null || value === undefined) return false;
+  const normalized = String(value).trim().toLowerCase();
+  if (!normalized) return false;
+  return !['n/a', 'na', '-', 'unknown', 'unknown agency', 'unknown program'].includes(normalized);
 };
 
 /* ------------------------------------------------------------------ */
 /*  SVG Risk Gauge Component                                           */
 /* ------------------------------------------------------------------ */
 function RiskGauge({ score = 0 }) {
-  const pct = Math.min(100, Math.max(0, score)) / 100;
-  const cx = 100, cy = 90, r = 70;
-  const startAngle = -Math.PI;
-  const endAngle = 0;
-  const range = endAngle - startAngle;
-
-  const polar = (angle) => ({
-    x: cx + r * Math.cos(angle),
-    y: cy + r * Math.sin(angle),
-  });
-
-  // Background arc (full)
-  const bgStart = polar(startAngle);
-  const bgEnd = polar(endAngle);
-  const bgPath = `M ${bgStart.x} ${bgStart.y} A ${r} ${r} 0 0 1 ${bgEnd.x} ${bgEnd.y}`;
-
-  // Foreground arc
-  const needleAngle = startAngle + range * pct;
-  const fgEnd = polar(needleAngle);
-  const largeArc = pct > 0.5 ? 1 : 0;
-  const fgPath = pct <= 0 ? '' :
-    `M ${bgStart.x} ${bgStart.y} A ${r} ${r} 0 ${largeArc} 1 ${fgEnd.x} ${fgEnd.y}`;
-
-  // Needle
-  const needleX = cx + (r - 8) * Math.cos(needleAngle);
-  const needleY = cy + (r - 8) * Math.sin(needleAngle);
-  const color = RISK_COLOR(score);
+  const safeScore = Math.min(100, Math.max(0, Number(score) || 0));
+  const color = RISK_COLOR(safeScore);
 
   return (
-    <div className="risk-gauge-wrap">
-      <svg viewBox="0 0 200 110" className="risk-gauge-svg">
-        {/* Colored zones behind */}
-        {/* Green 0-40 */}
-        <path d={(() => {
-          const s = polar(startAngle);
-          const e = polar(startAngle + range * 0.4);
-          return `M ${s.x} ${s.y} A ${r} ${r} 0 0 1 ${e.x} ${e.y}`;
-        })()} stroke="#d1fae5" strokeWidth="12" fill="none" strokeLinecap="round" />
-        {/* Yellow 40-60 */}
-        <path d={(() => {
-          const s = polar(startAngle + range * 0.4);
-          const e = polar(startAngle + range * 0.6);
-          return `M ${s.x} ${s.y} A ${r} ${r} 0 0 1 ${e.x} ${e.y}`;
-        })()} stroke="#fef08a" strokeWidth="12" fill="none" strokeLinecap="round" />
-        {/* Orange 60-80 */}
-        <path d={(() => {
-          const s = polar(startAngle + range * 0.6);
-          const e = polar(startAngle + range * 0.8);
-          return `M ${s.x} ${s.y} A ${r} ${r} 0 0 1 ${e.x} ${e.y}`;
-        })()} stroke="#fed7aa" strokeWidth="12" fill="none" strokeLinecap="round" />
-        {/* Red 80-100 */}
-        <path d={(() => {
-          const s = polar(startAngle + range * 0.8);
-          const e = polar(endAngle);
-          return `M ${s.x} ${s.y} A ${r} ${r} 0 0 1 ${e.x} ${e.y}`;
-        })()} stroke="#fecaca" strokeWidth="12" fill="none" strokeLinecap="round" />
-
-        {/* Active fill */}
-        {pct > 0 && (
-          <path d={fgPath} stroke={color} strokeWidth="12" fill="none"
-            strokeLinecap="round" style={{ transition: 'all 0.6s cubic-bezier(0.4,0,0.2,1)' }} />
-        )}
-        {/* Needle dot */}
-        <circle cx={needleX} cy={needleY} r="6" fill={color} style={{ transition: 'all 0.6s cubic-bezier(0.4,0,0.2,1)' }} />
-        <circle cx={cx} cy={cy} r="5" fill="#1e293b" />
-
-        {/* Labels */}
-        <text x="30" y="108" fontSize="9" fill="#10b981" fontWeight="700">LOW</text>
-        <text x="87" y="20" fontSize="9" fill="#f59e0b" fontWeight="700">MED</text>
-        <text x="155" y="108" fontSize="9" fill="#ef4444" fontWeight="700">HIGH</text>
-
-        {/* Score label */}
-        <text x={cx} y={cy + 25} textAnchor="middle" fontSize="22" fontWeight="900" fill={color}>{score}</text>
-        <text x={cx} y={cy + 40} textAnchor="middle" fontSize="9" fill="#64748b" fontWeight="600">{RISK_LABEL(score)}</text>
-      </svg>
+    <div className="risk-bar-wrap">
+      <div className="risk-bar-score" style={{ color }}>
+        {safeScore}
+        <span className="risk-bar-score-max">/100</span>
+      </div>
+      <div className="risk-bar-level">{RISK_LABEL(safeScore)}</div>
+      <div className="risk-bar-track" aria-label={`Risk ${safeScore} of 100`}>
+        <div className="risk-bar-segment low" />
+        <div className="risk-bar-segment medium" />
+        <div className="risk-bar-segment high" />
+        <div className="risk-bar-segment critical" />
+        <div className="risk-bar-indicator" style={{ left: `calc(${safeScore}% - 6px)`, background: color }} />
+      </div>
+      <div className="risk-bar-labels">
+        <span><span className="legend-dot" style={{ background: '#10b981' }} /> Low (0-40)</span>
+        <span><span className="legend-dot" style={{ background: '#f59e0b' }} /> Medium (41-70)</span>
+        <span><span className="legend-dot" style={{ background: '#f97316' }} /> High (71-89)</span>
+        <span><span className="legend-dot" style={{ background: '#ef4444' }} /> Critical (90+)</span>
+      </div>
     </div>
   );
 }
@@ -134,7 +90,7 @@ function FormulaBreakdown({ tx }) {
       <div className="formula-body">
         <div className="formula-row">
           <span className="formula-label">Formula</span>
-          <span className="formula-val formula-eq">Z = (X - mu) / sigma</span>
+          <span className="formula-val formula-eq">Z = (X - μ) / σ</span>
         </div>
         <div className="formula-row">
           <span className="formula-label">Risk Score (X)</span>
@@ -163,13 +119,12 @@ function FormulaBreakdown({ tx }) {
             ? `SUSPICIOUS - Z-score ${zScore} exceeds threshold +/-${threshold}`
             : `NORMAL - Z-score ${zScore} is within normal range +/-${threshold}`}
         </div>
-        {tx.fraudPatterns && tx.fraudPatterns.length > 0 && (
+        {tx.reasons && tx.reasons.length > 0 && (
           <div className="formula-patterns">
-            <div className="formula-patterns-title">Detected Patterns</div>
-            {tx.fraudPatterns.map((p, i) => (
+            <div className="formula-patterns-title">Reason Why</div>
+            {tx.reasons.map((reason, i) => (
               <div key={i} className="formula-pattern-item">
-                <span className="pattern-type-pill">{p.type}</span>
-                {p.description && <span className="pattern-desc">{p.description}</span>}
+                <span className="pattern-desc">{reason}</span>
               </div>
             ))}
           </div>
@@ -234,7 +189,7 @@ function MyTransactions({ user, embedded = false }) {
   const [actionMessage, setActionMessage] = useState({ text: '', type: 'success' });
   const TOAST_DURATION = 4500;
 
-  const isAdminOrAuditor = ['administrator', 'auditor', 'barangay_official', 'analyst', 'investigator'].includes(user?.role);
+  const isAdminOrAuditor = ['administrator', 'auditor', 'barangay_official'].includes(user?.role);
 
   /* ---- Toast ---- */
   const showToast = (text, type = 'success') => {
@@ -267,6 +222,7 @@ function MyTransactions({ user, embedded = false }) {
         limit: 5000,
         sortBy,
         sortOrder,
+        ...(isAdminOrAuditor && { includeStaged: true }),
         ...(filters.search && { search: filters.search }),
         ...(filters.dateFrom && { dateFrom: filters.dateFrom }),
         ...(filters.dateTo && { dateTo: filters.dateTo }),
@@ -371,7 +327,7 @@ function MyTransactions({ user, embedded = false }) {
       case 'verified': return list.filter(t => t.verificationStatus === 'Verified');
       case 'flagged': return list.filter(t => t.verificationStatus === 'Flagged' || t.flagged);
       case 'pending': return list.filter(t => t.verificationStatus === 'Pending');
-      case 'suspicious': return list.filter(t => t.verificationStatus === 'Suspicious' || (t.riskScore >= 60 && t.verificationStatus !== 'Verified'));
+      case 'suspicious': return list.filter(t => t.verificationStatus === 'Suspicious' || (t.riskScore >= 71 && t.verificationStatus !== 'Verified'));
       case 'rejected': return list.filter(t => t.verificationStatus === 'Rejected');
       default: return list;
     }
@@ -383,7 +339,7 @@ function MyTransactions({ user, embedded = false }) {
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentTransactions = filteredTransactions.slice(indexOfFirstItem, indexOfLastItem);
   const pendingCount = transactions.filter(t =>
-    (t.flagged || (t.riskScore ?? 0) >= 60 || t.verificationStatus === 'Pending' || t.verificationStatus === 'Suspicious') &&
+    (t.flagged || (t.riskScore ?? 0) >= 71 || t.verificationStatus === 'Pending' || t.verificationStatus === 'Suspicious') &&
     t.verificationStatus !== 'Verified' && t.verificationStatus !== 'Rejected'
   ).length;
 
@@ -650,15 +606,15 @@ function MyTransactions({ user, embedded = false }) {
                       {selectedTx.riskScore ?? 0}<span style={{ fontSize: '0.9rem', color: '#94a3b8' }}>/100</span>
                     </div>
                     <div className="risk-gauge-legend">
-                      <span><span className="legend-dot" style={{ background: '#10b981' }} /> Low (0-39)</span>
-                      <span><span className="legend-dot" style={{ background: '#f59e0b' }} /> Medium (40-59)</span>
-                      <span><span className="legend-dot" style={{ background: '#f97316' }} /> High (60-79)</span>
-                      <span><span className="legend-dot" style={{ background: '#ef4444' }} /> Critical (80+)</span>
+                      <span><span className="legend-dot" style={{ background: '#10b981' }} /> Low (0-40)</span>
+                      <span><span className="legend-dot" style={{ background: '#f59e0b' }} /> Medium (41-70)</span>
+                      <span><span className="legend-dot" style={{ background: '#f97316' }} /> High (71-89)</span>
+                      <span><span className="legend-dot" style={{ background: '#ef4444' }} /> Critical (90+)</span>
                     </div>
                     <div className="risk-gauge-strip-level" style={{
                       marginTop: 8,
-                      background: selectedTx.riskScore >= 80 ? '#fee2e2' : selectedTx.riskScore >= 60 ? '#ffedd5' : selectedTx.riskScore >= 40 ? '#fef3c7' : '#d1fae5',
-                      color: selectedTx.riskScore >= 80 ? '#991b1b' : selectedTx.riskScore >= 60 ? '#9a3412' : selectedTx.riskScore >= 40 ? '#92400e' : '#065f46',
+                      background: selectedTx.riskScore >= 90 ? '#fee2e2' : selectedTx.riskScore >= 71 ? '#ffedd5' : selectedTx.riskScore >= 41 ? '#fef3c7' : '#d1fae5',
+                      color: selectedTx.riskScore >= 90 ? '#991b1b' : selectedTx.riskScore >= 71 ? '#9a3412' : selectedTx.riskScore >= 41 ? '#92400e' : '#065f46',
                     }}>
                       {selectedTx.riskLevel || 'LOW'}
                     </div>
@@ -699,11 +655,11 @@ function MyTransactions({ user, embedded = false }) {
                       <div className="tx-grid-row">
                         <div className="tx-grid-col">
                           <label>Sender (From)</label>
-                          <div className="addr-ellipsis" title={selectedTx.fromAddress}>{selectedTx.fromAddress || 'N/A'}</div>
+                          <div className="addr-ellipsis" title={selectedTx.fromAddress}>{formatAddressLabel(selectedTx.fromAddress) || 'N/A'}</div>
                         </div>
                         <div className="tx-grid-col">
                           <label>Receiver (To)</label>
-                          <div className="addr-ellipsis" title={selectedTx.toAddress}>{selectedTx.toAddress || 'N/A'}</div>
+                          <div className="addr-ellipsis" title={selectedTx.toAddress}>{formatAddressLabel(selectedTx.toAddress) || 'N/A'}</div>
                         </div>
                       </div>
                       <div className="tx-grid-row">
@@ -729,10 +685,26 @@ function MyTransactions({ user, embedded = false }) {
                           <div>{selectedTx.beneficiaryType || 'N/A'}</div>
                         </div>
                       </div>
-                      {(selectedTx.agency || selectedTx.programName) && (
+                      <div className="tx-grid-row">
+                        <div className="tx-grid-col">
+                          <label>AI Combined</label>
+                          <div>{selectedTx.mlUsed ? 'Yes' : 'No'}</div>
+                        </div>
+                        <div className="tx-grid-col">
+                          <label>ML Score</label>
+                          <div>{selectedTx.mlScore ?? '-'}</div>
+                        </div>
+                      </div>
+                      {(isMeaningfulValue(selectedTx.agency) || isMeaningfulValue(selectedTx.programName)) && (
                         <div className="tx-grid-row">
-                          <div className="tx-grid-col"><label>Agency</label><div>{selectedTx.agency || 'N/A'}</div></div>
-                          <div className="tx-grid-col"><label>Program</label><div>{selectedTx.programName || 'N/A'}</div></div>
+                          <div className="tx-grid-col">
+                            <label>Agency</label>
+                            <div>{isMeaningfulValue(selectedTx.agency) ? selectedTx.agency : '-'}</div>
+                          </div>
+                          <div className="tx-grid-col">
+                            <label>Program</label>
+                            <div>{isMeaningfulValue(selectedTx.programName) ? selectedTx.programName : '-'}</div>
+                          </div>
                         </div>
                       )}
                       <div className="tx-grid-row">
@@ -818,11 +790,11 @@ function MyTransactions({ user, embedded = false }) {
                         </div>
                         <div className="csv-field">
                           <div className="csv-field-label">Payer Name (From)</div>
-                          <div className="csv-field-value">{selectedTx.fromAddress || '-'}</div>
+                        <div className="csv-field-value">{formatAddressLabel(selectedTx.fromAddress) || '-'}</div>
                         </div>
                         <div className="csv-field">
                           <div className="csv-field-label">Payee Name (To)</div>
-                          <div className="csv-field-value">{selectedTx.toAddress || '-'}</div>
+                        <div className="csv-field-value">{formatAddressLabel(selectedTx.toAddress) || '-'}</div>
                         </div>
                         <div className="csv-field">
                           <div className="csv-field-label">Amount</div>
@@ -832,14 +804,18 @@ function MyTransactions({ user, embedded = false }) {
                           <div className="csv-field-label">Transaction Type</div>
                           <div className="csv-field-value">{selectedTx.transactionType || '-'}</div>
                         </div>
-                        <div className="csv-field">
-                          <div className="csv-field-label">Agency</div>
-                          <div className="csv-field-value">{selectedTx.agency || '-'}</div>
-                        </div>
-                        <div className="csv-field">
-                          <div className="csv-field-label">Program Name</div>
-                          <div className="csv-field-value">{selectedTx.programName || '-'}</div>
-                        </div>
+                        {isMeaningfulValue(selectedTx.agency) && (
+                          <div className="csv-field">
+                            <div className="csv-field-label">Agency</div>
+                            <div className="csv-field-value">{selectedTx.agency}</div>
+                          </div>
+                        )}
+                        {isMeaningfulValue(selectedTx.programName) && (
+                          <div className="csv-field">
+                            <div className="csv-field-label">Program Name</div>
+                            <div className="csv-field-value">{selectedTx.programName}</div>
+                          </div>
+                        )}
                         <div className="csv-field">
                           <div className="csv-field-label">Beneficiary Type</div>
                           <div className="csv-field-value">{selectedTx.beneficiaryType || '-'}</div>
@@ -872,17 +848,16 @@ function MyTransactions({ user, embedded = false }) {
                             </>
                           )}
                         </div>
-                        {selectedTx.fraudPatterns && selectedTx.fraudPatterns.length > 0 && (
-                          <div className="formula-patterns">
-                            <div className="formula-patterns-title">Detected Patterns</div>
-                            {selectedTx.fraudPatterns.map((p, i) => (
-                              <div key={i} className="formula-pattern-item">
-                                <span className="pattern-type-pill">{p.type}</span>
-                                {p.description && <span className="pattern-desc">{p.description}</span>}
-                              </div>
-                            ))}
-                          </div>
-                        )}
+                      {selectedTx.reasons && selectedTx.reasons.length > 0 && (
+                        <div className="formula-patterns">
+                          <div className="formula-patterns-title">Reason Why</div>
+                          {selectedTx.reasons.map((r, i) => (
+                            <div key={i} className="formula-pattern-item">
+                              <span className="pattern-desc">{r}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                       </div>
                     </div>
                   )}

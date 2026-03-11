@@ -407,19 +407,20 @@
   border-radius: 20px;
   text-align: center;
   border: 1px solid #f1f5f9;
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: none;
   background: #f8fafc;
   position: relative;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
+/* Disable hover lift/contrast changes for stat cards */
 .stat-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  transform: none;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
-.stat-card:hover .stat-label {
-  color: #000000;
+.stat-card * {
+  transition: none;
 }
 
 .stat-card.success {
@@ -498,6 +499,15 @@
 .stat-card.error .stat-label,
 .stat-card.verified .stat-label {
   color: rgba(255, 255, 255, 0.86);
+}
+
+
+.stat-card.danger .stat-label {
+  color: #991b1b;
+}
+
+.stat-card.warning .stat-label {
+  color: #92400e;
 }
 
 .section-title-row {

@@ -7,7 +7,7 @@ const { requireRole, requireFraudAccess, requireAdmin } = require('../middleware
 /**
  * @route   GET /api/analytics/inflation/current
  * @desc    Get current inflation rate
- * @access  Private (Analyst, Investigator, Administrator)
+ * @access  Private (Auditor, Administrator)
  */
 router.get('/inflation/current', authMiddleware, async (req, res) => {
     try {
@@ -35,7 +35,7 @@ router.get('/inflation/current', authMiddleware, async (req, res) => {
 /**
  * @route   GET /api/analytics/inflation/history
  * @desc    Get historical inflation rates
- * @access  Private (Analyst, Investigator, Administrator)
+ * @access  Private (Auditor, Administrator)
  */
 router.get('/inflation/history', authMiddleware, async (req, res) => {
     try {

@@ -58,7 +58,7 @@ function Analytics({ user }) {
       if (severityFilter !== 'all') tableParams.severity = severityFilter;
 
       const [totalTxRes, flaggedRes, criticalRes, highRes, mediumRes, tableRes] = await Promise.all([
-        api.get('/transactions', { params: { page: 1, limit: 1 } }),
+        api.get('/transactions', { params: { page: 1, limit: 1, includeStaged: true } }),
         api.get('/transactions/alerts', { params: { page: 1, limit: 1 } }),
         api.get('/transactions/alerts', { params: { page: 1, limit: 1, severity: 'critical' } }),
         api.get('/transactions/alerts', { params: { page: 1, limit: 1, severity: 'high' } }),
@@ -66,8 +66,9 @@ function Analytics({ user }) {
         api.get('/transactions/alerts', { params: tableParams })
       ]);
 
-      const totalTransactions = toNumber(totalTxRes?.data?.totalCount, 0);
+      const totalTransactionsRaw = toNumber(totalTxRes?.data?.totalCount, 0);
       const flaggedTotal = toNumber(flaggedRes?.data?.count, 0);
+      const totalTransactions = totalTransactionsRaw > 0 ? totalTransactionsRaw : flaggedTotal;
       const critical = toNumber(criticalRes?.data?.count, 0);
       const high = toNumber(highRes?.data?.count, 0);
       const medium = toNumber(mediumRes?.data?.count, 0);
@@ -102,13 +103,13 @@ function Analytics({ user }) {
   const highOrCritical = summary.high + summary.critical;
   const flaggedRate = summary.totalTransactions > 0
     ? ((summary.flaggedTotal / summary.totalTransactions) * 100).toFixed(1)
-    : '0.0';
+    : null;
   const criticalShare = summary.flaggedTotal > 0
     ? ((summary.critical / summary.flaggedTotal) * 100).toFixed(1)
-    : '0.0';
+    : null;
   const highCriticalShare = summary.flaggedTotal > 0
     ? ((highOrCritical / summary.flaggedTotal) * 100).toFixed(1)
-    : '0.0';
+    : null;
 
   return (
     <div className="analytics-container">
@@ -257,23 +258,23 @@ function Analytics({ user }) {
           <div className="performance-metrics">
             <div className="metric-item">
               <div className="metric-label">Flagged Rate (Alerts / Transactions)</div>
-              <div className="metric-value">{flaggedRate}%</div>
+              <div className="metric-value">{flaggedRate === null ? '—' : `${flaggedRate}%`}</div>
               <div className="metric-bar">
-                <div className="metric-fill" style={{ width: `${Math.min(100, Number(flaggedRate))}%`, background: '#f59e0b' }}></div>
+                <div className="metric-fill" style={{ width: `${flaggedRate === null ? 0 : Math.min(100, Number(flaggedRate))}%`, background: '#f59e0b' }}></div>
               </div>
             </div>
             <div className="metric-item">
               <div className="metric-label">Critical Share of Alerts</div>
-              <div className="metric-value">{criticalShare}%</div>
+              <div className="metric-value">{criticalShare === null ? '—' : `${criticalShare}%`}</div>
               <div className="metric-bar">
-                <div className="metric-fill" style={{ width: `${Math.min(100, Number(criticalShare))}%`, background: '#ef4444' }}></div>
+                <div className="metric-fill" style={{ width: `${criticalShare === null ? 0 : Math.min(100, Number(criticalShare))}%`, background: '#ef4444' }}></div>
               </div>
             </div>
             <div className="metric-item">
               <div className="metric-label">High + Critical Share</div>
-              <div className="metric-value">{highCriticalShare}%</div>
+              <div className="metric-value">{highCriticalShare === null ? '—' : `${highCriticalShare}%`}</div>
               <div className="metric-bar">
-                <div className="metric-fill" style={{ width: `${Math.min(100, Number(highCriticalShare))}%`, background: '#6366f1' }}></div>
+                <div className="metric-fill" style={{ width: `${highCriticalShare === null ? 0 : Math.min(100, Number(highCriticalShare))}%`, background: '#6366f1' }}></div>
               </div>
             </div>
           </div>
@@ -309,7 +310,7 @@ function Analytics({ user }) {
                         <td className="text-ellipsis">{alert.transactionType || '-'}</td>
                         <td className="text-ellipsis">{alert.agency || '-'}</td>
                         <td>
-                          <span className={`risk-badge ${Number(alert.riskScore) >= 80 ? 'critical' : Number(alert.riskScore) >= 60 ? 'high' : 'medium'}`}>
+                          <span className={`risk-badge ${Number(alert.riskScore) >= 90 ? 'critical' : Number(alert.riskScore) >= 71 ? 'high' : Number(alert.riskScore) >= 41 ? 'medium' : 'low'}`}>
                             {Number(alert.riskScore) || 0}
                           </span>
                         </td>

@@ -10,6 +10,7 @@ import {
   Link2
 } from 'lucide-react';
 import api from '../../services/api';
+import { formatAddressLabel } from '../../utils/helpers';
 import '../../styles/Alerts.css';
 
 function AlertsManagement({ embedded = false }) {
@@ -61,9 +62,9 @@ function AlertsManagement({ embedded = false }) {
   };
 
   const getSeverity = (riskScore) => {
-    if (riskScore >= 80) return 'critical';
-    if (riskScore >= 60) return 'high';
-    if (riskScore >= 40) return 'medium';
+    if (riskScore >= 90) return 'critical';
+    if (riskScore >= 71) return 'high';
+    if (riskScore >= 41) return 'medium';
     return 'low';
   };
 
@@ -84,17 +85,24 @@ function AlertsManagement({ embedded = false }) {
   };
 
   const riskColor = (score) => {
-    if (score >= 80) return '#ef4444';
-    if (score >= 60) return '#f97316';
-    if (score >= 40) return '#f59e0b';
+    if (score >= 90) return '#ef4444';
+    if (score >= 71) return '#f97316';
+    if (score >= 41) return '#f59e0b';
     return '#10b981';
   };
 
   const riskLabel = (score) => {
-    if (score >= 80) return 'CRITICAL';
-    if (score >= 60) return 'HIGH';
-    if (score >= 40) return 'MEDIUM';
+    if (score >= 90) return 'CRITICAL';
+    if (score >= 71) return 'HIGH';
+    if (score >= 41) return 'MEDIUM';
     return 'LOW';
+  };
+
+  const isMeaningfulValue = (value) => {
+    if (value === null || value === undefined) return false;
+    const normalized = String(value).trim().toLowerCase();
+    if (!normalized) return false;
+    return !['n/a', 'na', '-', 'unknown', 'unknown agency', 'unknown program'].includes(normalized);
   };
 
   const formatAlert = (transaction) => ({
@@ -103,18 +111,21 @@ function AlertsManagement({ embedded = false }) {
     type: transaction.fraudPatterns?.[0]?.type || 'Risk Detected',
     documentId: transaction.transactionId,
     documentType: transaction.transactionType,
-    issuer: transaction.agency || 'Unknown',
+    issuer: transaction.agency || null,
     riskScore: transaction.riskScore,
     status: transaction.verificationStatus || 'Open',
     time: getTimeAgo(transaction.timestamp),
     amount: transaction.amount,
     programName: transaction.programName,
-    fromAddress: transaction.fromAddress,
-    toAddress: transaction.toAddress,
+    fromAddress: formatAddressLabel(transaction.fromAddress),
+    toAddress: formatAddressLabel(transaction.toAddress),
     timestamp: transaction.timestamp,
-    riskPatterns: transaction.fraudPatterns || [],
+    riskPatterns: [],
+    reasons: transaction.reasons || [],
     riskLevel: transaction.riskLevel,
     beneficiaryType: transaction.beneficiaryType,
+    mlUsed: transaction.mlUsed,
+    mlScore: transaction.mlScore,
     blockchainTxId: transaction.blockchainTxId,
     blockNumber: transaction.blockNumber,
     description: transaction.description
@@ -185,54 +196,27 @@ function AlertsManagement({ embedded = false }) {
   };
 
   const RiskGaugeSmall = ({ score = 0 }) => {
-    const color = riskColor(score);
-    const label = riskLabel(score);
-    const pct = Math.min(100, Math.max(0, score)) / 100;
-    const cx = 60;
-    const cy = 55;
-    const r = 42;
-    const startAngle = -Math.PI;
-
-    const polar = (angle) => ({ x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle) });
-
-    const bgStart = polar(startAngle);
-    const bgEnd = polar(0);
-    const fgAngle = startAngle + Math.PI * pct;
-    const fgEnd = polar(fgAngle);
-    const largeArc = pct > 0.5 ? 1 : 0;
-
-    const fgPath = pct <= 0
-      ? ''
-      : `M ${bgStart.x} ${bgStart.y} A ${r} ${r} 0 ${largeArc} 1 ${fgEnd.x} ${fgEnd.y}`;
-
+    const safeScore = Math.min(100, Math.max(0, Number(score) || 0));
+    const color = riskColor(safeScore);
     return (
-      <div style={{ textAlign: 'center' }}>
-        <svg viewBox="0 0 120 70" style={{ width: 132, height: 'auto' }}>
-          <path
-            d={`M ${bgStart.x} ${bgStart.y} A ${r} ${r} 0 0 1 ${bgEnd.x} ${bgEnd.y}`}
-            stroke="#e2e8f0"
-            strokeWidth="10"
-            fill="none"
-            strokeLinecap="round"
-          />
-          {pct > 0 && (
-            <path
-              d={fgPath}
-              stroke={color}
-              strokeWidth="10"
-              fill="none"
-              strokeLinecap="round"
-              style={{ transition: 'all 0.6s ease' }}
-            />
-          )}
-          <text x={cx} y={cy - 4} textAnchor="middle" fontSize="16" fontWeight="900" fill={color}>{score}</text>
-          <text x={cx} y={cy + 12} textAnchor="middle" fontSize="7" fill="#64748b" fontWeight="700">{label}</text>
-        </svg>
+      <div className="risk-bar-wrap">
+        <div className="risk-bar-score" style={{ color }}>
+          {safeScore}
+          <span className="risk-bar-score-max">/100</span>
+        </div>
+        <div className="risk-bar-level">{riskLabel(safeScore)}</div>
+        <div className="risk-bar-track" aria-label={`Risk ${safeScore} of 100`}>
+          <div className="risk-bar-segment low" />
+          <div className="risk-bar-segment medium" />
+          <div className="risk-bar-segment high" />
+          <div className="risk-bar-segment critical" />
+          <div className="risk-bar-indicator" style={{ left: `calc(${safeScore}% - 6px)`, background: color }} />
+        </div>
       </div>
     );
   };
 
-  const FormulaPanel = ({ score = 0, patterns = [] }) => {
+  const FormulaPanel = ({ score = 0, patterns = [], reasons = [] }) => {
     const mean = 50;
     const stddev = 25;
     const z = ((score - mean) / stddev).toFixed(2);
@@ -242,7 +226,7 @@ function AlertsManagement({ embedded = false }) {
       <div className="formula-card">
         <h4 className="formula-title">Anomaly Analysis</h4>
         <div className="formula-body">
-          <div className="formula-row"><span className="formula-label">Formula</span><span className="formula-val formula-eq">Z = (X - mu) / sigma</span></div>
+          <div className="formula-row"><span className="formula-label">Formula</span><span className="formula-val formula-eq">Z = (X - μ) / σ</span></div>
           <div className="formula-row"><span className="formula-label">Risk Score (X)</span><span className="formula-val">{score}</span></div>
           <div className="formula-row"><span className="formula-label">Mean (mu)</span><span className="formula-val">{mean}</span></div>
           <div className="formula-row"><span className="formula-label">Std Dev (sigma)</span><span className="formula-val">{stddev}</span></div>
@@ -255,16 +239,17 @@ function AlertsManagement({ embedded = false }) {
           <div className={`formula-verdict ${suspicious ? 'verdict-suspicious' : 'verdict-normal'}`}>
             {suspicious ? `Suspicious: Z=${z} exceeds +/-1.5` : `Normal: Z=${z} within +/-1.5`}
           </div>
-          {patterns.length > 0 && (
+          {reasons.length > 0 && (
             <div className="formula-patterns">
-              {patterns.map((p, idx) => (
+              <div className="formula-patterns-title">Reason Why</div>
+              {reasons.map((r, idx) => (
                 <div key={idx} className="formula-pattern-item">
-                  <span className="pattern-type-pill">{p.type}</span>
-                  {p.description && <span className="pattern-desc">{p.description}</span>}
+                  <span className="pattern-desc">{r}</span>
                 </div>
               ))}
             </div>
           )}
+          {patterns.length > 0 && null}
         </div>
       </div>
     );
@@ -385,9 +370,9 @@ function AlertsManagement({ embedded = false }) {
                     <td className="font-mono">{alert.documentId}</td>
                     <td><span className={`sev-pill sev-${alert.severity}`}>{alert.severity.toUpperCase()}</span></td>
                     <td>{alert.type}</td>
-                    <td>{alert.issuer}</td>
+                    <td>{isMeaningfulValue(alert.issuer) ? alert.issuer : ''}</td>
                     <td>PHP {Number(alert.amount || 0).toLocaleString()}</td>
-                    <td><span className={`risk-chip ${alert.riskScore >= 80 ? 'risk-critical' : alert.riskScore >= 60 ? 'risk-high' : alert.riskScore >= 40 ? 'risk-medium' : 'risk-low'}`}>{alert.riskScore}</span></td>
+                    <td><span className={`risk-chip ${alert.riskScore >= 90 ? 'risk-critical' : alert.riskScore >= 71 ? 'risk-high' : alert.riskScore >= 41 ? 'risk-medium' : 'risk-low'}`}>{alert.riskScore}</span></td>
                     <td>{alert.time}</td>
                     <td>
                       <button
@@ -444,17 +429,17 @@ function AlertsManagement({ embedded = false }) {
                   {txRisk}<span style={{ fontSize: '0.9rem', color: '#94a3b8' }}>/100</span>
                 </div>
                 <div className="alerts-risk-legend">
-                  <span><span className="legend-dot" style={{ background: '#10b981' }} /> Low (0-39)</span>
-                  <span><span className="legend-dot" style={{ background: '#f59e0b' }} /> Medium (40-59)</span>
-                  <span><span className="legend-dot" style={{ background: '#f97316' }} /> High (60-79)</span>
-                  <span><span className="legend-dot" style={{ background: '#ef4444' }} /> Critical (80+)</span>
+                  <span><span className="legend-dot" style={{ background: '#10b981' }} /> Low (0-40)</span>
+                  <span><span className="legend-dot" style={{ background: '#f59e0b' }} /> Medium (41-70)</span>
+                  <span><span className="legend-dot" style={{ background: '#f97316' }} /> High (71-89)</span>
+                  <span><span className="legend-dot" style={{ background: '#ef4444' }} /> Critical (90+)</span>
                 </div>
                 <div
                   className="risk-gauge-strip-level"
                   style={{
                     marginTop: 8,
-                    background: txRisk >= 80 ? '#fee2e2' : txRisk >= 60 ? '#ffedd5' : txRisk >= 40 ? '#fef3c7' : '#d1fae5',
-                    color: txRisk >= 80 ? '#991b1b' : txRisk >= 60 ? '#9a3412' : txRisk >= 40 ? '#92400e' : '#065f46'
+                    background: txRisk >= 90 ? '#fee2e2' : txRisk >= 71 ? '#ffedd5' : txRisk >= 41 ? '#fef3c7' : '#d1fae5',
+                    color: txRisk >= 90 ? '#991b1b' : txRisk >= 71 ? '#9a3412' : txRisk >= 41 ? '#92400e' : '#065f46'
                   }}
                 >
                   {tx?.riskLevel || riskLabel(txRisk)}
@@ -496,11 +481,11 @@ function AlertsManagement({ embedded = false }) {
                   <div className="tx-grid-row">
                     <div className="tx-grid-col">
                       <label>Sender (From)</label>
-                      <div className="addr-ellipsis" title={tx?.fromAddress || ''}>{tx?.fromAddress || 'N/A'}</div>
+                      <div className="addr-ellipsis" title={tx?.fromAddress || ''}>{formatAddressLabel(tx?.fromAddress) || 'N/A'}</div>
                     </div>
                     <div className="tx-grid-col">
                       <label>Receiver (To)</label>
-                      <div className="addr-ellipsis" title={tx?.toAddress || ''}>{tx?.toAddress || 'N/A'}</div>
+                      <div className="addr-ellipsis" title={tx?.toAddress || ''}>{formatAddressLabel(tx?.toAddress) || 'N/A'}</div>
                     </div>
                   </div>
 
@@ -516,13 +501,25 @@ function AlertsManagement({ embedded = false }) {
                   </div>
 
                   <div className="tx-grid-row">
-                    <div className="tx-grid-col">
-                      <label>Agency</label>
-                      <div>{tx?.agency || tx?.issuer || 'N/A'}</div>
-                    </div>
+                    {isMeaningfulValue(tx?.agency || tx?.issuer) && (
+                      <div className="tx-grid-col">
+                        <label>Agency</label>
+                        <div>{tx?.agency || tx?.issuer}</div>
+                      </div>
+                    )}
                     <div className="tx-grid-col">
                       <label>Beneficiary Type</label>
                       <div>{tx?.beneficiaryType || 'N/A'}</div>
+                    </div>
+                  </div>
+                  <div className="tx-grid-row">
+                    <div className="tx-grid-col">
+                      <label>AI Combined</label>
+                      <div>{tx?.mlUsed ? 'Yes' : 'No'}</div>
+                    </div>
+                    <div className="tx-grid-col">
+                      <label>ML Score</label>
+                      <div>{tx?.mlScore ?? '-'}</div>
                     </div>
                   </div>
 
@@ -554,7 +551,7 @@ function AlertsManagement({ embedded = false }) {
               )}
 
               {modalTab === 'ai' && (
-                <FormulaPanel score={txRisk} patterns={tx?.fraudPatterns || tx?.riskPatterns || []} />
+                <FormulaPanel score={txRisk} patterns={tx?.fraudPatterns || tx?.riskPatterns || []} reasons={tx?.reasons || []} />
               )}
 
               {modalTab === 'csv' && (
@@ -568,12 +565,16 @@ function AlertsManagement({ embedded = false }) {
 
                   <div className="csv-fields-grid">
                     <div className="csv-field"><div className="csv-field-label">Transaction ID (Original)</div><div className="csv-field-value font-mono">{tx?.transactionId || tx?.documentId || '-'}</div></div>
-                    <div className="csv-field"><div className="csv-field-label">Payer Name (From)</div><div className="csv-field-value">{tx?.fromAddress || '-'}</div></div>
-                    <div className="csv-field"><div className="csv-field-label">Payee Name (To)</div><div className="csv-field-value">{tx?.toAddress || '-'}</div></div>
+                    <div className="csv-field"><div className="csv-field-label">Payer Name (From)</div><div className="csv-field-value">{formatAddressLabel(tx?.fromAddress) || '-'}</div></div>
+                    <div className="csv-field"><div className="csv-field-label">Payee Name (To)</div><div className="csv-field-value">{formatAddressLabel(tx?.toAddress) || '-'}</div></div>
                     <div className="csv-field"><div className="csv-field-label">Amount</div><div className="csv-field-value">PHP {Number(tx?.amount || 0).toLocaleString()}</div></div>
                     <div className="csv-field"><div className="csv-field-label">Transaction Type</div><div className="csv-field-value">{tx?.transactionType || '-'}</div></div>
-                    <div className="csv-field"><div className="csv-field-label">Agency</div><div className="csv-field-value">{tx?.agency || '-'}</div></div>
-                    <div className="csv-field"><div className="csv-field-label">Program Name</div><div className="csv-field-value">{tx?.programName || '-'}</div></div>
+                    {isMeaningfulValue(tx?.agency) && (
+                      <div className="csv-field"><div className="csv-field-label">Agency</div><div className="csv-field-value">{tx?.agency}</div></div>
+                    )}
+                    {isMeaningfulValue(tx?.programName) && (
+                      <div className="csv-field"><div className="csv-field-label">Program Name</div><div className="csv-field-value">{tx?.programName}</div></div>
+                    )}
                     <div className="csv-field"><div className="csv-field-label">Beneficiary Type</div><div className="csv-field-value">{tx?.beneficiaryType || '-'}</div></div>
                     <div className="csv-field"><div className="csv-field-label">Post Date</div><div className="csv-field-value">{new Date(tx?.timestamp || tx?.createdAt).toLocaleString()}</div></div>
                   </div>

@@ -41,12 +41,14 @@ class CSVColumnMapper {
                 'encashed_by', 'received_by'
             ],
             agency: [
-                'agency', 'department', 'office', 'organization', 'org', 'ministry',
+                'agency', 'agency_name', 'agency name', 'department', 'department_name',
+                'office', 'office_name', 'organization', 'org', 'ministry',
                 'bureau', 'unit', 'ahensya', 'kagawaran', 'barangay', 'lgu'
             ],
             programName: [
-                'program', 'program_name', 'project', 'project_name', 'initiative',
-                'scheme', 'programa', 'proyekto'
+                'program', 'program_name', 'program name', 'program_title', 'program title',
+                'project', 'project_name', 'project name', 'project_title', 'project title',
+                'initiative', 'scheme', 'programa', 'proyekto'
             ],
             beneficiaryType: [
                 'beneficiary_type', 'recipient_type', 'payee_type', 'entity_type',
@@ -202,7 +204,6 @@ class CSVColumnMapper {
         // Set defaults
         transaction.currency = transaction.currency || 'PHP';
         transaction.beneficiaryType = transaction.beneficiaryType || 'Individual';
-        transaction.agency = transaction.agency || 'Unknown Agency';
 
         return transaction;
     }
@@ -266,6 +267,14 @@ class CSVColumnMapper {
      */
     validate(transaction) {
         const errors = [];
+
+        // Check for agency
+        if (!transaction.agency || String(transaction.agency).trim() === '') {
+            errors.push('Missing agency');
+        }
+        if (!transaction.programName || String(transaction.programName).trim() === '') {
+            errors.push('Missing program name');
+        }
 
         // Check for amount
         if (!transaction.amount || isNaN(parseFloat(transaction.amount))) {

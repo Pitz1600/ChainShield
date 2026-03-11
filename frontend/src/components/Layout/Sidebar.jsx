@@ -143,7 +143,9 @@ function Sidebar({ user, activeView, setActiveView, onLogout, isMobileMenuOpen, 
           </div>
           <div className="user-info">
             <span className="user-name">{user?.firstName} {user?.lastName}</span>
-            <span className="user-role">{user?.role?.replace('_', ' ')}</span>
+            <span className="user-role">
+              {user?.role === 'barangay_official' && user?.position ? user.position : user?.role?.replace('_', ' ')}
+            </span>
           </div>
         </div>
 

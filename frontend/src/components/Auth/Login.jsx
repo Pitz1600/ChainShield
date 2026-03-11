@@ -26,6 +26,7 @@ function Login({ onLogin, onNavigate }) {
   const [rememberDevice, setRememberDevice] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
   const [rateLimitSeconds, setRateLimitSeconds] = useState(0);
+  const [lockoutSeconds, setLockoutSeconds] = useState(0);
 
   // Handle OAuth redirect result (?oauth=success or ?error=...)
   useEffect(() => {
@@ -88,10 +89,27 @@ function Login({ onLogin, onNavigate }) {
     return () => clearInterval(timer);
   }, [rateLimitSeconds]);
 
+  useEffect(() => {
+    let timer;
+    if (lockoutSeconds > 0) {
+      timer = setInterval(() => {
+        setLockoutSeconds((prev) => Math.max(prev - 1, 0));
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [lockoutSeconds]);
+
+  const formatCountdown = (totalSeconds) => {
+    const mins = Math.floor(totalSeconds / 60);
+    const secs = Math.max(totalSeconds % 60, 0);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
+    setLockoutSeconds(0);
 
     try {
       // If it's the TOTP step during OAuth, use the dedicated verifyMfa endpoint
@@ -143,6 +161,10 @@ function Login({ onLogin, onNavigate }) {
         const seconds = bodySeconds ?? (retryAfterHeader ? Number(retryAfterHeader) : 0);
         if (seconds && !Number.isNaN(seconds)) setRateLimitSeconds(seconds);
         setError(err.response?.data?.error || 'Too many attempts. Please wait.');
+      } else if (err.response?.status === 401 && err.response?.data?.retryAfterSeconds) {
+        const seconds = Number(err.response.data.retryAfterSeconds);
+        if (seconds && !Number.isNaN(seconds)) setLockoutSeconds(seconds);
+        setError(err.response?.data?.error || 'Account is temporarily locked.');
       } else if (err.response?.data?.error) {
         setError(err.response.data.error);
       } else {
@@ -407,6 +429,11 @@ function Login({ onLogin, onNavigate }) {
     </form>
   );
 
+  const lockCountdown = lockoutSeconds || rateLimitSeconds;
+  const alertMessage = lockCountdown > 0
+    ? `Account locked. Try again in ${formatCountdown(lockCountdown)}.`
+    : error;
+
   return (
     <div className="auth-container">
       <div className="auth-sidebar">
@@ -454,24 +481,17 @@ function Login({ onLogin, onNavigate }) {
             </p>
           </div>
 
-          {error && (
+          {alertMessage && (
             <div className="alert-box error">
               <span className="alert-icon"><AlertCircle size={20} /></span>
-              <span className="alert-message">{error}</span>
+              <span className="alert-message">{alertMessage}</span>
             </div>
           )}
 
       {step === 'credentials' && renderCredentialsStep()}
       {step === 'totp' && renderTotpStep()}
       {step === 'otp' && renderOtpStep()}
-      {rateLimitSeconds > 0 && (
-        <div className="alert-box info">
-          <span className="alert-icon"><AlertCircle size={20} /></span>
-          <span className="alert-message">
-            Login locked for about {Math.ceil(rateLimitSeconds / 60)} minute(s). {rateLimitSeconds}s remaining.
-          </span>
-        </div>
-      )}
+      
 
           <div className="auth-footer">
             <p className="footer-text">

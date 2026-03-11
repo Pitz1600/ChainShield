@@ -150,7 +150,7 @@ router.get('/my-complaints', auth, async (req, res) => {
 router.get('/', auth, async (req, res) => {
     try {
         // Check if user is official or admin
-        const allowedRoles = ['barangay_official', 'administrator', 'analyst', 'investigator'];
+        const allowedRoles = ['barangay_official', 'administrator'];
         if (!allowedRoles.includes(req.user.role)) {
             return res.status(403).json({ error: 'Access denied' });
         }

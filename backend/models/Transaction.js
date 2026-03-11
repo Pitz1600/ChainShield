@@ -98,10 +98,34 @@ const transactionSchema = new mongoose.Schema({
     max: 100,
     index: true
   },
+  zScore: {
+    type: Number
+  },
   riskLevel: {
     type: String,
     enum: ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'],
     index: true
+  },
+  velocityFlag: {
+    type: Boolean,
+    default: false
+  },
+  receiverPatternFlag: {
+    type: Boolean,
+    default: false
+  },
+  amountSpikeFlag: {
+    type: Boolean,
+    default: false
+  },
+  mlUsed: {
+    type: Boolean,
+    default: false
+  },
+  mlScore: {
+    type: Number,
+    min: 0,
+    max: 100
   },
 
   // Graph analytics
@@ -122,6 +146,9 @@ const transactionSchema = new mongoose.Schema({
     },
     severity: String,
     description: String
+  }],
+  reasons: [{
+    type: String
   }]
 }, { timestamps: true });
 

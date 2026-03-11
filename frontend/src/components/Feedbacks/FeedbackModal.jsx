@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { feedbacksAPI } from '../../services/api';
 import { X, MessageSquarePlus } from 'lucide-react';
 
+const MAX_FEEDBACK_LENGTH = 1000;
+
 function FeedbackModal({ onClose, onSuccess }) {
     const [content, setContent] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -9,15 +11,20 @@ function FeedbackModal({ onClose, onSuccess }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!content.trim()) {
+        const normalized = content.trim();
+        if (!normalized) {
             setError('Content cannot be empty');
+            return;
+        }
+        if (normalized.length > MAX_FEEDBACK_LENGTH) {
+            setError(`Please keep your feedback within ${MAX_FEEDBACK_LENGTH} characters.`);
             return;
         }
 
         try {
             setIsSubmitting(true);
             setError('');
-            await feedbacksAPI.create({ content });
+            await feedbacksAPI.create({ content: normalized });
             onSuccess();
             onClose();
         } catch (err) {
@@ -51,11 +58,18 @@ function FeedbackModal({ onClose, onSuccess }) {
                             className="feedback-textarea"
                             placeholder="Write your message here..."
                             value={content}
-                            onChange={(e) => setContent(e.target.value)}
+                            onChange={(e) => {
+                                setContent(e.target.value);
+                                if (error) setError('');
+                            }}
                             disabled={isSubmitting}
                             rows={5}
                             autoFocus
+                            maxLength={MAX_FEEDBACK_LENGTH}
                         />
+                        <div className="character-count">
+                            {content.length}/{MAX_FEEDBACK_LENGTH}
+                        </div>
                     </div>
 
                     <div className="modal-footer">

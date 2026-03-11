@@ -254,6 +254,10 @@ function Profile({ user }) {
   };
 
   const baseUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
+  const formatRoleName = (role) => String(role || '').replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  const roleDisplay = user?.role === 'barangay_official' && user?.position
+    ? user.position
+    : formatRoleName(user?.role);
 
   if (!user) return null;
 
@@ -324,7 +328,8 @@ function Profile({ user }) {
             {[
               { icon: <User size={24} />, label: 'Full Name', value: `${user.firstName} ${user.lastName}`, hint: 'Official record name', color: '#3b82f6' },
               { icon: <Mail size={24} />, label: 'Email', value: user.email, hint: 'Login address', color: '#22c55e' },
-              { icon: <Target size={24} />, label: 'Role', value: user.role.replace('_', ' '), hint: 'Access level', color: '#8b5cf6' }
+              { icon: <Target size={24} />, label: 'Role', value: roleDisplay, hint: 'Access level', color: '#8b5cf6' },
+              ...(user.role !== 'barangay_official' && user.position ? [{ icon: <Building size={24} />, label: 'Position / Title', value: user.position, hint: 'Assigned role in the organization', color: '#f59e0b' }] : [])
             ].map((item, i) => (
               <div key={i} className="profile-info-card">
                 <div className="info-item">
