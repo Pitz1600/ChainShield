@@ -578,14 +578,17 @@
 .modal-title {
   font-size: 1.25rem;
   font-weight: 700;
-  color: white;
+  color: #ffffff !important;
   margin-bottom: 0.5rem;
+  text-shadow: 0 1px 2px rgba(15, 23, 42, 0.35);
 }
 
 .modal-message {
-  color: #94a3b8;
+  color: rgba(226, 232, 240, 0.92);
   margin-bottom: 2rem;
   line-height: 1.5;
+  font-size: 0.95rem;
+  text-shadow: 0 1px 0 rgba(15, 23, 42, 0.3);
 }
 
 .modal-actions {

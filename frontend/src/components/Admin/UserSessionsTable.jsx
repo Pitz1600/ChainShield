@@ -9,6 +9,8 @@ function UserSessionsTable() {
     const [error, setError] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [search, setSearch] = useState('');
+    const [page, setPage] = useState(1);
+    const pageSize = 10;
 
     const fetchPresence = async () => {
         setLoading(true);
@@ -56,6 +58,14 @@ function UserSessionsTable() {
             );
         });
     }, [presence, search, statusFilter]);
+
+    useEffect(() => {
+        setPage(1);
+    }, [statusFilter, search]);
+
+    const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+    const currentPage = Math.min(page, totalPages);
+    const pagedSessions = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
     return (
         <div className="audit-log-viewer">
@@ -111,7 +121,7 @@ function UserSessionsTable() {
                                     <td colSpan={5} style={{ textAlign: 'center', color: '#64748b' }}>No sessions found</td>
                                 </tr>
                             ) : (
-                                filtered.map((p) => (
+                                pagedSessions.map((p) => (
                                     <tr key={p.userId}>
                                         <td className="sessions-user-cell">
                                             <div className="sessions-user-info">
@@ -132,6 +142,24 @@ function UserSessionsTable() {
                             )}
                         </tbody>
                     </table>
+                </div>
+            )}
+
+            {filtered.length > 0 && totalPages > 1 && (
+                <div className="pagination">
+                    <button
+                        disabled={currentPage === 1}
+                        onClick={() => setPage(currentPage - 1)}
+                    >
+                        Previous
+                    </button>
+                    <span>Page {currentPage} of {totalPages}</span>
+                    <button
+                        disabled={currentPage === totalPages}
+                        onClick={() => setPage(currentPage + 1)}
+                    >
+                        Next
+                    </button>
                 </div>
             )}
         </div>

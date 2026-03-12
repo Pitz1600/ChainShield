@@ -162,3 +162,23 @@
 
 ### Reliability Fixes
 - Improved trusted-device handling for 2FA to avoid unnecessary prompts after restarts.
+
+## [2026-03-12] - UI Fixes, CSV Template Update, Manual Entry Backend Support, and Link Correction
+
+### UI Fixes
+- Fixed several UI tabs that were not displaying or switching correctly.
+- Resolved multiple UI element alignment and rendering issues across the dashboard.
+- Removed unnecessary details from the Auditor view.
+- Added pagination to the User Sessions page for better navigation.
+- Removed the online/offline indicator in the Auditor panel since it was redundant.
+
+### CSV Template Update
+- Updated the CSV template structure and formatting to ensure compatibility with the current import validation rules.
+
+### Manual Entry Improvements
+- Fixed the manual transaction entry feature.
+- Manual entries now correctly communicate with the backend and follow the same validation pipeline as CSV uploads.
+
+### Link Correction
+- Fixed incorrect routing links.
+- Dashboard navigation now correctly resolves to `localhost/dashboard`.

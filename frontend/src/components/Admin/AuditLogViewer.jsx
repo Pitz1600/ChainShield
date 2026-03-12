@@ -7,7 +7,6 @@ function AuditLogViewer() {
     const [logs, setLogs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [presence, setPresence] = useState([]);
     const [filters, setFilters] = useState({
         action: '',
         suspicious: false,
@@ -18,7 +17,6 @@ function AuditLogViewer() {
     const [pagination, setPagination] = useState({});
     const [summary, setSummary] = useState({});
     const [selectedLog, setSelectedLog] = useState(null);
-    const [sessionFilter, setSessionFilter] = useState('all');
 
     useEffect(() => {
         fetchAuditLogs();
@@ -43,7 +41,6 @@ function AuditLogViewer() {
             setLogs(Array.isArray(data.logs) ? data.logs : []);
             setPagination(data.pagination || {});
             setSummary(data.summary || {});
-            setPresence(Array.isArray(data.presence) ? data.presence : []);
         } catch (err) {
             console.error('Error fetching audit logs:', err);
             setError(err?.response?.data?.error || 'Failed to load audit logs.');
@@ -119,13 +116,6 @@ function AuditLogViewer() {
         const arr = Array.isArray(summary?.actionCounts) ? summary.actionCounts : [];
         return arr.map((a) => ({ value: a._id, label: `${formatAction(a._id)} (${a.count})` }));
     }, [summary]);
-
-    const filteredPresence = useMemo(() => {
-        if (!Array.isArray(presence)) return [];
-        if (sessionFilter === 'online') return presence.filter((p) => p.isOnline);
-        if (sessionFilter === 'offline') return presence.filter((p) => !p.isOnline);
-        return presence;
-    }, [presence, sessionFilter]);
 
     return (
         <div className="audit-log-viewer">
@@ -210,50 +200,11 @@ function AuditLogViewer() {
                     </label>
                 </div>
 
-                <div className="filter-group">
-                    <label>User Sessions:</label>
-                    <select
-                        value={sessionFilter}
-                        onChange={(e) => setSessionFilter(e.target.value)}
-                    >
-                        <option value="all">All</option>
-                        <option value="online">Online Only</option>
-                        <option value="offline">Offline Only</option>
-                    </select>
-                </div>
             </div>
 
             {error && (
                 <div className="no-logs" style={{ marginBottom: '1rem', color: '#b91c1c', borderColor: '#fecaca', background: '#fef2f2' }}>
                     {error}
-                </div>
-            )}
-
-            {presence.length > 0 && (
-                <div className="logs-table" style={{ marginBottom: '1.25rem' }}>
-                    <div className="log-item" style={{ cursor: 'default' }}>
-                        <div className="log-header" style={{ marginBottom: '0.75rem' }}>
-                            <div className="log-action"><Eye size={16} /> <span>Current User Presence</span></div>
-                            <div className="log-time">{summary.onlineCount || 0} online / {summary.offlineCount || 0} offline</div>
-                        </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))', gap: '0.75rem' }}>
-                            {filteredPresence.map((p) => (
-                                <div key={p.userId} style={{ border: '1px solid #e2e8f0', borderRadius: '10px', padding: '0.7rem 0.8rem', background: p.isOnline ? '#ecfdf5' : '#f8fafc' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem' }}>
-                                        <strong style={{ color: '#0f172a', fontSize: '0.9rem' }}>{p.username}</strong>
-                                        <span style={{ fontSize: '0.75rem', fontWeight: 700, color: p.isOnline ? '#047857' : '#64748b' }}>
-                                            {p.isOnline ? 'ONLINE' : 'OFFLINE'}
-                                        </span>
-                                    </div>
-                                    <div style={{ marginTop: '0.3rem', color: '#475569', fontSize: '0.8rem' }}>{String(p.role || 'resident').replace(/_/g, ' ')}</div>
-                                    <div style={{ marginTop: '0.25rem', color: '#64748b', fontSize: '0.8rem' }}>Last seen: {formatTimeAgo(p.lastSeenAt)}</div>
-                                </div>
-                            ))}
-                        </div>
-                        {filteredPresence.length === 0 && (
-                            <div className="no-logs" style={{ marginTop: '0.75rem' }}>No users match the selected session filter.</div>
-                        )}
-                    </div>
                 </div>
             )}
 
@@ -415,23 +366,6 @@ function AuditLogViewer() {
                                         {selectedLog.suspiciousReason && (
                                             <div><strong>Reason:</strong> {selectedLog.suspiciousReason}</div>
                                         )}
-                                        <div>
-                                            <strong>Details:</strong>
-                                            <pre
-                                                style={{
-                                                    marginTop: '0.5rem',
-                                                    padding: '0.75rem',
-                                                    background: '#f8fafc',
-                                                    border: '1px solid #e2e8f0',
-                                                    borderRadius: '10px',
-                                                    overflowX: 'auto',
-                                                    whiteSpace: 'pre-wrap',
-                                                    wordBreak: 'break-word'
-                                                }}
-                                            >
-                                                {JSON.stringify(selectedLog.details || {}, null, 2)}
-                                            </pre>
-                                        </div>
                                     </div>
                                 </div>
                             </div>

@@ -70,7 +70,7 @@ function Feedbacks({ user, initialTab = 'public' }) {
                     </div>
                     <div className="hero-stat muted">
                         <span className="stat-label">Moderation Queue</span>
-                        <span className="stat-value">{activeTab === 'moderation' ? feedbacks.length : '—'}</span>
+                        <span className="stat-value">{activeTab === 'moderation' ? feedbacks.length : '\u2014'}</span>
                     </div>
                 </div>
             </div>
