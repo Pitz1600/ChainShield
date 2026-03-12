@@ -179,29 +179,29 @@ function Dashboard({ user, onNavigate }) {
           <div className="hero-stat-card total">
             <div className="stat-icon"><AlertTriangle size={24} /></div>
             <div className="stat-content">
-              <div className="stat-value">{stats.total}</div>
-              <div className="stat-label">Total Alerts</div>
+              <div className="hero-stat-value">{stats.total}</div>
+              <div className="hero-stat-label">Total Alerts</div>
             </div>
           </div>
           <div className="hero-stat-card critical">
             <div className="stat-icon"><AlertCircle size={24} /></div>
             <div className="stat-content">
-              <div className="stat-value">{stats.critical}</div>
-              <div className="stat-label">Critical</div>
+              <div className="hero-stat-value">{stats.critical}</div>
+              <div className="hero-stat-label">Critical</div>
             </div>
           </div>
           <div className="hero-stat-card high">
             <div className="stat-icon"><TrendingUp size={24} /></div>
             <div className="stat-content">
-              <div className="stat-value">{stats.high}</div>
-              <div className="stat-label">High Risk</div>
+              <div className="hero-stat-value">{stats.high}</div>
+              <div className="hero-stat-label">High Risk</div>
             </div>
           </div>
           <div className="hero-stat-card medium">
             <div className="stat-icon"><CheckCircle size={24} /></div>
             <div className="stat-content">
-              <div className="stat-value">{stats.medium}</div>
-              <div className="stat-label">Medium Risk</div>
+              <div className="hero-stat-value">{stats.medium}</div>
+              <div className="hero-stat-label">Medium Risk</div>
             </div>
           </div>
         </div>

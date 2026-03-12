@@ -76,20 +76,37 @@ class CSVColumnMapper {
         };
     }
 
+    normalizeHeader(value) {
+        return String(value || '')
+            .replace(/\ufeff/g, '')
+            .toLowerCase()
+            .trim()
+            .replace(/[^a-z0-9]+/g, '');
+    }
+
     /**
      * Auto-detect column mappings from CSV headers
      */
     detectColumns(headers) {
         const mappings = {};
-        const normalizedHeaders = headers.map(h => h.toLowerCase().trim());
+        const normalizedHeaders = headers.map((h) => this.normalizeHeader(h));
+        const normalizedToOriginal = new Map();
+
+        headers.forEach((header, index) => {
+            const normalized = normalizedHeaders[index];
+            if (normalized && !normalizedToOriginal.has(normalized)) {
+                normalizedToOriginal.set(normalized, header);
+            }
+        });
 
         // Try to map each field
         for (const [field, variations] of Object.entries(this.fieldMappings)) {
             const matchedHeader = this.findBestMatch(normalizedHeaders, variations);
             if (matchedHeader) {
-                // Find original header (with original casing)
-                const originalIndex = normalizedHeaders.indexOf(matchedHeader);
-                mappings[field] = headers[originalIndex];
+                const original = normalizedToOriginal.get(matchedHeader);
+                if (original) {
+                    mappings[field] = original;
+                }
             }
         }
 
@@ -100,16 +117,18 @@ class CSVColumnMapper {
      * Find best matching header for a field
      */
     findBestMatch(headers, variations) {
+        const normalizedVariations = variations.map((v) => this.normalizeHeader(v));
+
         // First try exact match
-        for (const variation of variations) {
+        for (const variation of normalizedVariations) {
             if (headers.includes(variation)) {
                 return variation;
             }
         }
 
         // Then try partial match (contains)
-        for (const variation of variations) {
-            const match = headers.find(h => h.includes(variation) || variation.includes(h));
+        for (const variation of normalizedVariations) {
+            const match = headers.find((h) => h.includes(variation) || variation.includes(h));
             if (match) {
                 return match;
             }

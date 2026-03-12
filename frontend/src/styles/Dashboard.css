@@ -67,9 +67,12 @@
 .hero-stat-card .stat-content {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
-.hero-stat-card .stat-value {
+.hero-stat-card .hero-stat-value {
   font-size: 1.875rem;
   font-weight: 800;
   color: white;
@@ -78,7 +81,7 @@
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.hero-stat-card .stat-label {
+.hero-stat-card .hero-stat-label {
   font-size: 0.8125rem;
   color: rgba(255, 255, 255, 0.9);
   font-weight: 600;

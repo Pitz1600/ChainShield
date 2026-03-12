@@ -1,4 +1,5 @@
-import React, { useState, lazy, Suspense } from 'react';
+import React, { useState, lazy, Suspense, useMemo } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
 import '../../styles/MainLayout.css';
@@ -15,15 +16,43 @@ const Feedbacks = lazy(() => import('../Feedbacks/Feedbacks'));
 const Profile = lazy(() => import('../Profile/Profile'));
 
 function MainLayout({ user, onLogout, onNavigate }) {
-  const [activeView, setActiveView] = useState('dashboard');
+  const location = useLocation();
+  const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const pathToView = useMemo(() => {
+    const path = location.pathname.replace(/\/+$/, '');
+    if (path === '/dashboard' || path === '') return 'dashboard';
+    if (path.startsWith('/dashboard/')) {
+      const segment = path.replace('/dashboard/', '');
+      switch (segment) {
+        case 'transactions': return 'transactions';
+        case 'analytics': return 'analytics';
+        case 'integrity-checker': return 'integrity_checker';
+        case 'admin': return 'admin';
+        case 'feedbacks': return 'feedbacks';
+        case 'profile': return 'profile';
+        default: return 'dashboard';
+      }
+    }
+    return 'dashboard';
+  }, [location.pathname]);
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
   const handleViewChange = (view) => {
-    setActiveView(view);
+    const viewToPath = {
+      dashboard: '/dashboard',
+      transactions: '/dashboard/transactions',
+      analytics: '/dashboard/analytics',
+      integrity_checker: '/dashboard/integrity-checker',
+      admin: '/dashboard/admin',
+      feedbacks: '/dashboard/feedbacks',
+      profile: '/dashboard/profile'
+    };
+    navigate(viewToPath[view] || '/dashboard');
     setIsMobileMenuOpen(false); // Close mobile menu when navigating
   };
 
@@ -31,7 +60,7 @@ function MainLayout({ user, onLogout, onNavigate }) {
     <div className="app-layout">
       <Sidebar
         user={user}
-        activeView={activeView}
+        activeView={pathToView}
         setActiveView={handleViewChange}
         onLogout={onLogout}
         isMobileMenuOpen={isMobileMenuOpen}
@@ -41,7 +70,6 @@ function MainLayout({ user, onLogout, onNavigate }) {
         <TopBar
           user={user}
           toggleMobileMenu={toggleMobileMenu}
-          setActiveView={setActiveView}
         />
         <div className="content-area">
           <Suspense fallback={
@@ -52,13 +80,13 @@ function MainLayout({ user, onLogout, onNavigate }) {
               </div>
             </div>
           }>
-            {activeView === 'dashboard' && <Dashboard user={user} onNavigate={onNavigate} />}
-            {activeView === 'transactions' && <TransactionsPage user={user} />}
-            {activeView === 'analytics' && <Analytics user={user} />}
-            {activeView === 'integrity_checker' && <IntegrityChecker user={user} />}
-            {activeView === 'admin' && <AdminPanel user={user} />}
-            {activeView === 'feedbacks' && <Feedbacks user={user} />}
-            {activeView === 'profile' && <Profile user={user} />}
+            {pathToView === 'dashboard' && <Dashboard user={user} onNavigate={onNavigate} />}
+            {pathToView === 'transactions' && <TransactionsPage user={user} />}
+            {pathToView === 'analytics' && <Analytics user={user} />}
+            {pathToView === 'integrity_checker' && <IntegrityChecker user={user} />}
+            {pathToView === 'admin' && <AdminPanel user={user} />}
+            {pathToView === 'feedbacks' && <Feedbacks user={user} />}
+            {pathToView === 'profile' && <Profile user={user} />}
           </Suspense>
         </div>
       </div>

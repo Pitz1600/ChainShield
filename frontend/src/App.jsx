@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback, lazy, Suspense } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import Welcome from './components/Auth/Welcome';
 import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
@@ -10,14 +11,40 @@ import MainLayout from './components/Layout/MainLayout';
 import IdleTimer from './components/Auth/IdleTimer';
 import { authAPI } from './services/api';
 
-const Feedbacks = lazy(() => import('./components/Feedbacks/Feedbacks'));
-
 function App() {
-  const [view, setView] = useState('welcome');
+  const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null); // Authenticated user
   const [pendingUser, setPendingUser] = useState(null); // User for verification
   const [isLoading, setIsLoading] = useState(true);
+
+  const routeForView = useCallback((view) => {
+    switch (view) {
+      case 'welcome': return '/welcome';
+      case 'login': return '/login';
+      case 'register': return '/register';
+      case 'email-verify': return '/email-verify';
+      case 'force-change-password': return '/force-change-password';
+      case 'setup-2fa': return '/setup-2fa';
+      case 'reset-password':
+      case 'forgot-password':
+        return '/reset-password';
+      case 'dashboard': return '/dashboard';
+      case 'transactions': return '/dashboard/transactions';
+      case 'analytics': return '/dashboard/analytics';
+      case 'integrity_checker': return '/dashboard/integrity-checker';
+      case 'admin': return '/dashboard/admin';
+      case 'feedbacks': return '/dashboard/feedbacks';
+      case 'profile': return '/dashboard/profile';
+      default: return '/welcome';
+    }
+  }, []);
+
+  const navigateTo = useCallback((path, opts = { replace: true }) => {
+    if (window.location.pathname !== path) {
+      navigate(path, opts);
+    }
+  }, [navigate]);
 
   useEffect(() => {
     // Check for existing authentication on mount via API (cookie)
@@ -33,7 +60,7 @@ function App() {
           params.get('oauth_force_password');
 
         if (hasOauthParams) {
-          setView('login');
+          navigateTo('/login');
           setIsLoading(false);
           return;
         }
@@ -43,35 +70,53 @@ function App() {
 
         if (userData.mustChangePassword) {
           setPendingUser(userData);
-          setView('force-change-password');
+          navigateTo('/force-change-password');
         } else if (userData.mustSetup2FA || (userData.role === 'administrator' && !userData.twoFactorEnabled)) {
           setPendingUser(userData);
-          setView('setup-2fa');
+          navigateTo('/setup-2fa');
         } else if (!userData.isVerified) {
           setPendingUser(userData);
-          setView('email-verify');
+          navigateTo('/email-verify');
         } else {
           setIsAuthenticated(true);
           setUser(userData);
-          setView('dashboard');
+          const currentPath = window.location.pathname || '';
+          const isAuthPath = [
+            '/',
+            '/welcome',
+            '/login',
+            '/register',
+            '/email-verify',
+            '/force-change-password',
+            '/setup-2fa',
+            '/reset-password'
+          ].includes(currentPath);
+          if (isAuthPath) {
+            navigateTo('/dashboard');
+          }
         }
       } catch (error) {
         // Not authenticated or session expired
-        setView('welcome');
+        const currentPath = window.location.pathname || '';
+        if (currentPath.startsWith('/dashboard')) {
+          navigateTo('/login');
+        } else if (currentPath === '/' || currentPath === '') {
+          navigateTo('/welcome');
+        }
       } finally {
         setIsLoading(false);
       }
     };
     checkAuth();
-  }, []);
+  }, [navigateTo]);
 
   const handleLogin = useCallback((token, userData) => {
     const userObj = userData || token;
     localStorage.setItem('user', JSON.stringify(userObj));
     setIsAuthenticated(true);
     setUser(userObj);
-    setView('dashboard');
-  }, []);
+    navigateTo('/dashboard', { replace: true });
+  }, [navigateTo]);
 
   const handleLogout = async () => {
     try {
@@ -91,7 +136,7 @@ function App() {
     setPendingUser(null);
 
     // Navigate to welcome view
-    setView('welcome');
+    navigateTo('/welcome');
 
     // NOTE: Don't verify token is blacklisted here - the response interceptor
     // would redirect us back to /setup-2fa if token is invalid (403 + onboardingRequired)
@@ -102,8 +147,8 @@ function App() {
     if (data) {
       setPendingUser(data);
     }
-    setView(newView);
-  }, []);
+    navigateTo(routeForView(newView), { replace: false });
+  }, [navigateTo, routeForView]);
 
   // Show loading state while checking authentication
   if (isLoading) {
@@ -115,26 +160,35 @@ function App() {
     );
   }
 
-  if (view === 'welcome') return <Welcome onNavigate={handleNavigate} />;
-  if (view === 'login') return <Login onLogin={handleLogin} onNavigate={handleNavigate} />;
-  if (view === 'register') return <Register onRegister={handleLogin} onNavigate={handleNavigate} />;
-  if (view === 'email-verify') return <EmailVerify user={pendingUser} onNavigate={handleNavigate} onLogin={handleLogin} />;
-  if (view === 'force-change-password') return <ForcePasswordChange onNavigate={handleNavigate} onLogout={handleLogout} />;
-  if (view === 'setup-2fa') return <TwoFactorSetup onLogin={handleLogin} onNavigate={handleNavigate} onLogout={handleLogout} />;
-  if (view === 'reset-password') return <ResetPassword onNavigate={handleNavigate} />;
-  if (isAuthenticated && view === 'dashboard') {
-    return (
-      <>
-        <IdleTimer onIdle={() => {
-          alert('Session expired due to inactivity.');
-          handleLogout();
-        }} />
-        <MainLayout user={user} onLogout={handleLogout} onNavigate={handleNavigate} />
-      </>
-    );
-  }
-
-  return <Welcome onNavigate={handleNavigate} />;
+  return (
+    <Routes>
+      <Route path="/" element={<Navigate to={isAuthenticated ? '/dashboard' : '/welcome'} replace />} />
+      <Route path="/welcome" element={<Welcome onNavigate={handleNavigate} />} />
+      <Route path="/login" element={<Login onLogin={handleLogin} onNavigate={handleNavigate} />} />
+      <Route path="/register" element={<Register onRegister={handleLogin} onNavigate={handleNavigate} />} />
+      <Route path="/email-verify" element={<EmailVerify user={pendingUser} onNavigate={handleNavigate} onLogin={handleLogin} />} />
+      <Route path="/force-change-password" element={<ForcePasswordChange onNavigate={handleNavigate} onLogout={handleLogout} />} />
+      <Route path="/setup-2fa" element={<TwoFactorSetup onLogin={handleLogin} onNavigate={handleNavigate} onLogout={handleLogout} />} />
+      <Route path="/reset-password" element={<ResetPassword onNavigate={handleNavigate} />} />
+      <Route
+        path="/dashboard/*"
+        element={
+          isAuthenticated ? (
+            <>
+              <IdleTimer onIdle={() => {
+                alert('Session expired due to inactivity.');
+                handleLogout();
+              }} />
+              <MainLayout user={user} onLogout={handleLogout} onNavigate={handleNavigate} />
+            </>
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+      <Route path="*" element={<Navigate to={isAuthenticated ? '/dashboard' : '/welcome'} replace />} />
+    </Routes>
+  );
 }
 
 export default App;

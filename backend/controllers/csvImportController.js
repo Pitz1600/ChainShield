@@ -42,12 +42,24 @@ exports.importTransactions = async (req, res) => {
         const confidence = mapper.getConfidence(columnMappings);
         console.log('[CSV] Detected columns', { headers, columnMappings, confidence: `${confidence}%` });
 
-        if (!columnMappings.agency || !columnMappings.programName) {
+        const hasAmountColumn = Boolean(
+          columnMappings.amount || columnMappings.debit_amount || columnMappings.credit_amount
+        );
+        const missingColumns = [];
+
+        if (!columnMappings.agency) missingColumns.push('agency');
+        if (!columnMappings.programName) missingColumns.push('program_name');
+        if (!hasAmountColumn) missingColumns.push('amount (or debit_amount / credit_amount)');
+
+        if (missingColumns.length > 0) {
           responded = true;
           res.status(400).json({
-            error: 'CSV is missing required column(s)',
-            requiredColumns: ['agency', 'program_name', 'amount'],
-            detectedColumns: headers
+            error: 'CSV import failed due to missing required column(s).',
+            message: `Missing column(s): ${missingColumns.join(', ')}.`,
+            missingColumns,
+            requiredColumns: ['agency', 'program_name', 'amount|debit_amount|credit_amount'],
+            detectedColumns: headers,
+            mappingConfidence: confidence
           });
           inputStream.destroy();
           cleanupUpload();

@@ -34,6 +34,119 @@
   right: 16px;
 }
 
+/* Error Alert */
+.alert {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 14px 16px;
+  border-radius: 12px;
+  margin: 16px 0;
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #7f1d1d;
+  box-shadow: 0 10px 25px -18px rgba(153, 27, 27, 0.35);
+}
+
+.alert-error {
+  border-color: #fecaca;
+}
+
+.alert-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #b91c1c;
+  margin-top: 2px;
+}
+
+.alert-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.alert-title {
+  font-weight: 700;
+  color: #991b1b;
+  letter-spacing: -0.01em;
+}
+
+.alert-message {
+  color: #7f1d1d;
+  line-height: 1.45;
+}
+
+.alert-section-title {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #9f1239;
+  font-weight: 700;
+}
+
+.alert-pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.alert-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #fee2e2;
+  color: #991b1b;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.alert-pill-muted {
+  background: #fff1f2;
+  color: #9f1239;
+}
+
+.alert-meta {
+  color: #9f1239;
+  font-size: 0.85rem;
+}
+
+/* Missing Columns Banner */
+.missing-columns-banner {
+  margin: 12px 0 16px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px dashed #fca5a5;
+  background: #fff1f2;
+  color: #9f1239;
+}
+
+.missing-columns-title {
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+}
+
+.missing-columns-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.missing-columns-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #fecdd3;
+  color: #9f1239;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
 @keyframes slideToast {
   from {
     opacity: 0;
@@ -1434,13 +1547,18 @@
 .currency-symbol {
   position: absolute;
   left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
   color: #64748b;
   font-weight: 600;
+  font-size: 0.85rem;
+  line-height: 1;
   pointer-events: none;
+  z-index: 2;
 }
 
 .currency-input-wrapper input {
-  padding-left: 2rem !important;
+  padding-left: 2.75rem !important;
   width: 100%;
 }
 

@@ -41,6 +41,8 @@ const IntegrityChecker = ({ user }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [manualRows, setManualRows] = useState([{
         date: new Date().toISOString().split('T')[0],
+        agency: '',
+        programName: '',
         payerName: '',
         payeeName: '',
         debitAmount: '0',
@@ -85,6 +87,24 @@ const IntegrityChecker = ({ user }) => {
         return () => clearTimeout(timer);
     }, [actionMessage]);
 
+    const formatCsvError = (err, fallbackTitle) => {
+        if (!err) return null;
+        if (typeof err === 'string') {
+            return { title: fallbackTitle || 'Error', message: err };
+        }
+
+        const data = err.response?.data || {};
+        const message = data.message || data.error || err.message || 'Something went wrong.';
+
+        return {
+            title: fallbackTitle || 'Error',
+            message,
+            missingColumns: Array.isArray(data.missingColumns) ? data.missingColumns : null,
+            detectedColumns: Array.isArray(data.detectedColumns) ? data.detectedColumns : null,
+            mappingConfidence: typeof data.mappingConfidence === 'number' ? data.mappingConfidence : null
+        };
+    };
+
     const handleClearResults = () => {
         setResults(null);
         setSelectedTx(null);
@@ -98,6 +118,20 @@ const IntegrityChecker = ({ user }) => {
             console.warn('Failed to clear cached results', e);
         }
     };
+
+    const hasMissingColumns =
+        typeof error !== 'string' &&
+        error &&
+        Array.isArray(error.missingColumns) &&
+        error.missingColumns.length > 0;
+    const fallbackMissingColumns = [
+        'agency',
+        'program_name',
+        'amount (or debit_amount / credit_amount)'
+    ];
+    const shouldShowMissingFallback =
+        typeof error === 'string' &&
+        error.toLowerCase().includes('missing required column');
 
     const handleApprove = async (tx) => {
         setApprovingId(tx.transactionId);
@@ -189,6 +223,8 @@ const IntegrityChecker = ({ user }) => {
     const handleAddManualRow = () => {
         setManualRows([...manualRows, {
             date: new Date().toISOString().split('T')[0],
+            agency: '',
+            programName: '',
             payerName: '',
             payeeName: '',
             debitAmount: '0',
@@ -216,6 +252,10 @@ const IntegrityChecker = ({ user }) => {
 
     const validateManualRow = (row, index) => {
         if (!row.date) return `Row ${index + 1}: Date is required.`;
+        if (!row.agency?.trim()) return `Row ${index + 1}: Agency is required.`;
+        if (row.agency.length > 120) return `Row ${index + 1}: Agency is too long (max 120).`;
+        if (!row.programName?.trim()) return `Row ${index + 1}: Program Name is required.`;
+        if (row.programName.length > 120) return `Row ${index + 1}: Program Name is too long (max 120).`;
         if (!row.payerName?.trim()) return `Row ${index + 1}: Payer Name is required.`;
         if (row.payerName.length > 100) return `Row ${index + 1}: Payer Name is too long (max 100).`;
         if (!row.payeeName?.trim()) return `Row ${index + 1}: Payee Name is required.`;
@@ -229,7 +269,7 @@ const IntegrityChecker = ({ user }) => {
         if (isNaN(credit) || credit < 0) return `Row ${index + 1}: Invalid Credit amount.`;
 
         const specialChars = /[<>{}[\]\\]/;
-        if (specialChars.test(row.payerName) || specialChars.test(row.payeeName) || specialChars.test(row.description)) {
+        if (specialChars.test(row.agency) || specialChars.test(row.programName) || specialChars.test(row.payerName) || specialChars.test(row.payeeName) || specialChars.test(row.description)) {
             return `Row ${index + 1}: Special characters like < > { } [ ] are not allowed.`;
         }
 
@@ -254,11 +294,13 @@ const IntegrityChecker = ({ user }) => {
 
         try {
             // Convert manual rows to CSV format
-            const headers = ['Date', 'Payer Name', 'Payee Name', 'Debit Amount', 'Credit Amount', 'Description'];
+            const headers = ['Date', 'Agency', 'Program Name', 'Payer Name', 'Payee Name', 'Debit Amount', 'Credit Amount', 'Description'];
             const csvContent = [
                 headers.join(','),
                 ...manualRows.map(row => [
                     `"${row.date || ''}"`,
+                    `"${row.agency || ''}"`,
+                    `"${row.programName || ''}"`,
                     `"${row.payerName || ''}"`,
                     `"${row.payeeName || ''}"`,
                     row.debitAmount?.toString().replace(/,/g, '') || '0',
@@ -284,6 +326,8 @@ const IntegrityChecker = ({ user }) => {
             // Clear all manual entry form data after successful analysis
             setManualRows([{
                 date: new Date().toISOString().split('T')[0],
+                agency: '',
+                programName: '',
                 payerName: '',
                 payeeName: '',
                 debitAmount: '0',
@@ -293,7 +337,7 @@ const IntegrityChecker = ({ user }) => {
             setCurrentRowIndex(0);
             setModalError(null);
         } catch (err) {
-            setError('Analysis failed: ' + (err.response?.data?.error || err.message));
+            setError(formatCsvError(err, 'Analysis failed'));
         } finally {
             setUploading(false);
         }
@@ -306,7 +350,7 @@ const IntegrityChecker = ({ user }) => {
             setError(null);
         } else {
             setFile(null);
-            setError('Please select a valid CSV file');
+            setError(formatCsvError('Please select a valid CSV file', 'Upload failed'));
         }
     };
 
@@ -325,7 +369,7 @@ const IntegrityChecker = ({ user }) => {
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
         } catch (err) {
-            setError('Failed to download template: ' + (err.response?.data?.error || err.message));
+            setError(formatCsvError(err, 'Template download failed'));
         }
     };
 
@@ -355,7 +399,7 @@ const IntegrityChecker = ({ user }) => {
             // Reset file input
             document.getElementById('csvFileInput').value = '';
         } catch (err) {
-            setError('Upload failed: ' + (err.response?.data?.error || err.message));
+            setError(formatCsvError(err, 'Upload failed'));
         } finally {
             setUploading(false);
         }
@@ -499,6 +543,36 @@ const IntegrityChecker = ({ user }) => {
                                             type="date"
                                             value={manualRows[currentRowIndex].date}
                                             onChange={(e) => handleManualFieldChange('date', e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>
+                                            Agency
+                                            <span className={`char-count ${manualRows[currentRowIndex].agency.length > 120 ? 'limit' : ''}`}>
+                                                {manualRows[currentRowIndex].agency.length}/120
+                                            </span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            placeholder="e.g. Barangay Pantal"
+                                            value={manualRows[currentRowIndex].agency}
+                                            onChange={(e) => handleManualFieldChange('agency', e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>
+                                            Program Name
+                                            <span className={`char-count ${manualRows[currentRowIndex].programName.length > 120 ? 'limit' : ''}`}>
+                                                {manualRows[currentRowIndex].programName.length}/120
+                                            </span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            placeholder="e.g. Office Supplies"
+                                            value={manualRows[currentRowIndex].programName}
+                                            onChange={(e) => handleManualFieldChange('programName', e.target.value)}
                                             required
                                         />
                                     </div>
@@ -658,7 +732,50 @@ const IntegrityChecker = ({ user }) => {
                 {error && (
                     <div className="alert alert-error">
                         <span className="alert-icon"><AlertCircle size={20} /></span>
-                        <span>{error}</span>
+                        <div className="alert-content">
+                            <div className="alert-title">{typeof error === 'string' ? 'Error' : error.title}</div>
+                            <div className="alert-message">
+                                {typeof error === 'string' ? error : error.message}
+                            </div>
+                            {typeof error !== 'string' && error.missingColumns && (
+                                <div className="alert-section">
+                                    <div className="alert-section-title">Missing columns</div>
+                                    <div className="alert-pill-row">
+                                        {error.missingColumns.map((col) => (
+                                            <span key={col} className="alert-pill">{col}</span>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                            {shouldShowMissingFallback && (
+                                <div className="alert-section">
+                                    <div className="alert-section-title">Missing columns</div>
+                                    <div className="alert-pill-row">
+                                        {fallbackMissingColumns.map((col) => (
+                                            <span key={col} className="alert-pill">{col}</span>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                            {typeof error !== 'string' && error.detectedColumns && (
+                                <div className="alert-section">
+                                    <div className="alert-section-title">Detected columns</div>
+                                    <div className="alert-pill-row">
+                                        {error.detectedColumns.slice(0, 20).map((col) => (
+                                            <span key={col} className="alert-pill alert-pill-muted">{col}</span>
+                                        ))}
+                                    </div>
+                                    {error.detectedColumns.length > 20 && (
+                                        <div className="alert-meta">Showing first 20 columns.</div>
+                                    )}
+                                </div>
+                            )}
+                            {typeof error !== 'string' && typeof error.mappingConfidence === 'number' && (
+                                <div className="alert-meta">
+                                    Column detection confidence: <strong>{error.mappingConfidence}%</strong>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 )}
 
@@ -1130,6 +1247,16 @@ const IntegrityChecker = ({ user }) => {
 
                 <div className="supported-columns-section" style={{ borderRadius: '16px', border: '1px solid #e2e8f0', background: 'white' }}>
                     <h4><FileText size={18} /> Supported Column Names (Auto-Detected)</h4>
+                    {(hasMissingColumns || shouldShowMissingFallback) && (
+                        <div className="missing-columns-banner">
+                            <div className="missing-columns-title">Missing required columns</div>
+                            <div className="missing-columns-row">
+                                {(hasMissingColumns ? error.missingColumns : fallbackMissingColumns).map((col) => (
+                                    <span key={col} className="missing-columns-pill">{col}</span>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                     <div className="supported-columns">
                         <div className="column-pill">
                             <strong>Amount:</strong> amount, total, cost, budget, halaga
@@ -1151,4 +1278,3 @@ const IntegrityChecker = ({ user }) => {
 };
 
 export default IntegrityChecker;
-
