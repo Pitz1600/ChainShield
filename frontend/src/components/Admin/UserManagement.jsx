@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Users, User, CheckCircle, Clock, Edit2, X, Shield, Activity, Mail, Trash2 } from 'lucide-react';
 import api from '../../services/api';
 import '../../styles/AdminPanel.css';
+import useLockBodyScroll from '../../utils/useLockBodyScroll';
 
 function UserManagement() {
     const managedRoleOptions = ['resident', 'barangay_official', 'auditor', 'administrator'];
@@ -59,6 +60,7 @@ function UserManagement() {
         isVerified: false
     });
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    useLockBodyScroll(isEditModalOpen || isCreateModalOpen);
     const [createFormData, setCreateFormData] = useState({
         firstName: '',
         lastName: '',

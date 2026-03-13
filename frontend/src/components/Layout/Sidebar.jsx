@@ -2,6 +2,7 @@ import React from 'react';
 import { Home, AlertTriangle, List, Upload, BarChart3, Search, Settings, User, Shield, LogOut, X, MessageSquare } from 'lucide-react';
 import { isAdmin, isOfficial } from '../../utils/permissions';
 import '../../styles/Sidebar.css';
+import useLockBodyScroll from '../../utils/useLockBodyScroll';
 
 function Sidebar({ user, activeView, setActiveView, onLogout, isMobileMenuOpen, toggleMobileMenu }) {
   // Icon mapping
@@ -67,6 +68,7 @@ function Sidebar({ user, activeView, setActiveView, onLogout, isMobileMenuOpen, 
   const showNav = user?.isVerified;
 
   const [showLogoutConfirm, setShowLogoutConfirm] = React.useState(false);
+  useLockBodyScroll(showLogoutConfirm);
 
   const handleLogoutClick = () => {
     setShowLogoutConfirm(true);

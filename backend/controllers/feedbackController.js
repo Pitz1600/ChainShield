@@ -1,4 +1,5 @@
 const Feedback = require('../models/Feedback');
+const Transaction = require('../models/Transaction');
 
 const MAX_FEEDBACK_LENGTH = 1000;
 const MAX_REPLY_LENGTH = 300;
@@ -85,7 +86,7 @@ exports.createFeedback = async (req, res) => {
             return res.status(403).json({ error: 'Only residents, barangay officials, and auditors can post feedback.' });
         }
 
-        const { content } = req.body;
+        const { content, transactionId, transactionRef } = req.body;
         const normalizedContent = normalizeContent(content);
         if (!normalizedContent) {
             return res.status(400).json({ error: 'Content is required' });
@@ -94,11 +95,33 @@ exports.createFeedback = async (req, res) => {
             return res.status(400).json({ error: `Content must be ${MAX_FEEDBACK_LENGTH} characters or fewer.` });
         }
 
+        let tx = null;
+        if (transactionId || transactionRef) {
+            tx = transactionId
+                ? await Transaction.findOne({ transactionId })
+                : await Transaction.findById(transactionRef);
+
+            if (!tx) {
+                return res.status(400).json({ error: 'Transaction not found for feedback.' });
+            }
+        }
+
         const isAutoApproved = req.user.role === 'barangay_official';
         const feedback = await Feedback.create({
             author: req.user._id,
             content: normalizedContent,
-            actionStatus: isAutoApproved ? 'none' : 'pending_approval'
+            actionStatus: isAutoApproved ? 'none' : 'pending_approval',
+            ...(tx ? {
+                transactionRef: tx._id,
+                transactionMeta: {
+                    transactionId: tx.transactionId,
+                    amount: tx.amount,
+                    agency: tx.agency,
+                    programName: tx.programName,
+                    transactionType: tx.transactionType,
+                    timestamp: tx.timestamp
+                }
+            } : {})
         });
 
         const populatedFeedback = await Feedback.findById(feedback._id)
@@ -112,7 +135,11 @@ exports.createFeedback = async (req, res) => {
             userRole: req.user.role,
             username: `${req.user.firstName} ${req.user.lastName}`,
             feedbackId: feedback._id,
-            details: { type: 'post', content: normalizedContent.substring(0, 100) },
+            details: {
+                type: 'post',
+                content: normalizedContent.substring(0, 100),
+                ...(tx ? { transactionId: tx.transactionId } : {})
+            },
             ipAddress: req.ip,
             userAgent: req.get('User-Agent')
         });

@@ -34,6 +34,19 @@ const feedbackSchema = new mongoose.Schema({
         ref: 'User',
         required: true
     },
+    transactionRef: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Transaction',
+        default: null
+    },
+    transactionMeta: {
+        transactionId: { type: String },
+        amount: { type: Number },
+        agency: { type: String },
+        programName: { type: String },
+        transactionType: { type: String },
+        timestamp: { type: Date }
+    },
     content: {
         type: String,
         required: true,

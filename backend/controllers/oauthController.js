@@ -50,8 +50,9 @@ exports.googleCallback = async (req, res) => {
             if (!user.googleId) {
                 user.googleId = googleId;
                 user.authProvider = user.authProvider || 'local'; // keep 'local' if they had a password
-                await user.save();
             }
+            user.lastLoginProvider = 'google';
+            await user.save();
 
             if (!user.isActive) {
                 return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}?error=account_disabled`);
@@ -64,6 +65,7 @@ exports.googleCallback = async (req, res) => {
                 email,
                 googleId,
                 authProvider: 'google',
+                lastLoginProvider: 'google',
                 role: 'resident', // OAuth users always start as residents
                 isVerified: true, // Google already verified the email
                 isActive: true,

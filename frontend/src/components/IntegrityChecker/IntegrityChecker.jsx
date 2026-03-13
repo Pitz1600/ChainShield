@@ -4,6 +4,7 @@ import api from '../../services/api';
 import { isOfficial } from '../../utils/permissions';
 import { formatAddressLabel } from '../../utils/helpers';
 import '../../styles/IntegrityChecker.css';
+import useLockBodyScroll from '../../utils/useLockBodyScroll';
 
 const IntegrityChecker = ({ user }) => {
     // Permission check - only officials and admins can import
@@ -51,6 +52,7 @@ const IntegrityChecker = ({ user }) => {
     }]);
     const [currentRowIndex, setCurrentRowIndex] = useState(0);
     const [modalError, setModalError] = useState(null);
+    useLockBodyScroll(isModalOpen || Boolean(selectedTx));
 
     const RESULTS_CACHE_KEY = 'integrity_checker_results_v1';
 

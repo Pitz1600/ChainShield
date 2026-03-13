@@ -145,6 +145,45 @@
   border-bottom-color: #3b82f6;
 }
 
+.transaction-context {
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.context-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748b;
+  margin-bottom: 0.5rem;
+}
+
+.context-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.85rem;
+  color: #1f2937;
+}
+
+.context-row + .context-row {
+  margin-top: 0.35rem;
+}
+
+.context-label {
+  color: #64748b;
+  font-weight: 600;
+}
+
+.context-value {
+  font-weight: 600;
+  text-align: right;
+}
+
 /* Toolbar (Search & Action) */
 .feedbacks-toolbar {
   display: flex;
@@ -253,6 +292,36 @@
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 1rem;
+}
+
+.transaction-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: -0.25rem 0 1rem;
+}
+
+.transaction-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #334155;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.transaction-chip.primary {
+  background: #eef2ff;
+  border-color: #c7d2fe;
+  color: #4338ca;
+}
+
+.transaction-chip.muted {
+  background: #f1f5f9;
+  color: #475569;
 }
 
 .author-info {
@@ -635,6 +704,10 @@
   justify-content: center;
   z-index: 1000;
   padding: 1rem;
+}
+
+.feedback-modal-overlay {
+  z-index: 11000;
 }
 
 .feedback-modal {

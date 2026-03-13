@@ -6,6 +6,8 @@ import {
   Link2, Info
 } from 'lucide-react';
 import api from '../../services/api';
+import FeedbackModal from '../Feedbacks/FeedbackModal';
+import useLockBodyScroll from '../../utils/useLockBodyScroll';
 import { formatAddressLabel } from '../../utils/helpers';
 import '../../styles/MyTransactions.css';
 import '../../styles/ColorfulIcons.css';
@@ -190,11 +192,29 @@ function MyTransactions({ user, embedded = false }) {
   const TOAST_DURATION = 4500;
 
   const isAdminOrAuditor = ['administrator', 'auditor', 'barangay_official'].includes(user?.role);
+  const canLeaveTxFeedback = user?.role === 'resident';
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [feedbackTx, setFeedbackTx] = useState(null);
+  useLockBodyScroll(Boolean(selectedTx) || showFeedbackModal);
 
   /* ---- Toast ---- */
   const showToast = (text, type = 'success') => {
     setActionMessage({ text, type });
     setTimeout(() => setActionMessage({ text: '', type: 'success' }), TOAST_DURATION);
+  };
+
+  const openFeedbackModal = (tx) => {
+    if (!tx) return;
+    setFeedbackTx({
+      transactionId: tx.transactionId,
+      transactionRef: tx._id,
+      agency: tx.agency,
+      programName: tx.programName,
+      amount: tx.amount,
+      transactionType: tx.transactionType,
+      timestamp: tx.timestamp || tx.createdAt
+    });
+    setShowFeedbackModal(true);
   };
 
   /* ---- Debounce search ---- */
@@ -865,6 +885,12 @@ function MyTransactions({ user, embedded = false }) {
 
                 <div className="tx-modal-footer">
                   <div className="tx-modal-actions">
+                    {canLeaveTxFeedback && (
+                      <button className="btn-verify" onClick={() => openFeedbackModal(selectedTx)}>
+                        <FileText size={14} style={{ display: 'inline', marginRight: 4 }} />
+                        Leave Feedback
+                      </button>
+                    )}
                     {isAdminOrAuditor && (
                       <>
                         <button className="btn-verify" disabled={actionLoading} onClick={() => handleAction('Verified')}>
@@ -886,6 +912,13 @@ function MyTransactions({ user, embedded = false }) {
                 </div>
               </div>
             </div>
+          )}
+          {showFeedbackModal && (
+            <FeedbackModal
+              transactionMeta={feedbackTx}
+              onClose={() => { setShowFeedbackModal(false); setFeedbackTx(null); }}
+              onSuccess={() => showToast('Feedback submitted for this transaction.', 'success')}
+            />
           )}
         </>
       )}

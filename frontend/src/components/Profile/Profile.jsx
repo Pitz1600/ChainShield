@@ -3,6 +3,7 @@ import { User, Edit, Lock, Mail, Building, Target, Send, X, Shield, Smartphone, 
 import api, { authAPI } from '../../services/api';
 import '../../styles/Profile.css';
 import '../../styles/ColorfulIcons.css';
+import useLockBodyScroll from '../../utils/useLockBodyScroll';
 
 /**
  * Profile Component
@@ -13,6 +14,7 @@ function Profile({ user }) {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [show2faModal, setShow2faModal] = useState(false);
   const [showRecoveryModal, setShowRecoveryModal] = useState(false);
+  useLockBodyScroll(showEditModal || showPasswordModal || show2faModal || showRecoveryModal);
 
   const [editForm, setEditForm] = useState({
     firstName: user?.firstName || '',
@@ -69,6 +71,10 @@ function Profile({ user }) {
 
   // Modals Open/Close
   const handleOpenEditModal = () => {
+    if (isGoogleUser) {
+      setError('Profile editing is disabled for Google sign-in accounts.');
+      return;
+    }
     setShowEditModal(true);
     setEditOtpSent(false);
     setMessage(''); setError('');
@@ -258,6 +264,7 @@ function Profile({ user }) {
   const roleDisplay = user?.role === 'barangay_official' && user?.position
     ? user.position
     : formatRoleName(user?.role);
+  const isGoogleUser = user?.lastLoginProvider === 'google' || user?.authProvider === 'google';
 
   if (!user) return null;
 
@@ -323,6 +330,14 @@ function Profile({ user }) {
         </div>
 
         <div className="profile-content-area">
+          {isGoogleUser && (
+            <div className="auth-provider-info" style={{ marginBottom: '1rem' }}>
+              <span className="info-badge">Google Account</span>
+              <span style={{ marginLeft: '0.75rem', color: '#475569', fontWeight: 600 }}>
+                Profile editing is disabled for Google sign-in accounts.
+              </span>
+            </div>
+          )}
           {/* Info Cards */}
           <div className="profile-cards">
             {[
@@ -348,7 +363,9 @@ function Profile({ user }) {
           <div className="profile-section">
             <div className="section-header">
               <h3 className="section-title">Contact Information</h3>
-              <button className="edit-btn" onClick={handleOpenEditModal}><Edit size={16} /> Edit details</button>
+              <button className="edit-btn" onClick={handleOpenEditModal} disabled={isGoogleUser}>
+                <Edit size={16} /> Edit details
+              </button>
             </div>
             <div className="contact-info">
               <div className="contact-row"><span className="contact-label">First Name</span><span className="contact-value">{user.firstName}</span></div>
@@ -367,7 +384,9 @@ function Profile({ user }) {
                   <span className="security-label">Account Password</span>
                   <span className="security-desc">Update your login credentials</span>
                 </div>
-                <button className="edit-btn secondary" onClick={handleOpenPasswordModal}><Lock size={16} /> Change Password</button>
+                <button className="edit-btn secondary" onClick={handleOpenPasswordModal} disabled={isGoogleUser}>
+                  <Lock size={16} /> Change Password
+                </button>
               </div>
 
               <div className="security-item">
@@ -381,10 +400,18 @@ function Profile({ user }) {
                 <div className="security-actions">
                   {user.twoFactorEnabled ? (
                     <>
-                      <button className="edit-btn secondary" onClick={() => handleOpen2faModal('setup')}><Smartphone size={16} /> Change 2FA</button>
-                      <button className="edit-btn danger" onClick={() => handleOpen2faModal('disable')}><Shield size={16} /> Disable 2FA</button>
+                      <button className="edit-btn secondary" onClick={() => handleOpen2faModal('setup')}>
+                        <Smartphone size={16} /> Change 2FA
+                      </button>
+                      <button className="edit-btn danger" onClick={() => handleOpen2faModal('disable')}>
+                        <Shield size={16} /> Disable 2FA
+                      </button>
                     </>
-                  ) : <button className="edit-btn success" onClick={() => handleOpen2faModal('setup')}><Shield size={16} /> Enable 2FA</button>}
+                  ) : (
+                    <button className="edit-btn success" onClick={() => handleOpen2faModal('setup')}>
+                      <Shield size={16} /> Enable 2FA
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -397,7 +424,9 @@ function Profile({ user }) {
                     </div>
                     <span className="security-desc">Backup access in case of device loss</span>
                   </div>
-                  <button className="edit-btn secondary" onClick={handleOpenRecoveryModal}><Lock size={16} /> Manage Codes</button>
+                  <button className="edit-btn secondary" onClick={handleOpenRecoveryModal}>
+                    <Lock size={16} /> Manage Codes
+                  </button>
                 </div>
               )}
             </div>

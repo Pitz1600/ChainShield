@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { feedbacksAPI } from '../../services/api';
 import { X, MessageSquarePlus } from 'lucide-react';
+import '../../styles/Feedbacks.css';
+import useLockBodyScroll from '../../utils/useLockBodyScroll';
 
 const MAX_FEEDBACK_LENGTH = 1000;
 
-function FeedbackModal({ onClose, onSuccess }) {
+function FeedbackModal({ onClose, onSuccess, transactionMeta }) {
+    useLockBodyScroll(true);
     const [content, setContent] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
@@ -24,7 +27,11 @@ function FeedbackModal({ onClose, onSuccess }) {
         try {
             setIsSubmitting(true);
             setError('');
-            await feedbacksAPI.create({ content: normalized });
+            await feedbacksAPI.create({
+                content: normalized,
+                ...(transactionMeta?.transactionId ? { transactionId: transactionMeta.transactionId } : {}),
+                ...(transactionMeta?.transactionRef ? { transactionRef: transactionMeta.transactionRef } : {})
+            });
             onSuccess();
             onClose();
         } catch (err) {
@@ -36,7 +43,7 @@ function FeedbackModal({ onClose, onSuccess }) {
     };
 
     return (
-        <div className="modal-overlay">
+        <div className="modal-overlay feedback-modal-overlay">
             <div className="feedback-modal">
                 <div className="modal-header">
                     <div className="modal-title-group">
@@ -50,6 +57,40 @@ function FeedbackModal({ onClose, onSuccess }) {
 
                 <form onSubmit={handleSubmit} className="modal-body">
                     {error && <div className="error-message">{error}</div>}
+
+                    {transactionMeta && (
+                        <div className="transaction-context">
+                            <div className="context-title">Transaction Feedback</div>
+                            <div className="context-row">
+                                <span className="context-label">Transaction ID</span>
+                                <span className="context-value">{transactionMeta.transactionId || transactionMeta.transactionRef}</span>
+                            </div>
+                            {transactionMeta.agency && (
+                                <div className="context-row">
+                                    <span className="context-label">Agency</span>
+                                    <span className="context-value">{transactionMeta.agency}</span>
+                                </div>
+                            )}
+                            {transactionMeta.programName && (
+                                <div className="context-row">
+                                    <span className="context-label">Program</span>
+                                    <span className="context-value">{transactionMeta.programName}</span>
+                                </div>
+                            )}
+                            {transactionMeta.amount !== undefined && (
+                                <div className="context-row">
+                                    <span className="context-label">Amount</span>
+                                    <span className="context-value">PHP {Number(transactionMeta.amount || 0).toLocaleString()}</span>
+                                </div>
+                            )}
+                            {transactionMeta.transactionType && (
+                                <div className="context-row">
+                                    <span className="context-label">Type</span>
+                                    <span className="context-value">{transactionMeta.transactionType}</span>
+                                </div>
+                            )}
+                        </div>
+                    )}
 
                     <div className="form-group">
                         <label htmlFor="content">What's on your mind? Share your feedback, suggestion, or query.</label>

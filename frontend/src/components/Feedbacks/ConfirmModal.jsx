@@ -1,11 +1,15 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { AlertTriangle, CheckCircle, X } from 'lucide-react';
 import '../../styles/ConfirmModal.css';
+import useLockBodyScroll from '../../utils/useLockBodyScroll';
 
 function ConfirmModal({ isOpen, onClose, onConfirm, title, message, isSubmitting = false, isDestructive = false, confirmText = "Confirm" }) {
     if (!isOpen) return null;
 
-    return (
+    useLockBodyScroll(isOpen);
+
+    return createPortal(
         <div className="confirm-modal-overlay">
             <div className="confirm-modal">
                 <div className="confirm-header">
@@ -40,7 +44,8 @@ function ConfirmModal({ isOpen, onClose, onConfirm, title, message, isSubmitting
                     </button>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }
 

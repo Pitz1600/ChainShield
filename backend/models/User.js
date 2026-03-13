@@ -62,6 +62,11 @@ const userSchema = new mongoose.Schema({
     enum: ['local', 'google'],
     default: 'local'
   },
+  lastLoginProvider: {
+    type: String,
+    enum: ['local', 'google'],
+    default: 'local'
+  },
   role: {
     type: String,
     enum: ['resident', 'barangay_official', 'administrator', 'auditor'],

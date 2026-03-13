@@ -12,6 +12,7 @@ import {
 import api from '../../services/api';
 import { formatAddressLabel } from '../../utils/helpers';
 import '../../styles/Alerts.css';
+import useLockBodyScroll from '../../utils/useLockBodyScroll';
 
 function AlertsManagement({ embedded = false }) {
   const [searchTerm, setSearchTerm] = useState('');
@@ -33,6 +34,8 @@ function AlertsManagement({ embedded = false }) {
 
   const [sortBy, setSortBy] = useState('timestamp');
   const [sortOrder, setSortOrder] = useState('desc');
+
+  useLockBodyScroll(showModal);
 
   useEffect(() => {
     fetchAlerts();

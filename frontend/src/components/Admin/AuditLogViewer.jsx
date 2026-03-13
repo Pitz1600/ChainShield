@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, RefreshCw, Eye, Clock, X } from 'lucide-react';
 import api from '../../services/api';
 import '../../styles/AdminPanel.css';
+import useLockBodyScroll from '../../utils/useLockBodyScroll';
 
 function AuditLogViewer() {
     const [logs, setLogs] = useState([]);
@@ -17,6 +18,7 @@ function AuditLogViewer() {
     const [pagination, setPagination] = useState({});
     const [summary, setSummary] = useState({});
     const [selectedLog, setSelectedLog] = useState(null);
+    useLockBodyScroll(Boolean(selectedLog));
 
     useEffect(() => {
         fetchAuditLogs();

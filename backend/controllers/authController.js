@@ -195,6 +195,9 @@ exports.login = async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
+    user.lastLoginProvider = 'local';
+    await user.save();
+
     // Self-heal legacy admin-created operational accounts that were left unverified by older flows.
     if (
       !user.isVerified &&
@@ -1474,12 +1477,16 @@ exports.updateProfile = async (req, res) => {
     const userId = req.user.id;
     const { firstName, lastName, birthday, otp } = req.body;
 
-    const user = await User.findById(userId);
-    if (!user) return res.status(401).json({ error: 'Authentication failed' });
+  const user = await User.findById(userId);
+  if (!user) return res.status(401).json({ error: 'Authentication failed' });
 
-    if (user.otpAttempts >= 10) {
-      return res.status(429).json({ error: 'Too many failed attempts. Please request a new code.' });
-    }
+  if (user.lastLoginProvider === 'google' || user.authProvider === 'google') {
+    return res.status(403).json({ error: 'Profile updates are disabled for Google sign-in accounts.' });
+  }
+
+  if (user.otpAttempts >= 10) {
+    return res.status(429).json({ error: 'Too many failed attempts. Please request a new code.' });
+  }
 
     if (!user.otp || !user.otpExpires || user.otpExpires < Date.now()) {
       return res.status(400).json({ error: 'Verification code has expired. Please request a new one.' });
@@ -1515,12 +1522,16 @@ exports.changePassword = async (req, res) => {
     const userId = req.user.id;
     const { currentPassword, newPassword, otp } = req.body;
 
-    const user = await User.findById(userId);
-    if (!user) return res.status(401).json({ error: 'Authentication failed' });
+  const user = await User.findById(userId);
+  if (!user) return res.status(401).json({ error: 'Authentication failed' });
 
-    if (!(await user.comparePassword(currentPassword))) {
-      return res.status(401).json({ error: 'Invalid credentials' });
-    }
+  if (user.lastLoginProvider === 'google' || user.authProvider === 'google') {
+    return res.status(403).json({ error: 'Password changes are disabled for Google sign-in accounts.' });
+  }
+
+  if (!(await user.comparePassword(currentPassword))) {
+    return res.status(401).json({ error: 'Invalid credentials' });
+  }
 
     if (user.otpAttempts >= 10) {
       return res.status(429).json({ error: 'Too many failed attempts. Please request a new code.' });
@@ -1589,6 +1600,10 @@ exports.regenerateRecoveryCodes = async (req, res) => {
     const { password, otp } = req.body;
     const user = await User.findById(req.user.id).select('+password +otp +otpExpires +otpAttempts');
     if (!user) return res.status(401).json({ error: 'Authentication failed' });
+
+    if (user.authProvider === 'google' && !user.mustSetup2FA) {
+      return res.status(403).json({ error: '2FA management is disabled for Google sign-in accounts.' });
+    }
 
     // Verify Password (skip for Google OAuth)
     if (user.authProvider !== 'google') {

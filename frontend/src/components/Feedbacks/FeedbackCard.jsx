@@ -11,6 +11,8 @@ const FEEDBACK_PREVIEW_CHARS = 500;
 const REPLY_PREVIEW_CHARS = 220;
 
 function FeedbackCard({ feedback, currentUser, onRefresh }) {
+    const transactionMeta = feedback.transactionMeta || {};
+    const transactionId = transactionMeta.transactionId || feedback.transactionId || feedback.transactionRef;
     const [isEditing, setIsEditing] = useState(false);
     const [editContent, setEditContent] = useState(feedback.content);
     const [showReplyForm, setShowReplyForm] = useState(false);
@@ -328,6 +330,18 @@ function FeedbackCard({ feedback, currentUser, onRefresh }) {
                     </div>
                 )}
             </div>
+
+            {transactionId && (
+                <div className="transaction-chip-row">
+                    <span className="transaction-chip primary">Transaction Feedback</span>
+                    <span className="transaction-chip">ID: {transactionId}</span>
+                    {transactionMeta.agency && <span className="transaction-chip muted">{transactionMeta.agency}</span>}
+                    {transactionMeta.programName && <span className="transaction-chip muted">{transactionMeta.programName}</span>}
+                    {transactionMeta.amount !== undefined && (
+                        <span className="transaction-chip muted">PHP {Number(transactionMeta.amount || 0).toLocaleString()}</span>
+                    )}
+                </div>
+            )}
 
             <div className="feedback-body">
                 {feedback.actionStatus && feedback.actionStatus !== 'none' && <PendingActionAlert entity={feedback} type="feedback" />}
