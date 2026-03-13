@@ -710,7 +710,7 @@
   background: white;
   border-radius: 16px;
   border: 1px solid #e2e8f0;
-  overflow: auto;
+  overflow: visible;
   margin-bottom: 3rem;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
 }
@@ -728,6 +728,7 @@
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
+  table-layout: fixed;
 }
 
 .results-table th {
@@ -740,6 +741,7 @@
   font-weight: 700;
   border-bottom: 2px solid #e2e8f0;
   letter-spacing: 0.05em;
+  vertical-align: top;
 }
 
 .results-table td {
@@ -748,10 +750,13 @@
   color: #334155;
   font-size: 0.9rem;
   transition: background 0.2s;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 .results-table th:last-child,
 .results-table td:last-child {
-  width: 220px;
+  width: 200px;
 }
 .actions-cell {
   display: inline-flex;
@@ -759,7 +764,7 @@
   align-items: center;
   flex-wrap: wrap;
   white-space: nowrap;
-  min-width: 220px;
+  min-width: 0;
 }
 .actions-buttons {
   display: inline-flex;
@@ -778,6 +783,7 @@
   font-weight: 700;
   cursor: pointer;
   transition: transform 0.1s ease, box-shadow 0.1s ease;
+  min-width: 88px;
 }
 .btn-review:hover { transform: translateY(-1px); box-shadow: 0 8px 16px -8px rgba(14,165,233,0.6); }
 .btn-review:active { transform: translateY(0); }
@@ -831,8 +837,14 @@
   animation: slideInLeft 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+.results-table tr {
+  position: relative;
+}
 .results-table tr:hover td {
-  background: #f8fafc;
+  background: #f9fafb;
+}
+.results-table tr:hover td:first-child {
+  box-shadow: inset 3px 0 0 #6366f1;
 }
 
 .flagged-row {
@@ -843,6 +855,8 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex-wrap: nowrap;
+  min-width: 0;
 }
 
 .blockchain-hash-text {
@@ -855,6 +869,11 @@
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .btn-copy-hash {
@@ -865,6 +884,12 @@
   padding: 0.25rem;
   border-radius: 4px;
   transition: all 0.2s;
+  flex: 0 0 auto;
+}
+
+.blockchain-cell {
+  overflow-wrap: normal;
+  word-break: normal;
 }
 
 .btn-copy-hash:hover {
@@ -890,6 +915,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.025em;
+  white-space: nowrap;
 }
 
 .badge-critical {
@@ -1102,27 +1128,70 @@
   color: #334155;
 }
 
-.risk-chip-list {
+.reason-list {
+  list-style: none;
+  margin: 0.35rem 0 0;
+  padding: 0;
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
+  flex-direction: column;
+  gap: 0.45rem;
+  color: #334155;
+  font-size: 0.85rem;
+  line-height: 1.5;
 }
 
-.risk-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  max-width: 280px;
-  padding: 0.25rem 0.45rem;
-  border-radius: 8px;
+.transaction-id {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.reason-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.45rem 0.6rem;
+  border-radius: 10px;
   border: 1px solid #e2e8f0;
   background: #f8fafc;
-  color: #334155;
-  font-size: 0.75rem;
-  line-height: 1.3;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  border-left: 3px solid #cbd5f5;
+}
+
+.reason-tag {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.18rem 0.5rem;
+  border-radius: 999px;
+  background: #e2e8f0;
+  color: #475569;
   white-space: nowrap;
+}
+
+.reason-tag-summary {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.reason-tag-ml {
+  background: #ede9fe;
+  color: #5b21b6;
+}
+
+.reason-tag-signal {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.pattern-desc {
+  font-size: 0.82rem;
+  color: #334155;
+  line-height: 1.45;
+}
+
+.no-anomaly {
+  color: #94a3b8;
+  font-size: 0.8rem;
 }
 
 .anomaly-patterns-container {

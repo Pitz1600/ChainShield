@@ -182,3 +182,34 @@
 ### Link Correction
 - Fixed incorrect routing links.
 - Dashboard navigation now correctly resolves to `localhost/dashboard`.
+
+---
+
+## [2026-03-13] - UI Polish, Integrity Checker Table Cleanup, and Dashboard Stat Formatting
+
+### Feedbacks & Modals
+- Fixed em dash rendering in Feedback hero stats and improved contrast/readability for stat labels/values.
+- Improved logout confirmation modal readability (message + title contrast).
+
+### Admin & Audit
+- Removed the "Current User Presence" panel from Audit Log view.
+- Added pagination to User Sessions table.
+- Removed verbose Details block from Audit modal.
+
+### Integrity Checker UI Cleanup
+- Removed the redundant "Risk Detection Details" section.
+- Simplified blockchain hash display to `...` with tooltip for full hash.
+- Fixed table row layout (no horizontal scrolling), consistent row heights, and non-wrapping status badges.
+- Added a subtle row hover accent instead of a large hover block.
+- Fixed blockchain hash cell wrapping and copy icon alignment.
+
+### AI Reasoning Presentation
+- Reformatted AI reasons into tagged cards for readability.
+- Adjusted ML reason visibility to match updated UX decisions across screens.
+
+### Dashboard Stat Cards
+- Tuned stat card spacing and centered labels/values.
+- Added compact number formatting globally on the Dashboard (e.g., `10M`, `1.2K`).
+
+### Bug Fixes
+- Fixed a stray `}` in `MyTransactions.css` that caused a PostCSS build error.

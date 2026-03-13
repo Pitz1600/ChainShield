@@ -37,6 +37,24 @@ const IntegrityChecker = ({ user }) => {
     const TABLE_PAGE_SIZE = 10;
     const DETAILS_PAGE_SIZE = 5;
     const TOAST_DURATION = 4000;
+    const ML_REASON_REGEX = /ml|ai summary|hybrid/i;
+    const classifyReason = (reason) => {
+        const raw = String(reason || '').trim();
+        const lower = raw.toLowerCase();
+        if (lower.startsWith('ai summary:') || lower.startsWith('summary:')) {
+            return { label: 'Summary', text: raw.replace(/^ai summary:\s*/i, '').replace(/^summary:\s*/i, '') };
+        }
+        if (lower.includes('ml') || lower.includes('hybrid')) {
+            return { label: 'ML', text: raw.replace(/^ml\s*/i, '').replace(/^ml\s*hybrid\s*/i, '') };
+        }
+        return { label: 'Signal', text: raw };
+    };
+    const shouldShowInBulletin = (reason) => {
+        const lower = String(reason || '').trim().toLowerCase();
+        if (lower.startsWith('ai summary:') || lower.startsWith('summary:')) return false;
+        if (lower.startsWith('ml hybrid assessment')) return false;
+        return true;
+    };
 
     // Manual Entry State
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -923,11 +941,11 @@ const IntegrityChecker = ({ user }) => {
                                                             <span className="no-anomaly">-</span>
                                                         )}
                                                     </td>
-                                                    <td data-label="Blockchain Hash">
+                                                    <td data-label="Blockchain Hash" className="blockchain-cell">
                                                         {result.blockchainTxId ? (
                                                             <div className="blockchain-hash-wrapper">
                                                                 <span className="blockchain-hash-text" title={result.blockchainTxId}>
-                                                                    <Link size={12} className="link-icon" /> {result.blockchainTxId.substring(0, 10)}...
+                                                                    <Link size={12} className="link-icon" /> ...
                                                                 </span>
                                                                 <button
                                                                     className="btn-copy-hash"
@@ -1008,122 +1026,6 @@ const IntegrityChecker = ({ user }) => {
                                                     border: '1px solid #e2e8f0', background: tablePage === totalTablePages ? '#f8fafc' : 'white',
                                                     cursor: tablePage === totalTablePages ? 'not-allowed' : 'pointer',
                                                     color: tablePage === totalTablePages ? '#94a3b8' : '#334155',
-                                                    fontSize: '0.85rem', fontWeight: '500'
-                                                }}
-                                            >
-                                                Next <ChevronRight size={16} />
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                            );
-                        })()}
-
-                        {results.results && results.results.some(r => r.reasons && r.reasons.length > 0) && (() => {
-                            const detailResults = results.results.filter(r => r.reasons && r.reasons.length > 0);
-                            const totalDetailPages = Math.ceil(detailResults.length / DETAILS_PAGE_SIZE);
-                            const detailStart = (detailsPage - 1) * DETAILS_PAGE_SIZE;
-                            const detailSlice = detailResults.slice(detailStart, detailStart + DETAILS_PAGE_SIZE);
-                            return (
-                                <div className="risk-details">
-                                    <div className="section-title-row">
-                                        <h4>Risk Detection Details</h4>
-                                        <span className="section-count">
-                                            Showing {detailStart + 1} to {Math.min(detailStart + DETAILS_PAGE_SIZE, detailResults.length)} of {detailResults.length}
-                                        </span>
-                                    </div>
-                                    <div className="risk-details-table-wrapper">
-                                        <table className="risk-details-table">
-                                            <thead>
-                                                <tr>
-                                                    <th>Row</th>
-                                                    <th>Transaction</th>
-                                                    <th>Score</th>
-                                                    <th>Level</th>
-                                                    <th>Reason Why</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {detailSlice.map((result, idx) => {
-                                                    const reasons = Array.isArray(result.reasons) ? result.reasons : [];
-                                                    return (
-                                                        <tr key={`${result.transactionId || 'row'}-${idx}`}>
-                                                            <td>{result.row}</td>
-                                                            <td className="transaction-id">{result.transactionId}</td>
-                                                            <td>
-                                                                <span className={`risk-score risk-${result.riskLevel?.toLowerCase()}`}>
-                                                                    {result.riskScore ?? 0}
-                                                                </span>
-                                                            </td>
-                                                            <td>
-                                                                <span className={`badge badge-${result.riskLevel?.toLowerCase()}`}>
-                                                                    {result.riskLevel || 'N/A'}
-                                                                </span>
-                                                            </td>
-                                                            <td>
-                                                                <div className="risk-chip-list">
-                                                                    {reasons.length > 0 ? reasons.map((reason, rIdx) => (
-                                                                        <span key={`${result.transactionId || 'row'}-reason-${rIdx}`} className="risk-chip">
-                                                                            <AlertTriangle size={12} />
-                                                                            {reason}
-                                                                        </span>
-                                                                    )) : <span className="no-anomaly">-</span>}
-                                                                </div>
-                                                            </td>
-                                                        </tr>
-                                                    );
-                                                })}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    {totalDetailPages > 1 && (
-                                        <div style={{
-                                            display: 'flex', justifyContent: 'center', alignItems: 'center',
-                                            gap: '0.5rem', padding: '1rem 0'
-                                        }}>
-                                            <button
-                                                onClick={() => setDetailsPage(p => Math.max(1, p - 1))}
-                                                disabled={detailsPage === 1}
-                                                style={{
-                                                    display: 'flex', alignItems: 'center', gap: '0.25rem',
-                                                    padding: '0.4rem 0.75rem', borderRadius: '8px',
-                                                    border: '1px solid #e2e8f0', background: detailsPage === 1 ? '#f8fafc' : 'white',
-                                                    cursor: detailsPage === 1 ? 'not-allowed' : 'pointer',
-                                                    color: detailsPage === 1 ? '#94a3b8' : '#334155',
-                                                    fontSize: '0.85rem', fontWeight: '500'
-                                                }}
-                                            >
-                                                <ChevronLeft size={16} /> Prev
-                                            </button>
-                                            {Array.from({ length: totalDetailPages }, (_, i) => i + 1)
-                                                .filter(p => p === 1 || p === totalDetailPages || Math.abs(p - detailsPage) <= 1)
-                                                .reduce((acc, p, i, arr) => {
-                                                    if (i > 0 && p - arr[i - 1] > 1) acc.push('...');
-                                                    acc.push(p);
-                                                    return acc;
-                                                }, [])
-                                                .map((p, i) => p === '...' ? (
-                                                    <span key={`dots-${i}`} style={{ color: '#94a3b8', padding: '0 0.25rem' }}>...</span>
-                                                ) : (
-                                                    <button key={p} onClick={() => setDetailsPage(p)} style={{
-                                                        width: '2rem', height: '2rem', borderRadius: '8px',
-                                                        border: detailsPage === p ? '2px solid #6366f1' : '1px solid #e2e8f0',
-                                                        background: detailsPage === p ? '#6366f1' : 'white',
-                                                        color: detailsPage === p ? 'white' : '#334155',
-                                                        cursor: 'pointer', fontWeight: detailsPage === p ? '700' : '500',
-                                                        fontSize: '0.85rem'
-                                                    }}>{p}</button>
-                                                ))
-                                            }
-                                            <button
-                                                onClick={() => setDetailsPage(p => Math.min(totalDetailPages, p + 1))}
-                                                disabled={detailsPage === totalDetailPages}
-                                                style={{
-                                                    display: 'flex', alignItems: 'center', gap: '0.25rem',
-                                                    padding: '0.4rem 0.75rem', borderRadius: '8px',
-                                                    border: '1px solid #e2e8f0', background: detailsPage === totalDetailPages ? '#f8fafc' : 'white',
-                                                    cursor: detailsPage === totalDetailPages ? 'not-allowed' : 'pointer',
-                                                    color: detailsPage === totalDetailPages ? '#94a3b8' : '#334155',
                                                     fontSize: '0.85rem', fontWeight: '500'
                                                 }}
                                             >

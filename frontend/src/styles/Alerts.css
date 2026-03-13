@@ -739,9 +739,11 @@
 }
 
 .addr-ellipsis {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow: visible;
+  text-overflow: unset;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .amount-text {
@@ -876,6 +878,57 @@
 .pattern-desc {
   font-size: 0.8rem;
   color: #475569;
+}
+
+.reason-list {
+  list-style: none;
+  margin: 0.35rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  color: #475569;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.reason-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.45rem 0.6rem;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  border-left: 3px solid #cbd5f5;
+}
+
+.reason-tag {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.18rem 0.5rem;
+  border-radius: 999px;
+  background: #e2e8f0;
+  color: #475569;
+  white-space: nowrap;
+}
+
+.reason-tag-summary {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.reason-tag-ml {
+  background: #ede9fe;
+  color: #5b21b6;
+}
+
+.reason-tag-signal {
+  background: #f1f5f9;
+  color: #475569;
+}
 }
 
 .csv-details-banner {

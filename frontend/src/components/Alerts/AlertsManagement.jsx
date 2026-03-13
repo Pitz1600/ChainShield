@@ -108,6 +108,29 @@ function AlertsManagement({ embedded = false }) {
     return !['n/a', 'na', '-', 'unknown', 'unknown agency', 'unknown program'].includes(normalized);
   };
 
+  const getMlReasons = (tx) => {
+    const reasons = Array.isArray(tx?.reasons) ? tx.reasons : [];
+    return reasons.filter((reason) => /ml|ai summary|hybrid/i.test(String(reason)));
+  };
+
+  const classifyReason = (reason) => {
+    const raw = String(reason || '').trim();
+    const lower = raw.toLowerCase();
+    if (lower.startsWith('ai summary:') || lower.startsWith('summary:')) {
+      return { label: 'Summary', text: raw.replace(/^ai summary:\s*/i, '').replace(/^summary:\s*/i, '') };
+    }
+    if (lower.includes('ml') || lower.includes('hybrid')) {
+      return { label: 'ML', text: raw.replace(/^ml\s*/i, '').replace(/^ml\s*hybrid\s*/i, '') };
+    }
+    return { label: 'Signal', text: raw };
+  };
+  const shouldShowInBulletin = (reason) => {
+    const lower = String(reason || '').trim().toLowerCase();
+    if (lower.startsWith('ai summary:') || lower.startsWith('summary:')) return false;
+    if (lower.startsWith('ml hybrid assessment')) return false;
+    return true;
+  };
+
   const formatAlert = (transaction) => ({
     id: transaction._id,
     severity: getSeverity(transaction.riskScore),
@@ -219,7 +242,7 @@ function AlertsManagement({ embedded = false }) {
     );
   };
 
-  const FormulaPanel = ({ score = 0, patterns = [], reasons = [] }) => {
+  const FormulaPanel = ({ score = 0, patterns = [], reasons = [], mlReasons = [] }) => {
     const mean = 50;
     const stddev = 25;
     const z = ((score - mean) / stddev).toFixed(2);
@@ -242,14 +265,21 @@ function AlertsManagement({ embedded = false }) {
           <div className={`formula-verdict ${suspicious ? 'verdict-suspicious' : 'verdict-normal'}`}>
             {suspicious ? `Suspicious: Z=${z} exceeds +/-1.5` : `Normal: Z=${z} within +/-1.5`}
           </div>
-          {reasons.length > 0 && (
+          {mlReasons.length > 0 && (
             <div className="formula-patterns">
-              <div className="formula-patterns-title">Reason Why</div>
-              {reasons.map((r, idx) => (
-                <div key={idx} className="formula-pattern-item">
-                  <span className="pattern-desc">{r}</span>
-                </div>
-              ))}
+              <div className="formula-patterns-title">ML Score Reason</div>
+              <ul className="reason-list">
+                {mlReasons.map((reason, idx) => {
+                  const classified = classifyReason(reason);
+                  const { label, text } = classified;
+                  return (
+                    <li key={`ml-${idx}`} className="reason-item">
+                      <span className={`reason-tag reason-tag-${label.toLowerCase()}`}>{label}</span>
+                      <span className="pattern-desc">{text}</span>
+                    </li>
+                  );
+                })}
+              </ul>
             </div>
           )}
           {patterns.length > 0 && null}
@@ -554,7 +584,12 @@ function AlertsManagement({ embedded = false }) {
               )}
 
               {modalTab === 'ai' && (
-                <FormulaPanel score={txRisk} patterns={tx?.fraudPatterns || tx?.riskPatterns || []} reasons={tx?.reasons || []} />
+                <FormulaPanel
+                  score={txRisk}
+                  patterns={tx?.fraudPatterns || tx?.riskPatterns || []}
+                  reasons={tx?.reasons || []}
+                  mlReasons={getMlReasons(tx)}
+                />
               )}
 
               {modalTab === 'csv' && (

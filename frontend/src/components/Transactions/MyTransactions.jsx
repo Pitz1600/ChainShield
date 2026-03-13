@@ -43,6 +43,29 @@ const isMeaningfulValue = (value) => {
   return !['n/a', 'na', '-', 'unknown', 'unknown agency', 'unknown program'].includes(normalized);
 };
 
+const getMlReasons = (tx) => {
+  const reasons = Array.isArray(tx?.reasons) ? tx.reasons : [];
+  return reasons.filter((reason) => /ml|ai summary|hybrid/i.test(String(reason)));
+};
+
+const classifyReason = (reason) => {
+  const raw = String(reason || '').trim();
+  const lower = raw.toLowerCase();
+  if (lower.startsWith('ai summary:') || lower.startsWith('summary:')) {
+    return { label: 'Summary', text: raw.replace(/^ai summary:\s*/i, '').replace(/^summary:\s*/i, '') };
+  }
+  if (lower.includes('ml') || lower.includes('hybrid')) {
+    return { label: 'ML', text: raw.replace(/^ml\s*/i, '').replace(/^ml\s*hybrid\s*/i, '') };
+  }
+  return { label: 'Signal', text: raw };
+};
+const shouldShowInBulletin = (reason) => {
+  const lower = String(reason || '').trim().toLowerCase();
+  if (lower.startsWith('ai summary:') || lower.startsWith('summary:')) return false;
+  if (lower.startsWith('ml hybrid assessment')) return false;
+  return true;
+};
+
 /* ------------------------------------------------------------------ */
 /*  SVG Risk Gauge Component                                           */
 /* ------------------------------------------------------------------ */
@@ -85,6 +108,7 @@ function FormulaBreakdown({ tx }) {
   const zScore = ((riskScore - mean) / stddev).toFixed(2);
   const threshold = 1.5;
   const isSuspicious = Math.abs(parseFloat(zScore)) > threshold;
+  const mlReasons = getMlReasons(tx);
 
   return (
     <div className="formula-card">
@@ -121,16 +145,6 @@ function FormulaBreakdown({ tx }) {
             ? `SUSPICIOUS - Z-score ${zScore} exceeds threshold +/-${threshold}`
             : `NORMAL - Z-score ${zScore} is within normal range +/-${threshold}`}
         </div>
-        {tx.reasons && tx.reasons.length > 0 && (
-          <div className="formula-patterns">
-            <div className="formula-patterns-title">Reason Why</div>
-            {tx.reasons.map((reason, i) => (
-              <div key={i} className="formula-pattern-item">
-                <span className="pattern-desc">{reason}</span>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
     </div>
   );
@@ -756,6 +770,25 @@ function MyTransactions({ user, embedded = false }) {
                   {modalTab === 'ai' && (
                     <div>
                       <FormulaBreakdown tx={selectedTx} />
+                      {getMlReasons(selectedTx).length > 0 && (
+                        <div className="formula-card" style={{ marginTop: '1rem' }}>
+                          <h4 className="formula-title">ML Score Reason</h4>
+                          <div className="formula-body">
+                            <ul className="reason-list">
+                              {getMlReasons(selectedTx).map((reason, i) => {
+                                const classified = classifyReason(reason);
+                                const { label, text } = classified;
+                                return (
+                                  <li key={`ml-detail-${i}`} className="reason-item">
+                                    <span className={`reason-tag reason-tag-${label.toLowerCase()}`}>{label}</span>
+                                    <span className="pattern-desc">{text}</span>
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          </div>
+                        </div>
+                      )}
 
                       {(selectedTx.networkFeatures || selectedTx.graphRisk) && (
                         <div className="formula-card" style={{ marginTop: '1rem' }}>
@@ -868,16 +901,6 @@ function MyTransactions({ user, embedded = false }) {
                             </>
                           )}
                         </div>
-                      {selectedTx.reasons && selectedTx.reasons.length > 0 && (
-                        <div className="formula-patterns">
-                          <div className="formula-patterns-title">Reason Why</div>
-                          {selectedTx.reasons.map((r, i) => (
-                            <div key={i} className="formula-pattern-item">
-                              <span className="pattern-desc">{r}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
                       </div>
                     </div>
                   )}

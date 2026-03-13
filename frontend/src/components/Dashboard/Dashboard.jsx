@@ -20,6 +20,16 @@ const buildSparklinePath = (points, width = 320, height = 120, pad = 12) => {
     .join(' ');
 };
 
+const formatCompact = (value) => {
+  const num = Number(value || 0);
+  if (!Number.isFinite(num)) return '0';
+  return new Intl.NumberFormat('en-US', {
+    notation: 'compact',
+    compactDisplay: 'short',
+    maximumFractionDigits: 1
+  }).format(num);
+};
+
 function Dashboard({ user, onNavigate }) {
   const [stats, setStats] = useState({ total: 0, critical: 0, high: 0, medium: 0 });
   const [recentAlerts, setRecentAlerts] = useState([]);
@@ -179,28 +189,28 @@ function Dashboard({ user, onNavigate }) {
           <div className="hero-stat-card total">
             <div className="stat-icon"><AlertTriangle size={24} /></div>
             <div className="stat-content">
-              <div className="hero-stat-value">{stats.total}</div>
+              <div className="hero-stat-value">{formatCompact(stats.total)}</div>
               <div className="hero-stat-label">Total Alerts</div>
             </div>
           </div>
           <div className="hero-stat-card critical">
             <div className="stat-icon"><AlertCircle size={24} /></div>
             <div className="stat-content">
-              <div className="hero-stat-value">{stats.critical}</div>
+              <div className="hero-stat-value">{formatCompact(stats.critical)}</div>
               <div className="hero-stat-label">Critical</div>
             </div>
           </div>
           <div className="hero-stat-card high">
             <div className="stat-icon"><TrendingUp size={24} /></div>
             <div className="stat-content">
-              <div className="hero-stat-value">{stats.high}</div>
+              <div className="hero-stat-value">{formatCompact(stats.high)}</div>
               <div className="hero-stat-label">High Risk</div>
             </div>
           </div>
           <div className="hero-stat-card medium">
             <div className="stat-icon"><CheckCircle size={24} /></div>
             <div className="stat-content">
-              <div className="hero-stat-value">{stats.medium}</div>
+              <div className="hero-stat-value">{formatCompact(stats.medium)}</div>
               <div className="hero-stat-label">Medium Risk</div>
             </div>
           </div>
@@ -290,32 +300,32 @@ function Dashboard({ user, onNavigate }) {
           <div className="risk-ring-row">
             <div className="risk-ring" style={riskRingStyle}>
               <div className="risk-ring-center">
-                <div className="risk-ring-value">{stats.total}</div>
+                <div className="risk-ring-value">{formatCompact(stats.total)}</div>
                 <div className="risk-ring-label">Alerts</div>
               </div>
             </div>
             <div className="risk-ring-legend">
-              <div><span className="risk-dot critical" /> Critical: {stats.critical}</div>
-              <div><span className="risk-dot medium" /> High: {stats.high}</div>
-              <div><span className="risk-dot low" /> Medium: {stats.medium}</div>
-              <div><span className="risk-dot low2" /> Low: {lowCount}</div>
+              <div><span className="risk-dot critical" /> Critical: {formatCompact(stats.critical)}</div>
+              <div><span className="risk-dot medium" /> High: {formatCompact(stats.high)}</div>
+              <div><span className="risk-dot low" /> Medium: {formatCompact(stats.medium)}</div>
+              <div><span className="risk-dot low2" /> Low: {formatCompact(lowCount)}</div>
             </div>
           </div>
           <div className="risk-bars">
             <div className="risk-bar-item">
               <div className="risk-bar-label"><span className="risk-dot critical" /><span>Critical</span></div>
               <div className="progress-bg"><div style={{ width: `${stats.total > 0 ? (stats.critical / stats.total * 100) : 0}%` }} className="progress-fill critical" /></div>
-              <span className="risk-count">{stats.critical}</span>
+              <span className="risk-count">{formatCompact(stats.critical)}</span>
             </div>
             <div className="risk-bar-item">
               <div className="risk-bar-label"><span className="risk-dot medium" /><span>High Risk</span></div>
               <div className="progress-bg"><div style={{ width: `${stats.total > 0 ? (stats.high / stats.total * 100) : 0}%` }} className="progress-fill medium" /></div>
-              <span className="risk-count">{stats.high}</span>
+              <span className="risk-count">{formatCompact(stats.high)}</span>
             </div>
             <div className="risk-bar-item">
               <div className="risk-bar-label"><span className="risk-dot low" /><span>Medium Risk</span></div>
               <div className="progress-bg"><div style={{ width: `${stats.total > 0 ? (stats.medium / stats.total * 100) : 0}%` }} className="progress-fill low" /></div>
-              <span className="risk-count">{stats.medium}</span>
+              <span className="risk-count">{formatCompact(stats.medium)}</span>
             </div>
           </div>
         </div>
@@ -332,10 +342,10 @@ function Dashboard({ user, onNavigate }) {
                   <div key={item.agency} className="mini-row">
                     <div className="mini-row-main">
                       <strong>{item.agency}</strong>
-                      <span>{item.count} alert{item.count === 1 ? '' : 's'}</span>
+                      <span>{formatCompact(item.count)} alert{item.count === 1 ? '' : 's'}</span>
                     </div>
                     <span className={`mini-pill ${item.avgRisk >= 90 ? 'critical' : item.avgRisk >= 71 ? 'high' : item.avgRisk >= 41 ? 'medium' : 'low'}`}>
-                      {item.avgRisk}
+                      {formatCompact(item.avgRisk)}
                     </span>
                   </div>
                 ))
@@ -350,17 +360,17 @@ function Dashboard({ user, onNavigate }) {
               <div className="stack-item">
                 <span>Under 1 hour</span>
                 <div className="stack-track"><div className="stack-fill recent" style={{ width: `${(alertAge.recent / ageTotal) * 100}%` }} /></div>
-                <strong>{alertAge.recent}</strong>
+                <strong>{formatCompact(alertAge.recent)}</strong>
               </div>
               <div className="stack-item">
                 <span>Today</span>
                 <div className="stack-track"><div className="stack-fill today" style={{ width: `${(alertAge.today / ageTotal) * 100}%` }} /></div>
-                <strong>{alertAge.today}</strong>
+                <strong>{formatCompact(alertAge.today)}</strong>
               </div>
               <div className="stack-item">
                 <span>Older</span>
                 <div className="stack-track"><div className="stack-fill older" style={{ width: `${(alertAge.older / ageTotal) * 100}%` }} /></div>
-                <strong>{alertAge.older}</strong>
+                <strong>{formatCompact(alertAge.older)}</strong>
               </div>
             </div>
           </div>
@@ -369,10 +379,10 @@ function Dashboard({ user, onNavigate }) {
             <h3 className="card-title">Verification Queue</h3>
             <p className="card-subtitle">Current status split of suspicious alerts</p>
             <div className="queue-grid">
-              <div className="queue-stat pending"><span>Pending</span><strong>{queueStats.pending}</strong></div>
-              <div className="queue-stat verified"><span>Verified</span><strong>{queueStats.verified}</strong></div>
-              <div className="queue-stat flagged"><span>Flagged</span><strong>{queueStats.flagged}</strong></div>
-              <div className="queue-stat rejected"><span>Rejected</span><strong>{queueStats.rejected}</strong></div>
+              <div className="queue-stat pending"><span>Pending</span><strong>{formatCompact(queueStats.pending)}</strong></div>
+              <div className="queue-stat verified"><span>Verified</span><strong>{formatCompact(queueStats.verified)}</strong></div>
+              <div className="queue-stat flagged"><span>Flagged</span><strong>{formatCompact(queueStats.flagged)}</strong></div>
+              <div className="queue-stat rejected"><span>Rejected</span><strong>{formatCompact(queueStats.rejected)}</strong></div>
             </div>
           </div>
         </div>
