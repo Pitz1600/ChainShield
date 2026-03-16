@@ -89,6 +89,7 @@ ChainShield empowers barangays to modernize their operations and audit processes
 
 See [`docs/SECURITY.md`](docs/SECURITY.md) for the full security documentation.
 See [`docs/schema.md`](docs/schema.md) for the database schema overview.
+See [`docs/concepts.md`](docs/concepts.md) for AI, blockchain gas cost, and system model definitions.
 
 ---
 

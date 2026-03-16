@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 contract ChainShield {
     struct SuspiciousRecord {
-        uint256 timestamp;
+        uint40 timestamp; // fits block.timestamp, packs with riskScore into one slot
         uint8 riskScore; // 0-100 compressed to 1 byte
     }
 
@@ -14,8 +14,14 @@ contract ChainShield {
 
     event SuspiciousRecorded(bytes32 indexed txHash, uint8 riskScore, uint256 timestamp, bytes32 metaHash);
 
+    error NotAuthorized();
+    error AlreadyRecorded();
+    error InvalidRisk();
+    error NotFound();
+    error ZeroAddress();
+
     modifier onlyOwner() {
-        require(msg.sender == owner, "Not authorized");
+        if (msg.sender != owner) revert NotAuthorized();
         _;
     }
 
@@ -28,15 +34,17 @@ contract ChainShield {
     /// @param _riskScore Compact risk score 0-100
     /// @param _metaHash Optional hashed metadata stored via event (gas cheap)
     function recordSuspicious(bytes32 _txHash, uint8 _riskScore, bytes32 _metaHash) external onlyOwner {
-        require(!isRecorded(_txHash), "Already recorded");
-        require(_riskScore <= 100, "Invalid risk");
+        if (suspicious[_txHash].timestamp != 0) revert AlreadyRecorded();
+        if (_riskScore > 100) revert InvalidRisk();
 
         suspicious[_txHash] = SuspiciousRecord({
-            timestamp: block.timestamp,
+            timestamp: uint40(block.timestamp),
             riskScore: _riskScore
         });
 
-        totalSuspicious += 1;
+        unchecked {
+            totalSuspicious += 1;
+        }
 
         emit SuspiciousRecorded(_txHash, _riskScore, block.timestamp, _metaHash);
     }
@@ -49,13 +57,13 @@ contract ChainShield {
     /// @notice Get compact suspicious record
     function getSuspicious(bytes32 _txHash) external view returns (uint256 timestamp, uint8 riskScore) {
         SuspiciousRecord memory record = suspicious[_txHash];
-        require(record.timestamp != 0, "Not found");
-        return (record.timestamp, record.riskScore);
+        if (record.timestamp == 0) revert NotFound();
+        return (uint256(record.timestamp), record.riskScore);
     }
 
     /// @notice Transfer contract ownership (for maintenance)
     function transferOwnership(address newOwner) external onlyOwner {
-        require(newOwner != address(0), "Zero address");
+        if (newOwner == address(0)) revert ZeroAddress();
         owner = newOwner;
     }
 }
