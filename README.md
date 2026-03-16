@@ -22,8 +22,6 @@ ChainShield empowers barangays to modernize their operations and audit processes
 |---|---|---|
 | 🏠 **Resident** | Citizens of the barangay | View own records, submit complaints, verify documents |
 | 🏛️ **Barangay Official** | Captain, Kagawad, Secretary, Treasurer | Dashboard, complaint management, CSV import, analytics |
-| 🔍 **Analyst** | Read-only fraud investigation | View fraud cases, analytics, verification results |
-| 🕵️ **Investigator** | Active fraud investigation | All analyst permissions + respond to complaints, generate reports |
 | 🛡️ **Administrator** | System management | Full access — user management, audit logs, system config |
 
 > **Note**: Administrators must use local email/password + mandatory TOTP 2FA. Google SSO is available for Residents, Officials, Analysts, and Investigators.
@@ -90,6 +88,7 @@ ChainShield empowers barangays to modernize their operations and audit processes
 | CI Security Audit | ✅ | GitHub Actions `npm audit` on every push |
 
 See [`docs/SECURITY.md`](docs/SECURITY.md) for the full security documentation.
+See [`docs/schema.md`](docs/schema.md) for the database schema overview.
 
 ---
 
