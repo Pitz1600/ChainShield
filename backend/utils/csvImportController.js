@@ -47,11 +47,8 @@ exports.importTransactions = async (req, res) => {
         );
         const missingColumns = [];
 
-        const hasAgencyCol  = Boolean(columnMappings.agency  || columnMappings.programName);
-        const hasProgramCol = Boolean(columnMappings.programName || columnMappings.agency);
-
-        if (!hasAgencyCol)  missingColumns.push('agency');
-        if (!hasProgramCol) missingColumns.push('program_name');
+        if (!columnMappings.agency) missingColumns.push('agency');
+        if (!columnMappings.programName) missingColumns.push('program_name');
         if (!hasAmountColumn) missingColumns.push('amount (or debit_amount / credit_amount)');
 
         if (missingColumns.length > 0) {
@@ -102,6 +99,11 @@ exports.importTransactions = async (req, res) => {
             currency:        txData.currency || 'PHP',
             timestamp:       txData.timestamp ? new Date(txData.timestamp) : new Date(),
             description:     txData.description || '',
+            // COA-specific fields
+            budgetCategory:  txData.budgetCategory  || txData.agency || '',
+            coaObjectCode:   txData.coaObjectCode   || '',
+            eventPhase:      txData.eventPhase       || '',
+            eventProgram:    txData.eventProgram     || txData.programName || '',
           });
           rowRefs.push(rowNumber);
         } catch (err) {
@@ -184,14 +186,15 @@ exports.importTransactions = async (req, res) => {
 };
 
 exports.downloadTemplate = (req, res) => {
-  const template = `record_id,post_date,agency,program_name,payer_name,payee_name,debit_amount,credit_amount,currency,description_raw,transaction_type
-TX-001,2024-01-15,Barangay Pantal,Office Supplies,Barangay Pantal,Dagupan City Treasury,6407.55,0,PHP,Check Encashment - Office Supplies,Other
-TX-002,2024-01-16,DSWD,4Ps,DSWD,Juan Dela Cruz,0,5000,PHP,4Ps Cash Assistance - January 2024,Social Welfare
-TX-003,2024-01-17,Barangay Pantal,Infrastructure,Barangay Pantal,ABC Construction,15000,0,PHP,Procurement - Construction Materials,Procurement
-TX-004,2024-01-18,DOH,Medical Assistance,DOH,Maria Santos,0,3000,PHP,Medical Assistance - Emergency Fund,Social Welfare
-TX-005,2024-01-19,Barangay Pantal,Local Revenue,Barangay Pantal,City Treasury,8500,0,PHP,Tax Payment - Business Permit,Tax`;
+  // COA-compliant Barangay Pantal template (COA Circular 2015-010)
+  const template = `record_id,post_date,barangay,city,province,payer_name,payee_name,debit_amount,credit_amount,currency,description_raw,budget_category,coa_object_code,transaction_type,event_phase,event
+PNTL-0001,2024-04-05,Barangay Pantal,Dagupan City,Pangasinan,Barangay Captain Office - Pantal,Petron Station - Dagupan City,650.00,0,PHP,Gasoline - Barangay Vehicle Pantal (10L),Transportation & Gas,5-02-10-030,Other,pre,Barangay Pantal Fiesta 2024
+PNTL-0002,2024-04-10,Barangay Pantal,Dagupan City,Pangasinan,Barangay Captain Office - Pantal,Dagupan Print & Design Center,1200.00,0,PHP,Tarpaulin Printing 10x4ft - Pantal Fiesta 2024,Decorations & Tarpaulin,5-02-03-010,Other,pre,Barangay Pantal Fiesta 2024
+PNTL-0003,2024-05-14,Barangay Pantal,Dagupan City,Pangasinan,Barangay Captain Office - Pantal,Mang Juan Catering Services - Dagupan,25000.00,0,PHP,Catering Deposit - Pantal Fiesta May 15 2024,Food & Catering,5-02-01-010,Other,event,Barangay Pantal Fiesta 2024
+PNTL-0004,2024-05-15,Barangay Pantal,Dagupan City,Pangasinan,Barangay Captain Office - Pantal,Barangay Fiesta Committee Members,500.00,0,PHP,Per Diem - Barangay Council Fiesta Day,Per Diem & Allowances,5-01-04-030,Other,event,Barangay Pantal Fiesta 2024
+PNTL-0005,2024-04-08,Barangay Pantal,Dagupan City,Pangasinan,Barangay Captain Office - Pantal,Pantal Print & Copy Center,150.00,0,PHP,Photocopying - Fiesta Budget Documents 50 pages,Printing & Photocopying,5-02-03-010,Other,pre,Barangay Pantal Fiesta 2024`;
 
   res.setHeader('Content-Type', 'text/csv');
-  res.setHeader('Content-Disposition', 'attachment; filename=transaction_import_template.csv');
+  res.setHeader('Content-Disposition', 'attachment; filename=barangay_pantal_fiesta_template.csv');
   res.send(template);
 };

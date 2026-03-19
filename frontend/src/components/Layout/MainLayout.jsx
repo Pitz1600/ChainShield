@@ -6,6 +6,7 @@ import '../../styles/MainLayout.css';
 
 // Lazy load components for better performance and Firefox compatibility
 const Dashboard = lazy(() => import('../Dashboard/Dashboard'));
+const ResidentDashboard = lazy(() => import('../Dashboard/ResidentDashboard'));
 const TransactionsPage = lazy(() => import('../Transactions/TransactionsPage'));
 const Analytics = lazy(() => import('../Analytics/Analytics'));
 const IntegrityChecker = lazy(() => import('../IntegrityChecker/IntegrityChecker'));
@@ -80,7 +81,11 @@ function MainLayout({ user, onLogout, onNavigate }) {
               </div>
             </div>
           }>
-            {pathToView === 'dashboard' && <Dashboard user={user} onNavigate={onNavigate} />}
+            {pathToView === 'dashboard' && (
+              user?.role === 'resident'
+                ? <ResidentDashboard user={user} onNavigate={handleViewChange} />
+                : <Dashboard user={user} onNavigate={onNavigate} />
+            )}
             {pathToView === 'transactions' && <TransactionsPage user={user} />}
             {pathToView === 'analytics' && <Analytics user={user} />}
             {pathToView === 'integrity_checker' && <IntegrityChecker user={user} />}

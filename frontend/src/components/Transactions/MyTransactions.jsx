@@ -357,14 +357,19 @@ function MyTransactions({ user, embedded = false }) {
 
   /* ---- Filter + paginate ---- */
   const filterByStatus = (list) => {
+    let result = list;
+    // Status filter
     switch (statusFilter) {
-      case 'verified': return list.filter(t => t.verificationStatus === 'Verified');
-      case 'flagged': return list.filter(t => t.verificationStatus === 'Flagged' || t.flagged);
-      case 'pending': return list.filter(t => t.verificationStatus === 'Pending');
-      case 'suspicious': return list.filter(t => t.verificationStatus === 'Suspicious' || (t.riskScore >= 71 && t.verificationStatus !== 'Verified'));
-      case 'rejected': return list.filter(t => t.verificationStatus === 'Rejected');
-      default: return list;
+      case 'verified':   result = result.filter(t => t.verificationStatus === 'Verified'); break;
+      case 'flagged':    result = result.filter(t => t.verificationStatus === 'Flagged' || t.flagged); break;
+      case 'pending':    result = result.filter(t => t.verificationStatus === 'Pending'); break;
+      case 'suspicious': result = result.filter(t => t.verificationStatus === 'Suspicious' || (t.riskScore >= 71 && t.verificationStatus !== 'Verified')); break;
+      case 'rejected':   result = result.filter(t => t.verificationStatus === 'Rejected'); break;
+      default: break;
     }
+    // Budget category filter
+    // Event phase filter
+    return result;
   };
 
   const filteredTransactions = filterByStatus(transactions);
@@ -560,13 +565,13 @@ function MyTransactions({ user, embedded = false }) {
               <tbody>
                 {currentTransactions.map((t) => {
                   const verifiedConfig = {
-                    Verified: { color: '#10b981', bg: '#d1fae5', label: 'Verified' },
+                    Verified:   { color: '#10b981', bg: '#d1fae5', label: 'Verified' },
                     Suspicious: { color: '#f97316', bg: '#ffedd5', label: 'Suspicious' },
-                    Flagged: { color: '#f97316', bg: '#ffedd5', label: 'Flagged' },
-                    Pending: { color: '#f59e0b', bg: '#fef3c7', label: 'Pending' },
-                    Rejected: { color: '#ef4444', bg: '#fee2e2', label: 'Rejected' }
+                    Flagged:    { color: '#f97316', bg: '#ffedd5', label: 'Flagged' },
+                    Pending:    { color: '#f59e0b', bg: '#fef3c7', label: 'Pending' },
+                    Rejected:   { color: '#ef4444', bg: '#fee2e2', label: 'Rejected' }
                   };
-                  const vBadge = verifiedConfig[t.verificationStatus] || verifiedConfig.Pending;
+                  const vBadge    = verifiedConfig[t.verificationStatus] || verifiedConfig.Pending;
                   const chainLabel = t.blockchainTxId ? 'Recorded' : 'Not recorded';
                   const chainClass = t.blockchainTxId ? 'chain-recorded' : 'chain-not';
                   return (
@@ -658,9 +663,10 @@ function MyTransactions({ user, embedded = false }) {
                 {/* Tabs */}
                 <div className="modal-tabs">
                   {[
-                    { key: 'details', label: 'Details' },
-                    { key: 'ai', label: 'AI Analysis' },
-                    { key: 'csv', label: 'Import Data' },
+                    { key: 'details',   label: 'Details' },
+                    { key: 'ai',        label: 'AI Analysis' },
+                    { key: 'csv',       label: 'Import Data' },
+                    ...(isAdminOrAuditor ? [{ key: 'breakdown', label: 'Breakdown' }] : []),
                   ].map(tab => (
                     <button
                       key={tab.key}
@@ -904,6 +910,186 @@ function MyTransactions({ user, embedded = false }) {
                       </div>
                     </div>
                   )}
+
+                  {/* TAB 4: BREAKDOWN — admin / barangay_official / auditor only */}
+                  {modalTab === 'breakdown' && isAdminOrAuditor && (() => {
+                    const amount = Number(selectedTx.amount ?? 0);
+                    const debit  = selectedTx.debitAmount  ? Number(selectedTx.debitAmount)  : amount;
+                    const credit = selectedTx.creditAmount ? Number(selectedTx.creditAmount) : 0;
+                    const net    = amount;
+
+                    const sectionLabel = {
+                      fontSize: '0.7rem', fontWeight: 600, color: '#94a3b8',
+                      textTransform: 'uppercase', letterSpacing: '0.06em',
+                      marginBottom: 8, marginTop: 4,
+                    };
+                    const rowStyle = {
+                      display: 'flex', justifyContent: 'space-between',
+                      alignItems: 'flex-start', padding: '10px 14px',
+                      borderBottom: '0.5px solid #e2e8f0',
+                    };
+                    const rowLabel = { fontSize: '0.83rem', color: '#1e293b', fontWeight: 500 };
+                    const rowSub   = { fontSize: '0.73rem', color: '#94a3b8', marginTop: 2 };
+                    const rowVal   = { fontSize: '0.85rem', color: '#1e293b', textAlign: 'right', maxWidth: 240 };
+
+                    return (
+                      <div>
+
+                        {/* Risk strip */}
+                        <div style={{
+                          display: 'flex', alignItems: 'center', gap: 8,
+                          padding: '8px 12px', borderRadius: 8, marginBottom: '1rem',
+                          background: selectedTx.riskScore >= 90 ? '#fee2e2'
+                            : selectedTx.riskScore >= 71 ? '#ffedd5'
+                            : selectedTx.riskScore >= 41 ? '#fef3c7' : '#dcfce7',
+                        }}>
+                          <div style={{ width: 10, height: 10, borderRadius: '50%', flexShrink: 0,
+                            background: RISK_COLOR(selectedTx.riskScore ?? 0) }} />
+                          <span style={{ fontSize: '0.8rem', color: '#475569' }}>AI Risk Assessment</span>
+                          <span style={{ fontSize: '0.85rem', fontWeight: 600, marginLeft: 'auto',
+                            color: RISK_COLOR(selectedTx.riskScore ?? 0) }}>
+                            Score: {selectedTx.riskScore ?? 0} — {RISK_LABEL(selectedTx.riskScore ?? 0)}
+                          </span>
+                        </div>
+
+                        {/* Flag reasons */}
+                        {selectedTx.flagged && Array.isArray(selectedTx.reasons) &&
+                          selectedTx.reasons.filter(r => shouldShowInBulletin(r)).length > 0 && (
+                          <div style={{
+                            padding: '8px 12px', background: '#fef9c3',
+                            border: '0.5px solid #fde047', borderRadius: 8,
+                            marginBottom: '1rem', fontSize: '0.8rem',
+                            color: '#854d0e', lineHeight: 1.6
+                          }}>
+                            <span style={{ fontWeight: 600 }}>⚠ Flagged: </span>
+                            {selectedTx.reasons.filter(r => shouldShowInBulletin(r)).join(' · ')}
+                          </div>
+                        )}
+
+                        {/* Transaction identity */}
+                        <div style={sectionLabel}>Transaction identity</div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: '1rem' }}>
+                          {[
+                            { label: 'Transaction ID', value: selectedTx.transactionId || selectedTx._id, mono: true },
+                            { label: 'Date',           value: new Date(selectedTx.timestamp || selectedTx.createdAt).toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' }) },
+                            { label: 'Agency / Office', value: selectedTx.agency || '—' },
+                            { label: 'Program / Budget', value: selectedTx.programName || '—' },
+                          ].map(({ label, value, mono }) => (
+                            <div key={label} style={{ background: '#f8fafc', borderRadius: 8, padding: '8px 12px' }}>
+                              <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginBottom: 4 }}>{label}</div>
+                              <div style={{ fontSize: '0.82rem', fontWeight: 500, fontFamily: mono ? 'monospace' : 'inherit', wordBreak: 'break-all' }}>{value}</div>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Transaction classification */}
+                        <div style={sectionLabel}>Classification</div>
+                        <div style={{ marginBottom: '1rem', border: '0.5px solid #e2e8f0', borderRadius: 8, overflow: 'hidden' }}>
+                          <div style={{ ...rowStyle }}>
+                            <div style={rowLabel}>Transaction Type</div>
+                            <div style={rowVal}>
+                              <span style={{ padding: '2px 10px', borderRadius: 4, fontSize: '0.78rem', fontWeight: 600, background: '#eff6ff', color: '#1e40af' }}>
+                                {selectedTx.transactionType || 'Other'}
+                              </span>
+                            </div>
+                          </div>
+                          <div style={{ ...rowStyle }}>
+                            <div style={rowLabel}>Beneficiary Type</div>
+                            <div style={rowVal}>{selectedTx.beneficiaryType || '—'}</div>
+                          </div>
+                          <div style={{ ...rowStyle, borderBottom: 'none' }}>
+                            <div style={rowLabel}>Verification Status</div>
+                            <div style={rowVal}>{getStatusBadge(selectedTx.verificationStatus || 'Pending')}</div>
+                          </div>
+                        </div>
+
+                        {/* Parties involved */}
+                        <div style={sectionLabel}>Parties involved</div>
+                        <div style={{ marginBottom: '1rem', border: '0.5px solid #e2e8f0', borderRadius: 8, overflow: 'hidden' }}>
+                          <div style={{ ...rowStyle }}>
+                            <div>
+                              <div style={rowLabel}>Payer</div>
+                              <div style={rowSub}>Disbursing office</div>
+                            </div>
+                            <div style={{ ...rowVal, fontWeight: 400, color: '#475569' }}>
+                              {formatAddressLabel(selectedTx.fromAddress) || selectedTx.agency || '—'}
+                            </div>
+                          </div>
+                          <div style={{ ...rowStyle, borderBottom: 'none' }}>
+                            <div>
+                              <div style={rowLabel}>Payee</div>
+                              <div style={rowSub}>Recipient / supplier</div>
+                            </div>
+                            <div style={{ ...rowVal, fontWeight: 400, color: '#475569' }}>
+                              {formatAddressLabel(selectedTx.toAddress) || '—'}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Amount breakdown */}
+                        <div style={sectionLabel}>Amount breakdown</div>
+                        <div style={{ marginBottom: '1rem', border: '0.5px solid #e2e8f0', borderRadius: 8, overflow: 'hidden' }}>
+                          <div style={{ ...rowStyle }}>
+                            <div>
+                              <div style={rowLabel}>Debit Amount</div>
+                              <div style={rowSub}>Outflow / disbursed</div>
+                            </div>
+                            <div style={{ fontSize: '0.9rem', fontWeight: 500, color: debit > 0 ? '#1e293b' : '#cbd5e1' }}>
+                              ₱ {debit > 0 ? debit.toLocaleString('en-PH', { minimumFractionDigits: 2 }) : '0.00'}
+                            </div>
+                          </div>
+                          <div style={{ ...rowStyle }}>
+                            <div>
+                              <div style={rowLabel}>Credit Amount</div>
+                              <div style={rowSub}>Inflow / received</div>
+                            </div>
+                            <div style={{ fontSize: '0.9rem', fontWeight: 500, color: credit > 0 ? '#1e293b' : '#cbd5e1' }}>
+                              ₱ {credit > 0 ? credit.toLocaleString('en-PH', { minimumFractionDigits: 2 }) : '0.00'}
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 14px', background: '#f8fafc' }}>
+                            <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1e293b' }}>Net Transaction Amount</span>
+                            <span style={{ fontSize: '1.05rem', fontWeight: 700, color: '#1e40af' }}>
+                              ₱ {net.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Description */}
+                        <div style={sectionLabel}>Description</div>
+                        <div style={{
+                          padding: '10px 14px', border: '0.5px solid #e2e8f0',
+                          borderRadius: 8, fontSize: '0.85rem',
+                          color: '#1e293b', lineHeight: 1.7, marginBottom: '1rem'
+                        }}>
+                          {selectedTx.description || '—'}
+                        </div>
+
+                        {/* Blockchain */}
+                        {selectedTx.blockchainTxId && (
+                          <>
+                            <div style={sectionLabel}>Blockchain record</div>
+                            <div style={{ border: '0.5px solid #e2e8f0', borderRadius: 8, overflow: 'hidden' }}>
+                              <div style={{ ...rowStyle }}>
+                                <div style={rowLabel}>Block Number</div>
+                                <div style={{ ...rowVal, fontFamily: 'monospace' }}>#{selectedTx.blockNumber || '—'}</div>
+                              </div>
+                              <div style={{ ...rowStyle, borderBottom: 'none' }}>
+                                <div>
+                                  <div style={rowLabel}>On-chain Tx Hash</div>
+                                  <div style={rowSub}>Immutable audit record</div>
+                                </div>
+                                <div style={{ fontSize: '0.72rem', fontFamily: 'monospace', color: '#166534', wordBreak: 'break-all', maxWidth: 200, textAlign: 'right' }}>
+                                  {selectedTx.blockchainTxId}
+                                </div>
+                              </div>
+                            </div>
+                          </>
+                        )}
+
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 <div className="tx-modal-footer">

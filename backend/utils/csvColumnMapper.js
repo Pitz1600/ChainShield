@@ -14,12 +14,12 @@ class CSVColumnMapper {
             ],
             // Separate debit/credit columns (will be handled specially)
             debit_amount: [
-                'debit_amount', 'debit', 'debit_amt', 'dr', 'dr_amount', 'debit_value',
-                'withdrawal', 'outflow', 'expense_amount'
+                'debit_amount', 'debit_amt', 'debit_value',
+                'withdrawal', 'outflow', 'expense_amount', 'debit'
             ],
             credit_amount: [
-                'credit_amount', 'credit', 'credit_amt', 'cr', 'cr_amount', 'credit_value',
-                'deposit', 'inflow', 'income_amount'
+                'credit_amount', 'credit_amt', 'credit_value',
+                'deposit', 'inflow', 'income_amount', 'credit'
             ],
             transactionType: [
                 'type', 'transaction_type', 'category', 'transaction_category',
@@ -70,9 +70,9 @@ class CSVColumnMapper {
             transactionId: [
                 'id', 'transaction_id', 'reference', 'ref_no', 'reference_number',
                 'voucher_no', 'check_no', 'receipt_no',
-                // ✅ ADD THESE
                 'record_id', 'txn_id', 'transaction_ref'
-            ]
+            ],
+
         };
     }
 
@@ -126,8 +126,10 @@ class CSVColumnMapper {
             }
         }
 
-        // Then try partial match (contains)
+        // Then try partial match — only allow if variation is at least 5 chars
+        // to prevent short strings like 'cr', 'dr' matching inside longer words
         for (const variation of normalizedVariations) {
+            if (variation.length < 5) continue;
             const match = headers.find((h) => h.includes(variation) || variation.includes(h));
             if (match) {
                 return match;
@@ -207,6 +209,16 @@ class CSVColumnMapper {
      * Apply defaults and smart transformations
      */
     applyDefaults(transaction) {
+        // Fill agency from programName if missing
+        if (!transaction.agency || String(transaction.agency).trim() === '') {
+            transaction.agency = transaction.programName || 'Unknown Agency';
+        }
+
+        // Fill programName from agency if missing
+        if (!transaction.programName || String(transaction.programName).trim() === '') {
+            transaction.programName = transaction.agency || '';
+        }
+
         // Infer transaction type from description or amount
         if (!transaction.transactionType) {
             transaction.transactionType = this.inferTransactionType(transaction);
@@ -231,36 +243,38 @@ class CSVColumnMapper {
      * Infer transaction type from context
      */
     inferTransactionType(transaction) {
-        const desc = (transaction.description || '').toLowerCase();
-        const program = (transaction.programName || '').toLowerCase();
-        const agency = (transaction.agency || '').toLowerCase();
+        const desc    = (transaction.description   || '').toLowerCase();
+        const program = (transaction.programName   || '').toLowerCase();
+        const agency  = (transaction.agency        || '').toLowerCase();
+        const combined = `${desc} ${program} ${agency}`;
 
-        // Check for welfare keywords
-        if (desc.includes('welfare') || desc.includes('4ps') || desc.includes('assistance') ||
-            program.includes('welfare') || program.includes('assistance') ||
-            agency.includes('dswd') || agency.includes('social welfare')) {
+        // Welfare keywords
+        if (combined.includes('welfare') || combined.includes('4ps') ||
+            combined.includes('assistance') || combined.includes('dswd') ||
+            combined.includes('social welfare') || combined.includes('beneficiary')) {
             return 'Social Welfare';
         }
 
-        // Check for procurement keywords
-        if (desc.includes('procurement') || desc.includes('purchase') || desc.includes('supply') ||
-            desc.includes('equipment') || desc.includes('construction') ||
-            program.includes('procurement') || program.includes('infrastructure')) {
+        // Procurement keywords
+        if (combined.includes('procurement') || combined.includes('purchase') ||
+            combined.includes('supply') || combined.includes('equipment') ||
+            combined.includes('construction') || combined.includes('infrastructure') ||
+            combined.includes('supplier') || combined.includes('contractor')) {
             return 'Procurement';
         }
 
-        // Check for tax keywords
-        if (desc.includes('tax') || desc.includes('revenue') || agency.includes('bir') ||
-            agency.includes('revenue')) {
+        // Tax keywords
+        if (combined.includes('tax') || combined.includes('revenue') ||
+            combined.includes('bir') || combined.includes('business permit')) {
             return 'Tax';
         }
 
-        // Check for grant keywords
-        if (desc.includes('grant') || desc.includes('subsidy') || desc.includes('scholarship')) {
+        // Grant keywords
+        if (combined.includes('grant') || combined.includes('subsidy') ||
+            combined.includes('scholarship') || combined.includes('livelihood')) {
             return 'Grant';
         }
 
-        // Default
         return 'Other';
     }
 
@@ -287,7 +301,20 @@ class CSVColumnMapper {
     validate(transaction) {
         const errors = [];
 
-        // Check for agency
+        const hasAgency  = transaction.agency      && String(transaction.agency).trim()      !== '';
+        const hasProgram = transaction.programName && String(transaction.programName).trim() !== '';
+
+        // Fill agency from programName if missing
+        if (!hasAgency) {
+            transaction.agency = transaction.programName || 'Unknown Agency';
+        }
+
+        // Fill programName from agency if missing
+        if (!hasProgram) {
+            transaction.programName = transaction.agency || '';
+        }
+
+        // Validate with filled-in values
         if (!transaction.agency || String(transaction.agency).trim() === '') {
             errors.push('Missing agency');
         }

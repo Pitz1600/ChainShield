@@ -149,18 +149,20 @@ exports.getMyTransactions = async (req, res) => {
       sortOrder = 'desc'
     } = req.query;
 
-    // Build query to only show user's transactions
-    // Build query - Residents see only their own, Officials/Admins see all
+    // Build query - Residents see all public transactions, Officials/Admins see all
     let query = {};
     const isOfficial = ['administrator', 'barangay_official', 'auditor'].includes(req.user.role);
 
+    // Residents can see all transactions — barangay budget is public record
+    // Only filter by ownership if the resident has personally submitted transactions
     if (!isOfficial) {
+      // Show all non-staged transactions to residents (public transparency)
+      // Also include their own staged ones if any
       query = {
         $or: [
-          { userId: req.user._id }, // Use _id as userId might not be populated in all contexts
-          { userId: req.user.userId }, // Keep for backward compatibility
-          { fromAddress: req.user.email },
-          { toAddress: req.user.email }
+          { staged: { $ne: true } },           // all approved/processed transactions
+          { userId: req.user._id },             // their own staged submissions
+          { fromAddress: req.user.email },      // legacy email-based
         ]
       };
     }
