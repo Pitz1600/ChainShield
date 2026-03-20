@@ -893,6 +893,52 @@ function MyTransactions({ user, embedded = false }) {
                         </div>
                       </div>
 
+                      {/* Line Items — CSV tab */}
+                      {Array.isArray(selectedTx.lineItems) && selectedTx.lineItems.length > 0 && (
+                        <div className="formula-card" style={{ marginTop: '1.25rem' }}>
+                          <h4 className="formula-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            Itemized Line Items
+                            <span style={{ background: '#eff6ff', color: '#1e40af', borderRadius: 4, padding: '1px 7px', fontSize: '0.7rem', fontWeight: 700 }}>
+                              {selectedTx.lineItems.length} item{selectedTx.lineItems.length !== 1 ? 's' : ''}
+                            </span>
+                          </h4>
+                          <div style={{ overflowX: 'auto' }}>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
+                              <thead>
+                                <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                                  {['Item / Description', 'Unit', 'Qty', 'Unit Price', 'Total', 'Supplier'].map(h => (
+                                    <th key={h} style={{ padding: '6px 8px', textAlign: 'left', fontWeight: 600, color: '#64748b', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>{h}</th>
+                                  ))}
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {selectedTx.lineItems.map((item, i) => (
+                                  <tr key={i} style={{ borderBottom: '0.5px solid #f1f5f9', background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
+                                    <td style={{ padding: '6px 8px', fontWeight: 500, color: '#1e293b' }}>{item.name}</td>
+                                    <td style={{ padding: '6px 8px', color: '#64748b' }}>{item.unit || '—'}</td>
+                                    <td style={{ padding: '6px 8px', color: '#64748b' }}>{item.quantity != null ? item.quantity.toLocaleString() : '—'}</td>
+                                    <td style={{ padding: '6px 8px', color: '#475569' }}>
+                                      {item.unitPrice != null ? `₱${item.unitPrice.toLocaleString('en-PH', { minimumFractionDigits: 2 })}` : '—'}
+                                    </td>
+                                    <td style={{ padding: '6px 8px', fontWeight: 600, color: '#1e293b' }}>
+                                      {item.totalPrice != null ? `₱${item.totalPrice.toLocaleString('en-PH', { minimumFractionDigits: 2 })}` : '—'}
+                                    </td>
+                                    <td style={{ padding: '6px 8px', color: '#64748b', fontSize: '0.75rem' }}>{item.supplier || '—'}</td>
+                                  </tr>
+                                ))}
+                                <tr style={{ background: '#f8fafc', borderTop: '1px solid #e2e8f0' }}>
+                                  <td colSpan={4} style={{ padding: '6px 8px', fontWeight: 600, color: '#64748b', fontSize: '0.78rem' }}>Items subtotal</td>
+                                  <td style={{ padding: '6px 8px', fontWeight: 700, color: '#1e40af', fontSize: '0.88rem' }}>
+                                    ₱{selectedTx.lineItems.reduce((s, it) => s + (it.totalPrice || 0), 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+                                  </td>
+                                  <td />
+                                </tr>
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      )}
+
                       <div className="formula-card" style={{ marginTop: '1.25rem' }}>
                         <h4 className="formula-title">AI Pipeline Results</h4>
                         <div className="formula-body">
@@ -1056,6 +1102,60 @@ function MyTransactions({ user, embedded = false }) {
                         </div>
 
                         {/* Description */}
+                        {/* Line Items — from itemized CSV columns */}
+                        {Array.isArray(selectedTx.lineItems) && selectedTx.lineItems.length > 0 && (() => {
+                          const itemTotal = selectedTx.lineItems.reduce((s, it) => s + (it.totalPrice || 0), 0);
+                          return (
+                            <>
+                              <div style={sectionLabel}>
+                                Itemized Line Items
+                                <span style={{ marginLeft: 8, background: '#eff6ff', color: '#1e40af', borderRadius: 4, padding: '1px 7px', fontSize: '0.68rem', fontWeight: 700, letterSpacing: 0 }}>
+                                  {selectedTx.lineItems.length} item{selectedTx.lineItems.length !== 1 ? 's' : ''}
+                                </span>
+                              </div>
+                              <div style={{ marginBottom: '1rem', border: '0.5px solid #e2e8f0', borderRadius: 8, overflow: 'hidden' }}>
+                                {/* Table header */}
+                                <div style={{ display: 'grid', gridTemplateColumns: '2fr 60px 70px 80px 90px 1.5fr', gap: 0, background: '#f1f5f9', borderBottom: '0.5px solid #e2e8f0', padding: '6px 12px' }}>
+                                  {['Item / Description', 'Unit', 'Qty', 'Unit Price', 'Total', 'Supplier'].map(h => (
+                                    <div key={h} style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</div>
+                                  ))}
+                                </div>
+                                {/* Item rows */}
+                                {selectedTx.lineItems.map((item, i) => (
+                                  <div key={i} style={{
+                                    display: 'grid', gridTemplateColumns: '2fr 60px 70px 80px 90px 1.5fr',
+                                    gap: 0, padding: '8px 12px',
+                                    borderBottom: i < selectedTx.lineItems.length - 1 ? '0.5px solid #f1f5f9' : 'none',
+                                    background: i % 2 === 0 ? '#ffffff' : '#fafafa',
+                                    alignItems: 'center'
+                                  }}>
+                                    <div style={{ fontSize: '0.82rem', fontWeight: 500, color: '#1e293b', paddingRight: 8 }}>
+                                      {item.name}
+                                      {item.notes && <div style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 400, marginTop: 1 }}>{item.notes}</div>}
+                                    </div>
+                                    <div style={{ fontSize: '0.8rem', color: '#64748b' }}>{item.unit || '—'}</div>
+                                    <div style={{ fontSize: '0.8rem', color: '#64748b' }}>{item.quantity != null ? item.quantity.toLocaleString() : '—'}</div>
+                                    <div style={{ fontSize: '0.8rem', color: '#475569' }}>
+                                      {item.unitPrice != null ? `₱${item.unitPrice.toLocaleString('en-PH', { minimumFractionDigits: 2 })}` : '—'}
+                                    </div>
+                                    <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1e293b' }}>
+                                      {item.totalPrice != null ? `₱${item.totalPrice.toLocaleString('en-PH', { minimumFractionDigits: 2 })}` : '—'}
+                                    </div>
+                                    <div style={{ fontSize: '0.75rem', color: '#64748b', paddingLeft: 4 }}>{item.supplier || '—'}</div>
+                                  </div>
+                                ))}
+                                {/* Subtotal footer */}
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', background: '#f8fafc', borderTop: '0.5px solid #e2e8f0' }}>
+                                  <span style={{ fontSize: '0.78rem', color: '#64748b' }}>Items subtotal</span>
+                                  <span style={{ fontSize: '0.92rem', fontWeight: 700, color: '#1e40af' }}>
+                                    ₱{itemTotal.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+                                  </span>
+                                </div>
+                              </div>
+                            </>
+                          );
+                        })()}
+
                         <div style={sectionLabel}>Description</div>
                         <div style={{
                           padding: '10px 14px', border: '0.5px solid #e2e8f0',

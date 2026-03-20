@@ -214,6 +214,8 @@ export const dataGovPhAPI = {
 
 export const feedbacksAPI = {
   getAll: (params) => api.get('/feedbacks', { params }),
+  getAkismetStatus: () => api.get('/feedbacks/akismet-status'),
+  cleanupSpam: (data) => api.post('/feedbacks/cleanup-spam', data),
   create: (data) => api.post('/feedbacks', data),
   update: (id, data) => api.put(`/feedbacks/${id}`, data),
   delete: (id) => api.delete(`/feedbacks/${id}`),

@@ -761,6 +761,47 @@ function AlertsManagement({ embedded = false, user = null }) {
                       </div>
                     </div>
 
+                    {/* Line Items */}
+                    {Array.isArray(tx?.lineItems) && tx.lineItems.length > 0 && (() => {
+                      const itemTotal = tx.lineItems.reduce((s, it) => s + (it.totalPrice || 0), 0);
+                      return (
+                        <>
+                          <div style={sectionLabel}>
+                            Itemized Line Items
+                            <span style={{ marginLeft: 8, background: '#eff6ff', color: '#1e40af', borderRadius: 4, padding: '1px 7px', fontSize: '0.68rem', fontWeight: 700, letterSpacing: 0 }}>
+                              {tx.lineItems.length} item{tx.lineItems.length !== 1 ? 's' : ''}
+                            </span>
+                          </div>
+                          <div style={{ marginBottom: '1rem', border: '0.5px solid #e2e8f0', borderRadius: 8, overflow: 'hidden' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '2fr 60px 70px 80px 90px 1.5fr', background: '#f1f5f9', borderBottom: '0.5px solid #e2e8f0', padding: '6px 12px' }}>
+                              {['Item', 'Unit', 'Qty', 'Unit Price', 'Total', 'Supplier'].map(h => (
+                                <div key={h} style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</div>
+                              ))}
+                            </div>
+                            {tx.lineItems.map((item, i) => (
+                              <div key={i} style={{
+                                display: 'grid', gridTemplateColumns: '2fr 60px 70px 80px 90px 1.5fr',
+                                padding: '8px 12px', alignItems: 'center',
+                                borderBottom: i < tx.lineItems.length - 1 ? '0.5px solid #f1f5f9' : 'none',
+                                background: i % 2 === 0 ? '#fff' : '#fafafa'
+                              }}>
+                                <div style={{ fontSize: '0.82rem', fontWeight: 500, color: '#1e293b', paddingRight: 8 }}>{item.name}</div>
+                                <div style={{ fontSize: '0.8rem', color: '#64748b' }}>{item.unit || '—'}</div>
+                                <div style={{ fontSize: '0.8rem', color: '#64748b' }}>{item.quantity != null ? item.quantity.toLocaleString() : '—'}</div>
+                                <div style={{ fontSize: '0.8rem', color: '#475569' }}>{item.unitPrice != null ? `₱${item.unitPrice.toLocaleString('en-PH', { minimumFractionDigits: 2 })}` : '—'}</div>
+                                <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1e293b' }}>{item.totalPrice != null ? `₱${item.totalPrice.toLocaleString('en-PH', { minimumFractionDigits: 2 })}` : '—'}</div>
+                                <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{item.supplier || '—'}</div>
+                              </div>
+                            ))}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: '#f8fafc', borderTop: '0.5px solid #e2e8f0' }}>
+                              <span style={{ fontSize: '0.78rem', color: '#64748b' }}>Items subtotal</span>
+                              <span style={{ fontSize: '0.92rem', fontWeight: 700, color: '#1e40af' }}>₱{itemTotal.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</span>
+                            </div>
+                          </div>
+                        </>
+                      );
+                    })()}
+
                     {/* Description */}
                     <div style={sectionLabel}>Description</div>
                     <div style={{ padding: '10px 14px', border: '0.5px solid #e2e8f0', borderRadius: 8,

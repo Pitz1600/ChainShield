@@ -1,10 +1,97 @@
 const Feedback = require('../models/Feedback');
 const Transaction = require('../models/Transaction');
+const { checkAkismet, getStatus } = require('../services/akismetService');
 
 const MAX_FEEDBACK_LENGTH = 1000;
+const MIN_FEEDBACK_LENGTH = 10;
+
+const normalizeForSignals = (text) =>
+    String(text || '')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .toLowerCase();
+
+const countWords = (text) => (normalizeForSignals(text).match(/\b\w+\b/g) || []).length;
+
+const getSpamSignals = (text) => {
+    const normalized = normalizeForSignals(text);
+    const words = normalized.split(/\s+/).filter(Boolean);
+    const wordCount = countWords(text);
+    const uniqueWords = new Set(words);
+    const uniqueRatio = words.length ? uniqueWords.size / words.length : 0;
+    const uniqueCharRatio = normalized.length
+        ? (new Set(normalized.replace(/\s+/g, '').split('')).size / normalized.replace(/\s+/g, '').length)
+        : 1;
+    const longestToken = words.reduce((max, w) => Math.max(max, w.length), 0);
+    const hasWhitespace = /\s/.test(normalized);
+    const urlCount = (text.match(/https?:\/\/|www\./gi) || []).length;
+    const repeatedChar = /(.)\1{6,}/.test(normalized);
+    const nonAlphaRatio = normalized.length
+        ? (normalized.replace(/[a-z0-9\s]/gi, '').length / normalized.length)
+        : 0;
+    const wordFrequency = words.reduce((acc, word) => {
+        acc[word] = (acc[word] || 0) + 1;
+        return acc;
+    }, {});
+    const maxWordFrequency = Object.values(wordFrequency).reduce((max, count) => Math.max(max, count), 0);
+    const maxWordRatio = words.length ? maxWordFrequency / words.length : 0;
+
+    const reasons = [];
+    if (normalized.length < MIN_FEEDBACK_LENGTH) reasons.push('too_short');
+    if (wordCount > 6 && uniqueRatio < 0.4) reasons.push('low_variance');
+    if (urlCount >= 2) reasons.push('too_many_links');
+    if (repeatedChar) reasons.push('repeated_chars');
+    if (nonAlphaRatio > 0.45) reasons.push('symbol_heavy');
+    if (!hasWhitespace && normalized.length >= 40 && longestToken >= 40) reasons.push('long_unbroken_token');
+    if (normalized.length >= 40 && uniqueCharRatio < 0.2) reasons.push('low_char_diversity');
+    if (wordCount >= 5 && maxWordRatio >= 0.5) reasons.push('repeated_word');
+
+    return { reasons, score: reasons.length, wordCount, urlCount };
+};
 const MAX_REPLY_LENGTH = 300;
 
 const normalizeContent = (value) => (typeof value === 'string' ? value.trim() : '');
+const normalizeLegacyPendingApproval = (feedback) => {
+    if (!feedback) return;
+    if (feedback.actionStatus === 'pending_approval') {
+        feedback.actionStatus = 'none';
+    }
+    if (Array.isArray(feedback.replies)) {
+        feedback.replies.forEach((reply) => {
+            if (reply.actionStatus === 'pending_approval') {
+                reply.actionStatus = 'none';
+                reply.pendingEditContent = null;
+            }
+        });
+    }
+};
+
+const isHeuristicSpam = (spamCheck) =>
+    spamCheck.reasons.includes('too_many_links') || spamCheck.score >= 2;
+
+const isLocalOverrideSpam = (spamCheck) =>
+    spamCheck.reasons.includes('too_many_links') ||
+    spamCheck.reasons.includes('long_unbroken_token') ||
+    spamCheck.reasons.includes('repeated_word');
+
+const evaluateSpam = async ({ content, user, req, commentType }) => {
+    const spamCheck = getSpamSignals(content);
+    const akismetResult = await checkAkismet({
+        content,
+        user,
+        req,
+        commentType,
+        permalink: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/feedback`
+    });
+    const localSpam = isHeuristicSpam(spamCheck);
+    const localOverride = isLocalOverrideSpam(spamCheck);
+    const shouldBlock =
+        localOverride ||
+        (akismetResult.enabled && akismetResult.valid
+            ? akismetResult.isSpam
+            : localSpam);
+    return { spamCheck, akismetResult, shouldBlock };
+};
 
 // @desc    Get all feedbacks
 // @route   GET /api/feedbacks
@@ -14,17 +101,17 @@ exports.getAllFeedbacks = async (req, res) => {
         const { search, status } = req.query;
         let query = {};
 
-        // Filter by status (approved/pending)
+        // Filter by status (approved/pending edits or deletions)
         if (status === 'pending') {
-            query.actionStatus = 'pending_approval';
+            query.actionStatus = { $in: ['pending_edit', 'pending_delete'] };
 
-            // If not admin/official, they can only see their own pending posts
+            // If not admin/official, they can only see their own pending actions
             if (req.user && req.user.role === 'resident') {
                 query.author = req.user._id;
             }
         } else {
             // Default to approved only (status 'none')
-            // HOWEVER, we also want authors to see their own pending posts in the main feed
+            // HOWEVER, we also want authors to see their own pending actions in the main feed
             if (req.user) {
                 query.$or = [
                     { actionStatus: 'none' },
@@ -106,11 +193,32 @@ exports.createFeedback = async (req, res) => {
             }
         }
 
-        const isAutoApproved = req.user.role === 'barangay_official';
+        const { spamCheck, akismetResult, shouldBlock } = await evaluateSpam({
+            content: normalizedContent,
+            user: req.user,
+            req,
+            commentType: 'feedback'
+        });
+        if (shouldBlock) {
+            return res.status(400).json({ error: 'Feedback looks like spam or nonsense. Please add more clear details.' });
+        }
+        if (process.env.AKISMET_DEBUG === 'true') {
+            console.log('[Akismet] feedback/create', {
+                enabled: akismetResult.enabled,
+                valid: akismetResult.valid,
+                isSpam: akismetResult.isSpam,
+                error: akismetResult.error,
+                urlCount: spamCheck.urlCount
+            });
+        }
+        const isAutoApproved =
+            req.user.role === 'barangay_official'
+            || req.user.role === 'resident';
+
         const feedback = await Feedback.create({
             author: req.user._id,
             content: normalizedContent,
-            actionStatus: isAutoApproved ? 'none' : 'pending_approval',
+            actionStatus: 'none',
             ...(tx ? {
                 transactionRef: tx._id,
                 transactionMeta: {
@@ -138,6 +246,8 @@ exports.createFeedback = async (req, res) => {
             details: {
                 type: 'post',
                 content: normalizedContent.substring(0, 100),
+                spamSignals: spamCheck.reasons,
+                akismet: akismetResult,
                 ...(tx ? { transactionId: tx.transactionId } : {})
             },
             ipAddress: req.ip,
@@ -167,8 +277,8 @@ exports.updateFeedback = async (req, res) => {
         }
 
         // Prevent editing while any moderation request is pending
-        if (['pending_approval', 'pending_edit', 'pending_delete'].includes(feedback.actionStatus)) {
-            return res.status(400).json({ error: 'Cannot edit a post that is pending approval. Please delete and repost if necessary.' });
+        if (['pending_edit', 'pending_delete'].includes(feedback.actionStatus)) {
+            return res.status(400).json({ error: 'Cannot edit a post while a moderation action is pending.' });
         }
 
         // Only authors can update their own posts. Admins/Officials are view-only in the public feed.
@@ -182,7 +292,7 @@ exports.updateFeedback = async (req, res) => {
         }
 
         const isAutoApproved = req.user.role === 'barangay_official';
-        // Any edit goes back to approval flow unless auto-approved.
+        // Edits apply immediately for residents/officials; spam check already applied on create.
         if (!normalizedContent) {
             return res.status(400).json({ error: 'Content is required' });
         }
@@ -191,16 +301,30 @@ exports.updateFeedback = async (req, res) => {
         }
 
         if (normalizedContent && normalizedContent !== feedback.content) {
-            if (isAutoApproved) {
-                feedback.content = normalizedContent;
-                feedback.pendingEditContent = null;
-                feedback.actionStatus = 'none';
-            } else {
-                feedback.pendingEditContent = normalizedContent;
-                feedback.actionStatus = 'pending_approval';
+            const { spamCheck, akismetResult, shouldBlock } = await evaluateSpam({
+                content: normalizedContent,
+                user: req.user,
+                req,
+                commentType: 'feedback'
+            });
+            if (shouldBlock) {
+                return res.status(400).json({ error: 'Feedback looks like spam or nonsense. Please add more clear details.' });
             }
+            if (process.env.AKISMET_DEBUG === 'true') {
+                console.log('[Akismet] feedback/update', {
+                    enabled: akismetResult.enabled,
+                    valid: akismetResult.valid,
+                    isSpam: akismetResult.isSpam,
+                    error: akismetResult.error,
+                    urlCount: spamCheck.urlCount
+                });
+            }
+            feedback.content = normalizedContent;
+            feedback.pendingEditContent = null;
+            feedback.actionStatus = 'none';
         }
 
+        normalizeLegacyPendingApproval(feedback);
         await feedback.save();
 
         feedback = await Feedback.findById(feedback._id)
@@ -259,15 +383,29 @@ exports.addReply = async (req, res) => {
         if (normalizedContent.length > MAX_REPLY_LENGTH) {
             return res.status(400).json({ error: `Content must be ${MAX_REPLY_LENGTH} characters or fewer.` });
         }
+        const { spamCheck, akismetResult, shouldBlock } = await evaluateSpam({
+            content: normalizedContent,
+            user: req.user,
+            req,
+            commentType: 'reply'
+        });
+        if (shouldBlock) {
+            return res.status(400).json({ error: 'Reply looks like spam or nonsense. Please add more clear details.' });
+        }
+        if (process.env.AKISMET_DEBUG === 'true') {
+            console.log('[Akismet] reply/create', {
+                enabled: akismetResult.enabled,
+                valid: akismetResult.valid,
+                isSpam: akismetResult.isSpam,
+                error: akismetResult.error,
+                urlCount: spamCheck.urlCount
+            });
+        }
 
         const feedback = await Feedback.findById(req.params.id);
 
         if (!feedback) {
             return res.status(404).json({ error: 'Feedback not found' });
-        }
-
-        if (feedback.actionStatus === 'pending_approval') {
-            return res.status(400).json({ error: 'Cannot reply to a post that is pending approval.' });
         }
 
         const newReply = {
@@ -276,6 +414,7 @@ exports.addReply = async (req, res) => {
             actionStatus: 'none' // Auto-approved
         };
 
+        normalizeLegacyPendingApproval(feedback);
         feedback.replies.push(newReply);
         await feedback.save();
 
@@ -291,7 +430,7 @@ exports.addReply = async (req, res) => {
             userRole: req.user.role,
             username: `${req.user.firstName} ${req.user.lastName}`,
             feedbackId: feedback._id,
-            details: { type: 'reply', content: normalizedContent.substring(0, 100) },
+            details: { type: 'reply', content: normalizedContent.substring(0, 100), akismet: akismetResult },
             ipAddress: req.ip,
             userAgent: req.get('User-Agent')
         });
@@ -322,8 +461,8 @@ exports.updateReply = async (req, res) => {
         }
 
         // Prevent editing while any moderation request is pending
-        if (['pending_approval', 'pending_edit', 'pending_delete'].includes(reply.actionStatus)) {
-            return res.status(400).json({ error: 'Cannot edit a reply that is pending approval.' });
+        if (['pending_edit', 'pending_delete'].includes(reply.actionStatus)) {
+            return res.status(400).json({ error: 'Cannot edit a reply while a moderation action is pending.' });
         }
 
         // Only authors can update their own replies.
@@ -345,16 +484,30 @@ exports.updateReply = async (req, res) => {
         }
 
         if (normalizedContent && normalizedContent !== reply.content) {
-            if (req.user.role === 'barangay_official') {
-                reply.content = normalizedContent;
-                reply.pendingEditContent = null;
-                reply.actionStatus = 'none';
-            } else {
-                reply.pendingEditContent = normalizedContent;
-                reply.actionStatus = 'pending_approval';
+            const { spamCheck, akismetResult, shouldBlock } = await evaluateSpam({
+                content: normalizedContent,
+                user: req.user,
+                req,
+                commentType: 'reply'
+            });
+            if (shouldBlock) {
+                return res.status(400).json({ error: 'Reply looks like spam or nonsense. Please add more clear details.' });
             }
+            if (process.env.AKISMET_DEBUG === 'true') {
+                console.log('[Akismet] reply/update', {
+                    enabled: akismetResult.enabled,
+                    valid: akismetResult.valid,
+                    isSpam: akismetResult.isSpam,
+                    error: akismetResult.error,
+                    urlCount: spamCheck.urlCount
+                });
+            }
+            reply.content = normalizedContent;
+            reply.pendingEditContent = null;
+            reply.actionStatus = 'none';
         }
 
+        normalizeLegacyPendingApproval(feedback);
         await feedback.save();
 
         feedback = await Feedback.findById(feedback._id)
@@ -398,36 +551,12 @@ exports.approveAction = async (req, res) => {
                 userAgent: req.get('User-Agent')
             });
             return res.status(200).json({ message: 'Feedback removed' });
-        } else if (feedback.actionStatus === 'pending_approval') {
-            const approvalType = feedback.pendingEditContent ? 'edit' : 'post';
-            if (feedback.pendingEditContent) {
-                feedback.content = feedback.pendingEditContent;
-                feedback.pendingEditContent = null;
-            }
-            feedback.actionStatus = 'none';
-            await feedback.save();
-
-            // Log the approval
-            const AuditLog = require('../models/AuditLog');
-            await AuditLog.logAction({
-                action: 'feedback_approved',
-                userId: req.user._id,
-                userRole: req.user.role,
-                username: `${req.user.firstName} ${req.user.lastName}`,
-                feedbackId: feedback._id,
-                details: {
-                    status: 'pending_approval',
-                    type: approvalType,
-                    content: feedback.content.substring(0, 100)
-                },
-                ipAddress: req.ip,
-                userAgent: req.get('User-Agent')
-            });
         } else if (feedback.actionStatus === 'pending_edit' && feedback.pendingEditContent) {
             const oldContent = feedback.content;
             feedback.content = feedback.pendingEditContent;
             feedback.actionStatus = 'none';
             feedback.pendingEditContent = null;
+            normalizeLegacyPendingApproval(feedback);
             await feedback.save();
 
             // Log the approval
@@ -467,37 +596,10 @@ exports.rejectAction = async (req, res) => {
             return res.status(403).json({ error: 'Not authorized to perform this action' });
         }
 
-        if (feedback.actionStatus === 'pending_approval') {
-            // New posts pending approval are removed on rejection.
-            // Edited posts pending approval should keep original content.
-            if (feedback.pendingEditContent) {
-                feedback.actionStatus = 'none';
-                feedback.pendingEditContent = null;
-                await feedback.save();
-                return res.status(200).json({ message: 'Edited feedback rejected. Original post kept.' });
-            }
-
-            await Feedback.findByIdAndDelete(feedback._id);
-
-            // Log the rejection
-            const AuditLog = require('../models/AuditLog');
-            await AuditLog.logAction({
-                action: 'feedback_rejected',
-                userId: req.user._id,
-                userRole: req.user.role,
-                username: `${req.user.firstName} ${req.user.lastName}`,
-                feedbackId: feedback._id,
-                details: { status: 'pending_approval', content: feedback.content.substring(0, 100) },
-                ipAddress: req.ip,
-                userAgent: req.get('User-Agent')
-            });
-
-            return res.status(200).json({ message: 'Feedback rejected and deleted' });
-        }
-
         if (feedback.actionStatus === 'pending_edit' || feedback.actionStatus === 'pending_delete') {
             feedback.actionStatus = 'rejected';
             feedback.pendingEditContent = null;
+            normalizeLegacyPendingApproval(feedback);
             await feedback.save();
         }
 
@@ -529,16 +631,13 @@ exports.approveReplyAction = async (req, res) => {
 
         if (reply.actionStatus === 'pending_delete') {
             feedback.replies.pull(req.params.replyId);
-            await feedback.save();
-        } else if (reply.actionStatus === 'pending_approval' && reply.pendingEditContent) {
-            reply.content = reply.pendingEditContent;
-            reply.actionStatus = 'none';
-            reply.pendingEditContent = null;
+            normalizeLegacyPendingApproval(feedback);
             await feedback.save();
         } else if (reply.actionStatus === 'pending_edit' && reply.pendingEditContent) {
             reply.content = reply.pendingEditContent;
             reply.actionStatus = 'none';
             reply.pendingEditContent = null;
+            normalizeLegacyPendingApproval(feedback);
             await feedback.save();
         }
 
@@ -568,39 +667,10 @@ exports.rejectReplyAction = async (req, res) => {
         const reply = feedback.replies.id(req.params.replyId);
         if (!reply) return res.status(404).json({ error: 'Reply not found' });
 
-        if (reply.actionStatus === 'pending_approval') {
-            // New replies pending approval are removed on rejection.
-            // Edited replies pending approval should keep original content.
-            if (reply.pendingEditContent) {
-                reply.actionStatus = 'none';
-                reply.pendingEditContent = null;
-                await feedback.save();
-                return res.status(200).json({ message: 'Edited reply rejected. Original reply kept.' });
-            }
-
-            const content = reply.content;
-            feedback.replies.pull(reply._id);
-            await feedback.save();
-
-            // Log the rejection
-            const AuditLog = require('../models/AuditLog');
-            await AuditLog.logAction({
-                action: 'feedback_rejected',
-                userId: req.user._id,
-                userRole: req.user.role,
-                username: `${req.user.firstName} ${req.user.lastName}`,
-                feedbackId: feedback._id,
-                details: { type: 'reply', status: 'pending_approval', content: content.substring(0, 100) },
-                ipAddress: req.ip,
-                userAgent: req.get('User-Agent')
-            });
-
-            return res.status(200).json({ message: 'Reply rejected and deleted' });
-        }
-
         if (reply.actionStatus === 'pending_edit' || reply.actionStatus === 'pending_delete') {
             reply.actionStatus = 'rejected';
             reply.pendingEditContent = null;
+            normalizeLegacyPendingApproval(feedback);
             await feedback.save();
         }
 
@@ -639,8 +709,149 @@ exports.deleteReply = async (req, res) => {
 
         // Residents queue the deletion
         reply.actionStatus = 'pending_delete';
+        normalizeLegacyPendingApproval(feedback);
+        await feedback.save();
+        return res.status(200).json({ message: 'Deletion requested', feedback });
     } catch (error) {
         console.error('Error deleting reply:', error);
+        res.status(500).json({ error: 'Server Error' });
+    }
+};
+
+// @desc    Get Akismet status
+// @route   GET /api/feedbacks/akismet-status
+// @access  Private (Admin/Official)
+exports.getAkismetStatus = async (req, res) => {
+    try {
+        const status = await getStatus();
+        res.status(200).json(status);
+    } catch (error) {
+        console.error('Error fetching Akismet status:', error);
+        res.status(500).json({ error: 'Server Error' });
+    }
+};
+
+// @desc    Cleanup existing spam feedbacks/replies
+// @route   POST /api/feedbacks/cleanup-spam
+// @access  Private (Admin/Official)
+exports.cleanupSpam = async (req, res) => {
+    try {
+        if (!['administrator', 'barangay_official'].includes(req.user.role)) {
+            return res.status(403).json({ error: 'Not authorized' });
+        }
+
+        const { dryRun = false } = req.body || {};
+
+        const feedbacks = await Feedback.find({})
+            .populate('author', 'firstName lastName email role');
+
+        let deletedFeedbacks = 0;
+        let removedReplies = 0;
+        let heuristicHits = 0;
+        let akismetHits = 0;
+
+        for (const feedback of feedbacks) {
+            const content = normalizeContent(feedback.content);
+            const spamCheck = getSpamSignals(content);
+            const heuristicSpam = isHeuristicSpam(spamCheck);
+            if (heuristicSpam) heuristicHits += 1;
+
+            const akismetResult = await checkAkismet({
+                content,
+                user: feedback.author,
+                req,
+                commentType: 'feedback',
+                permalink: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/feedback`
+            });
+            const akismetSpam = akismetResult.enabled && akismetResult.valid && akismetResult.isSpam;
+            if (akismetSpam) akismetHits += 1;
+
+            if (heuristicSpam || akismetSpam) {
+                if (!dryRun) {
+                    await feedback.deleteOne();
+                }
+                deletedFeedbacks += 1;
+                continue;
+            }
+
+            if (feedback.replies && feedback.replies.length) {
+                const keptReplies = [];
+                for (const reply of feedback.replies) {
+                    const replyContent = normalizeContent(reply.content);
+                    const replySpamCheck = getSpamSignals(replyContent);
+                    const replyHeuristicSpam = isHeuristicSpam(replySpamCheck);
+                    if (replyHeuristicSpam) heuristicHits += 1;
+
+                    const replyAkismet = await checkAkismet({
+                        content: replyContent,
+                        user: feedback.author,
+                        req,
+                        commentType: 'reply',
+                        permalink: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/feedback`
+                    });
+                    const replyAkismetSpam = replyAkismet.enabled && replyAkismet.valid && replyAkismet.isSpam;
+                    if (replyAkismetSpam) akismetHits += 1;
+
+                    if (replyHeuristicSpam || replyAkismetSpam) {
+                        removedReplies += 1;
+                    } else {
+                        keptReplies.push(reply);
+                    }
+                }
+                if (!dryRun) {
+                    feedback.replies = keptReplies;
+                    await feedback.save();
+                }
+            }
+        }
+
+        res.status(200).json({
+            dryRun: Boolean(dryRun),
+            deletedFeedbacks,
+            removedReplies,
+            heuristicHits,
+            akismetHits
+        });
+    } catch (error) {
+        console.error('Error cleaning spam feedbacks:', error);
+        res.status(500).json({ error: 'Server Error' });
+    }
+};
+
+// @desc    Test spam detection (heuristics + Akismet)
+// @route   POST /api/feedbacks/spam-test
+// @access  Private (Admin/Official)
+exports.spamTest = async (req, res) => {
+    try {
+        if (!['administrator', 'barangay_official'].includes(req.user.role)) {
+            return res.status(403).json({ error: 'Not authorized' });
+        }
+
+        const { content = '', type = 'feedback' } = req.body || {};
+        const normalized = normalizeContent(content);
+        if (!normalized) {
+            return res.status(400).json({ error: 'Content is required' });
+        }
+
+        const { spamCheck, akismetResult, shouldBlock } = await evaluateSpam({
+            content: normalized,
+            user: req.user,
+            req,
+            commentType: type === 'reply' ? 'reply' : 'feedback'
+        });
+
+        res.status(200).json({
+            heuristic: {
+                isSpam: isHeuristicSpam(spamCheck),
+                reasons: spamCheck.reasons,
+                score: spamCheck.score,
+                urlCount: spamCheck.urlCount
+            },
+            akismet: akismetResult,
+            decision: { shouldBlock }
+        });
+    } catch (error) {
+        console.error('Error running spam test:', error);
         res.status(500).json({ error: 'Server Error' });
     }
 };

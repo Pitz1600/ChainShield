@@ -76,6 +76,32 @@ class CSVColumnMapper {
         };
     }
 
+    /**
+     * Extract up to 5 line items from a CSV row using item1_* … item5_* columns
+     */
+    extractLineItems(row) {
+        const items = [];
+        for (let i = 1; i <= 5; i++) {
+            const name = (row[`item${i}_name`] || '').trim();
+            if (!name) continue; // skip empty item slots
+
+            const qty        = parseFloat(row[`item${i}_quantity`])  || null;
+            const unitPrice  = parseFloat(row[`item${i}_unit_price`])|| null;
+            const totalPrice = parseFloat(row[`item${i}_total_price`])|| null;
+
+            items.push({
+                name,
+                unit:       (row[`item${i}_unit`]     || '').trim() || null,
+                quantity:   qty,
+                unitPrice,
+                totalPrice: totalPrice || (qty && unitPrice ? Math.round(qty * unitPrice * 100) / 100 : null),
+                supplier:   (row[`item${i}_supplier`] || '').trim() || null,
+                notes:      (row[`item${i}_notes`]    || '').trim() || null,
+            });
+        }
+        return items;
+    }
+
     normalizeHeader(value) {
         return String(value || '')
             .replace(/\ufeff/g, '')

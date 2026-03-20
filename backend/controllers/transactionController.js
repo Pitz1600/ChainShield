@@ -141,102 +141,103 @@ exports.getMyTransactions = async (req, res) => {
     const {
       page = 1,
       limit = 20,
-      type,
       status,
       dateFrom,
       dateTo,
       sortBy = 'timestamp',
-      sortOrder = 'desc'
+      sortOrder = 'desc',
+      search,
+      includeStaged
     } = req.query;
 
-    // Build query - Residents see all public transactions, Officials/Admins see all
-    let query = {};
     const isOfficial = ['administrator', 'barangay_official', 'auditor'].includes(req.user.role);
 
-    // Residents can see all transactions — barangay budget is public record
-    // Only filter by ownership if the resident has personally submitted transactions
+    // ── Base visibility clause ───────────────────────────────────────
+    // Residents: see all non-staged (public records) + their own staged
+    // Officials: see everything
+    let visibilityClause = null;
     if (!isOfficial) {
-      // Show all non-staged transactions to residents (public transparency)
-      // Also include their own staged ones if any
-      query = {
+      if (includeStaged === 'true') {
+        // Residents requested staged data: show all public records
+        visibilityClause = null;
+      } else {
+        visibilityClause = {
+          $or: [
+            { staged: { $ne: true } },
+            { userId: req.user._id },
+            { fromAddress: req.user.email },
+          ]
+        };
+      }
+    } else if (includeStaged !== 'true') {
+      // Officials who didn't request staged: exclude staged
+      visibilityClause = { staged: { $ne: true } };
+    }
+    // includeStaged === 'true' for officials → no staged filter (see everything)
+
+    // ── Optional filters ─────────────────────────────────────────────
+    const andClauses = [];
+
+    // Apply visibility as the first $and clause
+    if (visibilityClause) andClauses.push(visibilityClause);
+
+    // Search across text fields
+    if (search && search.trim()) {
+      andClauses.push({
         $or: [
-          { staged: { $ne: true } },           // all approved/processed transactions
-          { userId: req.user._id },             // their own staged submissions
-          { fromAddress: req.user.email },      // legacy email-based
-        ]
-      };
-    }
-
-    // Apply filters
-    if (type && type !== 'all') {
-      // General search filter instead of strict type
-      query.$or = [
-        { transactionId: { $regex: type, $options: 'i' } },
-        { description: { $regex: type, $options: 'i' } },
-        { transactionType: { $regex: type, $options: 'i' } },
-        { fromAddress: { $regex: type, $options: 'i' } },
-        { toAddress: { $regex: type, $options: 'i' } }
-      ];
-    } else if (req.query.search) {
-      query.$or = [
-        { transactionId: { $regex: req.query.search, $options: 'i' } },
-        { description: { $regex: req.query.search, $options: 'i' } },
-        { transactionType: { $regex: req.query.search, $options: 'i' } },
-        { fromAddress: { $regex: req.query.search, $options: 'i' } },
-        { toAddress: { $regex: req.query.search, $options: 'i' } }
-      ];
-    }
-
-    if (status && status !== 'all') {
-      // Allow searching verificationStatus when status filter is provided
-      // Since frontend formerly sent 'completed', 'pending', etc., we might map or just check both
-      query.$or = query.$or || [];
-      query.$or.push({ status: status });
-      query.$or.push({ verificationStatus: status });
-
-      // If $or only has these status checks, it's fine. 
-      // But if there's a search term, we need $and. Let's simplify and just check both fields if status is provided, 
-      // but to not break existing strict search, we will override the status logic:
-      delete query.$or; // Resetting because $or with search is complex.
-      // Simpler approach: Create a robust search that handles text input
-    }
-
-    // Better filter logic:
-    if (req.query.search) {
-      query.$and = query.$and || [];
-      query.$and.push({
-        $or: [
-          { transactionId: { $regex: req.query.search, $options: 'i' } },
-          { description: { $regex: req.query.search, $options: 'i' } },
-          { transactionType: { $regex: req.query.search, $options: 'i' } },
-          { fromAddress: { $regex: req.query.search, $options: 'i' } },
-          { toAddress: { $regex: req.query.search, $options: 'i' } }
+          { transactionId:   { $regex: search, $options: 'i' } },
+          { description:     { $regex: search, $options: 'i' } },
+          { transactionType: { $regex: search, $options: 'i' } },
+          { agency:          { $regex: search, $options: 'i' } },
+          { programName:     { $regex: search, $options: 'i' } },
+          { fromAddress:     { $regex: search, $options: 'i' } },
+          { toAddress:       { $regex: search, $options: 'i' } },
         ]
       });
     }
 
+    // Verification status filter
+    if (status && status !== 'all') {
+      // Support comma-separated statuses e.g. "Flagged,Suspicious" for Under Review
+      const statusValues = status.split(',').map(s => s.trim()).filter(Boolean);
+      if (statusValues.length === 1) {
+        andClauses.push({ verificationStatus: statusValues[0] });
+      } else if (statusValues.length > 1) {
+        andClauses.push({ verificationStatus: { $in: statusValues } });
+      }
+    }
+
+    // Date range
     if (dateFrom || dateTo) {
-      query.timestamp = {};
-      if (dateFrom) query.timestamp.$gte = new Date(dateFrom);
-      if (dateTo) query.timestamp.$lte = new Date(dateTo);
+      const tsFilter = {};
+      if (dateFrom) tsFilter.$gte = new Date(dateFrom);
+      if (dateTo)   tsFilter.$lte = new Date(new Date(dateTo).setHours(23, 59, 59, 999));
+      andClauses.push({ timestamp: tsFilter });
     }
 
-    if (req.query.includeStaged !== 'true') {
-      query.staged = { $ne: true };
-    }
+    // Build final query
+    const query = andClauses.length === 1
+      ? andClauses[0]
+      : andClauses.length > 1
+        ? { $and: andClauses }
+        : {};
 
-    // Build dynamic sort
+    // ── Sort ─────────────────────────────────────────────────────────
     const allowedSortFields = { timestamp: 'timestamp', riskScore: 'riskScore', status: 'verificationStatus' };
     const sortField = allowedSortFields[sortBy] || 'timestamp';
-    const sortDir = sortOrder === 'asc' ? 1 : -1;
+    const sortDir   = sortOrder === 'asc' ? 1 : -1;
 
-    const transactions = await Transaction.find(query)
-      .sort({ [sortField]: sortDir })
-      .limit(limit * 1)
-      .skip((page - 1) * limit)
-      .select('transactionId transactionType amount status timestamp blockchainTxId blockNumber riskScore zScore riskLevel flagged velocityFlag receiverPatternFlag amountSpikeFlag mlUsed mlScore verificationStatus verifiedBy fromAddress toAddress description fraudPatterns reasons metadata networkFeatures agency programName');
+    const pageNum   = Math.max(1, parseInt(page)  || 1);
+    const limitNum  = Math.min(500, parseInt(limit) || 20);
 
-    const count = await Transaction.countDocuments(query);
+    const [transactions, count] = await Promise.all([
+      Transaction.find(query)
+        .sort({ [sortField]: sortDir })
+        .limit(limitNum)
+        .skip((pageNum - 1) * limitNum)
+        .select('transactionId transactionType amount status timestamp blockchainTxId blockNumber riskScore zScore riskLevel flagged velocityFlag receiverPatternFlag amountSpikeFlag mlUsed mlScore verificationStatus verifiedBy fromAddress toAddress description fraudPatterns reasons metadata networkFeatures agency programName lineItems staged currency beneficiaryType'),
+      Transaction.countDocuments(query)
+    ]);
 
     // Format transactions for frontend
     const formattedTransactions = transactions.map(txn => ({

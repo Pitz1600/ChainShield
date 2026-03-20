@@ -114,6 +114,30 @@
 .feedbacks-hero .stat-value { color: #ffffff; }
 .feedbacks-hero .hero-stat.muted .stat-value { color: rgba(255, 255, 255, 0.78); }
 
+.hero-stat.akismet-status {
+  border-style: dashed;
+}
+
+.hero-stat.akismet-status.ok {
+  background: rgba(16, 185, 129, 0.18);
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+.hero-stat.akismet-status.warn {
+  background: rgba(251, 146, 60, 0.2);
+  border-color: rgba(251, 146, 60, 0.4);
+}
+
+.hero-stat.akismet-status.unknown {
+  background: rgba(148, 163, 184, 0.18);
+  border-color: rgba(148, 163, 184, 0.35);
+}
+
+.hero-stat.akismet-status .stat-value.small {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
 /* Feedback Tabs (Mirrors AdminPanel) */
 .feedback-tabs {
   display: flex;
@@ -192,6 +216,16 @@
   gap: 1rem;
   margin-bottom: 2rem;
   flex-wrap: wrap;
+}
+
+.akismet-note {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  color: #0f172a;
+  padding: 0.5rem 0.85rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
 }
 
 .search-bar {
@@ -647,6 +681,17 @@
   border: 1px solid #fecaca;
   border-radius: 8px;
   font-size: 0.9rem;
+}
+
+.soft-warning-message {
+  margin-top: 0.5rem;
+  padding: 0.55rem 0.75rem;
+  background: #fff7ed;
+  color: #b45309;
+  border: 1px solid #fed7aa;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
 }
 
 .reply-input-wrapper {

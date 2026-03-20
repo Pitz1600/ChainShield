@@ -3,6 +3,9 @@ const router = express.Router();
 const authMiddleware = require('../middleware/auth');
 const {
     getAllFeedbacks,
+    spamTest,
+    getAkismetStatus,
+    cleanupSpam,
     createFeedback,
     updateFeedback,
     deleteFeedback,
@@ -17,6 +20,14 @@ const {
 
 router.use(authMiddleware);
 
+router.route('/akismet-status')
+    .get(getAkismetStatus);
+
+router.route('/cleanup-spam')
+    .post(cleanupSpam);
+
+router.route('/spam-test')
+    .post(spamTest);
 
 router.route('/')
     .get(getAllFeedbacks)

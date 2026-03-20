@@ -191,7 +191,7 @@ function FeedbackCard({ feedback, currentUser, onRefresh }) {
 
     const PendingActionAlert = ({ entity, type }) => {
         const isDelete = entity.actionStatus === 'pending_delete';
-        const isPendingEditLike = entity.actionStatus === 'pending_edit' || (entity.actionStatus === 'pending_approval' && entity.pendingEditContent);
+        const isPendingEditLike = entity.actionStatus === 'pending_edit';
         const isRejected = entity.actionStatus === 'rejected';
 
         const alertStyle = isDelete ? {
@@ -207,10 +207,7 @@ function FeedbackCard({ feedback, currentUser, onRefresh }) {
                 <div className="pending-header" style={titleStyle}>
                     <AlertCircle size={14} className="pending-icon" style={iconStyle} />
                     <span className="pending-title">
-                        {isDelete ? 'Deletion Pending Admin Approval' :
-                            isPendingEditLike ? 'Edit Pending Admin Approval' :
-                                entity.actionStatus === 'pending_approval' ? 'Waiting for Approval' :
-                                'Edit Pending Admin Approval'}
+                        {isDelete ? 'Deletion Pending Admin Approval' : 'Edit Pending Admin Approval'}
                     </span>
                     {isRejected && <span className="status-rejected">(Previously Rejected)</span>}
                 </div>
@@ -244,7 +241,7 @@ function FeedbackCard({ feedback, currentUser, onRefresh }) {
     };
 
     return (
-        <div className={`feedback-card ${feedback.actionStatus === 'pending_approval' ? 'is-pending' : ''}`}>
+        <div className="feedback-card">
             {/* DELETE MODAL */}
             <ConfirmModal
                 isOpen={deleteModal.isOpen}
@@ -262,17 +259,14 @@ function FeedbackCard({ feedback, currentUser, onRefresh }) {
                 isOpen={approveModal.isOpen}
                 onClose={closeApproveModal}
                 onConfirm={confirmApprove}
-                title={`Verify ${approveModal.actionType === 'pending_delete' ? 'Deletion' :
-                    approveModal.actionType === 'pending_approval' ? 'Post Approval' : 'Edit'}`}
+                title={`Verify ${approveModal.actionType === 'pending_delete' ? 'Deletion' : 'Edit'}`}
                 message={approveModal.actionType === 'pending_delete'
                     ? "Are you sure you want to approve this deletion? It will permanently remove the message."
-                    : approveModal.actionType === 'pending_approval' ? "Are you sure you want to approve this post? It will become visible to the community."
-                        : "Are you sure you want to approve this edit? It will permanently replace the original message."
+                    : "Are you sure you want to approve this edit? It will permanently replace the original message."
                 }
                 isDestructive={approveModal.actionType === 'pending_delete'}
                 isSubmitting={isSubmitting}
-                confirmText={approveModal.actionType === 'pending_delete' ? 'Approve Deletion' :
-                    approveModal.actionType === 'pending_approval' ? 'Approve Post' : 'Approve Edit'}
+                confirmText={approveModal.actionType === 'pending_delete' ? 'Approve Deletion' : 'Approve Edit'}
             />
 
             <div className="feedback-header">
@@ -297,11 +291,6 @@ function FeedbackCard({ feedback, currentUser, onRefresh }) {
                             <span className="timestamp">
                                 • {formatDistanceToNow(new Date(feedback.createdAt), { addSuffix: true })}
                             </span>
-                            {feedback.actionStatus === 'pending_approval' && (
-                                <span className="status-badge-pending">
-                                    <AlertCircle size={10} /> Pending Approval
-                                </span>
-                            )}
                         </div>
                     </div>
                 </div>
@@ -315,8 +304,8 @@ function FeedbackCard({ feedback, currentUser, onRefresh }) {
                                 setEditContent(feedback.content);
                                 setIsEditing(true);
                             }}
-                            disabled={(feedback.actionStatus === 'pending_approval' || feedback.actionStatus === 'pending_edit' || feedback.actionStatus === 'pending_delete') && isOwner(feedback.author._id) && !canModerate()}
-                            title={feedback.actionStatus === 'pending_approval' ? "Cannot edit during moderation (Delete and repost instead)" : (feedback.actionStatus === 'pending_edit' || feedback.actionStatus === 'pending_delete') && !canModerate() ? "Action pending approval" : "Edit message"}
+                            disabled={(feedback.actionStatus === 'pending_edit' || feedback.actionStatus === 'pending_delete') && isOwner(feedback.author._id) && !canModerate()}
+                            title={(feedback.actionStatus === 'pending_edit' || feedback.actionStatus === 'pending_delete') && !canModerate() ? "Action pending review" : "Edit message"}
                         >
                             <Edit2 size={16} />
                         </button>
@@ -344,7 +333,9 @@ function FeedbackCard({ feedback, currentUser, onRefresh }) {
             )}
 
             <div className="feedback-body">
-                {feedback.actionStatus && feedback.actionStatus !== 'none' && <PendingActionAlert entity={feedback} type="feedback" />}
+                {['pending_edit', 'pending_delete', 'rejected'].includes(feedback.actionStatus) && (
+                    <PendingActionAlert entity={feedback} type="feedback" />
+                )}
 
                 {isEditing ? (
                     <div className="edit-container">
@@ -374,7 +365,7 @@ function FeedbackCard({ feedback, currentUser, onRefresh }) {
                                 onClick={handleUpdate}
                                 disabled={isSubmitting}
                             >
-                                {canModerate() ? 'Save Changes' : 'Submit for Approval'}
+                                Save Changes
                             </button>
                         </div>
                     </div>
@@ -395,7 +386,7 @@ function FeedbackCard({ feedback, currentUser, onRefresh }) {
                 )}
             </div>
 
-            {!isAdmin(currentUser) && feedback.actionStatus !== 'pending_approval' && (
+            {!isAdmin(currentUser) && (
                 <div className="feedback-footer">
                     <button
                         className="reply-toggle-btn"
@@ -477,7 +468,9 @@ function FeedbackCard({ feedback, currentUser, onRefresh }) {
                                 )}
                             </div>
 
-                            {reply.actionStatus && reply.actionStatus !== 'none' && <PendingActionAlert entity={reply} type="reply" />}
+                            {['pending_edit', 'pending_delete', 'rejected'].includes(reply.actionStatus) && (
+                                <PendingActionAlert entity={reply} type="reply" />
+                            )}
 
                             {editingReplyId === reply._id ? (
                                 <div className="edit-container mt-2">
@@ -508,7 +501,7 @@ function FeedbackCard({ feedback, currentUser, onRefresh }) {
                                             onClick={() => handleReplyUpdate(reply._id)}
                                             disabled={isSubmitting}
                                         >
-                                            {canModerate() ? 'Save' : 'Submit for Approval'}
+                                            Save
                                         </button>
                                     </div>
                                 </div>

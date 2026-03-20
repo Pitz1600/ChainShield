@@ -11,21 +11,28 @@ function Feedbacks({ user, initialTab = 'public' }) {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [activeTab, setActiveTab] = useState(initialTab);
     const [refreshTrigger, setRefreshTrigger] = useState(0);
+    const [akismetStatus, setAkismetStatus] = useState(null);
+    const [cleanupState, setCleanupState] = useState({ running: false, message: '' });
     const canPost = ['resident', 'barangay_official', 'auditor'].includes(user?.role);
+    const canModerate = isAdmin(user) || isOfficial(user);
 
     useEffect(() => {
         fetchFeedbacks();
+        fetchAkismetStatus();
+        const statusTimer = setInterval(() => {
+            fetchAkismetStatus();
+        }, 180000);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [refreshTrigger, activeTab]);
+        return () => clearInterval(statusTimer);
+    }, [refreshTrigger]);
 
     const fetchFeedbacks = async () => {
         try {
             setLoading(true);
             const params = {
                 ...(searchQuery ? { search: searchQuery } : {}),
-                ...(activeTab === 'moderation' ? { status: 'pending' } : { status: 'approved' })
+                status: 'approved'
             };
             const response = await feedbacksAPI.getAll(params);
             setFeedbacks(response.data);
@@ -39,6 +46,44 @@ function Feedbacks({ user, initialTab = 'public' }) {
     const handleSearchSubmit = (e) => {
         e.preventDefault();
         setRefreshTrigger(prev => prev + 1);
+    };
+
+    const fetchAkismetStatus = async () => {
+        try {
+            const res = await feedbacksAPI.getAkismetStatus();
+            setAkismetStatus(res.data);
+        } catch (error) {
+            console.error('Failed to fetch Akismet status:', error);
+            setAkismetStatus({ enabled: false, valid: false, error: 'unavailable' });
+        }
+    };
+
+    const handleCleanupSpam = async () => {
+        if (!canModerate) return;
+        if (!window.confirm('Delete existing spam posts and replies? This cannot be undone.')) {
+            return;
+        }
+        try {
+            setCleanupState({ running: true, message: '' });
+            const res = await feedbacksAPI.cleanupSpam({});
+            const { deletedFeedbacks, removedReplies } = res.data || {};
+            setCleanupState({
+                running: false,
+                message: `Cleanup complete: ${deletedFeedbacks || 0} posts removed, ${removedReplies || 0} replies removed.`
+            });
+            triggerRefresh();
+        } catch (error) {
+            console.error('Spam cleanup failed:', error);
+            setCleanupState({ running: false, message: 'Cleanup failed. Please try again.' });
+        }
+    };
+
+    const getAkismetBadge = () => {
+        if (!akismetStatus) return { text: 'Akismet: —', tone: 'unknown' };
+        if (!akismetStatus.enabled) return { text: 'Akismet: Disabled', tone: 'unknown' };
+        if (akismetStatus.enabled && akismetStatus.valid) return { text: 'Akismet: Active', tone: 'ok' };
+        if (akismetStatus.enabled && !akismetStatus.valid) return { text: 'Akismet: Invalid Key', tone: 'warn' };
+        return { text: 'Akismet: Error', tone: 'warn' };
     };
 
     const triggerRefresh = () => {
@@ -58,6 +103,11 @@ function Feedbacks({ user, initialTab = 'public' }) {
                                 <Plus size={18} /> Leave Feedback
                             </button>
                         )}
+                        {canModerate && (
+                            <button className="ghost-btn" onClick={handleCleanupSpam} disabled={cleanupState.running}>
+                                {cleanupState.running ? 'Cleaning Spam...' : 'Clean Spam Now'}
+                            </button>
+                        )}
                         <button className="ghost-btn" onClick={triggerRefresh}>
                             Refresh Feed
                         </button>
@@ -68,29 +118,12 @@ function Feedbacks({ user, initialTab = 'public' }) {
                         <span className="stat-label">Active Posts</span>
                         <span className="stat-value">{feedbacks.length}</span>
                     </div>
-                    <div className="hero-stat muted">
-                        <span className="stat-label">Moderation Queue</span>
-                        <span className="stat-value">{activeTab === 'moderation' ? feedbacks.length : '\u2014'}</span>
+                    <div className={`hero-stat akismet-status ${getAkismetBadge().tone}`}>
+                        <span className="stat-label">Spam Shield</span>
+                        <span className="stat-value small">{getAkismetBadge().text}</span>
                     </div>
                 </div>
             </div>
-
-            {(isAdmin(user) || isOfficial(user)) && (
-                <div className="admin-tabs feedback-tabs">
-                    <button
-                        className={`tab-button ${activeTab === 'public' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('public')}
-                    >
-                        Public Feed
-                    </button>
-                    <button
-                        className={`tab-button ${activeTab === 'moderation' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('moderation')}
-                    >
-                        Moderation Desk
-                    </button>
-                </div>
-            )}
 
             <div className="feedbacks-toolbar">
                 <form className="search-bar" onSubmit={handleSearchSubmit}>
@@ -104,8 +137,11 @@ function Feedbacks({ user, initialTab = 'public' }) {
                     />
                     <button type="submit" className="search-btn">Search</button>
                 </form>
-
-                
+                {cleanupState.message && (
+                    <div className="akismet-note">
+                        {cleanupState.message}
+                    </div>
+                )}
             </div>
 
             <div className="feedbacks-content">

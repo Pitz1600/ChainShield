@@ -138,6 +138,17 @@ const transactionSchema = new mongoose.Schema({
     betweennessCentrality: Number
   },
 
+  // Line items (from itemized CSV columns item1_* … item5_*)
+  lineItems: [{
+    name:       { type: String },
+    unit:       { type: String },
+    quantity:   { type: Number },
+    unitPrice:  { type: Number },
+    totalPrice: { type: Number },
+    supplier:   { type: String },
+    notes:      { type: String },
+  }],
+
   // Risk patterns detected
   fraudPatterns: [{
     type: {

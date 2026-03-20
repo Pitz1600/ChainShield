@@ -21,7 +21,7 @@ const replySchema = new mongoose.Schema({
     },
     actionStatus: {
         type: String,
-        enum: ['none', 'pending_approval', 'pending_edit', 'pending_delete', 'rejected'],
+        enum: ['none', 'pending_edit', 'pending_delete', 'rejected'],
         default: 'none'
     }
 }, {
@@ -59,8 +59,8 @@ const feedbackSchema = new mongoose.Schema({
     },
     actionStatus: {
         type: String,
-        enum: ['none', 'pending_approval', 'pending_edit', 'pending_delete', 'rejected'],
-        default: 'pending_approval'
+        enum: ['none', 'pending_edit', 'pending_delete', 'rejected'],
+        default: 'none'
     },
     replies: [replySchema]
 }, {
