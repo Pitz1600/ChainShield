@@ -1,0 +1,201 @@
+record_id,post_date,payer_name,payee_name,debit_amount,credit_amount,currency,description_raw
+TX-001,2024-12-01,Municipal Government,Construction Supplier,0.0,89447.04,PHP,Tax Payment - Business Permit
+TX-002,2024-07-03,Public Works Dept,Community Beneficiary,143130.85,0.0,PHP,4Ps Cash Assistance - Monthly Distribution
+TX-003,2024-11-29,DSWD Region I,School Supplies Store,109931.62,0.0,PHP,School Supplies Procurement
+TX-004,2024-11-07,Local Health Office,Construction Supplier,0.0,12431.02,PHP,Road Maintenance Expenses
+TX-005,2024-06-20,Community Fund,Local Contractor,39956.17,0.0,PHP,Public Service Operational Expense
+TX-006,2024-04-02,Municipal Government,Medical Center,0.0,62010.94,PHP,Community Infrastructure Payment
+TX-007,2024-01-14,DSWD Region I,Local Contractor,77881.44,0.0,PHP,Medical Assistance - Emergency Fund
+TX-008,2024-09-15,Barangay Treasury,Maintenance Services,148726.33,0.0,PHP,Road Maintenance Expenses
+TX-009,2024-03-19,Community Fund,Office Supplies Vendor,0.0,21472.79,PHP,School Supplies Procurement
+TX-010,2024-04-14,Community Fund,Office Supplies Vendor,0.0,130086.77,PHP,Community Infrastructure Payment
+TX-011,2024-10-20,Local Health Office,School Supplies Store,64550.15,0.0,PHP,Road Maintenance Expenses
+TX-012,2024-07-26,Barangay Treasury,Local Contractor,0.0,1551.39,PHP,Road Maintenance Expenses
+TX-013,2024-07-03,Community Fund,Office Supplies Vendor,22906.93,0.0,PHP,Road Maintenance Expenses
+TX-014,2024-01-21,Education Support Office,School Supplies Store,112594.09,0.0,PHP,Community Infrastructure Payment
+TX-015,2024-11-07,Education Support Office,School Supplies Store,0.0,113182.72,PHP,Tax Payment - Business Permit
+TX-016,2024-04-29,Local Health Office,School Supplies Store,94957.64,0.0,PHP,Public Service Operational Expense
+TX-017,2024-02-03,DSWD Region I,School Supplies Store,0.0,138022.49,PHP,Barangay Development Project
+TX-018,2024-07-31,Public Works Dept,Community Beneficiary,0.0,77989.31,PHP,Medical Assistance - Emergency Fund
+TX-019,2024-01-19,Municipal Government,Maintenance Services,0.0,15614.79,PHP,Check Encashment - Office Supplies
+TX-020,2024-04-11,DSWD Region I,Maintenance Services,36106.27,0.0,PHP,Medical Assistance - Emergency Fund
+TX-021,2024-12-22,Community Fund,Community Beneficiary,107026.59,0.0,PHP,Check Encashment - Office Supplies
+TX-022,2024-09-18,DSWD Region I,Local Contractor,0.0,38445.83,PHP,Medical Assistance - Emergency Fund
+TX-023,2024-04-23,DSWD Region I,Maintenance Services,0.0,124187.14,PHP,Public Service Operational Expense
+TX-024,2024-08-06,Community Fund,Office Supplies Vendor,107165.48,0.0,PHP,Check Encashment - Office Supplies
+TX-025,2024-08-14,Public Works Dept,Construction Supplier,118449.94,0.0,PHP,4Ps Cash Assistance - Monthly Distribution
+TX-026,2024-03-17,DSWD Region I,Local Contractor,127962.94,0.0,PHP,Procurement - Construction Materials
+TX-027,2024-01-25,Education Support Office,Maintenance Services,0.0,80250.11,PHP,Tax Payment - Business Permit
+TX-028,2024-11-13,Local Health Office,Local Contractor,42235.97,0.0,PHP,Barangay Development Project
+TX-029,2024-07-22,Barangay Treasury,Local Contractor,0.0,107767.74,PHP,Barangay Development Project
+TX-030,2024-02-20,Barangay Treasury,Medical Center,41683.73,0.0,PHP,School Supplies Procurement
+TX-031,2024-02-02,Education Support Office,Office Supplies Vendor,105394.85,0.0,PHP,Check Encashment - Office Supplies
+TX-032,2024-04-28,Community Fund,Local Contractor,0.0,4628.97,PHP,Barangay Development Project
+TX-033,2024-04-15,Public Works Dept,Office Supplies Vendor,40695.6,0.0,PHP,Medical Assistance - Emergency Fund
+TX-034,2024-04-05,Community Fund,Office Supplies Vendor,0.0,107646.99,PHP,Tax Payment - Business Permit
+TX-035,2024-02-01,Public Works Dept,Medical Center,66965.52,0.0,PHP,4Ps Cash Assistance - Monthly Distribution
+TX-036,2024-08-01,Public Works Dept,Community Beneficiary,149698.43,0.0,PHP,Medical Assistance - Emergency Fund
+TX-037,2024-05-17,Community Fund,School Supplies Store,0.0,144321.02,PHP,Barangay Development Project
+TX-038,2024-08-25,Barangay Treasury,School Supplies Store,66132.08,0.0,PHP,Medical Assistance - Emergency Fund
+TX-039,2024-10-04,DSWD Region I,School Supplies Store,0.0,97560.27,PHP,Road Maintenance Expenses
+TX-040,2024-11-01,Public Works Dept,Local Contractor,124331.45,0.0,PHP,Barangay Development Project
+TX-041,2024-02-18,Barangay Treasury,Medical Center,107872.82,0.0,PHP,Tax Payment - Business Permit
+TX-042,2024-01-14,Local Health Office,Construction Supplier,0.0,93436.3,PHP,Procurement - Construction Materials
+TX-043,2024-03-21,Community Fund,School Supplies Store,23005.48,0.0,PHP,Procurement - Construction Materials
+TX-044,2024-04-22,DSWD Region I,Community Beneficiary,0.0,134058.46,PHP,Road Maintenance Expenses
+TX-045,2024-05-16,Barangay Treasury,School Supplies Store,40030.62,0.0,PHP,Public Service Operational Expense
+TX-046,2024-05-31,Community Fund,Office Supplies Vendor,0.0,84661.17,PHP,School Supplies Procurement
+TX-047,2024-07-01,Community Fund,Local Contractor,39726.16,0.0,PHP,Check Encashment - Office Supplies
+TX-048,2024-07-12,Barangay Treasury,Local Contractor,0.0,84569.77,PHP,Public Service Operational Expense
+TX-049,2024-09-08,Public Works Dept,Local Contractor,3355.04,0.0,PHP,Medical Assistance - Emergency Fund
+TX-050,2024-02-11,Community Fund,Maintenance Services,0.0,30861.21,PHP,School Supplies Procurement
+TX-051,2024-01-19,Community Fund,Construction Supplier,124167.25,0.0,PHP,Tax Payment - Business Permit
+TX-052,2024-05-05,Barangay Treasury,Community Beneficiary,0.0,147607.41,PHP,Barangay Development Project
+TX-053,2024-02-24,Local Health Office,Construction Supplier,35905.67,0.0,PHP,Community Infrastructure Payment
+TX-054,2024-04-26,Community Fund,Medical Center,0.0,98316.57,PHP,Road Maintenance Expenses
+TX-055,2024-01-17,DSWD Region I,Medical Center,108415.36,0.0,PHP,Barangay Development Project
+TX-056,2024-08-04,DSWD Region I,Local Contractor,0.0,96113.88,PHP,Road Maintenance Expenses
+TX-057,2024-10-05,Community Fund,Local Contractor,4261.52,0.0,PHP,Road Maintenance Expenses
+TX-058,2024-02-03,Community Fund,Medical Center,0.0,11763.32,PHP,Community Infrastructure Payment
+TX-059,2024-11-03,Local Health Office,School Supplies Store,58830.82,0.0,PHP,Medical Assistance - Emergency Fund
+TX-060,2024-05-13,Municipal Government,Office Supplies Vendor,0.0,117657.03,PHP,Road Maintenance Expenses
+TX-061,2024-07-16,Community Fund,Community Beneficiary,0.0,141698.43,PHP,School Supplies Procurement
+TX-062,2024-05-21,Barangay Treasury,Construction Supplier,0.0,74245.74,PHP,Community Infrastructure Payment
+TX-063,2024-08-15,DSWD Region I,Construction Supplier,81045.57,0.0,PHP,4Ps Cash Assistance - Monthly Distribution
+TX-064,2024-11-27,DSWD Region I,Office Supplies Vendor,95924.52,0.0,PHP,Public Service Operational Expense
+TX-065,2024-10-23,DSWD Region I,Construction Supplier,0.0,145621.73,PHP,Public Service Operational Expense
+TX-066,2024-06-04,Municipal Government,Community Beneficiary,86922.55,0.0,PHP,Medical Assistance - Emergency Fund
+TX-067,2024-03-18,Local Health Office,Maintenance Services,0.0,76074.68,PHP,Check Encashment - Office Supplies
+TX-068,2024-05-22,Local Health Office,Construction Supplier,0.0,9113.43,PHP,Road Maintenance Expenses
+TX-069,2024-11-05,Barangay Treasury,Medical Center,110551.6,0.0,PHP,Procurement - Construction Materials
+TX-070,2024-05-30,Community Fund,Medical Center,64429.58,0.0,PHP,Medical Assistance - Emergency Fund
+TX-071,2024-06-23,Education Support Office,School Supplies Store,37690.83,0.0,PHP,Community Infrastructure Payment
+TX-072,2024-04-30,Education Support Office,Medical Center,0.0,135054.74,PHP,Road Maintenance Expenses
+TX-073,2024-03-06,Municipal Government,Community Beneficiary,70244.85,0.0,PHP,Barangay Development Project
+TX-074,2024-01-04,Municipal Government,Office Supplies Vendor,131442.88,0.0,PHP,Check Encashment - Office Supplies
+TX-075,2024-07-26,DSWD Region I,Maintenance Services,10310.64,0.0,PHP,Procurement - Construction Materials
+TX-076,2024-01-14,DSWD Region I,Medical Center,0.0,2575.14,PHP,Road Maintenance Expenses
+TX-077,2024-07-14,Barangay Treasury,Office Supplies Vendor,0.0,70077.08,PHP,4Ps Cash Assistance - Monthly Distribution
+TX-078,2024-09-13,Barangay Treasury,Local Contractor,0.0,29333.38,PHP,Community Infrastructure Payment
+TX-079,2024-01-16,Public Works Dept,School Supplies Store,0.0,149373.78,PHP,4Ps Cash Assistance - Monthly Distribution
+TX-080,2024-04-28,Education Support Office,Community Beneficiary,19509.38,0.0,PHP,Public Service Operational Expense
+TX-081,2024-04-01,Barangay Treasury,School Supplies Store,129359.85,0.0,PHP,Community Infrastructure Payment
+TX-082,2024-09-23,Community Fund,Office Supplies Vendor,0.0,106997.6,PHP,Check Encashment - Office Supplies
+TX-083,2024-05-07,Municipal Government,Community Beneficiary,0.0,72107.11,PHP,Medical Assistance - Emergency Fund
+TX-084,2024-12-19,DSWD Region I,Community Beneficiary,111928.81,0.0,PHP,Road Maintenance Expenses
+TX-085,2024-02-25,Education Support Office,Maintenance Services,0.0,62427.16,PHP,Public Service Operational Expense
+TX-086,2024-04-28,Public Works Dept,School Supplies Store,0.0,115864.39,PHP,School Supplies Procurement
+TX-087,2024-10-26,Barangay Treasury,Maintenance Services,56409.32,0.0,PHP,Community Infrastructure Payment
+TX-088,2024-12-20,Public Works Dept,Community Beneficiary,0.0,135530.24,PHP,Medical Assistance - Emergency Fund
+TX-089,2024-03-03,Community Fund,School Supplies Store,141785.39,0.0,PHP,Medical Assistance - Emergency Fund
+TX-090,2024-12-31,Community Fund,Community Beneficiary,7785.63,0.0,PHP,Road Maintenance Expenses
+TX-091,2024-03-02,Community Fund,Construction Supplier,0.0,88267.86,PHP,Check Encashment - Office Supplies
+TX-092,2024-11-28,Community Fund,Local Contractor,107784.61,0.0,PHP,Tax Payment - Business Permit
+TX-093,2024-11-06,Community Fund,School Supplies Store,91564.29,0.0,PHP,Community Infrastructure Payment
+TX-094,2024-08-18,Education Support Office,Local Contractor,0.0,109761.45,PHP,Procurement - Construction Materials
+TX-095,2024-03-22,DSWD Region I,Construction Supplier,16222.43,0.0,PHP,Public Service Operational Expense
+TX-096,2024-09-14,Education Support Office,Construction Supplier,0.0,8662.03,PHP,Check Encashment - Office Supplies
+TX-097,2024-01-29,Community Fund,Construction Supplier,98908.49,0.0,PHP,Check Encashment - Office Supplies
+TX-098,2024-11-06,Public Works Dept,Local Contractor,0.0,57237.59,PHP,4Ps Cash Assistance - Monthly Distribution
+TX-099,2024-06-20,Local Health Office,Medical Center,0.0,102945.7,PHP,School Supplies Procurement
+TX-100,2024-06-03,Community Fund,Maintenance Services,0.0,14104.71,PHP,Check Encashment - Office Supplies
+TX-101,2024-02-01,DSWD Region I,Medical Center,128701.83,0.0,PHP,Check Encashment - Office Supplies
+TX-102,2024-10-01,Local Health Office,Construction Supplier,87148.97,0.0,PHP,Procurement - Construction Materials
+TX-103,2024-02-25,Community Fund,Maintenance Services,70851.72,0.0,PHP,Road Maintenance Expenses
+TX-104,2024-06-11,Local Health Office,Office Supplies Vendor,125583.38,0.0,PHP,Public Service Operational Expense
+TX-105,2024-09-05,Barangay Treasury,Maintenance Services,0.0,119683.75,PHP,School Supplies Procurement
+TX-106,2024-08-30,Municipal Government,Maintenance Services,0.0,127945.39,PHP,Road Maintenance Expenses
+TX-107,2024-06-06,Community Fund,Maintenance Services,49459.82,0.0,PHP,Public Service Operational Expense
+TX-108,2024-07-09,Barangay Treasury,Medical Center,74648.66,0.0,PHP,Barangay Development Project
+TX-109,2024-10-20,Municipal Government,Local Contractor,92378.8,0.0,PHP,School Supplies Procurement
+TX-110,2024-08-24,DSWD Region I,Medical Center,54941.27,0.0,PHP,Medical Assistance - Emergency Fund
+TX-111,2024-03-22,Public Works Dept,Maintenance Services,0.0,85990.61,PHP,Public Service Operational Expense
+TX-112,2024-08-01,Barangay Treasury,Medical Center,23937.28,0.0,PHP,School Supplies Procurement
+TX-113,2024-05-31,Education Support Office,Local Contractor,73722.13,0.0,PHP,Medical Assistance - Emergency Fund
+TX-114,2024-06-27,Community Fund,Maintenance Services,27071.6,0.0,PHP,School Supplies Procurement
+TX-115,2024-12-18,Community Fund,Office Supplies Vendor,66965.51,0.0,PHP,Medical Assistance - Emergency Fund
+TX-116,2024-12-14,Local Health Office,Medical Center,41308.81,0.0,PHP,Community Infrastructure Payment
+TX-117,2024-10-24,Barangay Treasury,Medical Center,0.0,37451.18,PHP,4Ps Cash Assistance - Monthly Distribution
+TX-118,2024-06-24,Municipal Government,Office Supplies Vendor,137159.95,0.0,PHP,Community Infrastructure Payment
+TX-119,2024-11-10,Community Fund,Maintenance Services,0.0,123037.23,PHP,School Supplies Procurement
+TX-120,2024-02-10,DSWD Region I,School Supplies Store,73791.63,0.0,PHP,Public Service Operational Expense
+TX-121,2024-11-21,DSWD Region I,Office Supplies Vendor,0.0,95312.92,PHP,Road Maintenance Expenses
+TX-122,2024-04-11,Barangay Treasury,Community Beneficiary,28474.32,0.0,PHP,Check Encashment - Office Supplies
+TX-123,2024-07-25,Local Health Office,Maintenance Services,84764.61,0.0,PHP,Procurement - Construction Materials
+TX-124,2024-03-18,Community Fund,Construction Supplier,0.0,28677.47,PHP,Community Infrastructure Payment
+TX-125,2024-09-18,Municipal Government,Construction Supplier,0.0,43501.29,PHP,Medical Assistance - Emergency Fund
+TX-126,2024-03-25,Barangay Treasury,Community Beneficiary,3457.76,0.0,PHP,Road Maintenance Expenses
+TX-127,2024-12-08,Community Fund,Construction Supplier,0.0,51549.78,PHP,School Supplies Procurement
+TX-128,2024-07-10,Local Health Office,Maintenance Services,0.0,70013.57,PHP,Public Service Operational Expense
+TX-129,2024-05-25,Education Support Office,Community Beneficiary,74046.16,0.0,PHP,School Supplies Procurement
+TX-130,2024-03-10,Local Health Office,Local Contractor,79412.96,0.0,PHP,Road Maintenance Expenses
+TX-131,2024-05-15,Barangay Treasury,Local Contractor,0.0,117109.56,PHP,Check Encashment - Office Supplies
+TX-132,2024-05-17,Barangay Treasury,Local Contractor,0.0,54811.69,PHP,Tax Payment - Business Permit
+TX-133,2024-11-02,Local Health Office,Community Beneficiary,83350.71,0.0,PHP,Tax Payment - Business Permit
+TX-134,2024-02-05,Public Works Dept,School Supplies Store,37356.42,0.0,PHP,Check Encashment - Office Supplies
+TX-135,2024-11-06,DSWD Region I,School Supplies Store,0.0,106576.51,PHP,Road Maintenance Expenses
+TX-136,2024-12-09,Barangay Treasury,Local Contractor,30469.05,0.0,PHP,4Ps Cash Assistance - Monthly Distribution
+TX-137,2024-07-17,Local Health Office,Office Supplies Vendor,0.0,19010.0,PHP,Check Encashment - Office Supplies
+TX-138,2024-05-05,Barangay Treasury,Local Contractor,0.0,144186.66,PHP,Barangay Development Project
+TX-139,2024-11-17,Education Support Office,Medical Center,0.0,23908.94,PHP,Road Maintenance Expenses
+TX-140,2024-06-19,Barangay Treasury,School Supplies Store,130919.42,0.0,PHP,Tax Payment - Business Permit
+TX-141,2024-03-25,Education Support Office,Construction Supplier,0.0,122224.84,PHP,Public Service Operational Expense
+TX-142,2024-02-14,Public Works Dept,Maintenance Services,34147.07,0.0,PHP,Road Maintenance Expenses
+TX-143,2024-03-11,Local Health Office,Local Contractor,97734.94,0.0,PHP,Public Service Operational Expense
+TX-144,2024-10-23,DSWD Region I,Medical Center,0.0,80576.25,PHP,Check Encashment - Office Supplies
+TX-145,2024-11-13,Municipal Government,Local Contractor,0.0,145197.98,PHP,4Ps Cash Assistance - Monthly Distribution
+TX-146,2024-04-17,Community Fund,Maintenance Services,0.0,40309.92,PHP,Public Service Operational Expense
+TX-147,2024-01-09,Barangay Treasury,Maintenance Services,124269.63,0.0,PHP,Procurement - Construction Materials
+TX-148,2024-05-16,Public Works Dept,Construction Supplier,0.0,144651.41,PHP,Community Infrastructure Payment
+TX-149,2024-02-13,Community Fund,Community Beneficiary,0.0,66311.6,PHP,Check Encashment - Office Supplies
+TX-150,2024-02-22,Public Works Dept,School Supplies Store,2503.53,0.0,PHP,Road Maintenance Expenses
+TX-151,2024-12-12,Community Fund,Local Contractor,56762.33,0.0,PHP,Procurement - Construction Materials
+TX-152,2024-10-27,Education Support Office,Maintenance Services,0.0,148268.58,PHP,Check Encashment - Office Supplies
+TX-153,2024-09-06,Community Fund,School Supplies Store,0.0,116952.18,PHP,Barangay Development Project
+TX-154,2024-07-29,Education Support Office,Community Beneficiary,0.0,23380.34,PHP,Medical Assistance - Emergency Fund
+TX-155,2024-11-23,Municipal Government,Local Contractor,0.0,108422.48,PHP,Check Encashment - Office Supplies
+TX-156,2024-10-10,Education Support Office,Community Beneficiary,0.0,5791.55,PHP,Road Maintenance Expenses
+TX-157,2024-03-17,Municipal Government,Local Contractor,116588.5,0.0,PHP,Tax Payment - Business Permit
+TX-158,2024-06-29,Education Support Office,Office Supplies Vendor,139032.14,0.0,PHP,4Ps Cash Assistance - Monthly Distribution
+TX-159,2024-12-27,Local Health Office,School Supplies Store,0.0,49420.16,PHP,Tax Payment - Business Permit
+TX-160,2024-07-24,Barangay Treasury,Local Contractor,28888.6,0.0,PHP,Public Service Operational Expense
+TX-161,2024-08-08,Education Support Office,Office Supplies Vendor,0.0,108426.57,PHP,School Supplies Procurement
+TX-162,2024-02-28,Local Health Office,Community Beneficiary,0.0,19873.8,PHP,Medical Assistance - Emergency Fund
+TX-163,2024-03-16,Barangay Treasury,Office Supplies Vendor,0.0,14124.14,PHP,Medical Assistance - Emergency Fund
+TX-164,2024-07-28,Public Works Dept,Maintenance Services,0.0,16136.24,PHP,Check Encashment - Office Supplies
+TX-165,2024-05-11,Public Works Dept,Community Beneficiary,0.0,90640.84,PHP,Medical Assistance - Emergency Fund
+TX-166,2024-03-28,Local Health Office,Local Contractor,0.0,53980.41,PHP,Procurement - Construction Materials
+TX-167,2024-03-07,Municipal Government,Maintenance Services,85425.24,0.0,PHP,Barangay Development Project
+TX-168,2024-09-03,Education Support Office,Maintenance Services,13442.31,0.0,PHP,Community Infrastructure Payment
+TX-169,2024-04-17,Community Fund,Office Supplies Vendor,26784.79,0.0,PHP,School Supplies Procurement
+TX-170,2024-05-20,Community Fund,School Supplies Store,73974.36,0.0,PHP,Community Infrastructure Payment
+TX-171,2024-06-30,Municipal Government,Office Supplies Vendor,0.0,141245.05,PHP,4Ps Cash Assistance - Monthly Distribution
+TX-172,2024-08-19,DSWD Region I,School Supplies Store,122166.36,0.0,PHP,Barangay Development Project
+TX-173,2024-06-07,Local Health Office,Office Supplies Vendor,0.0,10014.52,PHP,Tax Payment - Business Permit
+TX-174,2024-01-20,Municipal Government,Maintenance Services,146170.75,0.0,PHP,Tax Payment - Business Permit
+TX-175,2024-05-23,Municipal Government,Local Contractor,60722.95,0.0,PHP,Check Encashment - Office Supplies
+TX-176,2024-10-28,Education Support Office,Community Beneficiary,0.0,146943.6,PHP,Procurement - Construction Materials
+TX-177,2024-09-04,Municipal Government,Maintenance Services,0.0,9327.94,PHP,4Ps Cash Assistance - Monthly Distribution
+TX-178,2024-10-30,Community Fund,Local Contractor,102844.28,0.0,PHP,Road Maintenance Expenses
+TX-179,2024-08-25,Public Works Dept,Construction Supplier,0.0,121620.51,PHP,Public Service Operational Expense
+TX-180,2024-05-09,Municipal Government,Construction Supplier,0.0,103770.66,PHP,Medical Assistance - Emergency Fund
+TX-181,2024-11-21,Barangay Treasury,School Supplies Store,139271.15,0.0,PHP,Medical Assistance - Emergency Fund
+TX-182,2024-05-20,Municipal Government,Construction Supplier,0.0,15422.45,PHP,Check Encashment - Office Supplies
+TX-183,2024-12-29,Barangay Treasury,Local Contractor,136395.48,0.0,PHP,Procurement - Construction Materials
+TX-184,2024-02-08,DSWD Region I,Maintenance Services,0.0,27183.34,PHP,4Ps Cash Assistance - Monthly Distribution
+TX-185,2024-10-07,Barangay Treasury,Medical Center,0.0,133898.1,PHP,Public Service Operational Expense
+TX-186,2024-09-08,Education Support Office,School Supplies Store,0.0,4183.8,PHP,Road Maintenance Expenses
+TX-187,2024-10-06,Local Health Office,Construction Supplier,0.0,41806.73,PHP,Community Infrastructure Payment
+TX-188,2024-11-12,Education Support Office,School Supplies Store,0.0,53688.5,PHP,4Ps Cash Assistance - Monthly Distribution
+TX-189,2024-12-07,Municipal Government,Medical Center,76345.56,0.0,PHP,Medical Assistance - Emergency Fund
+TX-190,2024-03-20,Municipal Government,Construction Supplier,143866.91,0.0,PHP,Procurement - Construction Materials
+TX-191,2024-06-02,Public Works Dept,Medical Center,36440.91,0.0,PHP,4Ps Cash Assistance - Monthly Distribution
+TX-192,2024-12-27,DSWD Region I,Medical Center,101300.28,0.0,PHP,Road Maintenance Expenses
+TX-193,2024-06-27,Public Works Dept,Maintenance Services,68872.51,0.0,PHP,Tax Payment - Business Permit
+TX-194,2024-10-29,Local Health Office,Office Supplies Vendor,0.0,83638.52,PHP,School Supplies Procurement
+TX-195,2024-03-02,Barangay Treasury,Community Beneficiary,0.0,38020.11,PHP,Procurement - Construction Materials
+TX-196,2024-05-02,Barangay Treasury,Medical Center,0.0,126320.25,PHP,Road Maintenance Expenses
+TX-197,2024-07-06,Community Fund,Construction Supplier,135667.9,0.0,PHP,Community Infrastructure Payment
+TX-198,2024-09-27,Community Fund,Office Supplies Vendor,15055.1,0.0,PHP,Road Maintenance Expenses
+TX-199,2024-12-15,Local Health Office,Maintenance Services,78597.71,0.0,PHP,Tax Payment - Business Permit
+TX-200,2024-07-25,Barangay Treasury,Office Supplies Vendor,0.0,95040.75,PHP,Procurement - Construction Materials

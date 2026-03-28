@@ -1,0 +1,83 @@
+name: Security Audit
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  audit-backend:
+    name: Backend Dependency Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Run npm audit (fail on high/critical)
+        working-directory: backend
+        run: npm audit --audit-level=high
+
+  audit-frontend:
+    name: Frontend Dependency Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Run npm audit (fail on high/critical)
+        working-directory: frontend
+        run: npm audit --audit-level=high
+
+  security-headers:
+    name: Verify Security Configuration
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for hardcoded secrets
+        run: |
+          # Fail if any .env files are committed (not just .env.example)
+          if git ls-files | grep -E '^\.env$|^backend/\.env$|^frontend/\.env$'; then
+            echo "ERROR: .env file is committed to the repository!"
+            exit 1
+          fi
+          echo "✅ No .env files committed"
+
+      - name: Check for common secret patterns
+        run: |
+          # Scan for potential hardcoded secrets (excluding .env.example and docs)
+          if grep -rE "(password|secret|key)\s*=\s*['\"][^'\"]{8,}['\"]" \
+            --include="*.js" \
+            --include="*.ts" \
+            --include="*.py" \
+            --exclude-dir=node_modules \
+            --exclude-dir=.git \
+            . 2>/dev/null | grep -v "example\|test\|spec\|mock\|placeholder\|CHANGE_THIS"; then
+            echo "WARNING: Potential hardcoded secrets detected. Please review."
+            # Don't fail — just warn (some false positives expected)
+          fi
+          echo "✅ Secret scan complete"

@@ -5,6 +5,7 @@ const path = require('path');
 const csvImportController = require('../controllers/csvImportController');
 const transactionController = require('../controllers/transactionController');
 const auth = require('../middleware/auth');
+const { requireOfficial } = require('../middleware/roleMiddleware');
 
 // Configure multer for file upload
 const storage = multer.diskStorage({
@@ -19,8 +20,16 @@ const storage = multer.diskStorage({
 const upload = multer({
     storage: storage,
     fileFilter: (req, file, cb) => {
-        if (path.extname(file.originalname).toLowerCase() !== '.csv') {
+        // SECURITY: Validate both extension AND MIME type
+        const allowedExtensions = ['.csv'];
+        const allowedMimeTypes = ['text/csv', 'application/vnd.ms-excel', 'text/plain'];
+        const ext = path.extname(file.originalname).toLowerCase();
+
+        if (!allowedExtensions.includes(ext)) {
             return cb(new Error('Only CSV files are allowed'));
+        }
+        if (!allowedMimeTypes.includes(file.mimetype)) {
+            return cb(new Error('Invalid file type. Only CSV files are accepted.'));
         }
         cb(null, true);
     },
@@ -29,14 +38,21 @@ const upload = multer({
     }
 });
 
-// CSV Import routes
-router.post('/import', auth, upload.single('csvFile'), csvImportController.importTransactions);
+// CSV Import routes - requires barangay official or admin role
+// CSV Import routes - requires barangay official or admin role
+router.post('/import', auth, requireOfficial, upload.single('csvFile'), csvImportController.importTransactions);
 router.get('/template', auth, csvImportController.downloadTemplate);
 
-// Standard transaction routes
-router.post('/', auth, transactionController.createTransaction);
+// Standard transaction routes - all authenticated users can view
+router.get('/my-transactions', auth, transactionController.getMyTransactions);
+router.post('/', auth, requireOfficial, transactionController.createTransaction);
+router.post('/batch', auth, requireOfficial, transactionController.processBatch);
 router.get('/', auth, transactionController.getTransactions);
 router.get('/alerts', auth, transactionController.getAlerts);
+router.put('/batch-action', auth, requireOfficial, transactionController.batchAction);
+router.delete('/:id', auth, requireOfficial, transactionController.deleteTransaction);
+router.put('/:id/approve', auth, requireOfficial, transactionController.approveTransaction);
 router.get('/:id', auth, transactionController.getTransactionById);
+router.put('/:id/verify', auth, requireOfficial, transactionController.updateVerificationStatus);
 
 module.exports = router;

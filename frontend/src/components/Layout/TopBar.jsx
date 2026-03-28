@@ -1,29 +1,44 @@
 import React from 'react';
+import { Menu } from 'lucide-react';
 import '../../styles/TopBar.css';
+import '../../styles/ColorfulIcons.css';
 
-function TopBar({ user }) {
+function TopBar({ toggleMobileMenu }) {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
+
+  const handleMenuToggle = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+    toggleMobileMenu();
+  };
+
   return (
     <header className="top-bar">
       <div className="top-bar-content">
+        <button
+          className="mobile-menu-btn"
+          onClick={handleMenuToggle}
+          aria-label="Open navigation menu"
+          aria-expanded={isMobileMenuOpen}
+        >
+          <Menu size={24} />
+        </button>
         <div className="top-bar-brand">
-          <h1 className="page-title">Transaction Integrity Monitoring Portal</h1>
-          <span className="security-badge">SECURE // ENCRYPTED</span>
+          <h1
+            className="page-title"
+            title="Transaction Integrity Monitoring Portal"
+          >
+            <span className="title-full">Transaction Integrity Monitoring Portal</span>
+            <span className="title-mobile">ChainShield Portal</span>
+          </h1>
+          <span
+            className="security-badge"
+            title="Secure and Encrypted"
+          >
+            <span className="badge-full">SECURE // ENCRYPTED</span>
+            <span className="badge-mobile">SECURE</span>
+          </span>
         </div>
-        <div className="top-bar-actions">
-          <button className="icon-btn" title="Search">🔍</button>
-          <button className="icon-btn notification" title="Alerts">
-            🔔 <span className="notification-dot"></span>
-          </button>
-          <div className="user-profile">
-            <div className="user-info">
-              <span className="user-name">{user?.username}</span>
-              <span className="user-role">{user?.role}</span>
-            </div>
-            <div className="user-avatar">
-              <span>{user?.username?.charAt(0).toUpperCase()}</span>
-            </div>
-          </div>
-        </div>
+        <div className="top-bar-spacer" aria-hidden="true" />
       </div>
     </header>
   );

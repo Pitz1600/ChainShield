@@ -1,4 +1,4 @@
-"""
+﻿"""
 Test Philippine Fraud Detection System
 Validates the enhanced ML model with real fraud patterns
 """
@@ -22,7 +22,7 @@ ph_detector = PhilippineFraudPatterns(
 
 gov_verification = GovernmentVerificationService(data_dir='datasets')
 
-print("\n✓ Services initialized successfully\n")
+print("\nServices initialized successfully\n")
 
 # Test Case 1: Overpriced Procurement
 print("-" * 70)
@@ -39,8 +39,8 @@ test_overpricing = {
 }
 
 # Test with ensemble model
-risk_prob = ensemble_detector.predict_proba(test_overpricing)
-print(f"ML Risk Probability: {risk_prob:.2%}")
+risk_result = ensemble_detector.predict_proba(test_overpricing)
+print(f"ML Final Probability: {risk_result['final_probability']:.2%}")
 
 # Test with Philippine patterns
 ph_result = ph_detector.analyze_transaction(test_overpricing)
@@ -68,8 +68,8 @@ test_ghost_beneficiaries = {
     'networkFeatures': {'degree': 2, 'convergenceScore': 0.3}
 }
 
-risk_prob2 = ensemble_detector.predict_proba(test_ghost_beneficiaries)
-print(f"ML Risk Probability: {risk_prob2:.2%}")
+risk_result2 = ensemble_detector.predict_proba(test_ghost_beneficiaries)
+print(f"ML Final Probability: {risk_result2['final_probability']:.2%}")
 
 ph_result2 = ph_detector.analyze_transaction(test_ghost_beneficiaries)
 print(f"Philippine Pattern Risk Score: {ph_result2['risk_score']}/100")
@@ -100,8 +100,8 @@ test_circular = {
     }
 }
 
-risk_prob3 = ensemble_detector.predict_proba(test_circular)
-print(f"ML Risk Probability: {risk_prob3:.2%}")
+risk_result3 = ensemble_detector.predict_proba(test_circular)
+print(f"ML Final Probability: {risk_result3['final_probability']:.2%}")
 
 ph_result3 = ph_detector.analyze_transaction(test_circular)
 print(f"Philippine Pattern Risk Score: {ph_result3['risk_score']}/100")
@@ -123,8 +123,8 @@ test_legitimate = {
     'networkFeatures': {'degree': 1}
 }
 
-risk_prob4 = ensemble_detector.predict_proba(test_legitimate)
-print(f"ML Risk Probability: {risk_prob4:.2%}")
+risk_result4 = ensemble_detector.predict_proba(test_legitimate)
+print(f"ML Final Probability: {risk_result4['final_probability']:.2%}")
 
 ph_result4 = ph_detector.analyze_transaction(test_legitimate)
 print(f"Philippine Pattern Risk Score: {ph_result4['risk_score']}/100")
@@ -134,7 +134,7 @@ print(f"Patterns Detected: {ph_result4['patterns_detected'] if ph_result4['patte
 print("\n" + "="*70)
 print("TEST SUMMARY")
 print("="*70)
-print("\n✓ All tests completed successfully!")
+print("\nAll tests completed successfully!")
 print("\nKey Findings:")
 print("1. Overpricing detection working - identified 81.8% price increase")
 print("2. Ghost beneficiary detection working - flagged suspicious counts")

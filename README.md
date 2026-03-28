@@ -1,265 +1,125 @@
 # 🛡️ ChainShield
 
-**Machine Learning–Driven Integrity Assurance and Monitoring System**
+**AI-Powered Audit & Transaction Monitoring for Barangays**
 
-ChainShield is an advanced transaction monitoring system combining **AI/ML**, **Blockchain**, and **Graph Analytics** for comprehensive integrity assurance and anomaly detection.
-
----
-
-## ⚠️ Important Notice
-
-**This is a research prototype for academic and demonstration purposes.**
-- ✅ Uses simulated/synthetic data only
-- ❌ Does NOT connect to real production databases
-- ❌ Does NOT store personal information on-chain
-- 🎓 Designed for research and educational use
+ChainShield is a next-generation integrity assurance system designed specifically for **Barangays** (local communities in the Philippines). It combines **Artificial Intelligence**, **Blockchain**, and **Graph Analytics** to ensure transparency, detect irregularities in fund usage, and empower citizens.
 
 ---
 
 ## 🎯 What It Does
 
-Monitors financial transactions across various sectors:
-- **Social Welfare Programs**
-- **Procurement Systems**
-- **Grant Management**
-- **Revenue Tracking**
+ChainShield empowers barangays to modernize their operations and audit processes:
 
-**Detects**:
-- Fund convergence patterns
-- Circular money movement
-- Shell account schemes
-- Procurement irregularities
-- Identity anomalies
+*   **🔍 Automated Audit**: Monitors barangay funds, SK budgets, and procurement for anomalies.
+*   **📄 Document Verification**: Verifies the authenticity of Barangay Clearances, Indigency Certificates, and Permits.
+*   **📊 Resident Profiling**: Manages resident data securely with role-based access.
+
+---
+
+## 👥 User Roles
+
+| Role | Description | Key Permissions |
+|---|---|---|
+| 🏠 **Resident** | Citizens of the barangay | View own records, submit complaints, verify documents |
+| 🏛️ **Barangay Official** | Captain, Kagawad, Secretary, Treasurer | Dashboard, complaint management, CSV import, analytics |
+| 🛡️ **Administrator** | System management | Full access — user management, audit logs, system config |
+
+> **Note**: Administrators must use local email/password + mandatory TOTP 2FA. Google SSO is available for Residents, Officials, Analysts, and Investigators.
 
 ---
 
 ## ✨ Key Features
 
-### 🤖 **Enhanced AI/ML**
-- **Ensemble Model**: XGBoost + Random Forest + Gradient Boosting
-- **Economic Context**: Real-time economic indicators & seasonal adjustments
-- **SHAP Explainability**: Understand why transactions are flagged
+### 🤖 **AI-Driven Anomaly Detection**
+*   **Smart Auditing**: Flag budget usage that deviates from economic baselines (e.g., overpriced procurement).
+*   **Graph Analysis**: Detect collusion networks and irregular fund flows.
 
-## 🌟 Key Features
+### ⚖️ **Immutable Transparency**
+*   **Blockchain Logging**: Critical transaction hashes are stored on-chain, preventing record tampering.
+*   **Public Trust**: Assures constituents that records are permanent and auditable.
 
-- **🤖 Machine Learning Detection**: Advanced ensemble models for pattern recognition
-- **⛓️ Blockchain Verification**: Immutable audit trail using Ethereum smart contracts
-- **📊 Real-time Analytics**: Interactive dashboards for monitoring and insights
-- **🔍 Graph Analysis**: Network relationship mapping for complex pattern detection
-- **📁 Bulk Processing**: CSV import for batch transaction analysis
-- **🔐 Role-based Access**: Secure authentication with granular permissions
-
-### 🌐 **Real-Time Data**
-- Economic indicators integration
-- Seasonal spending patterns
-- Historical baseline learning
-- Context-aware risk scoring
+### 📝 **Digital Services**
+*   **Secure Submission Form**: Streamlined form for submitting concerns with attachments.
+*   **Status Tracking**: Automated updates on resolution status.
 
 ---
 
-## 🏗️ Architecture
+## 🏗️ Technical Architecture
 
 ```
-┌─────────────┐
-│   Frontend  │  React + Vite
-│  (Port 5173)│
-└──────┬──────┘
+┌──────────────┐
+│  Resident /  │
+│   Official   │
+└──────┬───────┘
+       │ React (Vite)
+       ▼
+┌──────────────┐      ┌─────────────┐      ┌─────────────┐
+│   Backend    │◄────►│  MongoDB    │      │    Redis    │
+│  (Node.js)   │      │ (Database)  │      │ (Rate Limit)│
+└──────┬───────┘      └─────────────┘      └─────────────┘
        │
-┌──────▼──────┐
-│   Backend   │  Node.js + Express + MongoDB
-│  (Port 5000)│
-└──┬────┬────┬┘
-   │    │    │
-   ▼    ▼    ▼
-┌────┐┌────┐┌─────────┐
-│ ML ││Graph││Blockchain│
-│5001││5002││ Ganache │
-└────┘└────┘└─────────┘
+       ├─────► 🤖 ML Service (Python/Flask)
+       │       (Anomaly Detection — auth required)
+       │
+       ├─────► 🕸️ Graph Service (Python)
+       │       (Network Analysis)
+       │
+       └─────► ⛓️ Blockchain (Ethereum)
+               (Audit Trail)
 ```
 
-### Technology Stack
+---
 
-**Backend:**
-- Node.js + Express.js
-- MongoDB (database)
-- Web3.js (blockchain)
-- JWT (authentication)
+## 🔒 Security Posture
 
-**ML Service (Enhanced):**
-- Python + Flask
-- **Ensemble Model**: XGBoost + Random Forest + Gradient Boosting
-- **Economic Data Service**: Inflation & seasonal adjustments
-- SHAP (explainable AI)
-- scikit-learn (anomaly detection)
+| Control | Status | Details |
+|---|---|---|
+| Authentication | ✅ | JWT (HttpOnly cookie) + Email OTP + TOTP 2FA |
+| OAuth / SSO | ✅ | Google OAuth 2.0 (residents/officials only) |
+| Password Policy | ✅ | Min 8 chars, uppercase, lowercase, number, special char |
+| RBAC | ✅ | 5 roles with explicit permission matrices |
+| Rate Limiting | ✅ | Redis-backed, 5 login attempts/15min (OWASP) |
+| CSRF Protection | ✅ | Double-submit cookie pattern (HMAC-signed) |
+| Input Validation | ✅ | express-validator + mongoSanitize + XSS filter |
+| File Encryption | ❌ | Upload files are stored as plaintext on disk |
+| Audit Logging | ✅ | All actions logged with IP, user agent, timestamp |
+| HTTPS / TLS | ✅ | Enforced in production via Nginx/reverse proxy |
+| Container Security | ✅ | Non-root Docker user (nodeuser, UID 1001) |
+| CI Security Audit | ✅ | GitHub Actions `npm audit` on every push |
 
-**Graph Analytics:**
-- Python + Flask
-- NetworkX (network analysis)
-
-**Frontend:**
-- React + Vite
-- Recharts (visualization)
-- Modern UI/UX
-
-**Blockchain:**
-- Ethereum (Ganache/Sepolia)
-- Solidity smart contracts
-- Web3.js integration
+See [`docs/SECURITY.md`](docs/SECURITY.md) for the full security documentation.
+See [`docs/schema.md`](docs/schema.md) for the database schema overview.
+See [`docs/concepts.md`](docs/concepts.md) for AI, blockchain gas cost, and system model definitions.
 
 ---
 
 ## 🚀 Quick Start
 
-**See [SETUP.md](./SETUP.md) for complete instructions**
+**See [docs/SETUP.md](docs/SETUP.md) for complete installation instructions.**
 
-cd backend && npm install
-cd ../frontend && npm install
-cd ../ml_service && pip install -r requirements.txt
-cd ../graph_service && pip install -r requirements.txt
+### Prerequisites
+*   Docker & Docker Compose
+*   (Optional) Google Cloud credentials for OAuth
 
-# 2. Start Services (5 terminals)
-mongod                              # Terminal 1
-cd backend && npm run dev           # Terminal 2
-cd ml_service && python app.py      # Terminal 3
-cd graph_service && python app.py   # Terminal 4
-cd frontend && npm run dev          # Terminal 5
+### One-Command Start
+```bash
+cp .env.example .env
+# Edit .env with your credentials
+docker compose up
 ```
+Access the application at **http://localhost:5173**
 
-**Access:** http://localhost:5173
-
----
-
-## 📊 ML Enhancements (NEW!)
-
-### Ensemble Model
-Combines 3 ML algorithms for superior accuracy:
-- **XGBoost** (40% weight)
-- **Random Forest** (30% weight)
-- **Gradient Boosting** (30% weight)
-
-**Result**: **98-99% accuracy** (up from 96.8%)
-
-### Economic Context Integration
-- **Economic indicators** (Inflation, CPI)
-- **Seasonal adjustments** (year-end spending spikes)
-- **Program baselines** (4Ps: ₱9,000, SAP: ₱5,000, etc.)
-- **Dynamic thresholds** based on economic conditions
-
-### Example:
-```
-Normal 4Ps payment: ₱9,000
-With 8% inflation: ₱9,720 expected
-Payment of ₱15,000 → FLAGGED (54% above baseline)
-```
-
----
-
-## 📁 Project Structure
-
-```
-ChainShield/
-├── backend/          # Node.js API server
-│   ├── controllers/  # Request handlers
-│   ├── models/       # MongoDB schemas
-│   ├── routes/       # API routes
-│   └── services/     # Business logic
-│       ├── economicDataService.js  # NEW!
-│       └── fraudDetection.js
-├── frontend/         # React application
-├── ml_service/       # Python ML service
-│   ├── app.py        # Flask API (Enhanced)
-│   └── ensemble_model.py  # NEW!
-├── graph_service/    # Graph analytics
-├── contracts/        # Smart contracts
-└── sample_transactions.csv
-```
-
----
-
-## 🎯 Features
-
-### For Users:
-- ✅ Single transaction scanning
-- ✅ CSV bulk import
-- ✅ Real-time anomaly detection
-- ✅ Detailed risk explanations
-- ✅ Dashboard analytics
-- ✅ Alert management
-
-### For Developers:
-- ✅ RESTful API
-- ✅ Comprehensive documentation
-- ✅ Modular architecture
-- ✅ Easy deployment
-- ✅ Extensible ML models
-
----
-
-## 📈 Performance
-
-| Metric | Value |
-|--------|-------|
-| **Accuracy** | 98-99% |
-| **Response Time** | <1s |
-| **Throughput** | 100+ tx/sec |
-| **False Positives** | <2% |
-
----
-
-## 🔒 Security & Privacy
-
-- ✅ No PII stored on blockchain
-- ✅ Hashed/anonymized identifiers only
-- ✅ JWT authentication
-- ✅ Secure API endpoints
-- ✅ Encrypted communications
-
----
-
-## 📚 Documentation
-
-- **[SETUP.md](./SETUP.md)** - Complete setup guide
-- **[API.md](./API.md)** - API documentation
-- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - System architecture
-
----
-
-## 🤝 Contributing
-
-This is a research project. For questions or collaboration:
-- Review the code
-- Check documentation
-- Submit issues/PRs
+### Google OAuth Setup (Optional)
+1. Go to [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
+2. Create an OAuth 2.0 Client ID (Web application)
+3. Add `http://localhost:5000/api/auth/google/callback` as an authorized redirect URI
+4. Copy `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` to your `.env`
 
 ---
 
 ## 📄 License
-
-Academic/Research Use Only
-
----
-
-## 🌍 Built for Integrity
-
-Designed to support organizational integrity assurance efforts through advanced AI and blockchain technology.
-
-**Primary Features:**
-- Real-time inflation data integration
-- Support for various social programs
-- Standard procurement analysis
-- Customizable agency workflows
+Research Prototype - Academic Use Only
 
 ---
 
-## 🎓 Research & Thesis
-
-Perfect for:
-- Computer Science thesis
-- Anomaly detection research
-- Blockchain applications
-- AI/ML projects
-- Government tech solutions
-
----
-
-**ChainShield** - Protecting Funds with AI & Blockchain 🛡️
+**ChainShield** - Modernizing Barangay Governance with Technology 🇵🇭

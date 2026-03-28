@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   # =========================
   # MongoDB Database
@@ -12,10 +10,18 @@ services:
       - "27017:27017"
     environment:
       MONGO_INITDB_DATABASE: chainshield
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
     volumes:
       - mongodb_data:/data/db
     networks:
       - chainshield-network
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   # =========================
   # Backend API (Node.js)
@@ -28,26 +34,72 @@ services:
     restart: unless-stopped
     ports:
       - "5000:5000"
+    env_file:
+      - .env
     environment:
-      NODE_ENV: development
-      MONGODB_URI: mongodb://mongodb:27017/chainshield
+      NODE_ENV: ${NODE_ENV:-development}
+      MONGODB_URI: ${MONGODB_URI}
       JWT_SECRET: ${JWT_SECRET}
-      ML_SERVICE_URL: http://ml-service:5001
-      GRAPH_SERVICE_URL: http://graph-service:5002
+      JWT_EXPIRE: ${JWT_EXPIRE}
+      TOTP_ENCRYPTION_KEY: ${TOTP_ENCRYPTION_KEY}
+      BACKUP_ENCRYPTION_KEY: ${BACKUP_ENCRYPTION_KEY}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_SECURE: ${SMTP_SECURE}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+      EMAIL_FROM: ${EMAIL_FROM}
+      EMAIL_FROM_NAME: ${EMAIL_FROM_NAME}
+      AKISMET_ENABLED: ${AKISMET_ENABLED}
+      AKISMET_API_KEY: ${AKISMET_API_KEY}
+      AKISMET_BLOG: ${AKISMET_BLOG}
+      FRONTEND_URL: ${FRONTEND_URL}
+      ML_SERVICE_URL: ${ML_SERVICE_URL}
+      GRAPH_SERVICE_URL: ${GRAPH_SERVICE_URL}
       BLOCKCHAIN_RPC_URL: ${BLOCKCHAIN_RPC_URL}
       CONTRACT_ADDRESS: ${CONTRACT_ADDRESS}
       BLOCKCHAIN_ACCOUNT: ${BLOCKCHAIN_ACCOUNT}
       BLOCKCHAIN_PRIVATE_KEY: ${BLOCKCHAIN_PRIVATE_KEY}
+      REDIS_URL: redis://redis:6379
+      ML_API_SECRET: ${ML_API_SECRET}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GOOGLE_CALLBACK_URL: ${GOOGLE_CALLBACK_URL}
     depends_on:
-      - mongodb
-      - ml-service
-      - graph-service
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      ml-service:
+        condition: service_started
+      graph-service:
+        condition: service_started
     volumes:
       - ./backend:/app
-      - /app/node_modules
+      - backend_node_modules:/app/node_modules
     networks:
       - chainshield-network
-    command: npm run dev
+    command: sh -c "[ -d node_modules ] || npm install; npm run dev"
+
+  # =========================
+  # Redis (Rate Limiter Persistence)
+  # =========================
+  redis:
+    image: redis:7-alpine
+    container_name: chainshield-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    networks:
+      - chainshield-network
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # =========================
   # ML Service (Python)
@@ -60,6 +112,10 @@ services:
     restart: unless-stopped
     ports:
       - "5001:5001"
+    env_file:
+      - .env
+    environment:
+      ML_API_SECRET: ${ML_API_SECRET:-chainshield_ml_internal_secret_dev}
     volumes:
       - ./ml_service:/app
       - ml_models:/app/models
@@ -97,13 +153,13 @@ services:
     ports:
       - "5173:5173"
     environment:
-      VITE_API_URL: http://backend:5000
+      - VITE_API_URL=/api
     volumes:
       - ./frontend:/app
-      - /app/node_modules
+      - frontend_node_modules:/app/node_modules
     networks:
       - chainshield-network
-    command: npm run dev -- --host 0.0.0.0 --port 5173
+    command: sh -c "[ -d node_modules ] || npm install; npm run dev -- --host 0.0.0.0 --port 5173"
 
   # =========================
   # Ganache Blockchain (Local Ethereum)
@@ -113,14 +169,11 @@ services:
     container_name: chainshield-ganache
     restart: unless-stopped
     ports:
-      - "${GANACHE_PORT:-7545}:8545"
+      - "7546:8545"
     command: >
-      --mnemonic "${GANACHE_MNEMONIC}"
-      --networkId ${GANACHE_NETWORK_ID:-1337}
-      --accounts 10
-      --defaultBalanceEther 1000
-      --gasLimit 10000000
-      --gasPrice 20000000000
+      --mnemonic "${GANACHE_MNEMONIC}" --networkId ${GANACHE_NETWORK_ID:-1337} --accounts 10 --defaultBalanceEther 1000 --gasLimit 10000000 --gasPrice 20000000000 --database.dbPath /ganache_data
+    volumes:
+      - ganache_data:/ganache_data
     networks:
       - chainshield-network
 
@@ -138,3 +191,7 @@ volumes:
   mongodb_data:
   ml_models:
   ml_datasets:
+  ganache_data:
+  redis_data:
+  frontend_node_modules:
+  backend_node_modules:

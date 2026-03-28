@@ -1,0 +1,111 @@
+/* Confirm Modal Styles */
+.confirm-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 12000;
+    padding: 1rem;
+}
+
+.confirm-modal {
+    background: white;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    animation: slideUp 0.2s ease;
+}
+
+.confirm-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border-color, #e2e8f0);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.confirm-title-group {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.confirm-icon.destructive {
+    color: #ef4444;
+    /* red-500 */
+}
+
+.confirm-icon.success {
+    color: #10b981;
+    /* emerald-500 */
+}
+
+.confirm-header h3 {
+    margin: 0;
+    font-size: 1.15rem;
+    color: var(--text-primary, #1e293b);
+}
+
+.confirm-close-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted, #94a3b8);
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.confirm-close-btn:hover {
+    color: var(--text-primary, #1e293b);
+}
+
+.confirm-body {
+    padding: 1.5rem;
+    color: var(--text-secondary, #475569);
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.confirm-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    background: var(--bg-secondary, #f8fafc);
+    border-top: 1px solid var(--border-color, #e2e8f0);
+}
+
+.btn-confirm {
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-confirm.destructive {
+    background: #ef4444;
+}
+
+.btn-confirm.destructive:hover {
+    background: #dc2626;
+}
+
+.btn-confirm.success {
+    background: #10b981;
+}
+
+.btn-confirm.success:hover {
+    background: #059669;
+}
+
+.btn-confirm:disabled {
+    background: var(--text-muted, #94a3b8);
+    cursor: not-allowed;
+}

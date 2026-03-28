@@ -1,0 +1,184 @@
+/* Colorful Icon Styles with Visible Boxes */
+
+/* Dashboard Icons */
+.dashboard-hero .stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid;
+}
+
+.dashboard-hero .stat-icon svg {
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.hero-stat-card.total .stat-icon {
+    background: rgba(245, 158, 11, 0.15);
+    border-color: rgba(245, 158, 11, 0.3);
+}
+
+.hero-stat-card.total .stat-icon svg {
+    color: #f59e0b;
+}
+
+.hero-stat-card.critical .stat-icon {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+.hero-stat-card.critical .stat-icon svg {
+    color: #ef4444;
+}
+
+.hero-stat-card.high .stat-icon {
+    background: rgba(59, 130, 246, 0.15);
+    border-color: rgba(59, 130, 246, 0.3);
+}
+
+.hero-stat-card.high .stat-icon svg {
+    color: #3b82f6;
+}
+
+.hero-stat-card.medium .stat-icon {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: rgba(16, 185, 129, 0.3);
+}
+
+.hero-stat-card.medium .stat-icon svg {
+    color: #10b981;
+}
+
+/* Email verification icon with box */
+.dashboard-container svg[color="#3b82f6"] {
+    filter: drop-shadow(0 4px 8px rgba(59, 130, 246, 0.3));
+}
+
+/* Transaction History Icons with boxes */
+.error-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.error-banner svg {
+    color: #ef4444;
+    flex-shrink: 0;
+    padding: 4px;
+    background: rgba(239, 68, 68, 0.1);
+    border-radius: 6px;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.blockchain-hash {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+
+.blockchain-hash svg {
+    color: #10b981;
+    padding: 2px;
+    background: rgba(16, 185, 129, 0.1);
+    border-radius: 4px;
+}
+
+.no-hash {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+
+.no-hash svg {
+    color: #f59e0b;
+    padding: 2px;
+    background: rgba(245, 158, 11, 0.1);
+    border-radius: 4px;
+}
+
+/* TopBar Icons with boxes */
+.top-bar .icon-btn {
+    position: relative;
+}
+
+.top-bar .icon-btn svg {
+    transition: all 0.2s ease;
+    padding: 6px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.top-bar .icon-btn:hover svg {
+    transform: scale(1.1);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.top-bar .icon-btn:nth-child(1) svg {
+    color: #3b82f6;
+    background: rgba(59, 130, 246, 0.1);
+    border-color: rgba(59, 130, 246, 0.2);
+}
+
+.top-bar .icon-btn:nth-child(2) svg {
+    color: #f59e0b;
+    background: rgba(245, 158, 11, 0.1);
+    border-color: rgba(245, 158, 11, 0.2);
+}
+
+.mobile-menu-btn svg {
+    color: #6366f1;
+    padding: 4px;
+    background: rgba(99, 102, 241, 0.1);
+    border-radius: 6px;
+}
+
+/* Profile Icons with boxes */
+.info-icon svg {
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.edit-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.edit-btn svg {
+    color: #3b82f6;
+    padding: 4px;
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: 6px;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.update-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.update-btn svg {
+    color: #10b981;
+    padding: 4px;
+    background: rgba(16, 185, 129, 0.1);
+    border-radius: 6px;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+/* Logout Icon with box */
+.logout-btn svg {
+    color: #fca5a5;
+    transition: all 0.2s ease;
+    padding: 4px;
+    background: rgba(239, 68, 68, 0.1);
+    border-radius: 6px;
+}
+
+.logout-btn:hover svg {
+    color: #fecaca;
+    transform: rotate(-10deg);
+    background: rgba(239, 68, 68, 0.15);
+}

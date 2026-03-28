@@ -1,0 +1,43 @@
+﻿--------------------------------------------------------------------------------------
+                         ChainShield Improvements Report
+--------------------------------------------------------------------------------------
+
+Analysis Date              : 2026-03-02T21:24:56.246858
+Generated (local)          : 2026-03-10 17:31:53
+
+AI Integrity Analysis
+Execution Time             : 0.5839 seconds
+Test Case                  : AI Fraud Prediction (High Complexity)
+Performance Rating         : CRITICAL
+
+Improvements Applied
+  - Reduced N+1 MongoDB queries in batch processing
+  - Aggregated frequency checks (24h + 1h) per address for the whole batch
+  - Cached behavioral profiles per fromAddress within the batch
+  - File: backend/services/multiStageFraudPipeline.js
+
+Blockchain Gas Analysis
+Highest Cost (per tx)      : PHP 525.00
+Transaction Type           : budget_allocation
+Gas Units                  : 140000
+Gas Price                  : 25 gwei
+
+Improvements Applied
+  - No direct on-chain gasUnits change in this patch (gasUsed)
+  - Recommended: batch commits (Merkle root) or event-only logging; consider L2 for audit trail
+
+Blockchain Transaction Analysis
+Execution Time             : 1.1418 seconds
+Test Case                  : Blockchain Transaction API
+Performance Rating         : CRITICAL
+
+Improvements Applied
+  - Reduced RPC overhead with a short gas price cache
+  - Made post-transaction block timestamp fetch optional
+  - File: backend/services/blockchainService.js
+
+Config Knobs
+BLOCKCHAIN_GAS_PRICE_CACHE_MS : 10000 (default)
+BLOCKCHAIN_INCLUDE_BLOCK_TIMESTAMP : true only if needed
+
+--------------------------------------------------------------------------------------

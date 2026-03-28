@@ -1,12 +1,17 @@
 import React, { useState } from 'react';
+import { Shield, User, Mail, Lock, AlertCircle, Building, Calendar, FileText, ShieldCheck } from 'lucide-react';
 import '../../styles/Register.css';
+import api from '../../services/api';
 
 function Register({ onRegister, onNavigate }) {
   const [formData, setFormData] = useState({
-    username: '',
+    firstName: '',
+    lastName: '',
+    birthday: '',
     email: '',
-    department: '',
-    role: 'analyst',
+    role: 'resident',
+    position: 'Kagawad',
+    customPosition: '',
     password: '',
     confirmPassword: ''
   });
@@ -19,17 +24,35 @@ function Register({ onRegister, onNavigate }) {
     setError('');
 
     if (step === 1) {
-      if (!formData.username || !formData.email || !formData.department) {
+      if (!formData.firstName || !formData.lastName || !formData.email) {
         setError('Please fill in all required fields');
         return;
       }
+
       setStep(2);
       return;
     }
 
     if (step === 2) {
-      if (formData.password.length < 6) {
-        setError('Password must be at least 6 characters');
+      // Strong password validation
+      if (formData.password.length < 8) {
+        setError('Password must be at least 8 characters');
+        return;
+      }
+      if (!/[a-z]/.test(formData.password)) {
+        setError('Password must contain at least one lowercase letter');
+        return;
+      }
+      if (!/[A-Z]/.test(formData.password)) {
+        setError('Password must contain at least one uppercase letter');
+        return;
+      }
+      if (!/[0-9]/.test(formData.password)) {
+        setError('Password must contain at least one number');
+        return;
+      }
+      if (!/[!@#$%^&*(),.?":{}|<>]/.test(formData.password)) {
+        setError('Password must contain at least one special character (!@#$%^&*(),.?":{}|<>)');
         return;
       }
       if (formData.password !== formData.confirmPassword) {
@@ -39,32 +62,20 @@ function Register({ onRegister, onNavigate }) {
 
       setLoading(true);
       try {
-        const response = await fetch('http://localhost:5000/api/auth/register', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            username: formData.username,
-            email: formData.email,
-            password: formData.password,
-            department: formData.department,
-            role: formData.role
-          })
+        const res = await api.post('/auth/register', {
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          birthday: formData.birthday || null,
+          email: formData.email,
+          password: formData.password,
+          role: 'resident'
         });
 
-        const data = await response.json();
+        // Navigate to email verification
+        onNavigate('email-verify', res.data.user);
 
-        if (response.ok) {
-          // Successful registration
-          onRegister(data.token, data.user);
-        } else {
-          // Registration failed
-          setError(data.error || 'Registration failed. Please try again.');
-          setLoading(false);
-        }
       } catch (err) {
-        setError('Unable to connect to server. Please make sure the backend is running.');
+        setError(err.response?.data?.error || 'Registration failed. Please try again.');
         setLoading(false);
       }
     }
@@ -75,48 +86,23 @@ function Register({ onRegister, onNavigate }) {
       <div className="auth-sidebar register-sidebar">
         <div className="auth-sidebar-content">
           <div className="sidebar-brand" onClick={() => onNavigate('welcome')} style={{ cursor: 'pointer' }}>
-            <div className="sidebar-logo">🛡️</div>
+            <div className="sidebar-logo"><img src="/ChainShield_logo.png" alt="ChainShield Logo" className="logo-image" /></div>
             <h2 className="sidebar-title">ChainShield</h2>
-            <p className="sidebar-subtitle">Document Fraud Detection</p>
+            <p className="sidebar-subtitle">Transaction Verification System</p>
           </div>
 
           <div className="sidebar-illustration">
             <div className="illustration-circle green"></div>
-            <div className="illustration-icon">📝</div>
+            <div className="illustration-icon"><FileText size={48} color="white" /></div>
           </div>
 
           <div className="sidebar-info">
             <h3 className="sidebar-info-title">Join ChainShield</h3>
             <p className="sidebar-info-text">
-              Create your account to access document verification tools and help protect government records.
+              Create your account to access digital tools and help ensure system integrity.
             </p>
 
-            <div className="role-info">
-              <h4 className="role-info-title">Available Roles:</h4>
-              <ul className="role-list">
-                <li className="role-item">
-                  <span className="role-icon">👤</span>
-                  <div>
-                    <strong>Analyst</strong>
-                    <span className="role-desc">View and analyze document alerts</span>
-                  </div>
-                </li>
-                <li className="role-item">
-                  <span className="role-icon">🔍</span>
-                  <div>
-                    <strong>Investigator</strong>
-                    <span className="role-desc">Manage fraud cases</span>
-                  </div>
-                </li>
-                <li className="role-item">
-                  <span className="role-icon">⚙️</span>
-                  <div>
-                    <strong>Administrator</strong>
-                    <span className="role-desc">Full system access</span>
-                  </div>
-                </li>
-              </ul>
-            </div>
+
           </div>
         </div>
       </div>
@@ -146,7 +132,7 @@ function Register({ onRegister, onNavigate }) {
 
           {error && (
             <div className="alert-box error">
-              <span className="alert-icon">⚠️</span>
+              <span className="alert-icon"><AlertCircle size={20} /></span>
               <span className="alert-message">{error}</span>
             </div>
           )}
@@ -156,25 +142,55 @@ function Register({ onRegister, onNavigate }) {
               <>
                 <div className="form-field">
                   <label className="field-label">
-                    <span className="label-icon">👤</span>
-                    <span>Full Name</span>
+                    <span className="label-icon"><User size={18} /></span>
+                    <span>First Name</span>
                     <span className="required">*</span>
                   </label>
                   <input
                     type="text"
-                    value={formData.username}
-                    onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                    value={formData.firstName}
+                    onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                     className="field-input"
-                    placeholder="Juan Dela Cruz"
+                    placeholder="Juan"
                     required
                   />
-                  <span className="field-hint">As it appears on official documents</span>
                 </div>
 
                 <div className="form-field">
                   <label className="field-label">
-                    <span className="label-icon">📧</span>
-                    <span>Government Email</span>
+                    <span className="label-icon"><User size={18} /></span>
+                    <span>Last Name</span>
+                    <span className="required">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.lastName}
+                    onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                    className="field-input"
+                    placeholder="Dela Cruz"
+                    required
+                  />
+                </div>
+
+                <div className="form-field">
+                  <label className="field-label">
+                    <span className="label-icon"><Calendar size={18} /></span>
+                    <span>Date of Birth</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.birthday}
+                    onChange={(e) => setFormData({ ...formData, birthday: e.target.value })}
+                    className="field-input"
+                    max={new Date().toISOString().split('T')[0]}
+                  />
+                  <span className="field-hint">Optional - for age verification</span>
+                </div>
+
+                <div className="form-field">
+                  <label className="field-label">
+                    <span className="label-icon"><Mail size={18} /></span>
+                    <span>Email Address</span>
                     <span className="required">*</span>
                   </label>
                   <input
@@ -182,48 +198,13 @@ function Register({ onRegister, onNavigate }) {
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className="field-input"
-                    placeholder="juan.delacruz@gov.ph"
+                    placeholder="juan.delacruz@example.com"
                     required
                   />
-                  <span className="field-hint">Official government email only</span>
+                  <span className="field-hint">We'll send a verification code to this email</span>
                 </div>
 
-                <div className="form-field">
-                  <label className="field-label">
-                    <span className="label-icon">🏢</span>
-                    <span>Department/Agency</span>
-                    <span className="required">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.department}
-                    onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                    className="field-input"
-                    placeholder="e.g., Document Verification Unit, LTO, NSO"
-                    required
-                  />
-                  <span className="field-hint">Your organizational unit</span>
-                </div>
 
-                <div className="form-field">
-                  <label className="field-label">
-                    <span className="label-icon">🎯</span>
-                    <span>Role</span>
-                    <span className="required">*</span>
-                  </label>
-                  <select
-                    value={formData.role}
-                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                    className="field-input"
-                    required
-                  >
-                    <option value="analyst">Analyst - View and analyze fraud alerts</option>
-                    <option value="investigator">Investigator - Manage cases and investigations</option>
-                    <option value="admin">Administrator - Full system access</option>
-                    <option value="viewer">Viewer - Read-only access</option>
-                  </select>
-                  <span className="field-hint">Select your access level</span>
-                </div>
               </>
             )}
 
@@ -231,9 +212,8 @@ function Register({ onRegister, onNavigate }) {
               <>
                 <div className="form-field">
                   <label className="field-label">
-                    <span className="label-icon">🔒</span>
+                    <span className="label-icon"><Lock size={18} /></span>
                     <span>Password</span>
-                    <span className="required">*</span>
                   </label>
                   <input
                     type="password"
@@ -243,12 +223,12 @@ function Register({ onRegister, onNavigate }) {
                     placeholder="Create a strong password"
                     required
                   />
-                  <span className="field-hint">Minimum 6 characters, include letters and numbers</span>
+                  <span className="field-hint">Minimum 8 characters with uppercase, lowercase, number, and special character</span>
                 </div>
 
                 <div className="form-field">
                   <label className="field-label">
-                    <span className="label-icon">🔐</span>
+                    <span className="label-icon"><ShieldCheck size={18} /></span>
                     <span>Confirm Password</span>
                     <span className="required">*</span>
                   </label>
@@ -300,7 +280,7 @@ function Register({ onRegister, onNavigate }) {
           </div>
         </div>
       </div>
-    </div>
+    </div >
   );
 }
 

@@ -1,47 +1,45 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { Eye } from 'lucide-react';
+
+const isMeaningfulValue = (value) => {
+  if (value === null || value === undefined) return false;
+  const normalized = String(value).trim().toLowerCase();
+  if (!normalized) return false;
+  return !['n/a', 'na', '-', 'unknown', 'unknown agency', 'unknown program'].includes(normalized);
+};
 
 function AlertCard({ alert, onInvestigate }) {
-  const severityColors = {
-    critical: { bg: '#fef2f2', border: '#fecaca', text: '#991b1b' },
-    high: { bg: '#fff7ed', border: '#fed7aa', text: '#9a3412' },
-    medium: { bg: '#fefce8', border: '#fef08a', text: '#854d0e' }
-  };
-
-  const colors = severityColors[alert.severity];
+  const severityClass = `sev-${alert.severity}`;
+  const riskClass = alert.riskScore >= 90 ? 'risk-critical' : alert.riskScore >= 71 ? 'risk-high' : alert.riskScore >= 41 ? 'risk-medium' : 'risk-low';
 
   return (
     <div className="alert-card">
-      <div className="alert-card-header">
-        <div className="alert-badges">
-          <span className="severity-badge" style={{ background: colors.bg, border: `1px solid ${colors.border}`, color: colors.text }}>
-            {alert.severity.toUpperCase()}
-          </span>
-          <span className="status-badge">{alert.status.replace('_', ' ').toUpperCase()}</span>
+      <div className="alert-card-top">
+        <div className="alert-card-badges">
+          <span className={`sev-pill ${severityClass}`}>{alert.severity.toUpperCase()}</span>
+          <span className="alert-open-pill">OPEN</span>
         </div>
-        <div className="alert-score-box">
-          <div className="score-label">Risk Score</div>
-          <div className="score-value" style={{ color: colors.text }}>{alert.riskScore}</div>
+        <div className="alert-card-score-box">
+          <div className="alert-card-score-label">Risk Score</div>
+          <div className="alert-card-score-value">{alert.riskScore}</div>
         </div>
       </div>
-      <h4 className="alert-type">{alert.type}</h4>
-      <div className="alert-hash">{alert.documentId}</div>
-      <div className="alert-meta-info">
-        <div className="meta-row">
-          <span className="meta-label">Transaction Type:</span>
-          <span className="meta-value">{alert.documentType}</span>
-        </div>
-        <div className="meta-row">
-          <span className="meta-label">Agency:</span>
-          <span className="meta-value">{alert.issuer}</span>
-        </div>
-        {alert.amount && (
-          <div className="meta-row">
-            <span className="meta-label">Amount:</span>
-            <span className="meta-value">₱{alert.amount.toLocaleString()}</span>
-          </div>
+
+      <h4 className="alert-card-title">{alert.type}</h4>
+      <div className="alert-card-id">{alert.documentId}</div>
+
+      <div className="alert-card-meta">
+        <div><span>Transaction Type:</span><strong>{alert.documentType || 'N/A'}</strong></div>
+        {isMeaningfulValue(alert.issuer) && (
+          <div><span>Agency:</span><strong>{alert.issuer}</strong></div>
         )}
+        <div><span>Amount:</span><strong>PHP {Number(alert.amount || 0).toLocaleString()}</strong></div>
+        <div><span>Risk:</span><strong className={`risk-chip ${riskClass}`}>{alert.riskScore}</strong></div>
       </div>
-      <button className="investigate-btn" onClick={() => onInvestigate(alert)}>👁️ Investigate</button>
+
+      <button type="button" className="alert-investigate-btn" onClick={() => onInvestigate(alert)}>
+        <Eye size={16} /> Investigate
+      </button>
     </div>
   );
 }

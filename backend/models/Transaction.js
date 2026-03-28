@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const transactionSchema = new mongoose.Schema({
-  // Transaction ID (Philippine Government Format)
+  // Transaction ID (Barangay Transaction Format)
   transactionId: {
     type: String,
     unique: true,
@@ -20,10 +20,10 @@ const transactionSchema = new mongoose.Schema({
   blockchainTxId: String, // Ethereum transaction ID
   gasUsed: Number,
 
-  // Philippine Government Context
+  // Barangay Context
   transactionType: {
     type: String,
-    enum: ['Social Welfare', 'Procurement', 'Grant', 'Tax', 'Revenue', 'Other'],
+    enum: ['Social Welfare', 'Procurement', 'Grant', 'Tax', 'Revenue', 'Emergency Funds', 'Other'],
     required: true,
     index: true
   },
@@ -54,7 +54,7 @@ const transactionSchema = new mongoose.Schema({
   beneficiaryId: String, // Hashed/anonymized ID
   beneficiaryType: {
     type: String,
-    enum: ['Individual', 'Household', 'Organization', 'Government Entity', 'Vendor', 'Contractor']
+    enum: ['Individual', 'Household', 'Organization', 'Barangay Office', 'Vendor', 'Contractor']
   },
 
   // Metadata
@@ -63,12 +63,30 @@ const transactionSchema = new mongoose.Schema({
     default: Date.now,
     index: true
   },
+  staged: {
+    type: Boolean,
+    default: false,
+    index: true
+  },
+  description: {
+    type: String,
+    trim: true
+  },
+  verificationStatus: {
+    type: String,
+    enum: ['Pending', 'Verified', 'Suspicious', 'Flagged', 'Rejected'],
+    default: 'Pending',
+    index: true
+  },
+  verifiedBy: {
+    type: String
+  },
   metadata: {
     type: Map,
     of: mongoose.Schema.Types.Mixed
   },
 
-  // Fraud detection results
+  // Risk assessment results
   flagged: {
     type: Boolean,
     default: false,
@@ -80,10 +98,34 @@ const transactionSchema = new mongoose.Schema({
     max: 100,
     index: true
   },
+  zScore: {
+    type: Number
+  },
   riskLevel: {
     type: String,
     enum: ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'],
     index: true
+  },
+  velocityFlag: {
+    type: Boolean,
+    default: false
+  },
+  receiverPatternFlag: {
+    type: Boolean,
+    default: false
+  },
+  amountSpikeFlag: {
+    type: Boolean,
+    default: false
+  },
+  mlUsed: {
+    type: Boolean,
+    default: false
+  },
+  mlScore: {
+    type: Number,
+    min: 0,
+    max: 100
   },
 
   // Graph analytics
@@ -96,7 +138,18 @@ const transactionSchema = new mongoose.Schema({
     betweennessCentrality: Number
   },
 
-  // Fraud patterns detected
+  // Line items (from itemized CSV columns item1_* … item5_*)
+  lineItems: [{
+    name:       { type: String },
+    unit:       { type: String },
+    quantity:   { type: Number },
+    unitPrice:  { type: Number },
+    totalPrice: { type: Number },
+    supplier:   { type: String },
+    notes:      { type: String },
+  }],
+
+  // Risk patterns detected
   fraudPatterns: [{
     type: {
       type: String,
@@ -104,6 +157,9 @@ const transactionSchema = new mongoose.Schema({
     },
     severity: String,
     description: String
+  }],
+  reasons: [{
+    type: String
   }]
 }, { timestamps: true });
 

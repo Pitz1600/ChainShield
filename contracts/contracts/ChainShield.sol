@@ -1,101 +1,69 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-/**
- * @title ChainShield Smart Contract
- * @notice Minimal smart contract for recording transaction hashes on Ethereum blockchain
- * @dev Stores only transaction hashes, timestamps, and verifier IDs - NO PII or financial details
- * 
- * This contract is designed for Philippine government fraud detection prototype.
- * It provides immutable audit trails for transaction verification.
- */
 contract ChainShield {
-    struct TransactionRecord {
-        bytes32 txHash;
-        uint256 timestamp;
-        address verifier;
-        bool exists;
+    struct SuspiciousRecord {
+        uint40 timestamp; // fits block.timestamp, packs with riskScore into one slot
+        uint8 riskScore; // 0-100 compressed to 1 byte
     }
-    
-    mapping(bytes32 => TransactionRecord) public records;
+
+    // Minimal on-chain storage: only keep a flag + compact risk data
+    mapping(bytes32 => SuspiciousRecord) public suspicious;
     address public owner;
-    uint256 public totalRecords;
-    
-    event TransactionRecorded(
-        bytes32 indexed txHash,
-        uint256 timestamp,
-        address indexed verifier
-    );
-    
+    uint256 public totalSuspicious;
+
+    event SuspiciousRecorded(bytes32 indexed txHash, uint8 riskScore, uint256 timestamp, bytes32 metaHash);
+
+    error NotAuthorized();
+    error AlreadyRecorded();
+    error InvalidRisk();
+    error NotFound();
+    error ZeroAddress();
+
     modifier onlyOwner() {
-        require(msg.sender == owner, "Only owner can call this function");
+        if (msg.sender != owner) revert NotAuthorized();
         _;
     }
-    
+
     constructor() {
         owner = msg.sender;
     }
-    
-    /**
-     * @notice Record a transaction hash on the blockchain
-     * @param _txHash The SHA-256 hash of the transaction data
-     * @dev Only stores hash - no personal or financial information
-     */
-    function recordTransaction(bytes32 _txHash) public {
-        require(!records[_txHash].exists, "Transaction already recorded");
-        
-        records[_txHash] = TransactionRecord({
-            txHash: _txHash,
-            timestamp: block.timestamp,
-            verifier: msg.sender,
-            exists: true
+
+    /// @notice Record only suspicious transactions; owner-only to prevent spam
+    /// @param _txHash SHA-256 hash of transaction payload
+    /// @param _riskScore Compact risk score 0-100
+    /// @param _metaHash Optional hashed metadata stored via event (gas cheap)
+    function recordSuspicious(bytes32 _txHash, uint8 _riskScore, bytes32 _metaHash) external onlyOwner {
+        if (suspicious[_txHash].timestamp != 0) revert AlreadyRecorded();
+        if (_riskScore > 100) revert InvalidRisk();
+
+        suspicious[_txHash] = SuspiciousRecord({
+            timestamp: uint40(block.timestamp),
+            riskScore: _riskScore
         });
-        
-        totalRecords++;
-        
-        emit TransactionRecorded(_txHash, block.timestamp, msg.sender);
+
+        unchecked {
+            totalSuspicious += 1;
+        }
+
+        emit SuspiciousRecorded(_txHash, _riskScore, block.timestamp, _metaHash);
     }
-    
-    /**
-     * @notice Verify if a transaction hash exists on the blockchain
-     * @param _txHash The transaction hash to verify
-     * @return Boolean indicating if transaction exists
-     */
-    function verifyTransaction(bytes32 _txHash) public view returns (bool) {
-        return records[_txHash].exists;
+
+    /// @notice Check if a suspicious tx hash exists
+    function isRecorded(bytes32 _txHash) public view returns (bool) {
+        return suspicious[_txHash].timestamp != 0;
     }
-    
-    /**
-     * @notice Get transaction record details
-     * @param _txHash The transaction hash to query
-     * @return txHash The stored transaction hash
-     * @return timestamp The block timestamp when recorded
-     * @return verifier The address that recorded the transaction
-     */
-    function getTransaction(bytes32 _txHash) public view returns (
-        bytes32,
-        uint256,
-        address
-    ) {
-        require(records[_txHash].exists, "Transaction not found");
-        TransactionRecord memory record = records[_txHash];
-        return (record.txHash, record.timestamp, record.verifier);
+
+    /// @notice Get compact suspicious record
+    function getSuspicious(bytes32 _txHash) external view returns (uint256 timestamp, uint8 riskScore) {
+        SuspiciousRecord memory record = suspicious[_txHash];
+        if (record.timestamp == 0) revert NotFound();
+        return (uint256(record.timestamp), record.riskScore);
     }
-    
-    /**
-     * @notice Get total number of recorded transactions
-     * @return Total count of transactions
-     */
-    function getTotalRecords() public view returns (uint256) {
-        return totalRecords;
-    }
-    
-    /**
-     * @notice Transfer contract ownership (for maintenance)
-     * @param newOwner The new owner address
-     */
-    function transferOwnership(address newOwner) public onlyOwner {
-        require(newOwner != address(0), "New owner cannot be zero address");
+
+    /// @notice Transfer contract ownership (for maintenance)
+    function transferOwnership(address newOwner) external onlyOwner {
+        if (newOwner == address(0)) revert ZeroAddress();
         owner = newOwner;
     }
 }

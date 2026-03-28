@@ -1,0 +1,201 @@
+record_id,post_date,payer_name,payee_name,debit_amount,credit_amount,currency,description_raw
+TX-CLEAN-1,2024-09-15,DSWD,Maria Santos,46456.47,0.0,PHP,Community assistance payout
+TX-CLEAN-2,2024-09-18,Public Works Department,ABC Construction,29735.71,0.0,PHP,Municipal service payment
+TX-CLEAN-3,2024-09-14,Public Works Department,Metro Supply Co,39724.27,0.0,PHP,Office supplies purchase
+TX-CLEAN-4,2024-10-02,Barangay Pantal,ABC Construction,35593.09,0.0,PHP,Municipal service payment
+TX-CLEAN-5,2024-10-03,DSWD,Local Supplier,37393.76,0.0,PHP,Routine procurement payment
+TX-CLEAN-6,2024-10-03,Municipal Development Office,Juan Dela Cruz,19607.22,0.0,PHP,Office supplies purchase
+TX-CLEAN-7,2024-10-09,City Treasury,Maria Santos,13803.17,0.0,PHP,Routine procurement payment
+TX-CLEAN-8,2024-10-26,City Treasury,Maria Santos,28476.2,0.0,PHP,Infrastructure maintenance
+TX-CLEAN-9,2024-10-26,DSWD,ABC Construction,39106.2,0.0,PHP,Community assistance payout
+TX-CLEAN-10,2024-09-10,Barangay Pantal,Local Supplier,40701.24,0.0,PHP,Office supplies purchase
+TX-CLEAN-11,2024-10-08,Municipal Development Office,Local Supplier,19135.7,0.0,PHP,Infrastructure maintenance
+TX-CLEAN-12,2024-09-02,DSWD,Metro Supply Co,33693.91,0.0,PHP,Municipal service payment
+TX-CLEAN-13,2024-09-28,Municipal Development Office,Maria Santos,44280.19,0.0,PHP,Community assistance payout
+TX-CLEAN-14,2024-10-18,City Treasury,Local Supplier,30336.5,0.0,PHP,Municipal service payment
+TX-CLEAN-15,2024-09-20,DSWD,Metro Supply Co,6188.24,0.0,PHP,Municipal service payment
+TX-CLEAN-16,2024-09-25,Barangay Pantal,Metro Supply Co,34819.47,0.0,PHP,Infrastructure maintenance
+TX-CLEAN-17,2024-09-04,Public Works Department,ABC Construction,27010.69,0.0,PHP,Municipal service payment
+TX-CLEAN-18,2024-09-19,DSWD,Local Supplier,19083.61,0.0,PHP,Office supplies purchase
+TX-CLEAN-19,2024-10-10,DSWD,Juan Dela Cruz,29048.04,0.0,PHP,Municipal service payment
+TX-CLEAN-20,2024-09-09,Public Works Department,Metro Supply Co,27168.92,0.0,PHP,Office supplies purchase
+TX-CLEAN-21,2024-09-16,DSWD,Metro Supply Co,40545.89,0.0,PHP,Community assistance payout
+TX-CLEAN-22,2024-10-23,Barangay Pantal,Maria Santos,41768.21,0.0,PHP,Routine procurement payment
+TX-CLEAN-23,2024-10-27,DSWD,ABC Construction,15607.32,0.0,PHP,Municipal service payment
+TX-CLEAN-24,2024-09-05,DSWD,Juan Dela Cruz,23623.9,0.0,PHP,Routine procurement payment
+TX-CLEAN-25,2024-10-28,DSWD,Local Supplier,28787.3,0.0,PHP,Office supplies purchase
+TX-CLEAN-26,2024-10-01,DSWD,ABC Construction,8417.68,0.0,PHP,Municipal service payment
+TX-CLEAN-27,2024-10-29,City Treasury,ABC Construction,9013.03,0.0,PHP,Infrastructure maintenance
+TX-CLEAN-28,2024-10-03,Barangay Pantal,Juan Dela Cruz,38137.95,0.0,PHP,Office supplies purchase
+TX-CLEAN-29,2024-10-25,DSWD,ABC Construction,22844.65,0.0,PHP,Infrastructure maintenance
+TX-CLEAN-30,2024-10-06,Public Works Department,Maria Santos,30307.98,0.0,PHP,Office supplies purchase
+TX-CLEAN-31,2024-09-14,DSWD,Metro Supply Co,34137.25,0.0,PHP,Infrastructure maintenance
+TX-CLEAN-32,2024-10-13,Municipal Development Office,ABC Construction,9068.2,0.0,PHP,Routine procurement payment
+TX-CLEAN-33,2024-09-02,City Treasury,ABC Construction,10034.22,0.0,PHP,Municipal service payment
+TX-CLEAN-34,2024-09-13,Barangay Pantal,Juan Dela Cruz,44162.98,0.0,PHP,Office supplies purchase
+TX-CLEAN-35,2024-10-11,Municipal Development Office,ABC Construction,40569.22,0.0,PHP,Routine procurement payment
+TX-CLEAN-36,2024-09-23,DSWD,Metro Supply Co,33822.39,0.0,PHP,Municipal service payment
+TX-CLEAN-37,2024-10-17,Public Works Department,Maria Santos,12820.68,0.0,PHP,Infrastructure maintenance
+TX-CLEAN-38,2024-10-01,Municipal Development Office,Metro Supply Co,39298.24,0.0,PHP,Municipal service payment
+TX-CLEAN-39,2024-10-02,Barangay Pantal,ABC Construction,22906.92,0.0,PHP,Office supplies purchase
+TX-CLEAN-40,2024-10-14,Public Works Department,Local Supplier,36345.68,0.0,PHP,Infrastructure maintenance
+TX-CLEAN-41,2024-10-01,Public Works Department,Juan Dela Cruz,18922.69,0.0,PHP,Community assistance payout
+TX-CLEAN-42,2024-10-23,City Treasury,ABC Construction,25211.81,0.0,PHP,Community assistance payout
+TX-CLEAN-43,2024-10-05,Municipal Development Office,Local Supplier,14573.65,0.0,PHP,Community assistance payout
+TX-CLEAN-44,2024-09-28,Public Works Department,ABC Construction,33075.75,0.0,PHP,Municipal service payment
+TX-CLEAN-45,2024-09-20,Public Works Department,Maria Santos,33107.35,0.0,PHP,Office supplies purchase
+TX-CLEAN-46,2024-09-14,Municipal Development Office,Juan Dela Cruz,11760.16,0.0,PHP,Municipal service payment
+TX-CLEAN-47,2024-09-09,Municipal Development Office,Local Supplier,32266.34,0.0,PHP,Infrastructure maintenance
+TX-CLEAN-48,2024-09-05,Public Works Department,Local Supplier,38526.77,0.0,PHP,Municipal service payment
+TX-CLEAN-49,2024-09-08,Municipal Development Office,Local Supplier,12017.91,0.0,PHP,Municipal service payment
+TX-CLEAN-50,2024-10-15,City Treasury,Juan Dela Cruz,39427.88,0.0,PHP,Community assistance payout
+TX-CLEAN-51,2024-10-04,City Treasury,Juan Dela Cruz,26798.45,0.0,PHP,Office supplies purchase
+TX-CLEAN-52,2024-10-19,Municipal Development Office,Maria Santos,40575.44,0.0,PHP,Community assistance payout
+TX-CLEAN-53,2024-10-01,DSWD,Local Supplier,28830.73,0.0,PHP,Routine procurement payment
+TX-CLEAN-54,2024-09-30,DSWD,Local Supplier,8659.39,0.0,PHP,Office supplies purchase
+TX-CLEAN-55,2024-10-18,Barangay Pantal,Juan Dela Cruz,45494.28,0.0,PHP,Office supplies purchase
+TX-CLEAN-56,2024-09-15,Municipal Development Office,Maria Santos,15400.31,0.0,PHP,Municipal service payment
+TX-CLEAN-57,2024-10-09,Barangay Pantal,Maria Santos,46230.14,0.0,PHP,Office supplies purchase
+TX-CLEAN-58,2024-10-25,Municipal Development Office,Local Supplier,42202.99,0.0,PHP,Municipal service payment
+TX-CLEAN-59,2024-09-15,Public Works Department,Local Supplier,23671.35,0.0,PHP,Community assistance payout
+TX-CLEAN-60,2024-09-06,City Treasury,Local Supplier,48070.61,0.0,PHP,Infrastructure maintenance
+TX-CLEAN-61,2024-09-28,Municipal Development Office,ABC Construction,45075.91,0.0,PHP,Infrastructure maintenance
+TX-CLEAN-62,2024-10-25,City Treasury,Maria Santos,15635.62,0.0,PHP,Municipal service payment
+TX-CLEAN-63,2024-09-19,Municipal Development Office,Local Supplier,6843.87,0.0,PHP,Community assistance payout
+TX-CLEAN-64,2024-09-08,Public Works Department,Juan Dela Cruz,32584.7,0.0,PHP,Community assistance payout
+TX-CLEAN-65,2024-09-23,DSWD,Local Supplier,38424.24,0.0,PHP,Office supplies purchase
+TX-CLEAN-66,2024-09-25,Municipal Development Office,Juan Dela Cruz,28807.41,0.0,PHP,Municipal service payment
+TX-CLEAN-67,2024-09-18,City Treasury,Metro Supply Co,40983.13,0.0,PHP,Community assistance payout
+TX-CLEAN-68,2024-10-01,Municipal Development Office,Maria Santos,17819.25,0.0,PHP,Office supplies purchase
+TX-CLEAN-69,2024-10-26,Barangay Pantal,Juan Dela Cruz,43334.45,0.0,PHP,Office supplies purchase
+TX-CLEAN-70,2024-10-29,Public Works Department,Juan Dela Cruz,24005.2,0.0,PHP,Office supplies purchase
+TX-CLEAN-71,2024-10-31,City Treasury,Juan Dela Cruz,47483.07,0.0,PHP,Municipal service payment
+TX-CLEAN-72,2024-10-06,City Treasury,Maria Santos,37304.32,0.0,PHP,Municipal service payment
+TX-CLEAN-73,2024-09-14,DSWD,ABC Construction,27995.06,0.0,PHP,Community assistance payout
+TX-CLEAN-74,2024-10-11,DSWD,Maria Santos,24880.49,0.0,PHP,Municipal service payment
+TX-CLEAN-75,2024-10-28,Barangay Pantal,Juan Dela Cruz,31096.65,0.0,PHP,Office supplies purchase
+TX-CLEAN-76,2024-10-14,Barangay Pantal,Maria Santos,16191.94,0.0,PHP,Infrastructure maintenance
+TX-CLEAN-77,2024-10-01,City Treasury,Maria Santos,15813.39,0.0,PHP,Community assistance payout
+TX-CLEAN-78,2024-09-11,City Treasury,Juan Dela Cruz,9285.67,0.0,PHP,Routine procurement payment
+TX-CLEAN-79,2024-09-26,DSWD,Juan Dela Cruz,9180.88,0.0,PHP,Office supplies purchase
+TX-CLEAN-80,2024-09-28,Public Works Department,Maria Santos,8817.14,0.0,PHP,Office supplies purchase
+TX-CLEAN-81,2024-09-05,City Treasury,Juan Dela Cruz,17908.1,0.0,PHP,Municipal service payment
+TX-CLEAN-82,2024-09-14,DSWD,ABC Construction,21004.55,0.0,PHP,Municipal service payment
+TX-CLEAN-83,2024-09-13,Public Works Department,ABC Construction,33618.55,0.0,PHP,Routine procurement payment
+TX-CLEAN-84,2024-10-14,Public Works Department,Juan Dela Cruz,24909.77,0.0,PHP,Office supplies purchase
+TX-CLEAN-85,2024-09-23,Municipal Development Office,Metro Supply Co,32174.38,0.0,PHP,Office supplies purchase
+TX-CLEAN-86,2024-10-17,Municipal Development Office,Metro Supply Co,41336.05,0.0,PHP,Municipal service payment
+TX-CLEAN-87,2024-09-20,Public Works Department,Metro Supply Co,39644.03,0.0,PHP,Routine procurement payment
+TX-CLEAN-88,2024-10-07,City Treasury,Local Supplier,24349.07,0.0,PHP,Office supplies purchase
+TX-CLEAN-89,2024-09-25,Public Works Department,Maria Santos,12762.32,0.0,PHP,Routine procurement payment
+TX-CLEAN-90,2024-09-10,Barangay Pantal,Local Supplier,49194.46,0.0,PHP,Infrastructure maintenance
+TX-CLEAN-91,2024-10-16,Public Works Department,Metro Supply Co,38811.28,0.0,PHP,Community assistance payout
+TX-CLEAN-92,2024-10-30,Municipal Development Office,ABC Construction,28449.32,0.0,PHP,Municipal service payment
+TX-CLEAN-93,2024-09-15,Public Works Department,Juan Dela Cruz,36873.06,0.0,PHP,Community assistance payout
+TX-CLEAN-94,2024-09-16,Municipal Development Office,Metro Supply Co,29432.06,0.0,PHP,Office supplies purchase
+TX-CLEAN-95,2024-09-13,City Treasury,Metro Supply Co,38165.69,0.0,PHP,Infrastructure maintenance
+TX-CLEAN-96,2024-10-03,Barangay Pantal,ABC Construction,45423.96,0.0,PHP,Community assistance payout
+TX-CLEAN-97,2024-09-18,Barangay Pantal,Maria Santos,44399.07,0.0,PHP,Office supplies purchase
+TX-CLEAN-98,2024-09-04,City Treasury,ABC Construction,44638.83,0.0,PHP,Municipal service payment
+TX-CLEAN-99,2024-09-21,DSWD,Local Supplier,22175.03,0.0,PHP,Community assistance payout
+TX-CLEAN-100,2024-10-14,City Treasury,Local Supplier,31144.31,0.0,PHP,Routine procurement payment
+TX-CLEAN-101,2024-10-24,City Treasury,ABC Construction,45218.58,0.0,PHP,Infrastructure maintenance
+TX-CLEAN-102,2024-09-14,Municipal Development Office,Local Supplier,11858.13,0.0,PHP,Infrastructure maintenance
+TX-CLEAN-103,2024-09-01,City Treasury,ABC Construction,46741.23,0.0,PHP,Infrastructure maintenance
+TX-CLEAN-104,2024-09-21,DSWD,Maria Santos,36284.27,0.0,PHP,Routine procurement payment
+TX-CLEAN-105,2024-10-04,City Treasury,ABC Construction,37909.28,0.0,PHP,Infrastructure maintenance
+TX-CLEAN-106,2024-09-15,Public Works Department,Metro Supply Co,47918.61,0.0,PHP,Infrastructure maintenance
+TX-CLEAN-107,2024-10-10,DSWD,Metro Supply Co,47594.35,0.0,PHP,Community assistance payout
+TX-CLEAN-108,2024-09-09,DSWD,Maria Santos,20488.18,0.0,PHP,Municipal service payment
+TX-CLEAN-109,2024-10-06,Barangay Pantal,ABC Construction,35787.13,0.0,PHP,Infrastructure maintenance
+TX-CLEAN-110,2024-09-20,Barangay Pantal,Metro Supply Co,40317.82,0.0,PHP,Community assistance payout
+TX-CLEAN-111,2024-09-14,Barangay Pantal,Maria Santos,49454.69,0.0,PHP,Municipal service payment
+TX-CLEAN-112,2024-09-25,Barangay Pantal,ABC Construction,6011.6,0.0,PHP,Routine procurement payment
+TX-CLEAN-113,2024-09-27,City Treasury,ABC Construction,5073.92,0.0,PHP,Routine procurement payment
+TX-CLEAN-114,2024-10-29,Municipal Development Office,Juan Dela Cruz,41824.43,0.0,PHP,Community assistance payout
+TX-CLEAN-115,2024-10-11,Public Works Department,ABC Construction,38031.84,0.0,PHP,Routine procurement payment
+TX-CLEAN-116,2024-09-22,Public Works Department,ABC Construction,27824.4,0.0,PHP,Infrastructure maintenance
+TX-CLEAN-117,2024-09-30,City Treasury,Local Supplier,37276.5,0.0,PHP,Community assistance payout
+TX-CLEAN-118,2024-09-02,DSWD,Maria Santos,44545.33,0.0,PHP,Routine procurement payment
+TX-CLEAN-119,2024-10-09,Municipal Development Office,Local Supplier,45358.08,0.0,PHP,Routine procurement payment
+TX-CLEAN-120,2024-09-06,DSWD,Local Supplier,32357.47,0.0,PHP,Routine procurement payment
+TX-CLEAN-121,2024-10-10,Public Works Department,Metro Supply Co,17356.84,0.0,PHP,Infrastructure maintenance
+TX-CLEAN-122,2024-09-30,Public Works Department,Maria Santos,25244.38,0.0,PHP,Office supplies purchase
+TX-CLEAN-123,2024-10-26,Public Works Department,Metro Supply Co,35353.38,0.0,PHP,Infrastructure maintenance
+TX-CLEAN-124,2024-10-12,Barangay Pantal,Metro Supply Co,41506.63,0.0,PHP,Community assistance payout
+TX-CLEAN-125,2024-09-20,City Treasury,Juan Dela Cruz,19906.68,0.0,PHP,Municipal service payment
+TX-CLEAN-126,2024-09-03,Municipal Development Office,Juan Dela Cruz,46749.41,0.0,PHP,Infrastructure maintenance
+TX-CLEAN-127,2024-09-22,DSWD,Local Supplier,17726.66,0.0,PHP,Municipal service payment
+TX-CLEAN-128,2024-09-21,DSWD,Metro Supply Co,43462.7,0.0,PHP,Infrastructure maintenance
+TX-CLEAN-129,2024-09-03,Public Works Department,Local Supplier,19259.5,0.0,PHP,Office supplies purchase
+TX-CLEAN-130,2024-09-17,DSWD,ABC Construction,15663.84,0.0,PHP,Community assistance payout
+TX-CLEAN-131,2024-10-28,City Treasury,Local Supplier,37083.53,0.0,PHP,Community assistance payout
+TX-CLEAN-132,2024-10-30,City Treasury,Juan Dela Cruz,42356.89,0.0,PHP,Community assistance payout
+TX-CLEAN-133,2024-09-13,Municipal Development Office,Juan Dela Cruz,47178.91,0.0,PHP,Municipal service payment
+TX-CLEAN-134,2024-09-25,DSWD,Juan Dela Cruz,24334.24,0.0,PHP,Routine procurement payment
+TX-CLEAN-135,2024-10-02,Public Works Department,Juan Dela Cruz,48013.08,0.0,PHP,Infrastructure maintenance
+TX-CLEAN-136,2024-10-05,DSWD,Metro Supply Co,12349.97,0.0,PHP,Routine procurement payment
+TX-CLEAN-137,2024-09-30,Public Works Department,Local Supplier,32778.31,0.0,PHP,Office supplies purchase
+TX-CLEAN-138,2024-09-17,Public Works Department,Juan Dela Cruz,14325.04,0.0,PHP,Community assistance payout
+TX-CLEAN-139,2024-09-24,Barangay Pantal,Local Supplier,45399.79,0.0,PHP,Infrastructure maintenance
+TX-CLEAN-140,2024-10-04,Municipal Development Office,Juan Dela Cruz,10895.69,0.0,PHP,Office supplies purchase
+TX-CLEAN-141,2024-10-08,Public Works Department,Juan Dela Cruz,29439.27,0.0,PHP,Community assistance payout
+TX-CLEAN-142,2024-09-15,DSWD,ABC Construction,33359.2,0.0,PHP,Office supplies purchase
+TX-CLEAN-143,2024-10-27,City Treasury,Local Supplier,14761.28,0.0,PHP,Municipal service payment
+TX-CLEAN-144,2024-10-29,DSWD,Juan Dela Cruz,16211.94,0.0,PHP,Infrastructure maintenance
+TX-CLEAN-145,2024-09-28,City Treasury,Maria Santos,10067.75,0.0,PHP,Municipal service payment
+TX-CLEAN-146,2024-10-03,DSWD,Juan Dela Cruz,45397.85,0.0,PHP,Community assistance payout
+TX-CLEAN-147,2024-09-05,Municipal Development Office,Maria Santos,19818.05,0.0,PHP,Municipal service payment
+TX-CLEAN-148,2024-10-14,Barangay Pantal,Local Supplier,32165.5,0.0,PHP,Routine procurement payment
+TX-CLEAN-149,2024-09-28,DSWD,Juan Dela Cruz,7227.75,0.0,PHP,Municipal service payment
+TX-CLEAN-150,2024-10-04,Municipal Development Office,Local Supplier,44376.14,0.0,PHP,Community assistance payout
+TX-CLEAN-151,2024-10-23,Public Works Department,Local Supplier,19937.65,0.0,PHP,Infrastructure maintenance
+TX-CLEAN-152,2024-09-08,Public Works Department,ABC Construction,40244.81,0.0,PHP,Infrastructure maintenance
+TX-CLEAN-153,2024-10-03,City Treasury,ABC Construction,29467.99,0.0,PHP,Municipal service payment
+TX-CLEAN-154,2024-09-25,DSWD,Metro Supply Co,46697.51,0.0,PHP,Office supplies purchase
+TX-CLEAN-155,2024-10-25,Barangay Pantal,Maria Santos,34782.8,0.0,PHP,Municipal service payment
+TX-CLEAN-156,2024-10-09,DSWD,Juan Dela Cruz,45134.44,0.0,PHP,Routine procurement payment
+TX-CLEAN-157,2024-09-14,City Treasury,Local Supplier,11560.32,0.0,PHP,Office supplies purchase
+TX-CLEAN-158,2024-10-14,Barangay Pantal,ABC Construction,28932.62,0.0,PHP,Office supplies purchase
+TX-CLEAN-159,2024-09-13,Public Works Department,Local Supplier,33052.32,0.0,PHP,Community assistance payout
+TX-CLEAN-160,2024-09-24,Municipal Development Office,ABC Construction,35782.0,0.0,PHP,Infrastructure maintenance
+TX-CLEAN-161,2024-10-03,DSWD,Maria Santos,16551.42,0.0,PHP,Community assistance payout
+TX-CLEAN-162,2024-10-12,DSWD,Juan Dela Cruz,11773.09,0.0,PHP,Routine procurement payment
+TX-CLEAN-163,2024-10-08,City Treasury,Metro Supply Co,19769.9,0.0,PHP,Office supplies purchase
+TX-CLEAN-164,2024-09-30,Barangay Pantal,Juan Dela Cruz,27311.59,0.0,PHP,Municipal service payment
+TX-CLEAN-165,2024-09-07,DSWD,Local Supplier,39762.36,0.0,PHP,Routine procurement payment
+TX-CLEAN-166,2024-09-18,City Treasury,Juan Dela Cruz,7916.48,0.0,PHP,Community assistance payout
+TX-CLEAN-167,2024-09-05,Public Works Department,Metro Supply Co,12423.51,0.0,PHP,Routine procurement payment
+TX-CLEAN-168,2024-09-14,City Treasury,ABC Construction,29656.72,0.0,PHP,Municipal service payment
+TX-CLEAN-169,2024-09-10,Public Works Department,Juan Dela Cruz,10082.9,0.0,PHP,Community assistance payout
+TX-CLEAN-170,2024-10-05,Barangay Pantal,Juan Dela Cruz,15234.64,0.0,PHP,Infrastructure maintenance
+TX-CLEAN-171,2024-10-13,Public Works Department,Metro Supply Co,13528.93,0.0,PHP,Routine procurement payment
+TX-CLEAN-172,2024-09-16,City Treasury,Local Supplier,27971.96,0.0,PHP,Municipal service payment
+TX-CLEAN-173,2024-09-30,DSWD,Maria Santos,8981.62,0.0,PHP,Community assistance payout
+TX-CLEAN-174,2024-10-12,City Treasury,Local Supplier,24148.89,0.0,PHP,Municipal service payment
+TX-CLEAN-175,2024-09-25,Municipal Development Office,Local Supplier,8496.57,0.0,PHP,Community assistance payout
+TX-CLEAN-176,2024-10-12,Public Works Department,Maria Santos,6680.95,0.0,PHP,Municipal service payment
+TX-CLEAN-177,2024-09-13,Municipal Development Office,Juan Dela Cruz,8135.46,0.0,PHP,Office supplies purchase
+TX-CLEAN-178,2024-10-11,Public Works Department,Metro Supply Co,43790.67,0.0,PHP,Infrastructure maintenance
+TX-CLEAN-179,2024-09-22,Municipal Development Office,ABC Construction,20060.44,0.0,PHP,Municipal service payment
+TX-CLEAN-180,2024-09-05,Municipal Development Office,Juan Dela Cruz,43355.04,0.0,PHP,Municipal service payment
+TX-CLEAN-181,2024-10-31,Barangay Pantal,Metro Supply Co,24263.53,0.0,PHP,Community assistance payout
+TX-CLEAN-182,2024-09-01,City Treasury,ABC Construction,13762.59,0.0,PHP,Infrastructure maintenance
+TX-CLEAN-183,2024-10-19,Municipal Development Office,ABC Construction,12476.54,0.0,PHP,Office supplies purchase
+TX-CLEAN-184,2024-10-13,City Treasury,Juan Dela Cruz,17703.1,0.0,PHP,Municipal service payment
+TX-CLEAN-185,2024-10-02,DSWD,Local Supplier,49098.15,0.0,PHP,Community assistance payout
+TX-CLEAN-186,2024-10-04,Barangay Pantal,Maria Santos,32738.96,0.0,PHP,Community assistance payout
+TX-CLEAN-187,2024-09-01,Public Works Department,Metro Supply Co,19360.67,0.0,PHP,Community assistance payout
+TX-CLEAN-188,2024-10-21,City Treasury,Metro Supply Co,17426.85,0.0,PHP,Office supplies purchase
+TX-CLEAN-189,2024-10-14,City Treasury,Metro Supply Co,35044.57,0.0,PHP,Routine procurement payment
+TX-CLEAN-190,2024-09-16,DSWD,Juan Dela Cruz,8811.77,0.0,PHP,Infrastructure maintenance
+TX-CLEAN-191,2024-09-22,Municipal Development Office,ABC Construction,43460.5,0.0,PHP,Community assistance payout
+TX-CLEAN-192,2024-10-26,Public Works Department,Juan Dela Cruz,37802.52,0.0,PHP,Municipal service payment
+TX-CLEAN-193,2024-10-03,Barangay Pantal,Maria Santos,28291.41,0.0,PHP,Office supplies purchase
+TX-CLEAN-194,2024-10-20,City Treasury,Maria Santos,6672.29,0.0,PHP,Municipal service payment
+TX-CLEAN-195,2024-10-09,City Treasury,Metro Supply Co,14015.44,0.0,PHP,Community assistance payout
+TX-CLEAN-196,2024-10-05,City Treasury,Local Supplier,12067.53,0.0,PHP,Community assistance payout
+TX-CLEAN-197,2024-10-15,Public Works Department,Local Supplier,41816.16,0.0,PHP,Routine procurement payment
+TX-CLEAN-198,2024-10-13,DSWD,Juan Dela Cruz,9029.37,0.0,PHP,Office supplies purchase
+TX-CLEAN-199,2024-10-05,Municipal Development Office,Maria Santos,47390.18,0.0,PHP,Community assistance payout
+TX-CLEAN-200,2024-09-18,Municipal Development Office,Local Supplier,12819.71,0.0,PHP,Office supplies purchase
