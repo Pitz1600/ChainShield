@@ -19,26 +19,19 @@ cd ChainShield
 
 # Copy environment files
 cp .env.example .env
-cp backend/.env.example backend/.env
 ```
 
 ### 2. Configure Environment Variables
 
-Edit `backend/.env` with production values:
+Edit `.env` with production values:
 
 ```bash
 # CRITICAL: Change these for production
 JWT_SECRET=$(openssl rand -hex 64)
-MONGO_ROOT_USERNAME=chainshield_admin
-MONGO_ROOT_PASSWORD=$(openssl rand -hex 32)
 BACKUP_ENCRYPTION_KEY=$(openssl rand -hex 32)
 
-# Update MongoDB URI with auth
-MONGODB_URI=mongodb://chainshield_admin:YOUR_PASSWORD@mongodb:27017/chainshield?authSource=admin
-
-# Enable TLS for production
-MONGODB_TLS=true
-MONGODB_TLS_CA_FILE=/path/to/ca.pem
+# Update MongoDB URI pointing to your MongoDB Atlas cluster
+MONGODB_URI=mongodb+srv://user:password@cluster.g8xlb6j.mongodb.net/chainshield?retryWrites=true&w=majority
 
 # Configure SMTP for OTP emails
 SMTP_HOST=smtp.gmail.com
@@ -54,7 +47,7 @@ SMTP_PASS=your-app-password
 ### Option A: Docker Compose (Recommended)
 
 ```bash
-# Build and start all services
+# Build and start all services (Backend, Redis, Ganache, Frontend, ML, Graph services)
 docker compose up -d --build
 
 # Verify services
@@ -69,10 +62,11 @@ docker compose logs -f backend
 |---|---|---|
 | Frontend | 5173 | http://localhost:5173 |
 | Backend | 5000 | http://localhost:5000 |
-| MongoDB | 27017 | Internal |
 | ML Service | 5001 | Internal |
 | Graph Service | 5002 | Internal |
 | Ganache | 7546 | Internal |
+
+*(MongoDB is hosted on Atlas cloud).*
 
 ### Option B: Local Development
 
@@ -99,26 +93,23 @@ cd graph_service && pip install -r requirements.txt && python app.py
 Before proceeding to production, you MUST review and implement the controls in our security documentation:
 
 1. **[Risk Assessment](../security/risk-assessment.md)** - Review system-specific risks.
-2. **[Database Hardening](../security/database-hardening.md)** - Lockdown your MongoDB instance.
-3. **[Threat Model](../security/threat-model.md)** - Understand the attack vectors.
-4. **[Audit Logging](../security/audit-logging.md)** - Verify log integrity and chain hashing.
+2. **[Threat Model](../security/threat-model.md)** - Understand the attack vectors.
+3. **[Audit Logging](../security/audit-logging.md)** - Verify log integrity and chain hashing.
 
 - [x] Changed default JWT_SECRET
-- [x] Changed default MongoDB password
+- [x] Configured MongoDB Atlas with IP Access controls (e.g. only whitelist backend IPs)
 - [x] Generated BACKUP_ENCRYPTION_KEY
 - [x] Configured SMTP for production email
-- [x] Enabled MONGODB_TLS for production
 - [x] Set `NODE_ENV=production`
 - [x] Verified CORS origins match production domain
-- [x] Reviewed and disabled unused ports (Default: 27017 restricted)
 - [x] Verified hash-chaining in `AuditLogs` on startup
 
-### First Admin Account
+### Seeding Default Test Accounts
 
 ```bash
 cd backend
-node create-admin.js
-# Follow prompts to create the initial administrator
+npm run seed
+# This seeds standard test accounts (Admin, Official, Auditor, Resident) on Atlas
 ```
 
 ### Encrypted Backups
@@ -126,7 +117,7 @@ node create-admin.js
 ```bash
 # Manual backup
 cd backend/scripts
-MONGODB_URI="your-uri" BACKUP_ENCRYPTION_KEY="your-key" bash backup.sh
+MONGODB_URI="your-atlas-uri" BACKUP_ENCRYPTION_KEY="your-key" bash backup.sh
 
 # Schedule daily backup (cron)
 0 2 * * * cd /path/to/backend/scripts && MONGODB_URI="..." BACKUP_ENCRYPTION_KEY="..." bash backup.sh
@@ -152,11 +143,11 @@ Or API: `GET /api/admin/audit-logs`
 
 | Issue | Solution |
 |---|---|
-| MongoDB connection refused | Check `MONGODB_URI`, ensure MongoDB is running |
+| MongoDB Connection Failed | Ensure `MONGODB_URI` points to the correct Atlas cluster and that your IP address is whitelisted in Atlas Network Access. |
 | CSRF token error | Ensure `withCredentials: true` on frontend requests |
 | OTP not received | Check SMTP config; dev mode logs OTP to console |
 | Rate limit hit | Wait for window to expire, or adjust in `rateLimiter.js` |
 
 ---
 
-*Last Updated: 2026-02-17*
+*Last Updated: 2026-07-09*

@@ -13,13 +13,18 @@
 
 ## 2. Database Connection Issues
 
-### "MongoDB Connection Error: connection refused"
-- **Cause:** Database service is not running or the IP is not whitelisted.
-- **Fix:** Ensure `mongod` is running and `bindIp` includes the server IP.
+### "MongoDB Connection Error" / Timeout
+- **Cause:** The backend service cannot communicate with the MongoDB Atlas cluster. This is usually caused by:
+  - An outdated or incorrect `MONGODB_URI` connection string in your `.env` file.
+  - The local machine's IP address not being whitelisted in the MongoDB Atlas Network Access rules.
+- **Fix:** 
+  1. Log in to your [MongoDB Atlas Dashboard](https://cloud.mongodb.com).
+  2. Navigate to **Network Access** and verify that your current IP address (or `0.0.0.0/0` for access from anywhere) is added and active.
+  3. Ensure that your username and password are correctly replaced in the `MONGODB_URI` string inside the `.env` file.
 
-### "TLS handshake failed"
-- **Cause:** SSL/TLS is enabled but certificates are missing or invalid.
-- **Fix:** Check `MONGODB_TLS` environment variable and ensure `MONGODB_TLS_CA_FILE` points to a valid certificate if required.
+### "TLS handshake failed" / Connection issues
+- **Cause:** MongoDB Atlas enforces TLS connections by default, but local network security or proxies might interfere with the TLS handshake.
+- **Fix:** Double check that your network is not blocking outgoing traffic on port `27017` or `27015`.
 
 ## 3. Deployment & Operational Issues
 
@@ -30,3 +35,7 @@
 ### Audit Log Tampering Detected
 - **Cause:** Internal check found a mismatch in the log hash chain.
 - **Urgent Fix:** Investigate for unauthorized database access or accidental direct modifications to the `AuditLog` collection.
+
+---
+
+*Last Updated: 2026-07-09*

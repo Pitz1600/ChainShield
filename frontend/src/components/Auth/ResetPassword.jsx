@@ -14,6 +14,15 @@ function ResetPassword({ onNavigate }) {
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
 
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const urlToken = params.get('token');
+    if (urlToken) {
+      setToken(urlToken);
+      setStep('reset');
+    }
+  }, []);
+
   const handleRequestReset = async (e) => {
     e.preventDefault();
     setError('');

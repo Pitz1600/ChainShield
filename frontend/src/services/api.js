@@ -74,7 +74,18 @@ api.interceptors.response.use(
     }
 
     if (error.response?.status === 401) {
-      if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
+      const isAuthPath = [
+        '/',
+        '/welcome',
+        '/login',
+        '/register',
+        '/email-verify',
+        '/force-change-password',
+        '/setup-2fa',
+        '/reset-password'
+      ].includes(window.location.pathname);
+
+      if (!isAuthPath) {
         window.location.href = '/login';
       }
     }

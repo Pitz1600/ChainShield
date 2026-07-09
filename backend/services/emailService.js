@@ -38,12 +38,15 @@ class EmailService {
   // ==========================================
   async sendEmail(to, subject, html, text) {
     try {
-      if (!this.transporter) {
-        console.log('\n📧 ========== EMAIL (DEV MODE) ==========');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('\n📧 ========== EMAIL (DEV MODE LOGGING) ==========');
         console.log(`To: ${to}`);
         console.log(`Subject: ${subject}`);
         console.log(`Content: ${text}`);
-        console.log('📧 =====================================\n');
+        console.log('📧 =================================================\n');
+      }
+
+      if (!this.transporter) {
         return { success: true, messageId: 'dev-mode-' + Date.now() };
       }
 
