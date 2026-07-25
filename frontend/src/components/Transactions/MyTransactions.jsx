@@ -11,6 +11,7 @@ import useLockBodyScroll from '../../utils/useLockBodyScroll';
 import { formatAddressLabel } from '../../utils/helpers';
 import '../../styles/MyTransactions.css';
 import '../../styles/ColorfulIcons.css';
+import AuditorWorkspace from './AuditorWorkspace';
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                              */
@@ -284,18 +285,26 @@ function MyTransactions({ user, embedded = false }) {
   };
 
   /* ---- Modal single-item actions ---- */
-  const handleAction = async (status) => {
+  const handleAction = async (status, remarkText = null) => {
     if (!selectedTx || !isAdminOrAuditor) return;
     setActionLoading(true);
     try {
-      const res = await api.put(`/transactions/${selectedTx._id}/verify`, { status });
-      const updated = { ...selectedTx, ...res.data.transaction };
-      setSelectedTx(updated);
-      setTransactions(prev => prev.map(t => t._id === updated._id ? { ...t, ...updated } : t));
-      showToast(`Transaction marked as ${updated.verificationStatus}.`);
+      if (status === 'Remarks') {
+        const res = await api.post(`/transactions/${selectedTx._id}/remarks`, { remark: remarkText });
+        const updated = { ...selectedTx, ...res.data.transaction };
+        setSelectedTx(updated);
+        setTransactions(prev => prev.map(t => t._id === updated._id ? { ...t, ...updated } : t));
+        showToast('Remarks saved successfully.');
+      } else {
+        const res = await api.put(`/transactions/${selectedTx._id}/verify`, { status });
+        const updated = { ...selectedTx, ...res.data.transaction };
+        setSelectedTx(updated);
+        setTransactions(prev => prev.map(t => t._id === updated._id ? { ...t, ...updated } : t));
+        showToast(`Transaction marked as ${updated.verificationStatus}.`);
+      }
     } catch (err) {
       console.error(err);
-      showToast('Failed to update transaction status.', 'error');
+      showToast('Failed to update transaction.', 'error');
     } finally {
       setActionLoading(false);
     }
@@ -620,8 +629,11 @@ function MyTransactions({ user, embedded = false }) {
           {/* ====== Transaction Detail Modal ====== */}
           {selectedTx && (
             <div className="tx-modal-overlay" onClick={() => setSelectedTx(null)}>
-              <div className="tx-modal tx-modal-wide" onClick={e => e.stopPropagation()}>
-
+              <div className="tx-modal tx-modal-wide" onClick={e => e.stopPropagation()} style={user?.role === 'auditor' ? { padding: 0, background: 'transparent', boxShadow: 'none' } : {}}>
+                {user?.role === 'auditor' ? (
+                  <AuditorWorkspace tx={selectedTx} onClose={() => setSelectedTx(null)} onAction={handleAction} showToast={showToast} />
+                ) : (
+                  <>
                 {/* Header */}
                 <div className="tx-modal-header">
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -667,6 +679,7 @@ function MyTransactions({ user, embedded = false }) {
                     { key: 'ai',        label: 'AI Analysis' },
                     { key: 'csv',       label: 'Import Data' },
                     ...(isAdminOrAuditor ? [{ key: 'breakdown', label: 'Breakdown' }] : []),
+                    ...(isAdminOrAuditor ? [{ key: 'remarks', label: 'Auditor Remarks' }] : []),
                   ].map(tab => (
                     <button
                       key={tab.key}
@@ -1165,6 +1178,8 @@ function MyTransactions({ user, embedded = false }) {
                           {selectedTx.description || '—'}
                         </div>
 
+                        {/* Auditor Remarks moved to separate tab */}
+
                         {/* Blockchain */}
                         {selectedTx.blockchainTxId && (
                           <>
@@ -1190,6 +1205,39 @@ function MyTransactions({ user, embedded = false }) {
                       </div>
                     );
                   })()}
+                  {/* TAB 5: REMARKS */}
+                  {modalTab === 'remarks' && isAdminOrAuditor && (
+                    <div>
+                      <div className="csv-details-banner" style={{ background: '#fffbeb', borderLeft: '4px solid #f59e0b' }}>
+                        <div>
+                          <div className="csv-banner-title" style={{ color: '#d97706' }}>Auditor Remarks</div>
+                          <div className="csv-banner-sub" style={{ color: '#b45309' }}>Internal notes and observations recorded by auditors for this transaction.</div>
+                        </div>
+                      </div>
+                      
+                      {(!Array.isArray(selectedTx.remarks) || selectedTx.remarks.length === 0) ? (
+                        <div style={{ padding: '2rem', textAlign: 'center', color: '#94a3b8', background: '#f8fafc', borderRadius: 8 }}>
+                          No remarks have been added to this transaction yet.
+                        </div>
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                          {selectedTx.remarks.map((rmk, idx) => (
+                            <div key={idx} style={{
+                              padding: '16px', border: '1px solid #fcd34d',
+                              borderRadius: 8, fontSize: '0.9rem', background: '#fffbeb',
+                              color: '#92400e', lineHeight: 1.6
+                            }}>
+                              <div style={{ fontSize: '0.8rem', fontWeight: 700, marginBottom: 6, color: '#d97706', display: 'flex', justifyContent: 'space-between' }}>
+                                <span>{rmk.author || 'Auditor'}</span>
+                                <span>{new Date(rmk.timestamp).toLocaleString()}</span>
+                              </div>
+                              <div style={{ whiteSpace: 'pre-wrap' }}>{rmk.text}</div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <div className="tx-modal-footer">
@@ -1219,6 +1267,8 @@ function MyTransactions({ user, embedded = false }) {
                   </div>
                   <button className="btn-close" onClick={() => setSelectedTx(null)}>Close</button>
                 </div>
+                  </>
+                )}
               </div>
             </div>
           )}

@@ -90,8 +90,10 @@ exports.importTransactions = async (req, res) => {
             return addr.padEnd(42, '0');
           };
 
+          const finalTxId = txData.transactionId || `PH-GOV-${Math.floor(Math.random() * 1000000000).toString(16)}-${Date.now()}`;
+
           mappedTxs.push({
-            transactionId:   txData.transactionId,
+            transactionId:   finalTxId,
             transactionType: txData.transactionType,
             agency:          txData.agency,
             programName:     txData.programName || '',

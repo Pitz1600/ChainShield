@@ -5,7 +5,9 @@ const path = require('path');
 const csvImportController = require('../controllers/csvImportController');
 const transactionController = require('../controllers/transactionController');
 const auth = require('../middleware/auth');
-const { requireOfficial } = require('../middleware/roleMiddleware');
+const { requireOfficial, requireRole } = require('../middleware/roleMiddleware');
+
+const requireVerifier = requireRole(['administrator', 'barangay_official', 'auditor']);
 
 // Configure multer for file upload
 const storage = multer.diskStorage({
@@ -53,6 +55,7 @@ router.put('/batch-action', auth, requireOfficial, transactionController.batchAc
 router.delete('/:id', auth, requireOfficial, transactionController.deleteTransaction);
 router.put('/:id/approve', auth, requireOfficial, transactionController.approveTransaction);
 router.get('/:id', auth, transactionController.getTransactionById);
-router.put('/:id/verify', auth, requireOfficial, transactionController.updateVerificationStatus);
+router.post('/:id/remarks', auth, requireVerifier, transactionController.addRemark);
+router.put('/:id/verify', auth, requireVerifier, transactionController.updateVerificationStatus);
 
 module.exports = router;

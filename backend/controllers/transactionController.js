@@ -280,6 +280,35 @@ exports.getMyTransactions = async (req, res) => {
   }
 };
 
+// NEW: Add remark to transaction
+exports.addRemark = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { remark } = req.body;
+
+    if (!remark) return res.status(400).json({ error: 'Remark text is required' });
+
+    const transaction = await Transaction.findById(id);
+    if (!transaction) return res.status(404).json({ error: 'Transaction not found' });
+
+    transaction.remarks.push({
+      text: remark,
+      author: req.user?.name || req.user?.email || req.user?.role || 'Auditor'
+    });
+
+    await transaction.save();
+
+    res.json({
+      success: true,
+      message: 'Remark added successfully',
+      transaction
+    });
+  } catch (error) {
+    console.error('Add remark error:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
 // NEW: Update transaction verification status
 exports.updateVerificationStatus = async (req, res) => {
   try {

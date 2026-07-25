@@ -245,6 +245,11 @@ class RiskAssessmentService {
             transactionType: transaction.transactionType,
             agency: transaction.agency,
             programName: transaction.programName,
+            budget: transaction.budget,
+            items: transaction.items,
+            supplier: transaction.supplier,
+            beneficiary: transaction.beneficiary,
+            beneficiaryType: transaction.beneficiaryType,
             ...mlFeatures
           }, {
             timeout: 10000 // 10 second timeout

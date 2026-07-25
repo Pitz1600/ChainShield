@@ -91,11 +91,16 @@ api.interceptors.response.use(
     }
 
     if (error.response?.status === 403 && error.response?.data?.onboardingRequired) {
-      const { mustChangePassword, mustSetup2FA } = error.response.data;
+      const { mustChangePassword, mustSetup2FA, scope } = error.response.data;
       if (mustChangePassword) {
         window.location.href = '/force-change-password';
       } else if (mustSetup2FA) {
         window.location.href = '/setup-2fa';
+      } else if (scope) {
+        // If they have a scoped token but no specific onboarding flag, force logout
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+        window.location.href = '/login';
       }
     }
     return Promise.reject(error);

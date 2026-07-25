@@ -160,6 +160,11 @@ const transactionSchema = new mongoose.Schema({
   }],
   reasons: [{
     type: String
+  }],
+  remarks: [{
+    text: String,
+    timestamp: { type: Date, default: Date.now },
+    author: String
   }]
 }, { timestamps: true });
 

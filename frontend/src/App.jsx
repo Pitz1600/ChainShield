@@ -69,12 +69,18 @@ function App() {
         const userData = response.data;
 
         if (userData.mustChangePassword) {
+          setIsAuthenticated(false);
+          localStorage.removeItem('user');
           setPendingUser(userData);
           navigateTo('/force-change-password');
         } else if (userData.mustSetup2FA || (userData.role === 'administrator' && !userData.twoFactorEnabled)) {
+          setIsAuthenticated(false);
+          localStorage.removeItem('user');
           setPendingUser(userData);
           navigateTo('/setup-2fa');
         } else if (!userData.isVerified) {
+          setIsAuthenticated(false);
+          localStorage.removeItem('user');
           setPendingUser(userData);
           navigateTo('/email-verify');
         } else {
