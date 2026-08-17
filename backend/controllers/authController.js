@@ -572,13 +572,13 @@ exports.verifyMfa = async (req, res) => {
     });
 
     await AuditLog.logAction({
-      action: 'oauth_login_mfa_verified',
+      action: 'login_mfa_verified',
       userId: user._id,
       userRole: user.role,
       username: user.username,
       ipAddress: req.ip,
       userAgent: req.get('User-Agent'),
-      details: { method: 'google_oauth_mfa' }
+      details: { method: 'mfa_verified' }
     });
   } catch (error) {
     console.error('[Verify MFA Error]', error.message);
@@ -927,11 +927,9 @@ exports.disable2FA = async (req, res) => {
       return res.status(403).json({ error: 'Administrators cannot disable two-factor authentication.' });
     }
 
-    // Verify password (skip for OAuth users)
-    if (user.authProvider !== 'google') {
-      if (!(await user.comparePassword(password))) {
-        return res.status(401).json({ error: 'Invalid credentials' });
-      }
+    // Verify password
+    if (!(await user.comparePassword(password))) {
+      return res.status(401).json({ error: 'Invalid credentials' });
     }
 
     // Verify Email OTP
@@ -978,13 +976,9 @@ exports.reset2FA = async (req, res) => {
     const user = await User.findById(req.user.id).select('+twoFactorSecret');
     if (!user) return res.status(401).json({ error: 'Authentication failed' });
 
-    // Verify password (skip for OAuth users as they don't have a local password)
-    if (user.authProvider !== 'google') {
-      if (!(await user.comparePassword(password))) {
-        return res.status(401).json({ error: 'Invalid credentials' });
-      }
-    } else {
-      console.log(`[AUTH-DEBUG] Skipping password check for Google user: ${user.email}`);
+    // Verify password
+    if (!(await user.comparePassword(password))) {
+      return res.status(401).json({ error: 'Invalid credentials' });
     }
 
     // Verify Email OTP
@@ -1048,11 +1042,9 @@ exports.requestEmailChange = async (req, res) => {
     const user = await User.findById(req.user.id).select('+twoFactorSecret');
     if (!user) return res.status(401).json({ error: 'Authentication failed' });
 
-    // Verify password (skip for OAuth users)
-    if (user.authProvider !== 'google') {
-      if (!(await user.comparePassword(password))) {
-        return res.status(401).json({ error: 'Invalid credentials' });
-      }
+    // Verify password
+    if (!(await user.comparePassword(password))) {
+      return res.status(401).json({ error: 'Invalid credentials' });
     }
 
     // Verify TOTP if 2FA enabled
@@ -1480,9 +1472,7 @@ exports.updateProfile = async (req, res) => {
   const user = await User.findById(userId);
   if (!user) return res.status(401).json({ error: 'Authentication failed' });
 
-  if (user.lastLoginProvider === 'google' || user.authProvider === 'google') {
-    return res.status(403).json({ error: 'Profile updates are disabled for Google sign-in accounts.' });
-  }
+
 
   if (user.otpAttempts >= 10) {
     return res.status(429).json({ error: 'Too many failed attempts. Please request a new code.' });
@@ -1525,9 +1515,7 @@ exports.changePassword = async (req, res) => {
   const user = await User.findById(userId);
   if (!user) return res.status(401).json({ error: 'Authentication failed' });
 
-  if (user.lastLoginProvider === 'google' || user.authProvider === 'google') {
-    return res.status(403).json({ error: 'Password changes are disabled for Google sign-in accounts.' });
-  }
+
 
   if (!(await user.comparePassword(currentPassword))) {
     return res.status(401).json({ error: 'Invalid credentials' });
@@ -1601,15 +1589,9 @@ exports.regenerateRecoveryCodes = async (req, res) => {
     const user = await User.findById(req.user.id).select('+password +otp +otpExpires +otpAttempts');
     if (!user) return res.status(401).json({ error: 'Authentication failed' });
 
-    if (user.authProvider === 'google' && !user.mustSetup2FA) {
-      return res.status(403).json({ error: '2FA management is disabled for Google sign-in accounts.' });
-    }
-
-    // Verify Password (skip for Google OAuth)
-    if (user.authProvider !== 'google') {
-      if (!password || !(await user.comparePassword(password))) {
-        return res.status(401).json({ error: 'Invalid credentials' });
-      }
+    // Verify Password
+    if (!password || !(await user.comparePassword(password))) {
+      return res.status(401).json({ error: 'Invalid credentials' });
     }
 
     // Verify Email OTP

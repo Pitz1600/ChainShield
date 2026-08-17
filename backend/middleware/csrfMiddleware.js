@@ -80,9 +80,6 @@ const csrfProtection = (req, res, next) => {
     // Skip safe methods
     if (SAFE_METHODS.has(req.method)) return next();
 
-    // Skip OAuth callback (server-to-server redirect, no cookie context)
-    if (req.path.startsWith('/auth/google')) return next();
-
     // Skip health check
     if (req.path === '/health') return next();
 

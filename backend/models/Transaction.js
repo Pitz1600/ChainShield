@@ -50,6 +50,21 @@ const transactionSchema = new mongoose.Schema({
     default: 'PHP'
   },
 
+  // Budget Analysis fields
+  approvedBudget: {
+    type: Number,
+    default: 0
+  },
+  remainingBudget: {
+    type: Number,
+    default: 0
+  },
+  budget: {
+    approved: Number,
+    requested: Number,
+    remaining: Number
+  },
+
   // Beneficiary info (anonymized/hashed only - no PII)
   beneficiaryId: String, // Hashed/anonymized ID
   beneficiaryType: {

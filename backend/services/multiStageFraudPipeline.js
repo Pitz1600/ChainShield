@@ -18,7 +18,12 @@ class MultiStageFraudPipeline {
     const { requireApproval = false, staged = false, batchSize, useML = false } = opts;
     const start = Date.now();
     const batchId = Date.now();
-    const txs = Array.isArray(rawTransactions) ? rawTransactions.filter(Boolean) : [];
+    const txs = Array.isArray(rawTransactions)
+      ? rawTransactions.filter(t => t && Number.isFinite(Number(t.amount)) && Number(t.amount) > 0)
+      : [];
+    if (Array.isArray(rawTransactions) && rawTransactions.length > 0 && txs.length === 0) {
+      throw new Error('Transaction processing failed: Amount must be a positive number greater than 0');
+    }
     const normalizedBatchSize = Math.min(500, Math.max(100, Number(batchSize) || 250));
     const totalBatches = Math.ceil(txs.length / normalizedBatchSize) || 1;
 

@@ -3,7 +3,7 @@ import {
   AlertTriangle, CheckCircle, Clock, FileText,
   ChevronLeft, ChevronRight,
   ArrowUpDown, Filter, X, Trash2, Flag, ThumbsUp,
-  Link2, Info
+  Link2, Info, MessageSquare
 } from 'lucide-react';
 import api from '../../services/api';
 import FeedbackModal from '../Feedbacks/FeedbackModal';
@@ -204,12 +204,18 @@ function MyTransactions({ user, embedded = false }) {
   // Action state
   const [actionLoading, setActionLoading] = useState(false);
   const [actionMessage, setActionMessage] = useState({ text: '', type: 'success' });
+  const [tabRemarkInput, setTabRemarkInput] = useState('');
   const TOAST_DURATION = 4500;
 
   const isAdminOrAuditor = ['administrator', 'auditor', 'barangay_official'].includes(user?.role);
+  const isAuditor = user?.role === 'auditor';
   const canLeaveTxFeedback = user?.role === 'resident';
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [feedbackTx, setFeedbackTx] = useState(null);
+
+  // Batch Remark modal state
+  const [showBatchRemarkModal, setShowBatchRemarkModal] = useState(false);
+  const [batchRemarkInput, setBatchRemarkInput] = useState('');
   useLockBodyScroll(Boolean(selectedTx) || showFeedbackModal);
 
   /* ---- Toast ---- */
@@ -296,7 +302,7 @@ function MyTransactions({ user, embedded = false }) {
         setTransactions(prev => prev.map(t => t._id === updated._id ? { ...t, ...updated } : t));
         showToast('Remarks saved successfully.');
       } else {
-        const res = await api.put(`/transactions/${selectedTx._id}/verify`, { status });
+        const res = await api.put(`/transactions/${selectedTx._id}/verify`, { status, remark: remarkText });
         const updated = { ...selectedTx, ...res.data.transaction };
         setSelectedTx(updated);
         setTransactions(prev => prev.map(t => t._id === updated._id ? { ...t, ...updated } : t));
@@ -305,6 +311,44 @@ function MyTransactions({ user, embedded = false }) {
     } catch (err) {
       console.error(err);
       showToast('Failed to update transaction.', 'error');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleAddTabRemark = async () => {
+    if (!tabRemarkInput.trim() || !selectedTx || !isAuditor) return;
+    setActionLoading(true);
+    try {
+      const res = await api.post(`/transactions/${selectedTx._id}/remarks`, { remark: tabRemarkInput.trim() });
+      const updated = { ...selectedTx, ...res.data.transaction };
+      setSelectedTx(updated);
+      setTransactions(prev => prev.map(t => t._id === updated._id ? { ...t, ...updated } : t));
+      setTabRemarkInput('');
+      showToast('Official remark added successfully.');
+    } catch (err) {
+      console.error(err);
+      showToast('Failed to add remark.', 'error');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleBatchRemarkSubmit = async () => {
+    if (!batchRemarkInput.trim() || selected.size === 0 || !isAuditor) return;
+    const ids = [...selected];
+    setActionLoading(true);
+    try {
+      const res = await api.put('/transactions/batch-action', { ids, action: 'remark', remark: batchRemarkInput.trim() });
+      const { results } = res.data;
+      await fetchMyTransactions();
+      setShowBatchRemarkModal(false);
+      setBatchRemarkInput('');
+      setSelected(new Set());
+      showToast(`Batch auditor remark added to ${results.success.length} transactions.`);
+    } catch (err) {
+      console.error(err);
+      showToast('Failed to add batch remark.', 'error');
     } finally {
       setActionLoading(false);
     }
@@ -535,6 +579,11 @@ function MyTransactions({ user, embedded = false }) {
           {isAdminOrAuditor && (
             <div className="batch-toolbar">
               <span className="batch-count"><strong>{selected.size}</strong> selected</span>
+              {isAuditor && (
+                <button className="batch-btn remark" disabled={actionLoading || selected.size === 0} onClick={() => setShowBatchRemarkModal(true)}>
+                  <MessageSquare size={14} /> Batch Auditor Remark
+                </button>
+              )}
               <button className="batch-btn approve" disabled={actionLoading || selected.size === 0} onClick={() => handleBatchAction('approve')}>
                 <ThumbsUp size={14} /> Approve All
               </button>
@@ -603,6 +652,11 @@ function MyTransactions({ user, embedded = false }) {
                           {vBadge.label}
                         </span>
                         {t.verifiedBy && <span className="verified-by"> by {t.verifiedBy}</span>}
+                        {Array.isArray(t.remarks) && t.remarks.length > 0 && (
+                          <span title={`${t.remarks.length} auditor remark(s)`} style={{ marginLeft: 6, display: 'inline-flex', alignItems: 'center', gap: 2, padding: '2px 6px', borderRadius: 4, background: '#fef3c7', color: '#92400e', fontSize: '0.7rem', fontWeight: 600 }}>
+                            <MessageSquare size={11} /> {t.remarks.length}
+                          </span>
+                        )}
                       </td>
                       <td><span className={`risk-chip ${riskClass(t.riskScore ?? 0)}`}>{t.riskScore ?? '-'}</span></td>
                       <td><span className={`chain-badge ${chainClass}`}>{chainLabel}</span></td>
@@ -679,7 +733,7 @@ function MyTransactions({ user, embedded = false }) {
                     { key: 'ai',        label: 'AI Analysis' },
                     { key: 'csv',       label: 'Import Data' },
                     ...(isAdminOrAuditor ? [{ key: 'breakdown', label: 'Breakdown' }] : []),
-                    ...(isAdminOrAuditor ? [{ key: 'remarks', label: 'Auditor Remarks' }] : []),
+                    ...(isAdminOrAuditor ? [{ key: 'remarks', label: `Auditor Remarks${selectedTx.remarks?.length ? ` (${selectedTx.remarks.length})` : ''}` }] : []),
                   ].map(tab => (
                     <button
                       key={tab.key}
@@ -1208,30 +1262,84 @@ function MyTransactions({ user, embedded = false }) {
                   {/* TAB 5: REMARKS */}
                   {modalTab === 'remarks' && isAdminOrAuditor && (
                     <div>
-                      <div className="csv-details-banner" style={{ background: '#fffbeb', borderLeft: '4px solid #f59e0b' }}>
+                      <div className="csv-details-banner" style={{ background: '#fffbeb', borderLeft: '4px solid #f59e0b', marginBottom: '1.25rem' }}>
                         <div>
-                          <div className="csv-banner-title" style={{ color: '#d97706' }}>Auditor Remarks</div>
-                          <div className="csv-banner-sub" style={{ color: '#b45309' }}>Internal notes and observations recorded by auditors for this transaction.</div>
+                          <div className="csv-banner-title" style={{ color: '#d97706' }}>Auditor Remarks &amp; Official Findings</div>
+                          <div className="csv-banner-sub" style={{ color: '#b45309' }}>Internal findings and observations recorded by auditors for this transaction.</div>
                         </div>
                       </div>
-                      
+
+                      {/* Add Remark Form — ONLY FOR AUDITOR ROLE */}
+                      {isAuditor && (
+                        <div style={{ marginBottom: '1.25rem', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: '16px' }}>
+                          <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#334155', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <MessageSquare size={15} color="#3b82f6" /> Add Auditor Finding / Remark
+                          </div>
+                          <textarea
+                            rows={3}
+                            style={{
+                              width: '100%', padding: '10px 12px', borderRadius: 6, border: '1px solid #cbd5e1',
+                              fontSize: '0.88rem', fontFamily: 'inherit', resize: 'vertical', background: '#fff', color: '#1e293b'
+                            }}
+                            placeholder="Type official audit finding, document request, or verification remark..."
+                            value={tabRemarkInput}
+                            onChange={e => setTabRemarkInput(e.target.value)}
+                          />
+                          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 10 }}>
+                            <button
+                              type="button"
+                              disabled={actionLoading || !tabRemarkInput.trim()}
+                              onClick={handleAddTabRemark}
+                              style={{
+                                padding: '8px 18px', background: tabRemarkInput.trim() ? '#2563eb' : '#94a3b8',
+                                color: '#fff', border: 'none', borderRadius: 6, fontWeight: 600, fontSize: '0.85rem',
+                                cursor: tabRemarkInput.trim() ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', gap: 6,
+                                transition: 'all 0.2s'
+                              }}
+                            >
+                              <MessageSquare size={14} /> Post Remark
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Remarks List or System Summary */}
                       {(!Array.isArray(selectedTx.remarks) || selectedTx.remarks.length === 0) ? (
-                        <div style={{ padding: '2rem', textAlign: 'center', color: '#94a3b8', background: '#f8fafc', borderRadius: 8 }}>
-                          No remarks have been added to this transaction yet.
+                        <div style={{ padding: '1.5rem', background: '#f8fafc', borderRadius: 8, border: '1px solid #e2e8f0' }}>
+                          <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>
+                            Automated System Audit Log
+                          </div>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, fontSize: '0.85rem', color: '#334155' }}>
+                            <div style={{ background: '#fff', padding: '10px 12px', borderRadius: 6, border: '1px solid #f1f5f9' }}>
+                              <span style={{ color: '#64748b', display: 'block', fontSize: '0.75rem', marginBottom: 2 }}>Verification Status</span>
+                              <strong style={{ color: selectedTx.verificationStatus === 'Verified' ? '#10b981' : '#f59e0b' }}>{selectedTx.verificationStatus || 'Pending'}</strong>
+                              {selectedTx.verifiedBy && <span style={{ fontSize: '0.75rem', color: '#64748b' }}> by {selectedTx.verifiedBy}</span>}
+                            </div>
+                            <div style={{ background: '#fff', padding: '10px 12px', borderRadius: 6, border: '1px solid #f1f5f9' }}>
+                              <span style={{ color: '#64748b', display: 'block', fontSize: '0.75rem', marginBottom: 2 }}>AI Risk Score</span>
+                              <strong>{selectedTx.riskScore ?? 0}/100 ({selectedTx.riskLevel || 'LOW'})</strong>
+                            </div>
+                          </div>
+                          <p style={{ marginTop: 12, marginBottom: 0, color: '#94a3b8', fontSize: '0.82rem', textAlign: 'center' }}>
+                            No manual auditor remarks posted yet. Use the form above to record an official finding.
+                          </p>
                         </div>
                       ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                          <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                            Recorded Official Remarks ({selectedTx.remarks.length})
+                          </div>
                           {selectedTx.remarks.map((rmk, idx) => (
                             <div key={idx} style={{
-                              padding: '16px', border: '1px solid #fcd34d',
+                              padding: '14px 16px', border: '1px solid #fcd34d',
                               borderRadius: 8, fontSize: '0.9rem', background: '#fffbeb',
                               color: '#92400e', lineHeight: 1.6
                             }}>
-                              <div style={{ fontSize: '0.8rem', fontWeight: 700, marginBottom: 6, color: '#d97706', display: 'flex', justifyContent: 'space-between' }}>
+                              <div style={{ fontSize: '0.78rem', fontWeight: 700, marginBottom: 6, color: '#d97706', display: 'flex', justifyContent: 'space-between' }}>
                                 <span>{rmk.author || 'Auditor'}</span>
                                 <span>{new Date(rmk.timestamp).toLocaleString()}</span>
                               </div>
-                              <div style={{ whiteSpace: 'pre-wrap' }}>{rmk.text}</div>
+                              <div style={{ whiteSpace: 'pre-wrap', color: '#78350f' }}>{rmk.text}</div>
                             </div>
                           ))}
                         </div>
@@ -1278,6 +1386,41 @@ function MyTransactions({ user, embedded = false }) {
               onClose={() => { setShowFeedbackModal(false); setFeedbackTx(null); }}
               onSuccess={() => showToast('Feedback submitted for this transaction.', 'success')}
             />
+          )}
+          {showBatchRemarkModal && (
+            <div className="tx-modal-overlay" onClick={() => setShowBatchRemarkModal(false)}>
+              <div className="tx-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 500, padding: 24, borderRadius: 12, background: '#fff' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                  <h3 style={{ margin: 0, fontSize: '1.15rem', color: '#0f172a', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <MessageSquare size={18} color="#2563eb" /> Batch Auditor Remark
+                  </h3>
+                  <button className="close-btn" onClick={() => setShowBatchRemarkModal(false)}>&times;</button>
+                </div>
+                <p style={{ color: '#475569', fontSize: '0.9rem', marginBottom: 16 }}>
+                  Add an official auditor remark to <strong>{selected.size}</strong> selected transaction(s).
+                </p>
+                <textarea
+                  rows={4}
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #cbd5e1', fontSize: '0.9rem', fontFamily: 'inherit', resize: 'vertical', marginBottom: 16, color: '#1e293b' }}
+                  placeholder="Enter official remark to apply to all selected records..."
+                  value={batchRemarkInput}
+                  onChange={e => setBatchRemarkInput(e.target.value)}
+                />
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+                  <button type="button" onClick={() => setShowBatchRemarkModal(false)} style={{ padding: '8px 16px', background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', borderRadius: 6, fontWeight: 600, cursor: 'pointer' }}>
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    disabled={actionLoading || !batchRemarkInput.trim()}
+                    onClick={handleBatchRemarkSubmit}
+                    style={{ padding: '8px 18px', background: batchRemarkInput.trim() ? '#2563eb' : '#94a3b8', color: '#fff', border: 'none', borderRadius: 6, fontWeight: 600, cursor: batchRemarkInput.trim() ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', gap: 6 }}
+                  >
+                    <MessageSquare size={14} /> Apply to {selected.size} Records
+                  </button>
+                </div>
+              </div>
+            </div>
           )}
         </>
       )}

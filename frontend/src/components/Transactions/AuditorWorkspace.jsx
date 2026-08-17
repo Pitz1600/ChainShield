@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { FileText, CheckCircle, AlertTriangle, Clock, X, DollarSign, Users, Briefcase, FileSignature, Check, Ban, RefreshCw, MessageSquare } from 'lucide-react';
+import { FileText, CheckCircle, AlertTriangle, Clock, X, DollarSign, Users, Briefcase, FileSignature, Check, Ban, RefreshCw, MessageSquare, Plus, Minus, Save } from 'lucide-react';
+import api from '../../services/api';
 import { formatAddressLabel } from '../../utils/helpers';
 import '../../styles/AuditorWorkspace.css';
 
@@ -7,6 +8,10 @@ export default function AuditorWorkspace({ tx, onClose, onAction, showToast }) {
   const [tab, setTab] = useState('general');
   const [remarks, setRemarks] = useState('');
   const [loading, setLoading] = useState(false);
+  const [budgetInput, setBudgetInput] = useState(
+    tx.approvedBudget || (tx.budget && tx.budget.approved) || 0
+  );
+  const [savingBudget, setSavingBudget] = useState(false);
 
   const handleAuditorAction = async (actionType) => {
     setLoading(true);
@@ -14,12 +19,14 @@ export default function AuditorWorkspace({ tx, onClose, onAction, showToast }) {
       if (actionType === 'Remarks') {
         if (!remarks.trim()) {
            showToast('Please enter a remark first.', 'error');
+           setLoading(false);
            return;
         }
         await onAction('Remarks', remarks);
         setRemarks('');
       } else {
-        await onAction(actionType);
+        await onAction(actionType, remarks.trim() || null);
+        setRemarks('');
         // Automatically close after taking decision
         setTimeout(() => onClose(), 500);
       }
@@ -42,9 +49,9 @@ export default function AuditorWorkspace({ tx, onClose, onAction, showToast }) {
   ];
 
   const budget = tx.budget || {};
-  const requested = parseFloat(budget.requested || tx.amount || 0);
-  const approved = parseFloat(budget.approved || 0);
-  const remaining = parseFloat(budget.remaining || 0);
+  const requested = parseFloat(tx.amount || budget.requested || 0);
+  const approved = parseFloat(tx.approvedBudget || budget.approved || 0);
+  const remaining = approved > 0 ? Math.max(0, approved - requested) : parseFloat(budget.remaining || tx.remainingBudget || 0);
   const utilPct = approved > 0 ? ((requested / approved) * 100).toFixed(1) : 0;
 
   const items = tx.lineItems || tx.items || [];
@@ -139,22 +146,105 @@ export default function AuditorWorkspace({ tx, onClose, onAction, showToast }) {
                 <div className="aw-data-label">Approved Budget</div>
                 <div className="aw-budget-val">₱ {approved.toLocaleString(undefined, {minimumFractionDigits: 2})}</div>
               </div>
-              <div className={`aw-budget-card ${requested > approved ? 'warning' : 'highlight'}`}>
+              <div className={`aw-budget-card ${approved > 0 && requested > approved ? 'warning' : 'highlight'}`}>
                 <div className="aw-data-label">Requested Amount</div>
                 <div className="aw-budget-val">₱ {requested.toLocaleString(undefined, {minimumFractionDigits: 2})}</div>
               </div>
               <div className="aw-budget-card">
                 <div className="aw-data-label">Remaining Budget</div>
-                <div className="aw-budget-val">₱ {remaining.toLocaleString(undefined, {minimumFractionDigits: 2})}</div>
+                <div className="aw-budget-val" style={{ color: remaining > 0 ? '#10b981' : '#94a3b8' }}>
+                  ₱ {remaining.toLocaleString(undefined, {minimumFractionDigits: 2})}
+                </div>
               </div>
             </div>
-            <div>
-              <span className="aw-data-label">Budget Utilization: {utilPct}% {utilPct > 100 && '(OVER BUDGET)'}</span>
+
+            <div style={{ marginBottom: 24 }}>
+              <span className="aw-data-label">Budget Utilization: {utilPct}% {approved > 0 && utilPct > 100 && '(OVER BUDGET)'}</span>
               <div className="aw-progress-bar">
                 <div 
                   className="aw-progress-fill" 
                   style={{ width: `${Math.min(utilPct, 100)}%`, background: utilPct > 100 ? '#ef4444' : '#10b981' }}
                 ></div>
+              </div>
+            </div>
+
+            {/* Interactive Approved Budget Controller */}
+            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, padding: 18 }}>
+              <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#334155', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <DollarSign size={16} color="#2563eb" /> Set / Adjust Approved Budget Amount
+              </div>
+              <p style={{ fontSize: '0.82rem', color: '#64748b', marginBottom: 14, margin: 0 }}>
+                Adjust the approved fund allocation for this project/program up or down. Remaining budget will automatically re-calculate.
+              </p>
+
+              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10, marginTop: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', background: '#fff', border: '1px solid #cbd5e1', borderRadius: 8, padding: '4px 10px' }}>
+                  <span style={{ fontWeight: 700, color: '#475569', marginRight: 6 }}>₱</span>
+                  <input
+                    type="number"
+                    step="5000"
+                    style={{ border: 'none', outline: 'none', fontSize: '1rem', fontWeight: 600, color: '#0f172a', width: 140 }}
+                    value={budgetInput}
+                    onChange={e => setBudgetInput(e.target.value)}
+                  />
+                </div>
+
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <button
+                    type="button"
+                    onClick={() => setBudgetInput(prev => Math.max(0, parseFloat(prev || 0) + 10000))}
+                    style={{ padding: '6px 12px', background: '#ecfdf5', border: '1px solid #a7f3d0', color: '#047857', borderRadius: 6, fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}
+                  >
+                    <Plus size={13} /> 10k
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBudgetInput(prev => Math.max(0, parseFloat(prev || 0) + 50000))}
+                    style={{ padding: '6px 12px', background: '#ecfdf5', border: '1px solid #a7f3d0', color: '#047857', borderRadius: 6, fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}
+                  >
+                    <Plus size={13} /> 50k
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBudgetInput(prev => Math.max(0, parseFloat(prev || 0) - 10000))}
+                    style={{ padding: '6px 12px', background: '#fef2f2', border: '1px solid #fca5a5', color: '#b91c1c', borderRadius: 6, fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}
+                  >
+                    <Minus size={13} /> 10k
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  disabled={savingBudget}
+                  onClick={async () => {
+                    const parsed = parseFloat(budgetInput);
+                    if (isNaN(parsed) || parsed < 0) {
+                      showToast('Please enter a valid non-negative amount.', 'error');
+                      return;
+                    }
+                    setSavingBudget(true);
+                    try {
+                      const res = await api.put(`/transactions/${tx._id || tx.transactionId}/budget`, { approvedBudget: parsed });
+                      if (res.data.transaction) {
+                        tx.approvedBudget = res.data.transaction.approvedBudget;
+                        tx.remainingBudget = res.data.transaction.remainingBudget;
+                        tx.budget = res.data.transaction.budget;
+                      }
+                      showToast('Approved budget updated successfully.');
+                    } catch (e) {
+                      console.error(e);
+                      showToast('Failed to update approved budget.', 'error');
+                    } finally {
+                      setSavingBudget(false);
+                    }
+                  }}
+                  style={{
+                    padding: '8px 18px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: 6,
+                    fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, marginLeft: 'auto'
+                  }}
+                >
+                  <Save size={14} /> Update Approved Budget
+                </button>
               </div>
             </div>
           </div>
@@ -322,34 +412,54 @@ export default function AuditorWorkspace({ tx, onClose, onAction, showToast }) {
         {/* AUDITOR DECISION */}
         {tab === 'decision' && (
           <div className="aw-card" style={{ borderColor: '#bae6fd', background: '#f0f9ff' }}>
-            <h3 style={{ color: '#0284c7' }}>Auditor Decision</h3>
-            <p style={{ color: '#475569', fontSize: '0.95rem', marginBottom: 24 }}>
+            <h3 style={{ color: '#0284c7' }}>Auditor Decision &amp; Findings</h3>
+            <p style={{ color: '#475569', fontSize: '0.95rem', marginBottom: 20 }}>
               Please review all information carefully. As the Barangay Auditor, your decision overrides any AI recommendations.
             </p>
+
+            {/* Display Previous Remarks if Any */}
+            {Array.isArray(tx.remarks) && tx.remarks.length > 0 && (
+              <div style={{ marginBottom: 20, background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: 8, padding: 16 }}>
+                <div className="aw-data-label" style={{ marginBottom: 10, color: '#d97706', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <MessageSquare size={14} /> Previous Official Remarks ({tx.remarks.length})
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 180, overflowY: 'auto' }}>
+                  {tx.remarks.map((rmk, idx) => (
+                    <div key={idx} style={{ padding: 10, background: '#fffbeb', borderRadius: 6, borderLeft: '3px solid #f59e0b', fontSize: '0.88rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', fontWeight: 700, color: '#b45309', marginBottom: 4 }}>
+                        <span>{rmk.author || 'Auditor'}</span>
+                        <span>{new Date(rmk.timestamp).toLocaleString()}</span>
+                      </div>
+                      <div style={{ color: '#78350f', whiteSpace: 'pre-wrap' }}>{rmk.text}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
             
-            <div style={{ marginBottom: 24 }}>
-              <div className="aw-data-label" style={{ marginBottom: 12 }}>Auditor Remarks / Official Findings</div>
+            <div style={{ marginBottom: 20 }}>
+              <div className="aw-data-label" style={{ marginBottom: 8 }}>Enter New Auditor Remarks / Findings</div>
               <textarea 
                 className="aw-remarks"
-                rows={5} 
+                rows={4} 
                 value={remarks}
                 onChange={e => setRemarks(e.target.value)}
-                placeholder="Enter your findings, request for documents, or reasons for rejection here..."
+                placeholder="Enter findings, document requests, or reasons for approval/rejection..."
               />
             </div>
 
             <div className="aw-decision-actions">
-              <button disabled={loading} onClick={() => handleAuditorAction('Verified')} className="aw-action-btn approve">
-                <Check size={20} /> Approve
+              <button disabled={loading} onClick={() => handleAuditorAction('Verified')} className="aw-action-btn approve" title="Approve Transaction">
+                <Check size={18} /> Approve
               </button>
-              <button disabled={loading} onClick={() => handleAuditorAction('Rejected')} className="aw-action-btn reject">
-                <Ban size={20} /> Reject
+              <button disabled={loading} onClick={() => handleAuditorAction('Rejected')} className="aw-action-btn reject" title="Reject Transaction">
+                <Ban size={18} /> Reject
               </button>
-              <button disabled={loading} onClick={() => handleAuditorAction('Pending')} className="aw-action-btn revise">
-                <RefreshCw size={20} /> Request Revision
+              <button disabled={loading} onClick={() => handleAuditorAction('Pending')} className="aw-action-btn revise" title="Request Revision">
+                <RefreshCw size={18} /> Request Revision
               </button>
-              <button disabled={loading} onClick={() => handleAuditorAction('Remarks')} className="aw-action-btn">
-                <MessageSquare size={20} /> Add Official Remarks
+              <button disabled={loading} onClick={() => handleAuditorAction('Remarks')} className="aw-action-btn remark-save" title="Save Remark Only">
+                <MessageSquare size={18} /> Add Remark
               </button>
             </div>
           </div>

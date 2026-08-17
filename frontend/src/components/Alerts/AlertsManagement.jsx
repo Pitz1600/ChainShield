@@ -7,7 +7,8 @@ import {
   ChevronRight,
   X,
   ArrowUpDown,
-  Link2
+  Link2,
+  MessageSquare
 } from 'lucide-react';
 import api from '../../services/api';
 import { formatAddressLabel } from '../../utils/helpers';
@@ -26,6 +27,8 @@ function AlertsManagement({ embedded = false, user = null }) {
   const [showModal, setShowModal] = useState(false);
   const [modalTab, setModalTab] = useState('details');
   const [txLoading, setTxLoading] = useState(false);
+  const [tabRemarkInput, setTabRemarkInput] = useState('');
+  const [actionLoading, setActionLoading] = useState(false);
 
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -486,7 +489,8 @@ function AlertsManagement({ embedded = false, user = null }) {
                 { key: 'details', label: 'Details' },
                 { key: 'ai', label: 'AI Analysis' },
                 { key: 'csv', label: 'Import Data' },
-                ...(canSeeBreakdown ? [{ key: 'breakdown', label: 'Breakdown' }] : [])
+                ...(canSeeBreakdown ? [{ key: 'breakdown', label: 'Breakdown' }] : []),
+                ...(canSeeBreakdown ? [{ key: 'remarks', label: `Auditor Remarks${tx?.remarks?.length ? ` (${tx.remarks.length})` : ''}` }] : [])
               ].map((tab) => (
                 <button
                   key={tab.key}
@@ -833,6 +837,109 @@ function AlertsManagement({ embedded = false, user = null }) {
                   </div>
                 );
               })()}
+
+              {/* REMARKS TAB */}
+              {modalTab === 'remarks' && canSeeBreakdown && (
+                <div>
+                  <div className="csv-details-banner" style={{ background: '#fffbeb', borderLeft: '4px solid #f59e0b', marginBottom: '1.25rem' }}>
+                    <div>
+                      <div className="csv-banner-title" style={{ color: '#d97706' }}>Auditor Remarks &amp; Official Notes</div>
+                      <div className="csv-banner-sub" style={{ color: '#b45309' }}>Internal findings and remarks recorded by auditors for this flagged transaction.</div>
+                    </div>
+                  </div>
+
+                  {/* Add Remark Form — ONLY FOR AUDITOR ROLE */}
+                  {user?.role === 'auditor' && (
+                    <div style={{ marginBottom: '1.25rem', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: '16px' }}>
+                      <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#334155', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <MessageSquare size={15} color="#3b82f6" /> Add Auditor Finding / Remark
+                      </div>
+                      <textarea
+                        rows={3}
+                        style={{
+                          width: '100%', padding: '10px 12px', borderRadius: 6, border: '1px solid #cbd5e1',
+                          fontSize: '0.88rem', fontFamily: 'inherit', resize: 'vertical', background: '#fff', color: '#1e293b'
+                        }}
+                        placeholder="Type official audit finding, document request, or verification remark..."
+                        value={tabRemarkInput}
+                        onChange={e => setTabRemarkInput(e.target.value)}
+                      />
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 10 }}>
+                        <button
+                          type="button"
+                          disabled={actionLoading || !tabRemarkInput.trim()}
+                          onClick={async () => {
+                            const targetId = tx?._id || tx?.id;
+                            if (!tabRemarkInput.trim() || !targetId) return;
+                            setActionLoading(true);
+                            try {
+                              const res = await api.post(`/transactions/${targetId}/remarks`, { remark: tabRemarkInput.trim() });
+                              const updated = { ...(fullTx || tx), ...res.data.transaction };
+                              setFullTx(updated);
+                              setAlerts(prev => prev.map(a => (a._id === targetId || a.id === targetId) ? { ...a, ...updated } : a));
+                              setTabRemarkInput('');
+                            } catch (err) {
+                              console.error(err);
+                            } finally {
+                              setActionLoading(false);
+                            }
+                          }}
+                          style={{
+                            padding: '8px 18px', background: tabRemarkInput.trim() ? '#2563eb' : '#94a3b8',
+                            color: '#fff', border: 'none', borderRadius: 6, fontWeight: 600, fontSize: '0.85rem',
+                            cursor: tabRemarkInput.trim() ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', gap: 6,
+                            transition: 'all 0.2s'
+                          }}
+                        >
+                          <MessageSquare size={14} /> Post Remark
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Remarks List or System Summary */}
+                  {(!Array.isArray(tx?.remarks) || tx.remarks.length === 0) ? (
+                    <div style={{ padding: '1.5rem', background: '#f8fafc', borderRadius: 8, border: '1px solid #e2e8f0' }}>
+                      <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>
+                        Automated System Audit Log
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, fontSize: '0.85rem', color: '#334155' }}>
+                        <div style={{ background: '#fff', padding: '10px 12px', borderRadius: 6, border: '1px solid #f1f5f9' }}>
+                          <span style={{ color: '#64748b', display: 'block', fontSize: '0.75rem', marginBottom: 2 }}>Verification Status</span>
+                          <strong style={{ color: tx?.verificationStatus === 'Verified' ? '#10b981' : '#f59e0b' }}>{tx?.verificationStatus || tx?.status || 'Pending'}</strong>
+                          {tx?.verifiedBy && <span style={{ fontSize: '0.75rem', color: '#64748b' }}> by {tx.verifiedBy}</span>}
+                        </div>
+                        <div style={{ background: '#fff', padding: '10px 12px', borderRadius: 6, border: '1px solid #f1f5f9' }}>
+                          <span style={{ color: '#64748b', display: 'block', fontSize: '0.75rem', marginBottom: 2 }}>AI Risk Score</span>
+                          <strong>{txRisk}/100 ({riskLabel(txRisk)})</strong>
+                        </div>
+                      </div>
+                      <p style={{ marginTop: 12, marginBottom: 0, color: '#94a3b8', fontSize: '0.82rem', textAlign: 'center' }}>
+                        No manual auditor remarks posted yet. Use the form above to record an official finding.
+                      </p>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        Recorded Official Remarks ({tx.remarks.length})
+                      </div>
+                      {tx.remarks.map((rmk, idx) => (
+                        <div key={idx} style={{
+                          padding: '14px 16px', border: '1px solid #fcd34d',
+                          borderRadius: 8, fontSize: '0.9rem', background: '#fffbeb',
+                          color: '#92400e', lineHeight: 1.6
+                        }}>
+                          <div style={{ fontSize: '0.78rem', fontWeight: 700, marginBottom: 6, color: '#d97706', display: 'flex', justifyContent: 'space-between' }}>
+                            <span>{rmk.author || 'Auditor'}</span>
+                            <span>{new Date(rmk.timestamp).toLocaleString()}</span>
+                          </div>
+                          <div style={{ whiteSpace: 'pre-wrap', color: '#78350f' }}>{rmk.text}</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="tx-modal-footer">

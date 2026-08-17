@@ -6,6 +6,28 @@ const multiStagePipeline = require('../services/multiStageFraudPipeline');
 exports.createTransaction = async (req, res) => {
   try {
     const input = req.body;
+
+    const amount = parseFloat(input.amount);
+    if (isNaN(amount) || !Number.isFinite(amount) || amount <= 0) {
+      return res.status(400).json({ error: 'Amount must be a positive number greater than 0' });
+    }
+
+    if (!input.agency || !String(input.agency).trim()) {
+      return res.status(400).json({ error: 'Agency name is required' });
+    }
+
+    if (!input.programName || !String(input.programName).trim()) {
+      return res.status(400).json({ error: 'Program name is required' });
+    }
+
+    // Check for duplicate transaction ID if provided
+    if (input.transactionId) {
+      const existing = await Transaction.findOne({ transactionId: input.transactionId });
+      if (existing) {
+        return res.status(400).json({ error: `Transaction ID '${input.transactionId}' already exists.` });
+      }
+    }
+
     const { results } = await multiStagePipeline.processBatch([input], { requireApproval: true });
     const first = results[0];
     const saved = await Transaction.findById(first.transactionId);
@@ -283,6 +305,9 @@ exports.getMyTransactions = async (req, res) => {
 // NEW: Add remark to transaction
 exports.addRemark = async (req, res) => {
   try {
+    if (req.user?.role !== 'auditor') {
+      return res.status(403).json({ error: 'Only auditors are authorized to add remarks' });
+    }
     const { id } = req.params;
     const { remark } = req.body;
 
@@ -291,9 +316,13 @@ exports.addRemark = async (req, res) => {
     const transaction = await Transaction.findById(id);
     if (!transaction) return res.status(404).json({ error: 'Transaction not found' });
 
+    const authorName = req.user?.firstName
+      ? `${req.user.firstName} ${req.user.lastName || ''}`.trim()
+      : (req.user?.name || req.user?.fullName || req.user?.email || req.user?.role || 'Auditor');
+
     transaction.remarks.push({
       text: remark,
-      author: req.user?.name || req.user?.email || req.user?.role || 'Auditor'
+      author: authorName
     });
 
     await transaction.save();
@@ -313,7 +342,7 @@ exports.addRemark = async (req, res) => {
 exports.updateVerificationStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status } = req.body;
+    const { status, remark } = req.body;
 
     if (!['Pending', 'Verified', 'Suspicious', 'Flagged', 'Denied', 'Rejected'].includes(status)) {
       return res.status(400).json({ error: 'Invalid verification status' });
@@ -328,10 +357,22 @@ exports.updateVerificationStatus = async (req, res) => {
     transaction.verificationStatus = status === 'Denied' ? 'Rejected' : status;
 
     // Determine verifier identity
+    const verifierName = req.user?.firstName
+      ? `${req.user.firstName} ${req.user.lastName || ''}`.trim()
+      : (req.user?.name || req.user?.fullName || req.user?.email || req.user?.role || 'Official');
+
     if (transaction.verificationStatus === 'Pending') {
       transaction.verifiedBy = undefined; // cleared on undo
     } else {
-      transaction.verifiedBy = req.user?.name || req.user?.fullName || req.user?.email || req.user?.role || 'Official';
+      transaction.verifiedBy = verifierName;
+    }
+
+    // Atomically attach remark if provided with status update
+    if (remark && typeof remark === 'string' && remark.trim()) {
+      transaction.remarks.push({
+        text: remark.trim(),
+        author: verifierName
+      });
     }
 
     // If approved and flagged, record on-chain (once)
@@ -359,7 +400,8 @@ exports.updateVerificationStatus = async (req, res) => {
         verificationStatus: transaction.verificationStatus,
         verifiedBy: transaction.verifiedBy,
         blockchainTxId: transaction.blockchainTxId,
-        blockNumber: transaction.blockNumber
+        blockNumber: transaction.blockNumber,
+        remarks: transaction.remarks
       }
     });
   } catch (error) {
@@ -426,15 +468,25 @@ exports.approveTransaction = async (req, res) => {
 // Batch action: approve, flag, or delete multiple transactions
 exports.batchAction = async (req, res) => {
   try {
-    const { ids, action } = req.body;
+    const { ids, action, remark } = req.body;
     if (!Array.isArray(ids) || ids.length === 0) {
       return res.status(400).json({ error: 'ids array is required' });
     }
-    if (!['approve', 'flag', 'delete'].includes(action)) {
-      return res.status(400).json({ error: 'action must be approve, flag, or delete' });
+    if (!['approve', 'flag', 'delete', 'remark'].includes(action)) {
+      return res.status(400).json({ error: 'action must be approve, flag, delete, or remark' });
+    }
+    if (action === 'remark') {
+      if (req.user?.role !== 'auditor') {
+        return res.status(403).json({ error: 'Only auditors are authorized to add remarks' });
+      }
+      if (!remark || typeof remark !== 'string' || !remark.trim()) {
+        return res.status(400).json({ error: 'remark text is required' });
+      }
     }
 
-    const verifierName = req.user?.name || req.user?.fullName || req.user?.email || req.user?.role || 'Official';
+    const verifierName = req.user?.firstName
+      ? `${req.user.firstName} ${req.user.lastName || ''}`.trim()
+      : (req.user?.name || req.user?.fullName || req.user?.email || req.user?.role || 'Official');
     const results = { success: [], failed: [] };
 
     for (const id of ids) {
@@ -464,6 +516,10 @@ exports.batchAction = async (req, res) => {
           tx.verifiedBy = verifierName;
           await tx.save();
           results.success.push({ id, action: 'flagged' });
+        } else if (action === 'remark') {
+          tx.remarks.push({ text: remark.trim(), author: verifierName });
+          await tx.save();
+          results.success.push({ id, action: 'remarked' });
         }
       } catch (err) {
         results.failed.push({ id, reason: err.message });
@@ -474,5 +530,45 @@ exports.batchAction = async (req, res) => {
   } catch (err) {
     console.error('Batch action error:', err);
     res.status(500).json({ error: err.message });
+  }
+};
+
+// Update approved budget for a transaction
+exports.updateTransactionBudget = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { approvedBudget } = req.body;
+    const approved = parseFloat(approvedBudget);
+
+    if (isNaN(approved) || approved < 0) {
+      return res.status(400).json({ error: 'Approved budget must be a non-negative number' });
+    }
+
+    const transaction = await Transaction.findById(id);
+    if (!transaction) {
+      return res.status(404).json({ error: 'Transaction not found' });
+    }
+
+    const requested = parseFloat(transaction.amount || 0);
+    const remaining = Math.max(0, approved - requested);
+
+    transaction.approvedBudget = approved;
+    transaction.remainingBudget = remaining;
+    transaction.budget = {
+      approved,
+      requested,
+      remaining
+    };
+
+    await transaction.save();
+
+    res.json({
+      success: true,
+      message: 'Approved budget updated successfully',
+      transaction
+    });
+  } catch (error) {
+    console.error('Update budget error:', error);
+    res.status(500).json({ error: error.message });
   }
 };

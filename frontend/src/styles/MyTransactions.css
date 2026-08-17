@@ -1736,3 +1736,24 @@
     font-size: 0.72rem;
     color: #64748b;
 }
+
+.batch-btn.remark {
+    background: #eff6ff;
+    color: #1e40af;
+    border: 1px solid #bfdbfe;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+}
+
+.batch-btn.remark:hover:not(:disabled) {
+    background: #dbeafe;
+    border-color: #3b82f6;
+}
+

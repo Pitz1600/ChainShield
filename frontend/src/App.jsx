@@ -50,21 +50,6 @@ function App() {
     // Check for existing authentication on mount via API (cookie)
     const checkAuth = async () => {
       try {
-        // If there are OAuth result params in the URL, let Login.jsx handle them.
-        // Don't auto-login — the user may have cancelled OAuth or the flow may have failed.
-        const params = new URLSearchParams(window.location.search);
-        const hasOauthParams = params.get('error') ||
-          params.get('oauth') === 'success' ||
-          params.get('oauth_mfa') ||
-          params.get('oauth_setup_2fa') ||
-          params.get('oauth_force_password');
-
-        if (hasOauthParams) {
-          navigateTo('/login');
-          setIsLoading(false);
-          return;
-        }
-
         const response = await authAPI.getProfile();
         const userData = response.data;
 

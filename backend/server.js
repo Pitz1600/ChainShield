@@ -7,8 +7,6 @@ const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss');
 const cookieParser = require('cookie-parser');
-const passport = require('passport');
-const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const connectDB = require('./config/database');
 const { apiLimiter } = require('./middleware/rateLimiter');
 const { csrfProtection, issueCsrfToken } = require('./middleware/csrfMiddleware');
@@ -140,32 +138,6 @@ app.use(auditLog);
 app.use(cookieParser());
 
 // ========================================
-// PASSPORT / OAUTH SETUP
-// ========================================
-
-// Configure Google OAuth 2.0 strategy
-if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
-  passport.use(new GoogleStrategy({
-    clientID: process.env.GOOGLE_CLIENT_ID,
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: process.env.GOOGLE_CALLBACK_URL || '/api/auth/google/callback',
-    scope: ['profile', 'email'],
-  }, (accessToken, refreshToken, profile, done) => {
-    // Attach profile to request — oauthController.googleCallback handles DB logic
-    return done(null, profile);
-  }));
-
-  // Minimal session serialization (we use JWT cookies, not Passport sessions)
-  passport.serializeUser((user, done) => done(null, user));
-  passport.deserializeUser((user, done) => done(null, user));
-
-  app.use(passport.initialize());
-  console.log('🔑 Google OAuth: Configured');
-} else {
-  console.warn('⚠️  Google OAuth: GOOGLE_CLIENT_ID/SECRET not set — OAuth disabled');
-}
-
-// ========================================
 // CSRF PROTECTION (Double-Submit Cookie)
 // ========================================
 app.use(csrfProtection);
@@ -176,33 +148,6 @@ app.use(csrfProtection);
 
 // CSRF token endpoint (public — must be before CSRF protection is applied to routes)
 app.get('/api/auth/csrf-token', issueCsrfToken);
-
-// OAuth routes (Passport redirects — no CSRF needed, handled by csrfMiddleware path exclusion)
-const oauthController = require('./controllers/oauthController');
-if (process.env.GOOGLE_CLIENT_ID) {
-  app.get('/api/auth/google',
-    passport.authenticate('google', { scope: ['profile', 'email'], session: false })
-  );
-  app.get('/api/auth/google/callback',
-    (req, res, next) => {
-      passport.authenticate('google', { session: false }, (err, profile) => {
-        if (err || !profile) {
-          // Clear any existing auth cookie so a stale session can't auto-login
-          // after the user cancels or the OAuth flow fails.
-          res.clearCookie('token', {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
-          });
-          return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}?error=oauth_failed`);
-        }
-        req.oauthProfile = profile;
-        next();
-      })(req, res, next);
-    },
-    oauthController.googleCallback
-  );
-}
 
 app.use('/api/transactions', require('./routes/transactions'));
 app.use('/api/alerts', require('./routes/alerts'));

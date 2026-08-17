@@ -71,10 +71,6 @@ function Profile({ user }) {
 
   // Modals Open/Close
   const handleOpenEditModal = () => {
-    if (isGoogleUser) {
-      setError('Profile editing is disabled for Google sign-in accounts.');
-      return;
-    }
     setShowEditModal(true);
     setEditOtpSent(false);
     setMessage(''); setError('');
@@ -264,7 +260,6 @@ function Profile({ user }) {
   const roleDisplay = user?.role === 'barangay_official' && user?.position
     ? user.position
     : formatRoleName(user?.role);
-  const isGoogleUser = user?.lastLoginProvider === 'google' || user?.authProvider === 'google';
 
   if (!user) return null;
 
@@ -330,14 +325,6 @@ function Profile({ user }) {
         </div>
 
         <div className="profile-content-area">
-          {isGoogleUser && (
-            <div className="auth-provider-info" style={{ marginBottom: '1rem' }}>
-              <span className="info-badge">Google Account</span>
-              <span style={{ marginLeft: '0.75rem', color: '#475569', fontWeight: 600 }}>
-                Profile editing is disabled for Google sign-in accounts.
-              </span>
-            </div>
-          )}
           {/* Info Cards */}
           <div className="profile-cards">
             {[
@@ -363,7 +350,7 @@ function Profile({ user }) {
           <div className="profile-section">
             <div className="section-header">
               <h3 className="section-title">Contact Information</h3>
-              <button className="edit-btn" onClick={handleOpenEditModal} disabled={isGoogleUser}>
+              <button className="edit-btn" onClick={handleOpenEditModal}>
                 <Edit size={16} /> Edit details
               </button>
             </div>
@@ -384,7 +371,7 @@ function Profile({ user }) {
                   <span className="security-label">Account Password</span>
                   <span className="security-desc">Update your login credentials</span>
                 </div>
-                <button className="edit-btn secondary" onClick={handleOpenPasswordModal} disabled={isGoogleUser}>
+                <button className="edit-btn secondary" onClick={handleOpenPasswordModal}>
                   <Lock size={16} /> Change Password
                 </button>
               </div>
@@ -503,7 +490,7 @@ function Profile({ user }) {
                 <form className="inner-form" onSubmit={handle2faVerify}>
                   <div className="form-group">
                     <label className="form-label">Account Password</label>
-                    {user.authProvider === 'google' ? <div className="auth-provider-info"><span className="info-badge">Google Account</span></div> : <input type="password" className="form-input" value={twoFactorForm.password} onChange={(e) => setTwoFactorForm({ ...twoFactorForm, password: e.target.value })} required />}
+                    <input type="password" className="form-input" value={twoFactorForm.password} onChange={(e) => setTwoFactorForm({ ...twoFactorForm, password: e.target.value })} required />
                   </div>
                   <div className="otp-section"><label className="form-label">Email OTP</label><div className="otp-input-group"><input type="text" className="form-input" value={twoFactorForm.otp} onChange={(e) => setTwoFactorForm({ ...twoFactorForm, otp: e.target.value })} required /><button type="button" className="otp-btn" onClick={handleSend2faOTP} disabled={twoFactorOtpSent}>{twoFactorOtpSent ? 'Sent' : 'Send Code'}</button></div></div>
                   <button type="submit" className={`update-btn ${twoFactorForm.mode === 'disable' ? 'danger' : ''}`} disabled={loading}>{twoFactorForm.mode === 'disable' ? 'Confirm Disable' : 'Initiate Setup'}</button>
@@ -525,7 +512,7 @@ function Profile({ user }) {
                 <p className="form-hint">Regenerating codes will invalidate your old ones. You will see 8 new codes.</p>
                 <div className="form-group">
                   <label className="form-label">Account Password</label>
-                  {user.authProvider === 'google' ? <div className="auth-provider-info"><span className="info-badge">Google Account</span></div> : <input type="password" className="form-input" value={recoveryForm.password} onChange={(e) => setRecoveryForm({ ...recoveryForm, password: e.target.value })} required />}
+                  <input type="password" className="form-input" value={recoveryForm.password} onChange={(e) => setRecoveryForm({ ...recoveryForm, password: e.target.value })} required />
                 </div>
                 <div className="otp-section"><label className="form-label">Email OTP</label><div className="otp-input-group"><input type="text" className="form-input" value={recoveryForm.otp} onChange={(e) => setRecoveryForm({ ...recoveryForm, otp: e.target.value })} required /><button type="button" className="otp-btn" onClick={handleSend2faOTP} disabled={twoFactorOtpSent}>{twoFactorOtpSent ? 'Sent' : 'Send Code'}</button></div></div>
                 <button type="submit" className="update-btn" disabled={loading}>Regenerate Codes</button>

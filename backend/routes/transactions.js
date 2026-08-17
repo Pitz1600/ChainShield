@@ -8,6 +8,7 @@ const auth = require('../middleware/auth');
 const { requireOfficial, requireRole } = require('../middleware/roleMiddleware');
 
 const requireVerifier = requireRole(['administrator', 'barangay_official', 'auditor']);
+const requireAuditor = requireRole(['auditor']);
 
 // Configure multer for file upload
 const storage = multer.diskStorage({
@@ -41,7 +42,6 @@ const upload = multer({
 });
 
 // CSV Import routes - requires barangay official or admin role
-// CSV Import routes - requires barangay official or admin role
 router.post('/import', auth, requireOfficial, upload.single('csvFile'), csvImportController.importTransactions);
 router.get('/template', auth, csvImportController.downloadTemplate);
 
@@ -51,11 +51,12 @@ router.post('/', auth, requireOfficial, transactionController.createTransaction)
 router.post('/batch', auth, requireOfficial, transactionController.processBatch);
 router.get('/', auth, transactionController.getTransactions);
 router.get('/alerts', auth, transactionController.getAlerts);
-router.put('/batch-action', auth, requireOfficial, transactionController.batchAction);
+router.put('/batch-action', auth, requireVerifier, transactionController.batchAction);
 router.delete('/:id', auth, requireOfficial, transactionController.deleteTransaction);
 router.put('/:id/approve', auth, requireOfficial, transactionController.approveTransaction);
 router.get('/:id', auth, transactionController.getTransactionById);
-router.post('/:id/remarks', auth, requireVerifier, transactionController.addRemark);
+router.post('/:id/remarks', auth, requireAuditor, transactionController.addRemark);
 router.put('/:id/verify', auth, requireVerifier, transactionController.updateVerificationStatus);
+router.put('/:id/budget', auth, requireVerifier, transactionController.updateTransactionBudget);
 
 module.exports = router;

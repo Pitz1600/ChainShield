@@ -353,24 +353,36 @@
 
 .aw-decision-actions {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
-    margin-top: 24px;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-top: 20px;
 }
 
 .aw-action-btn {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
-    gap: 12px;
-    padding: 24px;
-    border-radius: 12px;
-    border: 2px solid transparent;
-    font-size: 1.1rem;
-    font-weight: 700;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 18px;
+    border-radius: 10px;
+    border: 1px solid #cbd5e1;
+    font-size: 0.92rem;
+    font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
-    background: #ffffff;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    background: #f8fafc;
+    color: #334155;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.aw-action-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.aw-action-btn:active:not(:disabled) {
+    transform: translateY(0);
 }
 
 .aw-action-btn:disabled {
@@ -379,27 +391,43 @@
 }
 
 .aw-action-btn.approve {
-    border-color: #10b981;
+    background: #ecfdf5;
+    border-color: #a7f3d0;
     color: #047857;
 }
 .aw-action-btn.approve:hover:not(:disabled) {
-    background: #dcfce7;
+    background: #d1fae5;
+    border-color: #34d399;
 }
 
 .aw-action-btn.reject {
-    border-color: #ef4444;
+    background: #fef2f2;
+    border-color: #fca5a5;
     color: #b91c1c;
 }
 .aw-action-btn.reject:hover:not(:disabled) {
     background: #fee2e2;
+    border-color: #f87171;
 }
 
 .aw-action-btn.revise {
-    border-color: #f59e0b;
+    background: #fffbeb;
+    border-color: #fde68a;
     color: #b45309;
 }
 .aw-action-btn.revise:hover:not(:disabled) {
     background: #fef3c7;
+    border-color: #fbbf24;
+}
+
+.aw-action-btn.remark-save {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    color: #1e40af;
+}
+.aw-action-btn.remark-save:hover:not(:disabled) {
+    background: #dbeafe;
+    border-color: #60a5fa;
 }
 
 .aw-remarks {

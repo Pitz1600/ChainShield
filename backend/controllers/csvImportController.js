@@ -1,5 +1,6 @@
 const multiStagePipeline = require('../services/multiStageFraudPipeline');
 const CSVColumnMapper = require('../utils/csvColumnMapper');
+const Transaction = require('../models/Transaction');
 const csv = require('csv-parser');
 const fs = require('fs');
 
@@ -23,6 +24,11 @@ exports.importTransactions = async (req, res) => {
     let columnMappings = null;
     let responded = false;
     const mapper = new CSVColumnMapper();
+
+    // Query existing transaction IDs from DB to prevent duplicate imports
+    const existingTxs = await Transaction.find({}).select('transactionId txHash').lean();
+    const existingTxIdSet = new Set(existingTxs.map(t => t.transactionId).filter(Boolean));
+    const seenTxIdsInCsv = new Set();
 
     const cleanupUpload = async () => {
       try {
@@ -90,6 +96,18 @@ exports.importTransactions = async (req, res) => {
             return addr.padEnd(42, '0');
           };
 
+          if (txData.transactionId) {
+            if (existingTxIdSet.has(txData.transactionId)) {
+              errors.push({ row: rowNumber, error: `Duplicate record: Transaction ID '${txData.transactionId}' already exists in database.`, data });
+              return;
+            }
+            if (seenTxIdsInCsv.has(txData.transactionId)) {
+              errors.push({ row: rowNumber, error: `Duplicate record in CSV: Transaction ID '${txData.transactionId}' appears multiple times in file.`, data });
+              return;
+            }
+            seenTxIdsInCsv.add(txData.transactionId);
+          }
+
           const finalTxId = txData.transactionId || `PH-GOV-${Math.floor(Math.random() * 1000000000).toString(16)}-${Date.now()}`;
 
           mappedTxs.push({
@@ -113,8 +131,25 @@ exports.importTransactions = async (req, res) => {
       })
       .on('end', async () => {
         if (responded) return;
+
+        // ✅ SECURITY & AUDIT: Strict all-or-nothing policy
+        // If there are ANY row errors (negative/zero amounts, missing fields, duplicates), ABORT entire upload!
+        if (errors.length > 0) {
+          responded = true;
+          await cleanupUpload();
+          return res.status(400).json({
+            error: `CSV import failed: ${errors.length} validation error(s) detected.`,
+            message: `Import aborted to prevent partial saving or duplicate records. No transactions were saved. Please fix the errors below and try again.`,
+            failedCount: errors.length,
+            totalRows: rawRows.length || totalRows,
+            columnMappings,
+            mappingConfidence: mapper.getConfidence(columnMappings),
+            errors
+          });
+        }
+
         try {
-          console.log(`\n🔍 Processing ${rawRows.length} transactions with multi-stage AI...`);
+          console.log(`\n🔍 Processing ${rawRows.length || mappedTxs.length} transactions with multi-stage AI...`);
 
           const batchResult = await multiStagePipeline.processBatch(mappedTxs, {
             requireApproval: true,

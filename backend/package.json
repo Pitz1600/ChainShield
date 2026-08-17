@@ -32,8 +32,6 @@
     "node-cron": "^4.2.1",
     "nodemailer": "^7.0.13",
     "otplib": "^13.3.0",
-    "passport": "^0.7.0",
-    "passport-google-oauth20": "^2.0.0",
     "qrcode": "^1.5.4",
     "rate-limit-redis": "^4.3.1",
     "redis": "^4.6.8",

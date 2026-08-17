@@ -21,6 +21,10 @@ class CSVColumnMapper {
                 'credit_amount', 'credit_amt', 'credit_value',
                 'deposit', 'inflow', 'income_amount', 'credit'
             ],
+            approvedBudget: [
+                'approved_budget', 'allocated_budget', 'budget_allocation', 'total_budget',
+                'approved_amt', 'approved_amount', 'budget_approved', 'laang_gugulin'
+            ],
             transactionType: [
                 'type', 'transaction_type', 'category', 'transaction_category',
                 'purpose', 'classification', 'uri', 'klase',
@@ -174,34 +178,32 @@ class CSVColumnMapper {
 
         // If we have separate debit/credit columns
         if (debitCol && creditCol) {
-            const debit = parseFloat(row[debitCol]) || 0;
-            const credit = parseFloat(row[creditCol]) || 0;
+            const rawDebit = row[debitCol] !== undefined && row[debitCol] !== '' ? parseFloat(String(row[debitCol]).replace(/,/g, '')) : NaN;
+            const rawCredit = row[creditCol] !== undefined && row[creditCol] !== '' ? parseFloat(String(row[creditCol]).replace(/,/g, '')) : NaN;
 
-            // Use whichever is non-zero
-            // If both are non-zero, prefer debit (expense/outflow)
-            if (debit > 0) return debit;
-            if (credit > 0) return credit;
-
-            // Both are zero or invalid
+            if (!isNaN(rawDebit) && rawDebit !== 0) return rawDebit;
+            if (!isNaN(rawCredit) && rawCredit !== 0) return rawCredit;
+            if (!isNaN(rawDebit)) return rawDebit;
+            if (!isNaN(rawCredit)) return rawCredit;
             return 0;
         }
 
         // If only debit column exists
-        if (debitCol && row[debitCol]) {
-            return parseFloat(row[debitCol]) || 0;
+        if (debitCol && row[debitCol] !== undefined && row[debitCol] !== '') {
+            return parseFloat(String(row[debitCol]).replace(/,/g, ''));
         }
 
         // If only credit column exists
-        if (creditCol && row[creditCol]) {
-            return parseFloat(row[creditCol]) || 0;
+        if (creditCol && row[creditCol] !== undefined && row[creditCol] !== '') {
+            return parseFloat(String(row[creditCol]).replace(/,/g, ''));
         }
 
         // Fall back to regular amount column
-        if (mappings.amount && row[mappings.amount]) {
-            return parseFloat(row[mappings.amount]) || 0;
+        if (mappings.amount && row[mappings.amount] !== undefined && row[mappings.amount] !== '') {
+            return parseFloat(String(row[mappings.amount]).replace(/,/g, ''));
         }
 
-        return 0;
+        return undefined;
     }
 
     /**
@@ -212,13 +214,13 @@ class CSVColumnMapper {
 
         // Special handling for amount (debit/credit)
         const amount = this.detectAmountColumns(row, mappings);
-        if (amount > 0) {
+        if (amount !== undefined) {
             transaction.amount = amount;
         }
 
         // Map each field (skip amount fields as we handled them above)
         for (const [field, columnName] of Object.entries(mappings)) {
-            if (field === 'debit_amount' || field === 'credit_amount') {
+            if (field === 'debit_amount' || field === 'credit_amount' || field === 'amount') {
                 continue; // Already handled
             }
 
@@ -261,6 +263,18 @@ class CSVColumnMapper {
         // Set defaults
         transaction.currency = transaction.currency || 'PHP';
         transaction.beneficiaryType = transaction.beneficiaryType || 'Individual';
+
+        const approved = parseFloat(transaction.approvedBudget) || 0;
+        const requested = parseFloat(transaction.amount) || 0;
+        const remaining = approved > 0 ? Math.max(0, approved - requested) : 0;
+
+        transaction.approvedBudget = approved;
+        transaction.remainingBudget = remaining;
+        transaction.budget = {
+            approved,
+            requested,
+            remaining
+        };
 
         return transaction;
     }
@@ -349,19 +363,19 @@ class CSVColumnMapper {
         }
 
         // Check for amount
-        if (!transaction.amount || isNaN(parseFloat(transaction.amount))) {
-            errors.push('Invalid or missing amount');
+        if (transaction.amount === undefined || transaction.amount === null || isNaN(parseFloat(transaction.amount))) {
+            errors.push('Missing or invalid amount');
         } else {
             const amount = parseFloat(transaction.amount);
 
-            // ✅ SECURITY: Prevent NaN, Infinity, and unrealistic values
+            // ✅ SECURITY & AUDIT: Strict check for positive amount > 0
             if (!Number.isFinite(amount)) {
                 errors.push('Amount must be a finite number');
             } else if (amount <= 0) {
-                errors.push('Amount must be positive');
+                errors.push(`Amount must be a positive number greater than 0 (received ${amount})`);
             } else if (amount > 1e12) {
                 // Prevent unrealistic amounts (> 1 trillion)
-                errors.push('Amount exceeds maximum allowed value');
+                errors.push('Amount exceeds maximum allowed value (max 1 Trillion)');
             }
         }
 

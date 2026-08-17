@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Lock, Upload, AlertCircle, CheckCircle, Clock, FileText, AlertTriangle, TrendingUp, Shield, BarChart, Info, Settings, Zap, Download, ChevronLeft, ChevronRight, Link, Clipboard, Plus, Trash2, X, Loader2 } from 'lucide-react';
 import api from '../../services/api';
 import { isOfficial } from '../../utils/permissions';
@@ -287,6 +287,7 @@ const IntegrityChecker = ({ user }) => {
         const credit = parseFloat(row.creditAmount?.toString().replace(/,/g, ''));
         if (isNaN(debit) || debit < 0) return `Row ${index + 1}: Invalid Debit amount.`;
         if (isNaN(credit) || credit < 0) return `Row ${index + 1}: Invalid Credit amount.`;
+        if (debit === 0 && credit === 0) return `Row ${index + 1}: Amount must be a positive number greater than 0 (debit and credit cannot both be 0).`;
 
         const specialChars = /[<>{}[\]\\]/;
         if (specialChars.test(row.agency) || specialChars.test(row.programName) || specialChars.test(row.payerName) || specialChars.test(row.payeeName) || specialChars.test(row.description)) {
@@ -788,6 +789,20 @@ const IntegrityChecker = ({ user }) => {
                                     {error.detectedColumns.length > 20 && (
                                         <div className="alert-meta">Showing first 20 columns.</div>
                                     )}
+                                </div>
+                            )}
+                            {typeof error !== 'string' && Array.isArray(error.errors) && error.errors.length > 0 && (
+                                <div className="alert-section" style={{ marginTop: 12 }}>
+                                    <div className="alert-section-title" style={{ color: '#991b1b', fontWeight: 700 }}>
+                                        Row Validation Errors ({error.errors.length}):
+                                    </div>
+                                    <div style={{ maxHeight: 180, overflowY: 'auto', background: '#fff', border: '1px solid #fca5a5', borderRadius: 6, padding: '8px 12px', marginTop: 6 }}>
+                                        {error.errors.map((e, idx) => (
+                                            <div key={idx} style={{ fontSize: '0.84rem', color: '#991b1b', padding: '4px 0', borderBottom: idx < error.errors.length - 1 ? '1px dashed #fee2e2' : 'none' }}>
+                                                <strong>Row {e.row || (idx + 1)}:</strong> {e.error}
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
                             )}
                             {typeof error !== 'string' && typeof error.mappingConfidence === 'number' && (
