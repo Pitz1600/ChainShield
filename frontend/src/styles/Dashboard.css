@@ -874,3 +874,298 @@
     grid-template-columns: 1fr 1fr;
   }
 }
+
+/* ==========================================================================
+   BARANGAY BUDGET & EXPENDITURE OVERVIEW STYLES
+   ========================================================================== */
+
+.budget-overview-card {
+  grid-column: 1 / -1;
+  background: white;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+  border: 1px solid #e2e8f0;
+  position: relative;
+  overflow: hidden;
+}
+
+.budget-overview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.25rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.budget-overview-title-area {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.budget-overview-icon-badge {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  color: #2563eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid #bfdbfe;
+}
+
+.budget-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.budget-metric-card {
+  padding: 1.15rem 1.25rem;
+  border-radius: 0.75rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  transition: all 0.2s ease;
+}
+
+.budget-metric-card:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  transform: translateY(-2px);
+}
+
+.budget-metric-card.highlight-blue {
+  background: linear-gradient(180deg, #f0f7ff 0%, #ffffff 100%);
+  border-color: #bfdbfe;
+}
+
+.budget-metric-card.highlight-green {
+  background: linear-gradient(180deg, #f0fdf4 0%, #ffffff 100%);
+  border-color: #bbf7d0;
+}
+
+.budget-metric-card.highlight-purple {
+  background: linear-gradient(180deg, #faf5ff 0%, #ffffff 100%);
+  border-color: #e9d5ff;
+}
+
+.budget-metric-card.highlight-amber {
+  background: linear-gradient(180deg, #fffbeb 0%, #ffffff 100%);
+  border-color: #fde68a;
+}
+
+.budget-metric-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.budget-metric-icon.blue {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.budget-metric-icon.green {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.budget-metric-icon.purple {
+  background: #f3e8ff;
+  color: #7e22ce;
+}
+
+.budget-metric-icon.amber {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.budget-metric-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.budget-metric-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  margin-bottom: 0.35rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.budget-metric-value {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.1;
+  margin-bottom: 0.3rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.budget-metric-sub {
+  font-size: 0.74rem;
+  color: #64748b;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.budget-progress-container {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+}
+
+.budget-progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  font-size: 0.85rem;
+}
+
+.budget-progress-bar-track {
+  height: 12px;
+  background: #e2e8f0;
+  border-radius: 9999px;
+  overflow: hidden;
+  display: flex;
+  margin-bottom: 1rem;
+}
+
+.budget-progress-segment {
+  height: 100%;
+  transition: width 0.6s ease;
+}
+
+.budget-progress-segment.verified {
+  background: linear-gradient(90deg, #10b981, #059669);
+}
+
+.budget-progress-segment.pending {
+  background: linear-gradient(90deg, #f59e0b, #d97706);
+}
+
+.budget-progress-segment.flagged {
+  background: linear-gradient(90deg, #f97316, #ea580c);
+}
+
+.budget-progress-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  align-items: center;
+}
+
+.budget-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: #475569;
+}
+
+.budget-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.budget-legend-dot.verified {
+  background: #10b981;
+}
+
+.budget-legend-dot.pending {
+  background: #f59e0b;
+}
+
+.budget-legend-dot.flagged {
+  background: #f97316;
+}
+
+.budget-legend-dot.remaining {
+  background: #cbd5e1;
+}
+
+/* Dual Summary Box for Resident & Official Dashboard cards */
+.budget-dual-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  padding: 1rem 0;
+}
+
+.budget-stat-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.65rem;
+  padding: 0.85rem 0.75rem;
+  text-align: center;
+  transition: all 0.2s;
+}
+
+.budget-stat-box:hover {
+  background: #f1f5f9;
+}
+
+.budget-stat-box.primary-box {
+  background: linear-gradient(180deg, #eff6ff 0%, #ffffff 100%);
+  border-color: #bfdbfe;
+}
+
+.budget-stat-box-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  margin-bottom: 0.25rem;
+}
+
+.budget-stat-box-value {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.1;
+}
+
+.budget-stat-box-sub {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  margin-top: 0.25rem;
+}
+
+@media (max-width: 1024px) {
+  .budget-overview-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .budget-overview-grid {
+    grid-template-columns: 1fr;
+  }
+  .budget-dual-summary {
+    grid-template-columns: 1fr;
+  }
+}

@@ -257,7 +257,7 @@ exports.getMyTransactions = async (req, res) => {
         .sort({ [sortField]: sortDir })
         .limit(limitNum)
         .skip((pageNum - 1) * limitNum)
-        .select('transactionId transactionType amount status timestamp blockchainTxId blockNumber riskScore zScore riskLevel flagged velocityFlag receiverPatternFlag amountSpikeFlag mlUsed mlScore verificationStatus verifiedBy fromAddress toAddress description fraudPatterns reasons metadata networkFeatures agency programName lineItems staged currency beneficiaryType'),
+        .select('transactionId transactionType amount status timestamp blockchainTxId blockNumber riskScore zScore riskLevel flagged velocityFlag receiverPatternFlag amountSpikeFlag mlUsed mlScore verificationStatus verifiedBy fromAddress toAddress description fraudPatterns reasons metadata networkFeatures agency programName lineItems staged currency beneficiaryType approvedBudget remainingBudget budget'),
       Transaction.countDocuments(query)
     ]);
 
@@ -286,7 +286,10 @@ exports.getMyTransactions = async (req, res) => {
       toAddress: txn.toAddress,
       description: txn.description,
       agency: txn.agency,
-      programName: txn.programName
+      programName: txn.programName,
+      approvedBudget: txn.approvedBudget || 0,
+      remainingBudget: txn.remainingBudget || 0,
+      budget: txn.budget || {}
     }));
 
     res.json({
@@ -569,6 +572,169 @@ exports.updateTransactionBudget = async (req, res) => {
     });
   } catch (error) {
     console.error('Update budget error:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Get budget summary: estimated barangay budget and total transactions budget
+exports.getBudgetSummary = async (req, res) => {
+  try {
+    const isOfficial = ['administrator', 'barangay_official', 'auditor'].includes(req.user?.role);
+    const query = {};
+
+    // For non-officials, exclude staged transactions
+    if (!isOfficial) {
+      query.staged = { $ne: true };
+    }
+
+    const [aggResult, countResult, programAggResult, typeAggResult] = await Promise.all([
+      Transaction.aggregate([
+        { $match: query },
+        {
+          $group: {
+            _id: null,
+            totalAmount: { $sum: '$amount' },
+            totalApprovedBudget: { $sum: { $ifNull: ['$approvedBudget', 0] } },
+            verifiedAmount: {
+              $sum: {
+                $cond: [{ $eq: ['$verificationStatus', 'Verified'] }, '$amount', 0]
+              }
+            },
+            pendingAmount: {
+              $sum: {
+                $cond: [
+                  { $or: [{ $eq: ['$verificationStatus', 'Pending'] }, { $not: ['$verificationStatus'] }] },
+                  '$amount',
+                  0
+                ]
+              }
+            },
+            flaggedAmount: {
+              $sum: {
+                $cond: [
+                  { $in: ['$verificationStatus', ['Flagged', 'Suspicious']] },
+                  '$amount',
+                  0
+                ]
+              }
+            },
+            verifiedCount: {
+              $sum: {
+                $cond: [{ $eq: ['$verificationStatus', 'Verified'] }, 1, 0]
+              }
+            },
+            pendingCount: {
+              $sum: {
+                $cond: [
+                  { $or: [{ $eq: ['$verificationStatus', 'Pending'] }, { $not: ['$verificationStatus'] }] },
+                  1,
+                  0
+                ]
+              }
+            },
+            flaggedCount: {
+              $sum: {
+                $cond: [
+                  { $in: ['$verificationStatus', ['Flagged', 'Suspicious']] },
+                  1,
+                  0
+                ]
+              }
+            }
+          }
+        }
+      ]),
+      Transaction.countDocuments(query),
+      Transaction.aggregate([
+        { $match: query },
+        {
+          $group: {
+            _id: { $ifNull: ['$programName', '$agency'] },
+            amount: { $sum: '$amount' },
+            approvedBudget: { $sum: { $ifNull: ['$approvedBudget', 0] } },
+            count: { $sum: 1 },
+            flaggedCount: {
+              $sum: {
+                $cond: [{ $in: ['$verificationStatus', ['Flagged', 'Suspicious']] }, 1, 0]
+              }
+            }
+          }
+        },
+        { $sort: { amount: -1 } },
+        { $limit: 8 }
+      ]),
+      Transaction.aggregate([
+        { $match: query },
+        {
+          $group: {
+            _id: '$transactionType',
+            amount: { $sum: '$amount' },
+            count: { $sum: 1 }
+          }
+        },
+        { $sort: { amount: -1 } }
+      ])
+    ]);
+
+    const stats = aggResult[0] || {
+      totalAmount: 0,
+      totalApprovedBudget: 0,
+      verifiedAmount: 0,
+      pendingAmount: 0,
+      flaggedAmount: 0,
+      verifiedCount: 0,
+      pendingCount: 0,
+      flaggedCount: 0
+    };
+
+    const totalTransactionsBudget = Math.round((stats.totalAmount || 0) * 100) / 100;
+    const totalApprovedBudget = Math.round((stats.totalApprovedBudget || 0) * 100) / 100;
+
+    // Standard annual estimated budget allocation for Barangay Pantal, Dagupan City
+    const BASE_BARANGAY_BUDGET = 15000000; // ₱15,000,000.00
+    let estimatedBarangayBudget = BASE_BARANGAY_BUDGET;
+
+    if (totalApprovedBudget > 0) {
+      estimatedBarangayBudget = Math.max(totalApprovedBudget, BASE_BARANGAY_BUDGET);
+    } else if (totalTransactionsBudget > BASE_BARANGAY_BUDGET * 0.85) {
+      // Scale dynamic estimate if transaction volume exceeds 85% of baseline
+      estimatedBarangayBudget = Math.ceil((totalTransactionsBudget * 1.25) / 1000000) * 1000000;
+    }
+
+    const remainingBudget = Math.max(0, estimatedBarangayBudget - totalTransactionsBudget);
+    const utilizationRate = estimatedBarangayBudget > 0
+      ? Math.min(100, Math.round((totalTransactionsBudget / estimatedBarangayBudget) * 1000) / 10)
+      : 0;
+
+    res.json({
+      success: true,
+      estimatedBarangayBudget,
+      totalTransactionsBudget,
+      remainingBudget,
+      utilizationRate,
+      transactionCount: countResult,
+      totalApprovedBudget,
+      verifiedAmount: stats.verifiedAmount || 0,
+      pendingAmount: stats.pendingAmount || 0,
+      flaggedAmount: stats.flaggedAmount || 0,
+      verifiedCount: stats.verifiedCount || 0,
+      pendingCount: stats.pendingCount || 0,
+      flaggedCount: stats.flaggedCount || 0,
+      byProgram: programAggResult.map(p => ({
+        name: p._id || 'General Operations',
+        amount: p.amount,
+        approvedBudget: p.approvedBudget,
+        count: p.count,
+        flaggedCount: p.flaggedCount
+      })),
+      byType: typeAggResult.map(t => ({
+        type: t._id || 'Other',
+        amount: t.amount,
+        count: t.count
+      }))
+    });
+  } catch (error) {
+    console.error('Get budget summary error:', error);
     res.status(500).json({ error: error.message });
   }
 };

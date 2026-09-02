@@ -209,7 +209,8 @@ export const transactionsAPI = {
   getAll: (params) => api.get('/transactions', { params }),
   getById: (id) => api.get(`/transactions/${id}`),
   create: (data) => api.post('/transactions', data),
-  batchCreate: (transactions) => api.post('/transactions/batch', { transactions })
+  batchCreate: (transactions) => api.post('/transactions/batch', { transactions }),
+  getBudgetSummary: (params) => api.get('/transactions/budget-summary', { params })
 };
 
 export const evaluationAPI = {

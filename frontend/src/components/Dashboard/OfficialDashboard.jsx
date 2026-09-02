@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   CheckCircle, AlertTriangle, Clock, FileText,
   ChevronLeft, ChevronRight, Upload, Shield,
-  BarChart2, RefreshCw
+  BarChart2, RefreshCw, Landmark, Coins, Wallet, Building2
 } from 'lucide-react';
 import api from '../../services/api';
 import '../../styles/Dashboard.css';
@@ -17,9 +17,9 @@ const formatCompact = (value) => {
 
 const formatPHP = (value) => {
   const num = Number(value || 0);
-  if (num >= 1_000_000) return `₱${(num / 1_000_000).toFixed(1)}M`;
+  if (num >= 1_000_000) return `₱${(num / 1_000_000).toFixed(2)}M`;
   if (num >= 1_000)     return `₱${(num / 1_000).toFixed(1)}K`;
-  return `₱${num.toLocaleString('en-PH')}`;
+  return `₱${num.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 };
 
 const getTimeAgo = (ts) => {
@@ -50,6 +50,15 @@ const friendlyType = (type) => {
 
 function OfficialDashboard({ user, onNavigate }) {
   const [stats, setStats]             = useState({ total: 0, approved: 0, pending: 0, flagged: 0, totalAmount: 0 });
+  const [budgetSummary, setBudgetSummary] = useState({
+    estimatedBarangayBudget: 15000000,
+    totalTransactionsBudget: 0,
+    remainingBudget: 15000000,
+    utilizationRate: 0,
+    verifiedAmount: 0,
+    pendingAmount: 0,
+    flaggedAmount: 0
+  });
   const [programs, setPrograms]       = useState([]);
   const [recentTxns, setRecentTxns]   = useState([]);
   const [loading, setLoading]         = useState(true);
@@ -62,9 +71,13 @@ function OfficialDashboard({ user, onNavigate }) {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const res = await api.get('/transactions/my-transactions', {
-        params: { limit: 100, sortBy: 'timestamp', sortOrder: 'desc', includeStaged: true }
-      });
+      const [res, budgetRes] = await Promise.all([
+        api.get('/transactions/my-transactions', {
+          params: { limit: 100, sortBy: 'timestamp', sortOrder: 'desc', includeStaged: true }
+        }),
+        api.get('/transactions/budget-summary').catch(() => ({ data: null }))
+      ]);
+
       const txns = res.data.transactions || [];
 
       const approved    = txns.filter(t => t.verificationStatus === 'Verified').length;
@@ -74,6 +87,18 @@ function OfficialDashboard({ user, onNavigate }) {
 
       setStats({ total: txns.length, approved, pending, flagged, totalAmount });
       setRecentTxns(txns.slice(0, 20));
+
+      if (budgetRes.data && budgetRes.data.success) {
+        setBudgetSummary(budgetRes.data);
+      } else {
+        const est = 15000000;
+        setBudgetSummary({
+          estimatedBarangayBudget: est,
+          totalTransactionsBudget: totalAmount,
+          remainingBudget: Math.max(0, est - totalAmount),
+          utilizationRate: est > 0 ? Math.round((totalAmount / est) * 1000) / 10 : 0
+        });
+      }
 
       const byProgram = {};
       txns.forEach(t => {
@@ -128,10 +153,17 @@ function OfficialDashboard({ user, onNavigate }) {
 
         <div className="hero-stats-grid">
           <div className="hero-stat-card total">
-            <div className="stat-icon"><FileText size={24} /></div>
+            <div className="stat-icon" style={{ color: '#93c5fd' }}><Landmark size={24} /></div>
             <div className="stat-content">
-              <div className="hero-stat-value">{formatCompact(stats.total)}</div>
-              <div className="hero-stat-label">Transactions</div>
+              <div className="hero-stat-value">{formatPHP(budgetSummary.estimatedBarangayBudget || 15000000)}</div>
+              <div className="hero-stat-label">Estimated Budget</div>
+            </div>
+          </div>
+          <div className="hero-stat-card" style={{ background: 'rgba(255,255,255,0.18)' }}>
+            <div className="stat-icon" style={{ color: '#6ee7b7' }}><Coins size={24} /></div>
+            <div className="stat-content">
+              <div className="hero-stat-value">{formatPHP(budgetSummary.totalTransactionsBudget || stats.totalAmount)}</div>
+              <div className="hero-stat-label">Total Spent</div>
             </div>
           </div>
           <div className="hero-stat-card" style={{ background: 'rgba(16,185,129,0.15)' }}>
@@ -139,13 +171,6 @@ function OfficialDashboard({ user, onNavigate }) {
             <div className="stat-content">
               <div className="hero-stat-value" style={{ color: '#10b981' }}>{formatCompact(stats.approved)}</div>
               <div className="hero-stat-label">Approved</div>
-            </div>
-          </div>
-          <div className="hero-stat-card" style={{ background: 'rgba(245,158,11,0.15)' }}>
-            <div className="stat-icon" style={{ color: '#f59e0b' }}><Clock size={24} /></div>
-            <div className="stat-content">
-              <div className="hero-stat-value" style={{ color: '#f59e0b' }}>{formatCompact(stats.pending)}</div>
-              <div className="hero-stat-label">Pending</div>
             </div>
           </div>
           <div className="hero-stat-card" style={{ background: 'rgba(249,115,22,0.15)' }}>
@@ -232,24 +257,61 @@ function OfficialDashboard({ user, onNavigate }) {
 
         {/* ── BUDGET SUMMARY ── */}
         <div className="dashboard-card primary-panel">
-          <h3 className="card-title">Budget Summary</h3>
-          <p className="card-subtitle">Total submitted spending</p>
-
-          <div style={{ textAlign: 'center', padding: '1.5rem 0 1rem' }}>
-            <div style={{ fontSize: '0.72rem', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6, fontWeight: 600 }}>
-              Total Budget
+          <div className="card-header" style={{ marginBottom: '0.75rem' }}>
+            <div>
+              <h3 className="card-title">Budget Summary</h3>
+              <p className="card-subtitle">Barangay budget allocation & spending</p>
             </div>
-            <div style={{ fontSize: '2.2rem', fontWeight: 700, color: 'var(--color-text-primary)' }}>
-              {formatPHP(stats.totalAmount)}
+            <span style={{ fontSize: '0.72rem', fontWeight: 700, padding: '2px 8px', borderRadius: 6, background: '#eff6ff', color: '#1d4ed8' }}>
+              FY 2024
+            </span>
+          </div>
+
+          <div className="budget-dual-summary">
+            <div className="budget-stat-box primary-box">
+              <div className="budget-stat-box-label">Estimated Budget</div>
+              <div className="budget-stat-box-value" style={{ color: '#1d4ed8' }}>
+                {formatPHP(budgetSummary.estimatedBarangayBudget || 15000000)}
+              </div>
+              <div className="budget-stat-box-sub">Barangay Allocation</div>
+            </div>
+            <div className="budget-stat-box">
+              <div className="budget-stat-box-label">Total Transactions</div>
+              <div className="budget-stat-box-value" style={{ color: '#0f172a' }}>
+                {formatPHP(budgetSummary.totalTransactionsBudget || stats.totalAmount)}
+              </div>
+              <div className="budget-stat-box-sub">Total Disbursed</div>
             </div>
           </div>
 
-          <div style={{ marginBottom: '1rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: '0.8rem' }}>
-              <span style={{ color: 'var(--color-text-secondary)' }}>Approval progress</span>
+          {/* Budget Utilization bar */}
+          <div style={{ margin: '0.5rem 0 1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: '0.78rem' }}>
+              <span style={{ color: '#64748b' }}>Budget Utilization</span>
+              <span style={{ fontWeight: 700, color: '#2563eb' }}>
+                {budgetSummary.utilizationRate || (stats.totalAmount > 0 ? ((stats.totalAmount / 15000000) * 100).toFixed(1) : 0)}%
+                <span style={{ fontWeight: 400, color: '#64748b', marginLeft: 4 }}>
+                  ({formatPHP(budgetSummary.remainingBudget || Math.max(0, 15000000 - stats.totalAmount))} left)
+                </span>
+              </span>
+            </div>
+            <div style={{ height: 8, background: '#e2e8f0', borderRadius: 9999, overflow: 'hidden' }}>
+              <div style={{
+                width: `${Math.min(100, budgetSummary.utilizationRate || (stats.totalAmount > 0 ? (stats.totalAmount / 15000000) * 100 : 0))}%`,
+                height: '100%',
+                background: 'linear-gradient(90deg, #3b82f6, #2563eb)',
+                borderRadius: 9999,
+                transition: 'width 0.5s ease'
+              }} />
+            </div>
+          </div>
+
+          <div style={{ marginBottom: '0.75rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: '0.78rem' }}>
+              <span style={{ color: '#64748b' }}>Approval progress</span>
               <span style={{ fontWeight: 600, color: '#10b981' }}>{approvalPct}%</span>
             </div>
-            <div style={{ height: 8, background: 'var(--color-background-secondary)', borderRadius: 9999, overflow: 'hidden' }}>
+            <div style={{ height: 6, background: '#e2e8f0', borderRadius: 9999, overflow: 'hidden' }}>
               <div style={{ width: `${approvalPct}%`, height: '100%', background: 'linear-gradient(90deg, #10b981, #059669)', borderRadius: 9999, transition: 'width 0.5s ease' }} />
             </div>
           </div>

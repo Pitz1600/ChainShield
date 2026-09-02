@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { AlertTriangle, AlertCircle, TrendingUp, CheckCircle, ChevronLeft, ChevronRight, Link2, RefreshCw } from 'lucide-react';
+import {
+  AlertTriangle, AlertCircle, TrendingUp, CheckCircle, ChevronLeft, ChevronRight,
+  Link2, RefreshCw, Landmark, Coins, Wallet, DollarSign, Building2, ShieldCheck, FileText
+} from 'lucide-react';
 import api from '../../services/api';
 import '../../styles/Dashboard.css';
 import '../../styles/ColorfulIcons.css';
@@ -30,11 +33,39 @@ const formatCompact = (value) => {
   }).format(num);
 };
 
+const formatPHP = (value) => {
+  const num = Number(value || 0);
+  if (num >= 1_000_000) return `₱${(num / 1_000_000).toFixed(2)}M`;
+  if (num >= 1_000)     return `₱${(num / 1_000).toFixed(1)}K`;
+  return `₱${num.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+};
+
+const formatFullPHP = (value) => {
+  const num = Number(value || 0);
+  return `₱${num.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+};
+
 function Dashboard({ user, onNavigate }) {
   const [stats, setStats] = useState({ total: 0, critical: 0, high: 0, medium: 0 });
   const [recentAlerts, setRecentAlerts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const alertsPerPage = 4;
+
+  // Barangay Budget Summary
+  const [budgetSummary, setBudgetSummary] = useState({
+    estimatedBarangayBudget: 15000000,
+    totalTransactionsBudget: 0,
+    remainingBudget: 15000000,
+    utilizationRate: 0,
+    transactionCount: 0,
+    verifiedAmount: 0,
+    pendingAmount: 0,
+    flaggedAmount: 0,
+    verifiedCount: 0,
+    pendingCount: 0,
+    flaggedCount: 0
+  });
+  const [budgetLoading, setBudgetLoading] = useState(true);
 
   // Real-time suspicious alerts
   const [rtAlerts, setRtAlerts] = useState([]);
@@ -55,10 +86,28 @@ function Dashboard({ user, onNavigate }) {
 
   useEffect(() => {
     fetchDashboardData();
+    fetchBudgetSummary();
     fetchRTAlerts();
-    intervalRef.current = setInterval(fetchRTAlerts, 30000);
+    intervalRef.current = setInterval(() => {
+      fetchRTAlerts();
+      fetchBudgetSummary();
+    }, 30000);
     return () => clearInterval(intervalRef.current);
   }, []);
+
+  const fetchBudgetSummary = async () => {
+    try {
+      setBudgetLoading(true);
+      const res = await api.get('/transactions/budget-summary');
+      if (res.data && res.data.success) {
+        setBudgetSummary(res.data);
+      }
+    } catch (e) {
+      console.error('Error fetching budget summary in Dashboard:', e);
+    } finally {
+      setBudgetLoading(false);
+    }
+  };
 
   const fetchDashboardData = async () => {
     try {
@@ -219,6 +268,148 @@ function Dashboard({ user, onNavigate }) {
 
       {/* Dashboard Cards */}
       <div className="dashboard-cards">
+        {/* ── BARANGAY BUDGET & EXPENDITURE OVERVIEW ── */}
+        <div className="budget-overview-card">
+          <div className="budget-overview-header">
+            <div className="budget-overview-title-area">
+              <div className="budget-overview-icon-badge">
+                <Landmark size={22} />
+              </div>
+              <div>
+                <h3 className="card-title" style={{ marginBottom: 2 }}>Barangay Pantal — Budget & Financial Overview</h3>
+                <p className="card-subtitle">Real-time allocated public budget vs total recorded transaction expenditures</p>
+              </div>
+            </div>
+            <button
+              className="rt-refresh-btn"
+              onClick={fetchBudgetSummary}
+              title="Refresh budget summary"
+              disabled={budgetLoading}
+            >
+              <RefreshCw size={15} />
+            </button>
+          </div>
+
+          <div className="budget-overview-grid">
+            {/* Estimated Barangay Budget */}
+            <div className="budget-metric-card highlight-blue">
+              <div className="budget-metric-icon blue">
+                <Building2 size={20} />
+              </div>
+              <div className="budget-metric-body">
+                <div className="budget-metric-label">Estimated Barangay Budget</div>
+                <div className="budget-metric-value" style={{ color: '#1d4ed8' }}>
+                  {formatFullPHP(budgetSummary.estimatedBarangayBudget)}
+                </div>
+                <div className="budget-metric-sub">
+                  Annual Budget Allocation (NTA / IRA)
+                </div>
+              </div>
+            </div>
+
+            {/* Total Budget of All Transactions */}
+            <div className="budget-metric-card highlight-green">
+              <div className="budget-metric-icon green">
+                <Coins size={20} />
+              </div>
+              <div className="budget-metric-body">
+                <div className="budget-metric-label">Total Transactions Budget</div>
+                <div className="budget-metric-value" style={{ color: '#15803d' }}>
+                  {formatFullPHP(budgetSummary.totalTransactionsBudget)}
+                </div>
+                <div className="budget-metric-sub">
+                  {formatCompact(budgetSummary.transactionCount)} transactions recorded
+                </div>
+              </div>
+            </div>
+
+            {/* Remaining Barangay Funds */}
+            <div className="budget-metric-card highlight-amber">
+              <div className="budget-metric-icon amber">
+                <Wallet size={20} />
+              </div>
+              <div className="budget-metric-body">
+                <div className="budget-metric-label">Remaining Barangay Funds</div>
+                <div className="budget-metric-value" style={{ color: '#b45309' }}>
+                  {formatFullPHP(budgetSummary.remainingBudget)}
+                </div>
+                <div className="budget-metric-sub">
+                  {(100 - (budgetSummary.utilizationRate || 0)).toFixed(1)}% unspent balance
+                </div>
+              </div>
+            </div>
+
+            {/* Budget Utilization Rate */}
+            <div className="budget-metric-card highlight-purple">
+              <div className="budget-metric-icon purple">
+                <TrendingUp size={20} />
+              </div>
+              <div className="budget-metric-body">
+                <div className="budget-metric-label">Budget Utilization</div>
+                <div className="budget-metric-value" style={{ color: '#7e22ce' }}>
+                  {budgetSummary.utilizationRate || 0}%
+                </div>
+                <div className="budget-metric-sub">
+                  Disbursed from estimated allocation
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Multi-segment Progress Bar & Breakdown */}
+          <div className="budget-progress-container">
+            <div className="budget-progress-header">
+              <span style={{ fontWeight: 600, color: '#1e293b' }}>Budget Allocation & Disbursement Progress</span>
+              <span style={{ fontWeight: 700, color: '#2563eb' }}>
+                {formatPHP(budgetSummary.totalTransactionsBudget)} of {formatPHP(budgetSummary.estimatedBarangayBudget)} ({budgetSummary.utilizationRate || 0}%)
+              </span>
+            </div>
+
+            <div className="budget-progress-bar-track">
+              <div
+                className="budget-progress-segment verified"
+                style={{
+                  width: `${budgetSummary.estimatedBarangayBudget > 0 ? (budgetSummary.verifiedAmount / budgetSummary.estimatedBarangayBudget) * 100 : 0}%`
+                }}
+                title={`Verified: ${formatFullPHP(budgetSummary.verifiedAmount)}`}
+              />
+              <div
+                className="budget-progress-segment pending"
+                style={{
+                  width: `${budgetSummary.estimatedBarangayBudget > 0 ? (budgetSummary.pendingAmount / budgetSummary.estimatedBarangayBudget) * 100 : 0}%`
+                }}
+                title={`Pending Review: ${formatFullPHP(budgetSummary.pendingAmount)}`}
+              />
+              <div
+                className="budget-progress-segment flagged"
+                style={{
+                  width: `${budgetSummary.estimatedBarangayBudget > 0 ? (budgetSummary.flaggedAmount / budgetSummary.estimatedBarangayBudget) * 100 : 0}%`
+                }}
+                title={`Flagged / Under Review: ${formatFullPHP(budgetSummary.flaggedAmount)}`}
+              />
+            </div>
+
+            <div className="budget-progress-legend">
+              <div className="budget-legend-item">
+                <span className="budget-legend-dot verified" />
+                <span>Verified Spending: <strong>{formatPHP(budgetSummary.verifiedAmount)}</strong> ({budgetSummary.verifiedCount || 0})</span>
+              </div>
+              <div className="budget-legend-item">
+                <span className="budget-legend-dot pending" />
+                <span>Pending Review: <strong>{formatPHP(budgetSummary.pendingAmount)}</strong> ({budgetSummary.pendingCount || 0})</span>
+              </div>
+              <div className="budget-legend-item">
+                <span className="budget-legend-dot flagged" />
+                <span>Under Review: <strong>{formatPHP(budgetSummary.flaggedAmount)}</strong> ({budgetSummary.flaggedCount || 0})</span>
+              </div>
+              <div className="budget-legend-item">
+                <span className="budget-legend-dot remaining" />
+                <span>Remaining Fund: <strong>{formatPHP(budgetSummary.remainingBudget)}</strong></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Recent Alerts (existing) */}
         <div className="dashboard-card primary-panel recent-alerts-card">
           <div className="card-header">
