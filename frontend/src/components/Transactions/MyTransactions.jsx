@@ -184,6 +184,7 @@ function MyTransactions({ user, embedded = false }) {
   const [filters, setFilters] = useState({ search: '', dateFrom: '', dateTo: '' });
   const [searchInput, setSearchInput] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [programFilter, setProgramFilter] = useState('all');
   const [sortBy, setSortBy] = useState('timestamp');
   const [sortOrder, setSortOrder] = useState('desc');
 
@@ -409,6 +410,19 @@ function MyTransactions({ user, embedded = false }) {
   };
 
   /* ---- Filter + paginate ---- */
+  const availablePrograms = Array.from(
+    new Set(
+      transactions
+        .map((t) => (isMeaningfulValue(t.programName) ? String(t.programName).trim() : null))
+        .filter(Boolean)
+    )
+  ).sort((a, b) => a.localeCompare(b));
+
+  const activeProgramFilter =
+    programFilter !== 'all' && availablePrograms.includes(programFilter)
+      ? programFilter
+      : 'all';
+
   const filterByStatus = (list) => {
     let result = list;
     // Status filter
@@ -420,8 +434,12 @@ function MyTransactions({ user, embedded = false }) {
       case 'rejected':   result = result.filter(t => t.verificationStatus === 'Rejected'); break;
       default: break;
     }
-    // Budget category filter
-    // Event phase filter
+    // Program filter — chips derived from loaded transactions
+    if (activeProgramFilter !== 'all') {
+      result = result.filter(
+        (t) => isMeaningfulValue(t.programName) && String(t.programName).trim() === activeProgramFilter
+      );
+    }
     return result;
   };
 
@@ -529,7 +547,7 @@ function MyTransactions({ user, embedded = false }) {
         </div>
         <div className="filter-actions" style={{ display: 'flex', alignItems: 'flex-end' }}>
           <button type="button"
-            onClick={() => { setSearchInput(''); setFilters({ search: '', dateFrom: '', dateTo: '' }); setStatusFilter('all'); setSortBy('timestamp'); setSortOrder('desc'); }}
+            onClick={() => { setSearchInput(''); setFilters({ search: '', dateFrom: '', dateTo: '' }); setStatusFilter('all'); setProgramFilter('all'); setSortBy('timestamp'); setSortOrder('desc'); }}
             style={{ padding: '0.5rem 1rem', background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', borderRadius: 6, cursor: 'pointer' }}>
             Clear
           </button>
@@ -573,6 +591,25 @@ function MyTransactions({ user, embedded = false }) {
                 >{label}</button>
               ))}
             </div>
+            {/* Program filter chips — dynamic from loaded transactions */}
+            {availablePrograms.length > 0 && (
+              <div className="program-filters" aria-label="Filter by program">
+                <button
+                  key="all-programs"
+                  className={`chip-filter ${activeProgramFilter === 'all' ? 'active' : ''}`}
+                  onClick={() => { setProgramFilter('all'); setCurrentPage(1); }}
+                  type="button"
+                >All Programs</button>
+                {availablePrograms.map((program) => (
+                  <button
+                    key={program}
+                    className={`chip-filter ${activeProgramFilter === program ? 'active' : ''}`}
+                    onClick={() => { setProgramFilter(program); setCurrentPage(1); }}
+                    type="button"
+                  >{program}</button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Batch action bar */}

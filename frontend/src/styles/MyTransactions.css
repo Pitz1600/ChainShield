@@ -851,12 +851,14 @@
 .transactions-toolbar {
     margin: 1rem 0;
     display: flex;
-    justify-content: space-between;
-    gap: 1rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.65rem;
     flex-wrap: wrap;
 }
 
-.status-filters {
+.status-filters,
+.program-filters {
     display: flex;
     gap: 0.5rem;
     flex-wrap: wrap;
