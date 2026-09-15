@@ -54,6 +54,8 @@ router.get('/alerts', auth, transactionController.getAlerts);
 router.get('/budget-summary', auth, transactionController.getBudgetSummary);
 router.put('/batch-action', auth, requireVerifier, transactionController.batchAction);
 router.delete('/:id', auth, requireOfficial, transactionController.deleteTransaction);
+router.put('/:id/archive', auth, requireOfficial, transactionController.archiveTransaction);
+router.put('/:id/unarchive', auth, requireOfficial, transactionController.unarchiveTransaction);
 router.put('/:id/approve', auth, requireOfficial, transactionController.approveTransaction);
 router.get('/:id', auth, transactionController.getTransactionById);
 router.post('/:id/remarks', auth, requireAuditor, transactionController.addRemark);

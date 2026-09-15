@@ -192,16 +192,16 @@ const IntegrityChecker = ({ user }) => {
     const handleDeny = async (tx) => {
         setApprovingId(tx.transactionId);
         try {
-            await api.delete(`/transactions/${tx.transactionId}`);
+            await api.put(`/transactions/${tx.transactionId}/archive`);
             setResults(prev => ({
                 ...prev,
                 results: prev.results.filter(r => r.transactionId !== tx.transactionId)
             }));
             setSelectedTx(null);
             try { localStorage.setItem('tx_refresh', String(Date.now())); } catch (e) {}
-            setActionMessage(`Denied and removed ${tx.transactionId}.`);
+            setActionMessage(`Denied and archived ${tx.transactionId}.`);
         } catch (err) {
-            alert('Deny failed: ' + (err.response?.data?.error || err.message));
+            alert('Archive failed: ' + (err.response?.data?.error || err.message));
         } finally {
             setApprovingId(null);
         }

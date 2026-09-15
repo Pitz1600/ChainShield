@@ -770,6 +770,29 @@
     background: #dc2626;
 }
 
+.btn-archive {
+    background: #475569;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.btn-archive:hover:not(:disabled) {
+    background: #334155;
+}
+
+.btn-archive:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 .btn-undo {
     background: white;
     color: #475569;
@@ -1154,6 +1177,15 @@
 
 .batch-btn.delete:hover:not(:disabled) {
     background: #dc2626;
+}
+
+.batch-btn.archive {
+    background: #475569;
+    color: white;
+}
+
+.batch-btn.archive:hover:not(:disabled) {
+    background: #334155;
 }
 
 .batch-btn.cancel {

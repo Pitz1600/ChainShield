@@ -83,6 +83,17 @@ const transactionSchema = new mongoose.Schema({
     default: false,
     index: true
   },
+  isArchived: {
+    type: Boolean,
+    default: false,
+    index: true
+  },
+  archivedAt: {
+    type: Date
+  },
+  archivedBy: {
+    type: String
+  },
   description: {
     type: String,
     trim: true
@@ -197,5 +208,6 @@ transactionSchema.pre('save', function (next) {
 transactionSchema.index({ transactionType: 1, timestamp: -1 });
 transactionSchema.index({ riskLevel: 1, flagged: 1 });
 transactionSchema.index({ agency: 1, programName: 1 });
+transactionSchema.index({ isArchived: 1, timestamp: -1 });
 
 module.exports = mongoose.model('Transaction', transactionSchema);

@@ -210,7 +210,10 @@ export const transactionsAPI = {
   getById: (id) => api.get(`/transactions/${id}`),
   create: (data) => api.post('/transactions', data),
   batchCreate: (transactions) => api.post('/transactions/batch', { transactions }),
-  getBudgetSummary: (params) => api.get('/transactions/budget-summary', { params })
+  getBudgetSummary: (params) => api.get('/transactions/budget-summary', { params }),
+  archive: (id) => api.put(`/transactions/${id}/archive`),
+  unarchive: (id) => api.put(`/transactions/${id}/unarchive`),
+  batchAction: (ids, action, data = {}) => api.put('/transactions/batch-action', { ids, action, ...data })
 };
 
 export const evaluationAPI = {

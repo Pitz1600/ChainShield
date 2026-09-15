@@ -3,7 +3,7 @@ import {
   AlertTriangle, CheckCircle, Clock, FileText,
   ChevronLeft, ChevronRight,
   ArrowUpDown, Filter, X, Trash2, Flag, ThumbsUp,
-  Link2, Info, MessageSquare
+  Link2, Info, MessageSquare, Archive, ArchiveRestore
 } from 'lucide-react';
 import api from '../../services/api';
 import FeedbackModal from '../Feedbacks/FeedbackModal';
@@ -154,14 +154,23 @@ function FormulaBreakdown({ tx }) {
 /* ------------------------------------------------------------------ */
 /*  Status Badge                                                         */
 /* ------------------------------------------------------------------ */
-const getStatusBadge = (status) => {
+const getStatusBadge = (status, isArchived = false) => {
+  if (isArchived) {
+    return (
+      <span style={{
+        padding: '0.25rem 0.75rem', borderRadius: '9999px', fontSize: '0.75rem',
+        fontWeight: '600', backgroundColor: '#f1f5f9', color: '#64748b'
+      }}>Archived</span>
+    );
+  }
   const map = {
     Verified: { color: '#10b981', bg: '#d1fae5', label: 'Verified' },
     Flagged: { color: '#f97316', bg: '#ffedd5', label: 'Flagged' },
     Pending: { color: '#f59e0b', bg: '#fef3c7', label: 'Pending' },
     Rejected: { color: '#ef4444', bg: '#fee2e2', label: 'Rejected' },
     Suspicious: { color: '#ea580c', bg: '#ffedd5', label: 'Suspicious' },
-    Clean: { color: '#0ea5e9', bg: '#e0f2fe', label: 'Clean' }
+    Clean: { color: '#0ea5e9', bg: '#e0f2fe', label: 'Clean' },
+    Archived: { color: '#64748b', bg: '#f1f5f9', label: 'Archived' }
   };
   const config = map[status] || map.Pending;
   return (
@@ -264,6 +273,7 @@ function MyTransactions({ user, embedded = false }) {
         limit: 5000,
         sortBy,
         sortOrder,
+        includeArchived: true,
         ...(isAdminOrAuditor && { includeStaged: true }),
         ...(filters.search && { search: filters.search }),
         ...(filters.dateFrom && { dateFrom: filters.dateFrom }),
@@ -355,17 +365,33 @@ function MyTransactions({ user, embedded = false }) {
     }
   };
 
-  const handleReject = async () => {
-    if (!selectedTx || !isAdminOrAuditor) return;
+  const handleArchive = async (tx = selectedTx) => {
+    if (!tx || !isAdminOrAuditor) return;
     setActionLoading(true);
     try {
-      await api.delete(`/transactions/${selectedTx._id}`);
-      setTransactions(prev => prev.filter(t => t._id !== selectedTx._id));
+      await api.put(`/transactions/${tx._id}/archive`);
+      await fetchMyTransactions();
       setSelectedTx(null);
-      showToast('Transaction deleted.');
+      showToast('Transaction archived successfully.');
     } catch (err) {
       console.error(err);
-      showToast('Failed to delete transaction.', 'error');
+      showToast('Failed to archive transaction.', 'error');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleUnarchive = async (tx = selectedTx) => {
+    if (!tx || !isAdminOrAuditor) return;
+    setActionLoading(true);
+    try {
+      await api.put(`/transactions/${tx._id}/unarchive`);
+      await fetchMyTransactions();
+      setSelectedTx(null);
+      showToast('Transaction restored from archive.');
+    } catch (err) {
+      console.error(err);
+      showToast('Failed to restore transaction.', 'error');
     } finally {
       setActionLoading(false);
     }
@@ -382,7 +408,8 @@ function MyTransactions({ user, embedded = false }) {
       await fetchMyTransactions();
       const successCount = results.success.length;
       const blockchained = results.success.filter(r => r.blockchainTxId).length;
-      let msg = `Batch ${action}: ${successCount} transactions updated.`;
+      const actionLabel = action === 'archive' ? 'archived' : action === 'unarchive' ? 'restored' : action;
+      let msg = `Batch ${actionLabel}: ${successCount} transactions updated.`;
       if (blockchained) msg += ` ${blockchained} stored on blockchain.`;
       if (results.failed.length) msg += ` ${results.failed.length} failed.`;
       showToast(msg);
@@ -427,12 +454,13 @@ function MyTransactions({ user, embedded = false }) {
     let result = list;
     // Status filter
     switch (statusFilter) {
-      case 'verified':   result = result.filter(t => t.verificationStatus === 'Verified'); break;
-      case 'flagged':    result = result.filter(t => t.verificationStatus === 'Flagged' || t.flagged); break;
-      case 'pending':    result = result.filter(t => t.verificationStatus === 'Pending'); break;
-      case 'suspicious': result = result.filter(t => t.verificationStatus === 'Suspicious' || (t.riskScore >= 71 && t.verificationStatus !== 'Verified')); break;
-      case 'rejected':   result = result.filter(t => t.verificationStatus === 'Rejected'); break;
-      default: break;
+      case 'verified':   result = result.filter(t => !t.isArchived && t.verificationStatus === 'Verified'); break;
+      case 'flagged':    result = result.filter(t => !t.isArchived && (t.verificationStatus === 'Flagged' || t.flagged)); break;
+      case 'pending':    result = result.filter(t => !t.isArchived && t.verificationStatus === 'Pending'); break;
+      case 'suspicious': result = result.filter(t => !t.isArchived && (t.verificationStatus === 'Suspicious' || (t.riskScore >= 71 && t.verificationStatus !== 'Verified'))); break;
+      case 'rejected':   result = result.filter(t => !t.isArchived && t.verificationStatus === 'Rejected'); break;
+      case 'archived':   result = result.filter(t => t.isArchived); break;
+      default:           result = result.filter(t => !t.isArchived); break;
     }
     // Program filter — chips derived from loaded transactions
     if (activeProgramFilter !== 'all') {
@@ -449,6 +477,7 @@ function MyTransactions({ user, embedded = false }) {
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentTransactions = filteredTransactions.slice(indexOfFirstItem, indexOfLastItem);
   const pendingCount = transactions.filter(t =>
+    !t.isArchived &&
     (t.flagged || (t.riskScore ?? 0) >= 71 || t.verificationStatus === 'Pending' || t.verificationStatus === 'Suspicious') &&
     t.verificationStatus !== 'Verified' && t.verificationStatus !== 'Rejected'
   ).length;
@@ -582,6 +611,7 @@ function MyTransactions({ user, embedded = false }) {
                 { key: 'flagged', label: 'Flagged' },
                 { key: 'suspicious', label: 'Suspicious' },
                 { key: 'pending', label: 'Pending' },
+                { key: 'archived', label: 'Archived' },
               ].map(({ key, label }) => (
                 <button
                   key={key}
@@ -627,9 +657,15 @@ function MyTransactions({ user, embedded = false }) {
               <button className="batch-btn flag" disabled={actionLoading || selected.size === 0} onClick={() => handleBatchAction('flag')}>
                 <Flag size={14} /> Flag All
               </button>
-              <button className="batch-btn delete" disabled={actionLoading || selected.size === 0} onClick={() => handleBatchAction('delete')}>
-                <Trash2 size={14} /> Delete Selected
-              </button>
+              {statusFilter === 'archived' ? (
+                <button className="batch-btn archive" disabled={actionLoading || selected.size === 0} onClick={() => handleBatchAction('unarchive')}>
+                  <ArchiveRestore size={14} /> Restore Selected
+                </button>
+              ) : (
+                <button className="batch-btn archive" disabled={actionLoading || selected.size === 0} onClick={() => handleBatchAction('archive')}>
+                  <Archive size={14} /> Archive Selected
+                </button>
+              )}
               <button className="batch-btn cancel" disabled={selected.size === 0} onClick={() => setSelected(new Set())} type="button">
                 <X size={14} /> Clear
               </button>
@@ -685,10 +721,17 @@ function MyTransactions({ user, embedded = false }) {
                         {t.description || t.transactionType || 'N/A'}
                       </td>
                       <td>
-                        <span style={{ padding: '0.25rem 0.6rem', borderRadius: 4, fontSize: '0.75rem', fontWeight: 600, backgroundColor: vBadge.bg, color: vBadge.color, display: 'inline-block' }}>
-                          {vBadge.label}
-                        </span>
-                        {t.verifiedBy && <span className="verified-by"> by {t.verifiedBy}</span>}
+                        {t.isArchived ? (
+                          <span style={{ padding: '0.25rem 0.6rem', borderRadius: 4, fontSize: '0.75rem', fontWeight: 600, backgroundColor: '#f1f5f9', color: '#64748b', display: 'inline-block' }}>
+                            Archived
+                          </span>
+                        ) : (
+                          <span style={{ padding: '0.25rem 0.6rem', borderRadius: 4, fontSize: '0.75rem', fontWeight: 600, backgroundColor: vBadge.bg, color: vBadge.color, display: 'inline-block' }}>
+                            {vBadge.label}
+                          </span>
+                        )}
+                        {t.isArchived && t.archivedBy && <span className="verified-by"> archived by {t.archivedBy}</span>}
+                        {!t.isArchived && t.verifiedBy && <span className="verified-by"> by {t.verifiedBy}</span>}
                         {Array.isArray(t.remarks) && t.remarks.length > 0 && (
                           <span title={`${t.remarks.length} auditor remark(s)`} style={{ marginLeft: 6, display: 'inline-flex', alignItems: 'center', gap: 2, padding: '2px 6px', borderRadius: 4, background: '#fef3c7', color: '#92400e', fontSize: '0.7rem', fontWeight: 600 }}>
                             <MessageSquare size={11} /> {t.remarks.length}
@@ -731,6 +774,9 @@ function MyTransactions({ user, embedded = false }) {
                     <h3 style={{ margin: 0 }}>Transaction Details</h3>
                     {selectedTx.staged && (
                       <span style={{ padding: '3px 10px', borderRadius: 999, background: '#fef3c7', color: '#92400e', fontSize: '0.72rem', fontWeight: 700 }}>CSV Import</span>
+                    )}
+                    {selectedTx.isArchived && (
+                      <span style={{ padding: '3px 10px', borderRadius: 999, background: '#f1f5f9', color: '#64748b', fontSize: '0.72rem', fontWeight: 700 }}>Archived</span>
                     )}
                     {modalLoading && <div style={{ width: 16, height: 16, border: '2px solid #e2e8f0', borderTopColor: '#3b82f6', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />}
                   </div>
@@ -1403,10 +1449,17 @@ function MyTransactions({ user, embedded = false }) {
                           <X size={14} style={{ display: 'inline', marginRight: 4 }} />
                           Deny
                         </button>
-                        <button className="btn-flag" disabled={actionLoading} onClick={() => handleReject()}>
-                          <Trash2 size={14} style={{ display: 'inline', marginRight: 4 }} />
-                          Delete
-                        </button>
+                        {selectedTx.isArchived ? (
+                          <button className="btn-archive" disabled={actionLoading} onClick={() => handleUnarchive()}>
+                            <ArchiveRestore size={14} style={{ display: 'inline', marginRight: 4 }} />
+                            Restore
+                          </button>
+                        ) : (
+                          <button className="btn-archive" disabled={actionLoading} onClick={() => handleArchive()}>
+                            <Archive size={14} style={{ display: 'inline', marginRight: 4 }} />
+                            Archive
+                          </button>
+                        )}
                       </>
                     )}
                   </div>

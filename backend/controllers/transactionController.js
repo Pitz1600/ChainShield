@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Transaction = require('../models/Transaction');
 const riskDetectionService = require('../services/fraudDetection');
 const blockchainService = require('../services/blockchainService');
@@ -69,6 +70,11 @@ exports.getTransactions = async (req, res) => {
       query.staged = { $ne: true };
     }
 
+    // exclude archived unless explicitly requested
+    if (req.query.includeArchived !== 'true') {
+      query.isArchived = { $ne: true };
+    }
+
     const transactions = await Transaction.find(query)
       .sort({ timestamp: -1 })
       .limit(limit * 1)
@@ -108,7 +114,7 @@ exports.getAlerts = async (req, res) => {
       severity // critical, high, medium
     } = req.query;
 
-    const query = { flagged: true };
+    const query = { flagged: true, isArchived: { $ne: true } };
 
     // Filter by severity if provided
     if (severity) {
@@ -169,7 +175,8 @@ exports.getMyTransactions = async (req, res) => {
       sortBy = 'timestamp',
       sortOrder = 'desc',
       search,
-      includeStaged
+      includeStaged,
+      includeArchived
     } = req.query;
 
     const isOfficial = ['administrator', 'barangay_official', 'auditor'].includes(req.user.role);
@@ -203,6 +210,13 @@ exports.getMyTransactions = async (req, res) => {
     // Apply visibility as the first $and clause
     if (visibilityClause) andClauses.push(visibilityClause);
 
+    // Filter by archived status:
+    if (status === 'archived') {
+      andClauses.push({ isArchived: true });
+    } else if (includeArchived !== 'true') {
+      andClauses.push({ isArchived: { $ne: true } });
+    }
+
     // Search across text fields
     if (search && search.trim()) {
       andClauses.push({
@@ -219,7 +233,7 @@ exports.getMyTransactions = async (req, res) => {
     }
 
     // Verification status filter
-    if (status && status !== 'all') {
+    if (status && status !== 'all' && status !== 'archived') {
       // Support comma-separated statuses e.g. "Flagged,Suspicious" for Under Review
       const statusValues = status.split(',').map(s => s.trim()).filter(Boolean);
       if (statusValues.length === 1) {
@@ -257,7 +271,7 @@ exports.getMyTransactions = async (req, res) => {
         .sort({ [sortField]: sortDir })
         .limit(limitNum)
         .skip((pageNum - 1) * limitNum)
-        .select('transactionId transactionType amount status timestamp blockchainTxId blockNumber riskScore zScore riskLevel flagged velocityFlag receiverPatternFlag amountSpikeFlag mlUsed mlScore verificationStatus verifiedBy fromAddress toAddress description fraudPatterns reasons metadata networkFeatures agency programName lineItems staged currency beneficiaryType approvedBudget remainingBudget budget'),
+        .select('transactionId transactionType amount status timestamp blockchainTxId blockNumber riskScore zScore riskLevel flagged velocityFlag receiverPatternFlag amountSpikeFlag mlUsed mlScore verificationStatus verifiedBy fromAddress toAddress description fraudPatterns reasons metadata networkFeatures agency programName lineItems staged currency beneficiaryType approvedBudget remainingBudget budget isArchived archivedAt archivedBy'),
       Transaction.countDocuments(query)
     ]);
 
@@ -289,7 +303,10 @@ exports.getMyTransactions = async (req, res) => {
       programName: txn.programName,
       approvedBudget: txn.approvedBudget || 0,
       remainingBudget: txn.remainingBudget || 0,
-      budget: txn.budget || {}
+      budget: txn.budget || {},
+      isArchived: Boolean(txn.isArchived),
+      archivedAt: txn.archivedAt || null,
+      archivedBy: txn.archivedBy || null
     }));
 
     res.json({
@@ -413,16 +430,75 @@ exports.updateVerificationStatus = async (req, res) => {
   }
 };
 
-// Hard delete for rejected transactions (only officials/admins)
+// Soft archive for transactions to prevent permanent loss of transaction records
 exports.deleteTransaction = async (req, res) => {
   try {
     const { id } = req.params;
-    const tx = await Transaction.findById(id);
+    const tx = await Transaction.findOne(
+      mongoose.Types.ObjectId.isValid(id)
+        ? { $or: [{ _id: id }, { transactionId: id }] }
+        : { transactionId: id }
+    );
     if (!tx) return res.status(404).json({ error: 'Transaction not found' });
-    await tx.deleteOne();
-    return res.json({ success: true, message: 'Transaction deleted', id });
+    
+    tx.isArchived = true;
+    tx.archivedAt = new Date();
+    tx.archivedBy = req.user?.firstName
+      ? `${req.user.firstName} ${req.user.lastName || ''}`.trim()
+      : (req.user?.name || req.user?.fullName || req.user?.email || req.user?.role || 'Official');
+    await tx.save();
+
+    return res.json({ success: true, message: 'Transaction archived successfully (permanent deletion disabled)', id, transaction: tx });
   } catch (err) {
-    console.error('Delete transaction error:', err);
+    console.error('Archive transaction error:', err);
+    return res.status(500).json({ error: err.message });
+  }
+};
+
+// Explicit archive transaction endpoint
+exports.archiveTransaction = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const tx = await Transaction.findOne(
+      mongoose.Types.ObjectId.isValid(id)
+        ? { $or: [{ _id: id }, { transactionId: id }] }
+        : { transactionId: id }
+    );
+    if (!tx) return res.status(404).json({ error: 'Transaction not found' });
+
+    tx.isArchived = true;
+    tx.archivedAt = new Date();
+    tx.archivedBy = req.user?.firstName
+      ? `${req.user.firstName} ${req.user.lastName || ''}`.trim()
+      : (req.user?.name || req.user?.fullName || req.user?.email || req.user?.role || 'Official');
+    await tx.save();
+
+    return res.json({ success: true, message: 'Transaction archived successfully', transaction: tx });
+  } catch (err) {
+    console.error('Archive transaction error:', err);
+    return res.status(500).json({ error: err.message });
+  }
+};
+
+// Unarchive / restore transaction endpoint
+exports.unarchiveTransaction = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const tx = await Transaction.findOne(
+      mongoose.Types.ObjectId.isValid(id)
+        ? { $or: [{ _id: id }, { transactionId: id }] }
+        : { transactionId: id }
+    );
+    if (!tx) return res.status(404).json({ error: 'Transaction not found' });
+
+    tx.isArchived = false;
+    tx.archivedAt = undefined;
+    tx.archivedBy = undefined;
+    await tx.save();
+
+    return res.json({ success: true, message: 'Transaction restored from archive successfully', transaction: tx });
+  } catch (err) {
+    console.error('Unarchive transaction error:', err);
     return res.status(500).json({ error: err.message });
   }
 };
@@ -468,15 +544,15 @@ exports.approveTransaction = async (req, res) => {
   }
 };
 
-// Batch action: approve, flag, or delete multiple transactions
+// Batch action: approve, flag, archive, unarchive, or delete multiple transactions
 exports.batchAction = async (req, res) => {
   try {
     const { ids, action, remark } = req.body;
     if (!Array.isArray(ids) || ids.length === 0) {
       return res.status(400).json({ error: 'ids array is required' });
     }
-    if (!['approve', 'flag', 'delete', 'remark'].includes(action)) {
-      return res.status(400).json({ error: 'action must be approve, flag, delete, or remark' });
+    if (!['approve', 'flag', 'archive', 'unarchive', 'delete', 'remark'].includes(action)) {
+      return res.status(400).json({ error: 'action must be approve, flag, archive, unarchive, delete, or remark' });
     }
     if (action === 'remark') {
       if (req.user?.role !== 'auditor') {
@@ -494,12 +570,25 @@ exports.batchAction = async (req, res) => {
 
     for (const id of ids) {
       try {
-        const tx = await Transaction.findById(id);
+        const tx = await Transaction.findOne(
+          mongoose.Types.ObjectId.isValid(id)
+            ? { $or: [{ _id: id }, { transactionId: id }] }
+            : { transactionId: id }
+        );
         if (!tx) { results.failed.push({ id, reason: 'Not found' }); continue; }
 
-        if (action === 'delete') {
-          await tx.deleteOne();
-          results.success.push({ id, action: 'deleted' });
+        if (action === 'archive' || action === 'delete') {
+          tx.isArchived = true;
+          tx.archivedAt = new Date();
+          tx.archivedBy = verifierName;
+          await tx.save();
+          results.success.push({ id, action: 'archived' });
+        } else if (action === 'unarchive') {
+          tx.isArchived = false;
+          tx.archivedAt = undefined;
+          tx.archivedBy = undefined;
+          await tx.save();
+          results.success.push({ id, action: 'unarchived' });
         } else if (action === 'approve') {
           tx.verificationStatus = 'Verified';
           tx.verifiedBy = verifierName;
@@ -580,7 +669,7 @@ exports.updateTransactionBudget = async (req, res) => {
 exports.getBudgetSummary = async (req, res) => {
   try {
     const isOfficial = ['administrator', 'barangay_official', 'auditor'].includes(req.user?.role);
-    const query = {};
+    const query = { isArchived: { $ne: true } };
 
     // For non-officials, exclude staged transactions
     if (!isOfficial) {
