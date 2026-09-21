@@ -1294,7 +1294,7 @@ exports.verifyEmail = async (req, res) => {
     if (user.otp !== otp) {
       user.otpAttempts += 1;
       await user.save();
-      return res.status(400).json({ error: 'Invalid verification code.' });
+      return res.status(400).json({ error: 'Invalid verification code. Please try again.', retryAfterSeconds: 30 });
     }
 
     user.isVerified = true;

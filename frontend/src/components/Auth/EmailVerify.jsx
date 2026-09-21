@@ -9,6 +9,7 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [resendCooldown, setResendCooldown] = useState(0);
+  const [timeoutSeconds, setTimeoutSeconds] = useState(0);
   const inputRefs = useRef([]);
 
   useEffect(() => {
@@ -20,6 +21,16 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
     }
     return () => clearInterval(timer);
   }, [resendCooldown]);
+
+  useEffect(() => {
+    let timer;
+    if (timeoutSeconds > 0) {
+      timer = setInterval(() => {
+        setTimeoutSeconds((prev) => Math.max(prev - 1, 0));
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [timeoutSeconds]);
 
   const handleChange = (element, index) => {
     if (isNaN(element.value)) return false;
@@ -58,12 +69,18 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
       inputRefs.current[index - 1].focus();
     }
     if (e.key === "Enter") {
-      handleVerify(e);
+      if (timeoutSeconds <= 0 && !loading) {
+        handleVerify(e);
+      }
     }
   };
 
   const handleVerify = async (e) => {
     if (e) e.preventDefault();
+    if (timeoutSeconds > 0) {
+      setError(`Please wait ${timeoutSeconds}s before trying again.`);
+      return;
+    }
     const code = otp.join("");
     if (code.length !== 6) {
       setError("Please enter a complete 6-digit code.");
@@ -75,7 +92,7 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
     setSuccess("");
 
     try {
-      const res = await api.post("/auth/verify-email", { otp: code });
+      const res = await api.post("/auth/verify-email", { otp: code }, { timeout: 10000 });
 
       if (res.data.success) {
         setSuccess("Email verified successfully!");
@@ -92,6 +109,15 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
         }, 1500);
       }
     } catch (err) {
+      const retryAfter = err.response?.headers?.['retry-after'] || err.response?.data?.retryAfterSeconds;
+      const waitTime = retryAfter ? Number(retryAfter) : 30;
+      setTimeoutSeconds(waitTime);
+
+      const errorMessage = err.response?.data?.error || 
+        (err.code === 'ECONNABORTED' ? 'Verification request timed out. Please try again.' : 'Invalid verification code. Please try again.');
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -194,7 +220,7 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
             <button
               className="submit-button"
               onClick={handleVerify}
-              disabled={loading}
+              disabled={loading || timeoutSeconds > 0}
               style={{ marginTop: '0' }}
             >
               {loading ? (
@@ -202,6 +228,8 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
                   <span className="spinner"></span>
                   <span>Verifying...</span>
                 </>
+              ) : timeoutSeconds > 0 ? (
+                <span>Retry in {timeoutSeconds}s</span>
               ) : (
                 <>
                   <span>Verify Account</span>
