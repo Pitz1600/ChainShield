@@ -287,6 +287,28 @@
   outline: none;
 }
 
+.otp-input.error {
+  border: 2px solid #ef4444;
+  background-color: #fef2f2;
+  color: #b91c1c;
+}
+
+.otp-input.error:focus {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+  outline: none;
+}
+
+.otp-error-explanation {
+  color: #dc2626;
+  font-size: 0.875rem;
+  margin-top: -1rem;
+  margin-bottom: 1.25rem;
+  text-align: center;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
 .helper-text {
   font-size: 0.875rem;
   color: #6b7280;

@@ -9,7 +9,7 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [resendCooldown, setResendCooldown] = useState(0);
-  const [timeoutSeconds, setTimeoutSeconds] = useState(0);
+  const [isInvalidOtp, setIsInvalidOtp] = useState(false);
   const inputRefs = useRef([]);
 
   useEffect(() => {
@@ -22,18 +22,11 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
     return () => clearInterval(timer);
   }, [resendCooldown]);
 
-  useEffect(() => {
-    let timer;
-    if (timeoutSeconds > 0) {
-      timer = setInterval(() => {
-        setTimeoutSeconds((prev) => Math.max(prev - 1, 0));
-      }, 1000);
-    }
-    return () => clearInterval(timer);
-  }, [timeoutSeconds]);
-
   const handleChange = (element, index) => {
     if (isNaN(element.value)) return false;
+
+    if (isInvalidOtp) setIsInvalidOtp(false);
+    if (error) setError("");
 
     setOtp([...otp.map((d, idx) => (idx === index ? element.value : d))]);
 
@@ -45,11 +38,15 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
 
   const handlePaste = (e) => {
     e.preventDefault();
+    if (isInvalidOtp) setIsInvalidOtp(false);
+    if (error) setError("");
+
     const pastedData = e.clipboardData.getData('text').trim();
 
     // Only accept 6-digit numeric codes
     if (!/^\d{6}$/.test(pastedData)) {
       setError('Please paste a valid 6-digit code');
+      setIsInvalidOtp(true);
       return;
     }
 
@@ -59,17 +56,17 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
 
     // Focus the last input
     inputRefs.current[5].focus();
-
-    // Clear any previous errors
-    setError('');
   };
 
   const handleKeyDown = (e, index) => {
+    if (isInvalidOtp) setIsInvalidOtp(false);
+    if (error) setError("");
+
     if (e.key === "Backspace" && !otp[index] && index > 0) {
       inputRefs.current[index - 1].focus();
     }
     if (e.key === "Enter") {
-      if (timeoutSeconds <= 0 && !loading) {
+      if (!loading) {
         handleVerify(e);
       }
     }
@@ -77,19 +74,17 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
 
   const handleVerify = async (e) => {
     if (e) e.preventDefault();
-    if (timeoutSeconds > 0) {
-      setError(`Please wait ${timeoutSeconds}s before trying again.`);
-      return;
-    }
     const code = otp.join("");
     if (code.length !== 6) {
-      setError("Please enter a complete 6-digit code.");
+      setError("Please enter a complete 6-digit verification code.");
+      setIsInvalidOtp(true);
       return;
     }
 
     setLoading(true);
     setError("");
     setSuccess("");
+    setIsInvalidOtp(false);
 
     try {
       const res = await api.post("/auth/verify-email", { otp: code }, { timeout: 10000 });
@@ -109,12 +104,13 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
         }, 1500);
       }
     } catch (err) {
-      const retryAfter = err.response?.headers?.['retry-after'] || err.response?.data?.retryAfterSeconds;
-      const waitTime = retryAfter ? Number(retryAfter) : 30;
-      setTimeoutSeconds(waitTime);
-
-      const errorMessage = err.response?.data?.error || 
-        (err.code === 'ECONNABORTED' ? 'Verification request timed out. Please try again.' : 'Invalid verification code. Please try again.');
+      setIsInvalidOtp(true);
+      const serverError = err.response?.data?.error;
+      const errorMessage = serverError 
+        ? `${serverError} The 6-digit verification code you entered is invalid or does not match what was sent to your email.`
+        : (err.code === 'ECONNABORTED' 
+            ? 'Verification request timed out. Please check your internet connection and try again.' 
+            : 'Incorrect verification code. The 6-digit code you entered does not match what was sent to your email.');
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -123,6 +119,7 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
 
   const handleResendOtp = async () => {
     if (resendCooldown > 0) return;
+    if (isInvalidOtp) setIsInvalidOtp(false);
     setError("");
     setSuccess("");
 
@@ -198,7 +195,7 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
             <div className="otp-container">
               {otp.map((data, index) => (
                 <input
-                  className="otp-input"
+                  className={`otp-input ${isInvalidOtp ? 'error' : ''}`}
                   type="text"
                   name="otp"
                   maxLength="1"
@@ -213,6 +210,12 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
               ))}
             </div>
 
+            {isInvalidOtp && (
+              <p className="otp-error-explanation">
+                The verification code entered is incorrect. It does not match the 6-digit code sent to your email. Please check your inbox and re-enter the code.
+              </p>
+            )}
+
             <p className="helper-text">
               This code will expire in 10 minutes.
             </p>
@@ -220,7 +223,7 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
             <button
               className="submit-button"
               onClick={handleVerify}
-              disabled={loading || timeoutSeconds > 0}
+              disabled={loading}
               style={{ marginTop: '0' }}
             >
               {loading ? (
@@ -228,8 +231,6 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
                   <span className="spinner"></span>
                   <span>Verifying...</span>
                 </>
-              ) : timeoutSeconds > 0 ? (
-                <span>Retry in {timeoutSeconds}s</span>
               ) : (
                 <>
                   <span>Verify Account</span>
