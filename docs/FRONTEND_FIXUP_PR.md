@@ -1,0 +1,7 @@
+# Fix frontend style leakage, responsive foundations, and shared navigation accessibility
+
+Authentication and lazy-loaded feature CSS reused global component selectors, making appearance depend on which screens had loaded. Scope the existing styles and animations to their owners, preserve the current indigo/violet design, and give Transactions its own hero background. Consolidate page spacing, focus, control sizing, reduced motion, dialog bounds, and table overflow conventions.
+
+Keep mobile navigation state in MainLayout, prevent keyboard access to the closed drawer, and add focus containment, Escape dismissal, and scroll locking. Reuse the shared confirmation for logout and fix its conditional hook. Associate form labels and name close controls; add error announcements and accessible feedback composer behavior. Share focus and scroll handling across transaction, integrity, profile, and admin dialogs through DialogSurface. APIs, role predicates, and authentication decisions are unchanged.
+
+Validation: production build and stylesheet parsing pass; diff whitespace check passes. Lint improves from 66 errors / 6 warnings to 65 errors / 6 warnings, with pre-existing failures documented. Browser screenshots, role-specific smoke tests, and live dialog accessibility checks remain pending because browser/test infrastructure is unavailable here. See FRONTEND_FIXUP_RESULTS.md for the route inventory, findings, and follow-up owners.

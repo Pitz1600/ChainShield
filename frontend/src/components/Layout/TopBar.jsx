@@ -30,13 +30,6 @@ function TopBar({ toggleMobileMenu }) {
             <span className="title-full">Transaction Integrity Monitoring Portal</span>
             <span className="title-mobile">ChainShield Portal</span>
           </h1>
-          <span
-            className="security-badge"
-            title="Secure and Encrypted"
-          >
-            <span className="badge-full">SECURE // ENCRYPTED</span>
-            <span className="badge-mobile">SECURE</span>
-          </span>
         </div>
         <div className="top-bar-spacer" aria-hidden="true" />
       </div>

@@ -1,6 +1,7 @@
 .dashboard-container {
-  padding: 1rem 0 0;
-  max-width: 100%;
+  padding: 1rem 2rem 2rem;
+  max-width: var(--layout-max-width);
+  margin: 0 auto;
 }
 
 /* Modern Hero Banner with Integrated Stats */
@@ -98,7 +99,7 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1.5rem;
-  padding: 0 2rem 2rem 2rem;
+  padding: 0;
   max-width: var(--layout-max-width);
   margin: 0 auto;
   align-items: start;
@@ -673,7 +674,7 @@
 
 @media (max-width: 768px) {
   .dashboard-container {
-    padding-top: 0.75rem;
+    padding: 0.75rem 1rem 1rem;
   }
 
   .dashboard-hero {
@@ -682,10 +683,6 @@
 
   .hero-stats-grid {
     grid-template-columns: 1fr;
-  }
-
-  .dashboard-cards {
-    padding: 0 1rem 1rem 1rem;
   }
 
   .risk-ring-row {
@@ -1178,6 +1175,11 @@
 }
 .dashboard-container .dashboard-data-link:hover {
   box-shadow: 0 0 0 2px var(--primary, #6366f1);
+}
+.dashboard-container .recent-alerts-card .alert-item:hover,
+.dashboard-container .rt-alerts-card .rt-alert-row:hover {
+  box-shadow: inset 0 0 0 2px var(--primary, #6366f1);
+  transform: none;
 }
 .dashboard-container .dashboard-data-link:focus-visible {
   outline: 3px solid var(--primary, #6366f1);

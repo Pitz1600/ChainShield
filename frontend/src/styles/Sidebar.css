@@ -113,6 +113,7 @@
   flex: 1;
   padding: 1.5rem 0.75rem;
   overflow-y: auto;
+  scrollbar-width: none;
 }
 
 .nav-item {
@@ -423,22 +424,9 @@
   transform: translateY(-2px);
 }
 
-/* Scrollbar for sidebar */
+/* Hide the scrollbar while keeping sidebar navigation scrollable. */
 .sidebar-nav::-webkit-scrollbar {
-  width: 6px;
-}
-
-.sidebar-nav::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.sidebar-nav::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 3px;
-}
-
-.sidebar-nav::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
+  display: none;
 }
 
 /* Responsive Design */

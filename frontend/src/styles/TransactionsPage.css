@@ -2,6 +2,12 @@
    Transactions Page Styles
    ================================ */
 
+.transactions-page {
+    padding: 1.5rem 1.5rem 2rem;
+    max-width: var(--layout-max-width);
+    margin: 0 auto;
+}
+
 /* Hero Section - stacked layout like reference */
 .transactions-hero {
     display: flex;
@@ -9,7 +15,7 @@
     align-items: flex-start;
     padding: 2rem 2.5rem;
     gap: 1.5rem;
-    margin: 1.5rem auto;
+    margin: 0 auto 1.5rem;
     border-radius: 1.5rem;
     max-width: var(--layout-max-width);
 }
@@ -120,7 +126,7 @@
 .transactions-page .tab-content {
     max-width: var(--layout-max-width);
     margin: 0 auto;
-    padding: 0 1.5rem 2rem;
+    padding: 0;
 }
 
 .transactions-tabs .tab-button {
@@ -174,10 +180,6 @@
    Embedded Mode Adjustments
    ================================ */
 
-.transactions-page {
-    padding: 0;
-}
-
 .transactions-page .alerts-container,
 .transactions-page .my-transactions {
     padding: 0;
@@ -199,6 +201,10 @@
 }
 
 @media (max-width: 768px) {
+    .transactions-page {
+        padding: 1rem;
+    }
+
     .transactions-hero {
         padding: 2rem;
     }

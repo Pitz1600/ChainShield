@@ -1,6 +1,7 @@
 .analytics-container {
-  padding: 1rem 0 0;
-  max-width: 100%;
+  padding: 1rem 2rem 2rem;
+  max-width: var(--layout-max-width);
+  margin: 0 auto;
 }
 
 /* Modern Hero Banner with Integrated Stats */
@@ -97,7 +98,7 @@
 .analytics-toolbar {
   max-width: var(--layout-max-width);
   margin: 0 auto 1rem auto;
-  padding: 0 2rem;
+  padding: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -201,7 +202,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
   gap: 1.5rem;
-  padding: 0 2rem 2rem 2rem;
+  padding: 0 0 2rem;
   max-width: var(--layout-max-width);
   margin: 0 auto;
 }
@@ -347,7 +348,7 @@
 
 /* Transactions Section */
 .analytics-transactions {
-  padding: 0 2rem 2rem 2rem;
+  padding: 0;
   max-width: var(--layout-max-width);
   margin: 0 auto;
 }
@@ -473,11 +474,11 @@
 
 @media (max-width: 768px) {
   .analytics-container {
-    padding-top: 0.75rem;
+    padding: 0.75rem 1rem 1rem;
   }
 
   .analytics-toolbar {
-    padding: 0 1rem;
+    padding: 0;
     flex-direction: column;
     align-items: flex-start;
   }
@@ -488,7 +489,7 @@
   }
 
   .analytics-error-banner {
-    margin: 0 1rem 1rem 1rem;
+    margin: 0 0 1rem;
     flex-direction: column;
     align-items: flex-start;
   }
@@ -502,11 +503,11 @@
   }
 
   .analytics-cards {
-    padding: 0 1rem 1rem 1rem;
+    padding: 0 0 1rem;
   }
 
   .analytics-transactions {
-    padding: 0 1rem 1rem 1rem;
+    padding: 0;
   }
 
   .transactions-table {

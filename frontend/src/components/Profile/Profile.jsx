@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Edit, Lock, Mail, Building, Target, Send, X, Shield, Smartphone, Copy, CheckCircle, AlertTriangle, Camera, Trash2 } from 'lucide-react';
+import { User, Edit, Lock, Mail, Building, Target, Send, X, Shield, Smartphone, Copy, CheckCircle, AlertTriangle, Trash2 } from 'lucide-react';
 import api, { authAPI } from '../../services/api';
 import '../../styles/Profile.css';
 import '../../styles/ColorfulIcons.css';
@@ -53,7 +53,6 @@ function Profile({ user }) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
   const [copied, setCopied] = useState(false);
 
   // Sync edit form if user changes
@@ -128,38 +127,6 @@ function Profile({ user }) {
   };
 
   // Profile Picture Handlers
-  const handleFileChange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    if (file.size > 2 * 1024 * 1024) {
-      setError('File size too large. Maximum limit is 2MB.');
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append('profilePicture', file);
-
-    setUploading(true);
-    setUploadProgress(0);
-    setError('');
-    setMessage('');
-
-    try {
-      await authAPI.uploadProfilePicture(formData, (progressEvent) => {
-        const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-        setUploadProgress(progress);
-      });
-      setMessage('Profile picture updated successfully!');
-      setTimeout(() => window.location.reload(), 1000);
-    } catch (err) {
-      setError(err.response?.data?.error || 'Failed to upload profile picture');
-    } finally {
-      setUploading(false);
-      setUploadProgress(0);
-    }
-  };
-
   const handleDeletePicture = async () => {
     if (!window.confirm('Are you sure you want to remove your profile picture?')) return;
 
@@ -282,10 +249,6 @@ function Profile({ user }) {
                     {user.firstName?.charAt(0)}{user.lastName?.charAt(0)}
                   </div>
                 )}
-                <label className="avatar-edit-badge" title="Change Profile Picture">
-                  <Camera size={16} />
-                  <input type="file" onChange={handleFileChange} hidden accept="image/*" />
-                </label>
                 {user.profilePicture && (
                   <button
                     className="avatar-delete-badge"
@@ -297,14 +260,6 @@ function Profile({ user }) {
                   </button>
                 )}
               </div>
-              {uploading && (
-                <div className="avatar-uploading-overlay">
-                  <div className="upload-progress-container">
-                    <div className="upload-progress-bar" style={{ width: `${uploadProgress}%` }}></div>
-                  </div>
-                  <span className="upload-progress-text">{uploadProgress}%</span>
-                </div>
-              )}
             </div>
             <div className="hero-text-content">
               <span className="hero-tag">USER PROFILE</span>
