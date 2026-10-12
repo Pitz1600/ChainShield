@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   Search,
   CheckCircle,
@@ -16,8 +17,10 @@ import '../../styles/Alerts.css';
 import useLockBodyScroll from '../../utils/useLockBodyScroll';
 
 function AlertsManagement({ embedded = false, user = null }) {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filter, setFilter] = useState('all');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const ageFilter = searchParams.get('age');
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
+  const [filter, setFilter] = useState(searchParams.get('severity') || 'all');
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -161,6 +164,15 @@ function AlertsManagement({ embedded = false, user = null }) {
   });
 
   const filteredAlerts = alerts
+    .filter((alert) => filter !== 'low' || getSeverity(alert.riskScore) === 'low')
+    .filter((alert) => {
+      if (!ageFilter) return true;
+      const hours = (Date.now() - new Date(alert.timestamp).getTime()) / 3600000;
+      if (ageFilter === 'recent') return hours < 1;
+      if (ageFilter === 'today') return hours >= 1 && hours < 24;
+      if (ageFilter === 'older') return hours >= 24;
+      return true;
+    })
     .map(formatAlert)
     .filter((alert) => {
       const q = searchTerm.toLowerCase();
@@ -328,6 +340,15 @@ function AlertsManagement({ embedded = false, user = null }) {
       )}
 
       <form className="alerts-filters" onSubmit={(e) => e.preventDefault()}>
+        {ageFilter && (
+          <button type="button" className="alerts-chip active" onClick={() => {
+            const next = new URLSearchParams(searchParams);
+            next.delete('age');
+            setSearchParams(next);
+          }}>
+            {ageFilter === 'recent' ? 'Under 1 hour' : ageFilter === 'today' ? 'Today' : 'Older'} · Clear age filter
+          </button>
+        )}
         <div className="alerts-search-wrap">
           <Search size={18} className="alerts-search-icon" />
           <input

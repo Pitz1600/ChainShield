@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   AlertTriangle, CheckCircle, Clock, FileText,
   ChevronLeft, ChevronRight,
@@ -185,14 +186,16 @@ const getStatusBadge = (status, isArchived = false) => {
 /*  Main Component                                                       */
 /* ================================================================== */
 function MyTransactions({ user, embedded = false }) {
+  const [searchParams] = useSearchParams();
+  const initialSearch = searchParams.get('search') || '';
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   // Filters & search
-  const [filters, setFilters] = useState({ search: '', dateFrom: '', dateTo: '' });
-  const [searchInput, setSearchInput] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [filters, setFilters] = useState({ search: initialSearch, dateFrom: '', dateTo: '' });
+  const [searchInput, setSearchInput] = useState(initialSearch);
+  const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || 'all');
   const [programFilter, setProgramFilter] = useState('all');
   const [sortBy, setSortBy] = useState('timestamp');
   const [sortOrder, setSortOrder] = useState('desc');
@@ -227,6 +230,18 @@ function MyTransactions({ user, embedded = false }) {
   const [showBatchRemarkModal, setShowBatchRemarkModal] = useState(false);
   const [batchRemarkInput, setBatchRemarkInput] = useState('');
   useLockBodyScroll(Boolean(selectedTx) || showFeedbackModal);
+
+  const transactionId = searchParams.get('transaction');
+  useEffect(() => {
+    if (!transactionId) return;
+    let cancelled = false;
+    setModalLoading(true);
+    api.get(`/transactions/${encodeURIComponent(transactionId)}`)
+      .then(({ data }) => { if (!cancelled) { setSelectedTx(data); setModalTab('details'); } })
+      .catch(() => { if (!cancelled) setActionMessage({ text: 'Unable to open this transaction.', type: 'error' }); })
+      .finally(() => { if (!cancelled) setModalLoading(false); });
+    return () => { cancelled = true; };
+  }, [transactionId]);
 
   /* ---- Toast ---- */
   const showToast = (text, type = 'success') => {
@@ -455,8 +470,8 @@ function MyTransactions({ user, embedded = false }) {
     // Status filter
     switch (statusFilter) {
       case 'verified':   result = result.filter(t => !t.isArchived && t.verificationStatus === 'Verified'); break;
-      case 'flagged':    result = result.filter(t => !t.isArchived && (t.verificationStatus === 'Flagged' || t.flagged)); break;
-      case 'pending':    result = result.filter(t => !t.isArchived && t.verificationStatus === 'Pending'); break;
+      case 'flagged':    result = result.filter(t => !t.isArchived && (['Flagged', 'Suspicious'].includes(t.verificationStatus) || t.flagged)); break;
+      case 'pending':    result = result.filter(t => !t.isArchived && (!t.verificationStatus || t.verificationStatus === 'Pending')); break;
       case 'suspicious': result = result.filter(t => !t.isArchived && (t.verificationStatus === 'Suspicious' || (t.riskScore >= 71 && t.verificationStatus !== 'Verified'))); break;
       case 'rejected':   result = result.filter(t => !t.isArchived && t.verificationStatus === 'Rejected'); break;
       case 'archived':   result = result.filter(t => t.isArchived); break;
@@ -621,23 +636,20 @@ function MyTransactions({ user, embedded = false }) {
                 >{label}</button>
               ))}
             </div>
-            {/* Program filter chips — dynamic from loaded transactions */}
+            {/* Program categories from loaded transactions */}
             {availablePrograms.length > 0 && (
-              <div className="program-filters" aria-label="Filter by program">
-                <button
-                  key="all-programs"
-                  className={`chip-filter ${activeProgramFilter === 'all' ? 'active' : ''}`}
-                  onClick={() => { setProgramFilter('all'); setCurrentPage(1); }}
-                  type="button"
-                >All Programs</button>
-                {availablePrograms.map((program) => (
-                  <button
-                    key={program}
-                    className={`chip-filter ${activeProgramFilter === program ? 'active' : ''}`}
-                    onClick={() => { setProgramFilter(program); setCurrentPage(1); }}
-                    type="button"
-                  >{program}</button>
-                ))}
+              <div className="filter-group program-category-filter">
+                <label htmlFor="transaction-program-category">Program Category</label>
+                <select
+                  id="transaction-program-category"
+                  value={activeProgramFilter}
+                  onChange={e => { setProgramFilter(e.target.value); setCurrentPage(1); }}
+                >
+                  <option value="all">All Programs</option>
+                  {availablePrograms.map((program) => (
+                    <option key={program} value={program}>{program}</option>
+                  ))}
+                </select>
               </div>
             )}
           </div>

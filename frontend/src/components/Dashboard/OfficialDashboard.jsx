@@ -1,3 +1,4 @@
+import DashboardLink, { transactionDestination } from './DashboardLink';
 import React, { useState, useEffect } from 'react';
 import {
   CheckCircle, AlertTriangle, Clock, FileText,
@@ -159,27 +160,27 @@ function OfficialDashboard({ user, onNavigate }) {
               <div className="hero-stat-label">Estimated Budget</div>
             </div>
           </div>
-          <div className="hero-stat-card" style={{ background: 'rgba(255,255,255,0.18)' }}>
+          <DashboardLink className="hero-stat-card" style={{ background: 'rgba(255,255,255,0.18)' }} to={transactionDestination()}>
             <div className="stat-icon" style={{ color: '#6ee7b7' }}><Coins size={24} /></div>
             <div className="stat-content">
               <div className="hero-stat-value">{formatPHP(budgetSummary.totalTransactionsBudget || stats.totalAmount)}</div>
               <div className="hero-stat-label">Total Spent</div>
             </div>
-          </div>
-          <div className="hero-stat-card" style={{ background: 'rgba(16,185,129,0.15)' }}>
+          </DashboardLink>
+          <DashboardLink className="hero-stat-card" style={{ background: 'rgba(16,185,129,0.15)' }} to={transactionDestination({ status: 'verified' })}>
             <div className="stat-icon" style={{ color: '#10b981' }}><CheckCircle size={24} /></div>
             <div className="stat-content">
               <div className="hero-stat-value" style={{ color: '#10b981' }}>{formatCompact(stats.approved)}</div>
               <div className="hero-stat-label">Approved</div>
             </div>
-          </div>
-          <div className="hero-stat-card" style={{ background: 'rgba(249,115,22,0.15)' }}>
+          </DashboardLink>
+          <DashboardLink className="hero-stat-card" style={{ background: 'rgba(249,115,22,0.15)' }} to={transactionDestination({ status: 'flagged' })}>
             <div className="stat-icon" style={{ color: '#f97316' }}><AlertTriangle size={24} /></div>
             <div className="stat-content">
               <div className="hero-stat-value" style={{ color: '#f97316' }}>{formatCompact(stats.flagged)}</div>
               <div className="hero-stat-label">Flagged</div>
             </div>
-          </div>
+          </DashboardLink>
         </div>
       </div>
 
@@ -214,8 +215,8 @@ function OfficialDashboard({ user, onNavigate }) {
               const st  = getStatus(tx.verificationStatus);
               const amt = Number(tx.amount || 0);
               return (
-                <div key={tx._id || i} className="alert-item"
-                  style={{ borderBottom: i < pagedTxns.length - 1 ? '0.5px solid var(--color-border-tertiary)' : 'none' }}>
+                <DashboardLink key={tx._id || i} className="alert-item"
+                  style={{ borderBottom: i < pagedTxns.length - 1 ? '0.5px solid var(--color-border-tertiary)' : 'none' }} to={transactionDestination({ transaction: tx._id })}>
                   <div className="alert-info">
                     <span className="severity-dot" style={{ background: st.dot }} />
                     <div className="alert-text-content">
@@ -237,7 +238,7 @@ function OfficialDashboard({ user, onNavigate }) {
                       {st.label}
                     </span>
                   </div>
-                </div>
+                </DashboardLink>
               );
             })
           )}
@@ -322,7 +323,7 @@ function OfficialDashboard({ user, onNavigate }) {
               { label: 'Pending',  count: stats.pending,  total: stats.total, color: '#f59e0b' },
               { label: 'Flagged',  count: stats.flagged,  total: stats.total, color: '#f97316' },
             ].map(({ label, count, total, color }) => (
-              <div key={label} className="risk-bar-item">
+              <DashboardLink key={label} className="risk-bar-item" to={transactionDestination({ status: label === 'Approved' ? 'verified' : label.toLowerCase() })}>
                 <div className="risk-bar-label">
                   <span className="risk-dot" style={{ background: color }} />
                   <span>{label}</span>
@@ -331,7 +332,7 @@ function OfficialDashboard({ user, onNavigate }) {
                   <div style={{ width: `${total > 0 ? (count / total * 100) : 0}%`, height: '100%', background: color, borderRadius: 9999, transition: 'width 0.5s' }} className="progress-fill" />
                 </div>
                 <span className="risk-count">{formatCompact(count)}</span>
-              </div>
+              </DashboardLink>
             ))}
           </div>
         </div>
@@ -347,7 +348,7 @@ function OfficialDashboard({ user, onNavigate }) {
               {programs.length === 0 ? (
                 <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.82rem' }}>No data yet</p>
               ) : programs.map(({ name, amount, count, flagged: fl, pct }) => (
-                <div key={name}>
+                <DashboardLink key={name} to={transactionDestination({ search: name })}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                     <span style={{ fontSize: '0.78rem', fontWeight: 500, color: 'var(--color-text-primary)', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={name}>{name}</span>
                     <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-primary)' }}>{formatPHP(amount)}</span>
@@ -359,7 +360,7 @@ function OfficialDashboard({ user, onNavigate }) {
                     <span style={{ fontSize: '0.68rem', color: 'var(--color-text-secondary)' }}>{count} transaction{count !== 1 ? 's' : ''}</span>
                     {fl > 0 && <span style={{ fontSize: '0.68rem', color: '#f97316', fontWeight: 600 }}>⚠ {fl} flagged</span>}
                   </div>
-                </div>
+                </DashboardLink>
               ))}
             </div>
           </div>

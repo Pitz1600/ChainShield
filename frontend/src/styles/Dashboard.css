@@ -1169,3 +1169,21 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Dashboard data links retain the existing card and row layout. */
+.dashboard-container .dashboard-data-link {
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+.dashboard-container .dashboard-data-link:hover {
+  box-shadow: 0 0 0 2px var(--primary, #6366f1);
+}
+.dashboard-container .dashboard-data-link:focus-visible {
+  outline: 3px solid var(--primary, #6366f1);
+  outline-offset: 3px;
+}
+.dashboard-container .dashboard-data-link.dashboard-data-block,
+.dashboard-container .risk-ring-legend .dashboard-data-link {
+  display: block;
+}

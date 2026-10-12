@@ -253,9 +253,16 @@ function UserManagement() {
                 </div>
             )}
 
-            <div role="tablist" aria-label="User queues">
-                <button role="tab" aria-selected={!pendingOnly} onClick={() => setPendingOnly(false)}>All users</button>
-                <button role="tab" aria-selected={pendingOnly} onClick={() => setPendingOnly(true)}>Pending approvals ({pendingUsers.length})</button>
+            <div className="user-queue-tabs" role="group" aria-label="User queues">
+                <button type="button" className="user-queue-button" aria-pressed={!pendingOnly} onClick={() => setPendingOnly(false)}>
+                    <Users size={18} aria-hidden="true" />
+                    All Users
+                </button>
+                <button type="button" className="user-queue-button" aria-pressed={pendingOnly} onClick={() => setPendingOnly(true)}>
+                    <Clock size={18} aria-hidden="true" />
+                    Pending Approvals
+                    <span className="user-queue-count">{pendingUsers.length}</span>
+                </button>
             </div>
             {/* Users Table */}
             <div className="table-container">
@@ -309,8 +316,12 @@ function UserManagement() {
                                 <td>
                                     <div className="actions-cell">
                                         {user.isApproved === false && user.isVerified && user.isActive && <>
-                                            <button onClick={() => reviewUser(user, true)}>Approve</button>
-                                            <button onClick={() => reviewUser(user, false)}>Reject</button>
+                                            <button type="button" className="user-review-button approve" onClick={() => reviewUser(user, true)}>
+                                                <CheckCircle size={16} aria-hidden="true" /> Approve
+                                            </button>
+                                            <button type="button" className="user-review-button reject" onClick={() => reviewUser(user, false)}>
+                                                <X size={16} aria-hidden="true" /> Reject
+                                            </button>
                                         </>}
                                         <button
                                             className="icon-btn edit"

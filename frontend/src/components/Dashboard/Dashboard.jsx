@@ -1,3 +1,4 @@
+import DashboardLink, { transactionDestination } from './DashboardLink';
 import React, { useState, useEffect, useRef } from 'react';
 import {
   AlertTriangle, AlertCircle, TrendingUp, CheckCircle, ChevronLeft, ChevronRight,
@@ -235,34 +236,34 @@ function Dashboard({ user, onNavigate }) {
         </div>
 
         <div className="hero-stats-grid">
-          <div className="hero-stat-card total">
+          <DashboardLink className="hero-stat-card total" to={transactionDestination({ tab: 'alerts', severity: 'all' })}>
             <div className="stat-icon"><AlertTriangle size={24} /></div>
             <div className="stat-content">
               <div className="hero-stat-value">{formatCompact(stats.total)}</div>
               <div className="hero-stat-label">Total Alerts</div>
             </div>
-          </div>
-          <div className="hero-stat-card critical">
+          </DashboardLink>
+          <DashboardLink className="hero-stat-card critical" to={transactionDestination({ tab: 'alerts', severity: 'critical' })}>
             <div className="stat-icon"><AlertCircle size={24} /></div>
             <div className="stat-content">
               <div className="hero-stat-value">{formatCompact(stats.critical)}</div>
               <div className="hero-stat-label">Critical</div>
             </div>
-          </div>
-          <div className="hero-stat-card high">
+          </DashboardLink>
+          <DashboardLink className="hero-stat-card high" to={transactionDestination({ tab: 'alerts', severity: 'high' })}>
             <div className="stat-icon"><TrendingUp size={24} /></div>
             <div className="stat-content">
               <div className="hero-stat-value">{formatCompact(stats.high)}</div>
               <div className="hero-stat-label">High Risk</div>
             </div>
-          </div>
-          <div className="hero-stat-card medium">
+          </DashboardLink>
+          <DashboardLink className="hero-stat-card medium" to={transactionDestination({ tab: 'alerts', severity: 'medium' })}>
             <div className="stat-icon"><CheckCircle size={24} /></div>
             <div className="stat-content">
               <div className="hero-stat-value">{formatCompact(stats.medium)}</div>
               <div className="hero-stat-label">Medium Risk</div>
             </div>
-          </div>
+          </DashboardLink>
         </div>
       </div>
 
@@ -308,7 +309,7 @@ function Dashboard({ user, onNavigate }) {
             </div>
 
             {/* Total Budget of All Transactions */}
-            <div className="budget-metric-card highlight-green">
+            <DashboardLink className="budget-metric-card highlight-green" to={transactionDestination()}>
               <div className="budget-metric-icon green">
                 <Coins size={20} />
               </div>
@@ -321,7 +322,7 @@ function Dashboard({ user, onNavigate }) {
                   {formatCompact(budgetSummary.transactionCount)} transactions recorded
                 </div>
               </div>
-            </div>
+            </DashboardLink>
 
             {/* Remaining Barangay Funds */}
             <div className="budget-metric-card highlight-amber">
@@ -390,18 +391,18 @@ function Dashboard({ user, onNavigate }) {
             </div>
 
             <div className="budget-progress-legend">
-              <div className="budget-legend-item">
+              <DashboardLink className="budget-legend-item" to={transactionDestination({ status: 'verified' })}>
                 <span className="budget-legend-dot verified" />
                 <span>Verified Spending: <strong>{formatPHP(budgetSummary.verifiedAmount)}</strong> ({budgetSummary.verifiedCount || 0})</span>
-              </div>
-              <div className="budget-legend-item">
+              </DashboardLink>
+              <DashboardLink className="budget-legend-item" to={transactionDestination({ status: 'pending' })}>
                 <span className="budget-legend-dot pending" />
                 <span>Pending Review: <strong>{formatPHP(budgetSummary.pendingAmount)}</strong> ({budgetSummary.pendingCount || 0})</span>
-              </div>
-              <div className="budget-legend-item">
+              </DashboardLink>
+              <DashboardLink className="budget-legend-item" to={transactionDestination({ status: 'flagged' })}>
                 <span className="budget-legend-dot flagged" />
                 <span>Under Review: <strong>{formatPHP(budgetSummary.flaggedAmount)}</strong> ({budgetSummary.flaggedCount || 0})</span>
-              </div>
+              </DashboardLink>
               <div className="budget-legend-item">
                 <span className="budget-legend-dot remaining" />
                 <span>Remaining Fund: <strong>{formatPHP(budgetSummary.remainingBudget)}</strong></span>
@@ -425,7 +426,7 @@ function Dashboard({ user, onNavigate }) {
               </div>
             ) : (
               currentAlerts.map(alert => (
-                <div key={alert.id} className="alert-item">
+                <DashboardLink key={alert.id} className="alert-item" to={transactionDestination({ transaction: alert.id })}>
                   <div className="alert-info">
                     <span className={`severity-dot ${alert.severity}`} />
                     <div className="alert-text-content">
@@ -436,7 +437,7 @@ function Dashboard({ user, onNavigate }) {
                   <div className="alert-meta">
                     <div className={`alert-score ${alert.severity}`}>{alert.score} Risk Score</div>
                   </div>
-                </div>
+                </DashboardLink>
               ))
             )}
           </div>
@@ -453,7 +454,7 @@ function Dashboard({ user, onNavigate }) {
           )}
         </div>
 
-        <div className="dashboard-card primary-panel trend-card">
+        <DashboardLink className="dashboard-card primary-panel trend-card" to={'/dashboard/analytics'}>
           <div className="card-header">
             <div>
               <h3 className="card-title">Risk Trend</h3>
@@ -482,42 +483,42 @@ function Dashboard({ user, onNavigate }) {
               <strong>{highSeverityRatio}%</strong>
             </div>
           </div>
-        </div>
+        </DashboardLink>
 
         {/* Risk Snapshot */}
         <div className="dashboard-card primary-panel">
           <h3 className="card-title">Risk Snapshot</h3>
           <p className="card-subtitle">Current risk distribution</p>
           <div className="risk-ring-row">
-            <div className="risk-ring" style={riskRingStyle}>
+            <DashboardLink className="risk-ring" style={riskRingStyle} to={transactionDestination({ tab: 'alerts' })}>
               <div className="risk-ring-center">
                 <div className="risk-ring-value">{formatCompact(stats.total)}</div>
                 <div className="risk-ring-label">Alerts</div>
               </div>
-            </div>
+            </DashboardLink>
             <div className="risk-ring-legend">
-              <div><span className="risk-dot critical" /> Critical: {formatCompact(stats.critical)}</div>
-              <div><span className="risk-dot medium" /> High: {formatCompact(stats.high)}</div>
-              <div><span className="risk-dot low" /> Medium: {formatCompact(stats.medium)}</div>
-              <div><span className="risk-dot low2" /> Low: {formatCompact(lowCount)}</div>
+              <DashboardLink to={transactionDestination({ tab: 'alerts', severity: 'critical' })}><span className="risk-dot critical" /> Critical: {formatCompact(stats.critical)}</DashboardLink>
+              <DashboardLink to={transactionDestination({ tab: 'alerts', severity: 'high' })}><span className="risk-dot medium" /> High: {formatCompact(stats.high)}</DashboardLink>
+              <DashboardLink to={transactionDestination({ tab: 'alerts', severity: 'medium' })}><span className="risk-dot low" /> Medium: {formatCompact(stats.medium)}</DashboardLink>
+              <DashboardLink to={transactionDestination({ tab: 'alerts', severity: 'low' })}><span className="risk-dot low2" /> Low: {formatCompact(lowCount)}</DashboardLink>
             </div>
           </div>
           <div className="risk-bars">
-            <div className="risk-bar-item">
+            <DashboardLink className="risk-bar-item" to={transactionDestination({ tab: 'alerts', severity: 'critical' })}>
               <div className="risk-bar-label"><span className="risk-dot critical" /><span>Critical</span></div>
               <div className="progress-bg"><div style={{ width: `${stats.total > 0 ? (stats.critical / stats.total * 100) : 0}%` }} className="progress-fill critical" /></div>
               <span className="risk-count">{formatCompact(stats.critical)}</span>
-            </div>
-            <div className="risk-bar-item">
+            </DashboardLink>
+            <DashboardLink className="risk-bar-item" to={transactionDestination({ tab: 'alerts', severity: 'high' })}>
               <div className="risk-bar-label"><span className="risk-dot medium" /><span>High Risk</span></div>
               <div className="progress-bg"><div style={{ width: `${stats.total > 0 ? (stats.high / stats.total * 100) : 0}%` }} className="progress-fill medium" /></div>
               <span className="risk-count">{formatCompact(stats.high)}</span>
-            </div>
-            <div className="risk-bar-item">
+            </DashboardLink>
+            <DashboardLink className="risk-bar-item" to={transactionDestination({ tab: 'alerts', severity: 'medium' })}>
               <div className="risk-bar-label"><span className="risk-dot low" /><span>Medium Risk</span></div>
               <div className="progress-bg"><div style={{ width: `${stats.total > 0 ? (stats.medium / stats.total * 100) : 0}%` }} className="progress-fill low" /></div>
               <span className="risk-count">{formatCompact(stats.medium)}</span>
-            </div>
+            </DashboardLink>
           </div>
         </div>
 
@@ -530,7 +531,7 @@ function Dashboard({ user, onNavigate }) {
                 <div className="mini-empty">No agency data available</div>
               ) : (
                 topAgencies.map((item) => (
-                  <div key={item.agency} className="mini-row">
+                  <DashboardLink key={item.agency} className="mini-row" to={transactionDestination({ tab: 'alerts', search: item.agency })}>
                     <div className="mini-row-main">
                       <strong>{item.agency}</strong>
                       <span>{formatCompact(item.count)} alert{item.count === 1 ? '' : 's'}</span>
@@ -538,7 +539,7 @@ function Dashboard({ user, onNavigate }) {
                     <span className={`mini-pill ${item.avgRisk >= 90 ? 'critical' : item.avgRisk >= 71 ? 'high' : item.avgRisk >= 41 ? 'medium' : 'low'}`}>
                       {formatCompact(item.avgRisk)}
                     </span>
-                  </div>
+                  </DashboardLink>
                 ))
               )}
             </div>
@@ -548,21 +549,21 @@ function Dashboard({ user, onNavigate }) {
             <h3 className="card-title">Alert Age Distribution</h3>
             <p className="card-subtitle">How fresh suspicious alerts are</p>
             <div className="stack-bars">
-              <div className="stack-item">
+              <DashboardLink className="stack-item" to={transactionDestination({ tab: 'alerts', age: 'recent' })}>
                 <span>Under 1 hour</span>
                 <div className="stack-track"><div className="stack-fill recent" style={{ width: `${(alertAge.recent / ageTotal) * 100}%` }} /></div>
                 <strong>{formatCompact(alertAge.recent)}</strong>
-              </div>
-              <div className="stack-item">
+              </DashboardLink>
+              <DashboardLink className="stack-item" to={transactionDestination({ tab: 'alerts', age: 'today' })}>
                 <span>Today</span>
                 <div className="stack-track"><div className="stack-fill today" style={{ width: `${(alertAge.today / ageTotal) * 100}%` }} /></div>
                 <strong>{formatCompact(alertAge.today)}</strong>
-              </div>
-              <div className="stack-item">
+              </DashboardLink>
+              <DashboardLink className="stack-item" to={transactionDestination({ tab: 'alerts', age: 'older' })}>
                 <span>Older</span>
                 <div className="stack-track"><div className="stack-fill older" style={{ width: `${(alertAge.older / ageTotal) * 100}%` }} /></div>
                 <strong>{formatCompact(alertAge.older)}</strong>
-              </div>
+              </DashboardLink>
             </div>
           </div>
 
@@ -570,10 +571,10 @@ function Dashboard({ user, onNavigate }) {
             <h3 className="card-title">Verification Queue</h3>
             <p className="card-subtitle">Current status split of suspicious alerts</p>
             <div className="queue-grid">
-              <div className="queue-stat pending"><span>Pending</span><strong>{formatCompact(queueStats.pending)}</strong></div>
-              <div className="queue-stat verified"><span>Verified</span><strong>{formatCompact(queueStats.verified)}</strong></div>
-              <div className="queue-stat flagged"><span>Flagged</span><strong>{formatCompact(queueStats.flagged)}</strong></div>
-              <div className="queue-stat rejected"><span>Rejected</span><strong>{formatCompact(queueStats.rejected)}</strong></div>
+              <DashboardLink className="queue-stat pending" to={transactionDestination({ status: 'pending' })}><span>Pending</span><strong>{formatCompact(queueStats.pending)}</strong></DashboardLink>
+              <DashboardLink className="queue-stat verified" to={transactionDestination({ status: 'verified' })}><span>Verified</span><strong>{formatCompact(queueStats.verified)}</strong></DashboardLink>
+              <DashboardLink className="queue-stat flagged" to={transactionDestination({ status: 'flagged' })}><span>Flagged</span><strong>{formatCompact(queueStats.flagged)}</strong></DashboardLink>
+              <DashboardLink className="queue-stat rejected" to={transactionDestination({ status: 'rejected' })}><span>Rejected</span><strong>{formatCompact(queueStats.rejected)}</strong></DashboardLink>
             </div>
           </div>
         </div>
@@ -610,7 +611,7 @@ function Dashboard({ user, onNavigate }) {
                 const isHigh = alert.riskScore >= 71;
                 const hasTxHash = !!alert.blockchainTxId;
                 return (
-                  <div key={alert._id} className={`rt-alert-row ${isHigh ? 'rt-high' : ''}`}>
+                  <DashboardLink key={alert._id} className={`rt-alert-row ${isHigh ? 'rt-high' : ''}`} to={transactionDestination({ transaction: alert._id })}>
                     <div className="rt-alert-id font-mono">{alert.transactionId || alert._id?.toString().slice(-8)}</div>
                     <div className="rt-alert-amount">PHP {Number(alert.amount || 0).toLocaleString()}</div>
                     <div className={`rt-alert-risk risk-chip ${alert.riskScore >= 90 ? 'risk-critical' : alert.riskScore >= 71 ? 'risk-high' : alert.riskScore >= 41 ? 'risk-medium' : 'risk-low'}`}>
@@ -630,7 +631,7 @@ function Dashboard({ user, onNavigate }) {
                     ) : (
                       <div className="rt-chain-none">Not on chain</div>
                     )}
-                  </div>
+                  </DashboardLink>
                 );
               })}
             </div>

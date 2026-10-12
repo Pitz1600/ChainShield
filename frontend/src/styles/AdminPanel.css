@@ -175,6 +175,118 @@
   gap: 2rem;
 }
 
+.user-management .user-queue-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  align-self: flex-start;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+}
+
+.user-management .user-queue-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  min-height: 44px;
+  padding: 0.75rem 1.25rem;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: #475569;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+}
+
+.user-management .user-queue-button:hover {
+  background: #eef2ff;
+  color: var(--primary-dark);
+}
+
+.user-management .user-queue-button[aria-pressed="true"] {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: white;
+  box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.3);
+}
+
+.user-management .user-queue-count {
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  background: #e0e7ff;
+  color: #4338ca;
+  font-size: 0.75rem;
+}
+
+.user-management .user-queue-button[aria-pressed="true"] .user-queue-count {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.user-management .actions-cell {
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.user-management .user-review-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  min-height: 36px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.user-management .user-review-button.approve {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #047857;
+}
+
+.user-management .user-review-button.approve:hover {
+  background: #d1fae5;
+  border-color: #10b981;
+}
+
+.user-management .user-review-button.reject {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
+.user-management .user-review-button.reject:hover {
+  background: #fee2e2;
+  border-color: #ef4444;
+}
+
+.user-management .user-queue-button:focus-visible,
+.user-management .user-review-button:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+
+@media (max-width: 480px) {
+  .user-management .user-queue-tabs {
+    align-self: stretch;
+  }
+
+  .user-management .user-queue-button {
+    flex: 1 1 100%;
+  }
+}
+
 .table-container {
   background: white;
   border-radius: 12px;

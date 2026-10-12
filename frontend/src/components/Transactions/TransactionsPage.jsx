@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { AlertTriangle, List, FileText, Upload, CheckCircle, Clock } from 'lucide-react';
 import api from '../../services/api';
 import AlertsManagement from '../Alerts/AlertsManagement';
@@ -6,13 +7,18 @@ import MyTransactions from './MyTransactions';
 import '../../styles/TransactionsPage.css';
 
 function TransactionsPage({ user }) {
+    const [searchParams] = useSearchParams();
     const role        = user?.role;
     const isOfficial  = role === 'barangay_official';
     const isAuditor   = role === 'auditor';
     const isAdmin     = role === 'administrator';
 
     const defaultTab  = isAuditor ? 'alerts' : isOfficial ? 'ledger' : isAdmin ? 'alerts' : 'ledger';
-    const [activeTab, setActiveTab] = useState(defaultTab);
+    const requestedTab = searchParams.get('tab');
+    const initialTab = requestedTab === 'ledger' || (requestedTab === 'alerts' && (isAdmin || isAuditor)) ? requestedTab : defaultTab;
+    const [activeTab, setActiveTab] = useState(initialTab);
+
+    useEffect(() => { setActiveTab(initialTab); }, [initialTab]);
 
     const [alertCount,    setAlertCount]    = useState(0);
     const [criticalCount, setCriticalCount] = useState(0);
