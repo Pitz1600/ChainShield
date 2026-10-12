@@ -3,6 +3,7 @@ const crypto = require('crypto');
 const User = require('./models/User');
 const TrustedDevice = require('./models/TrustedDevice'); // Add this
 require('dotenv').config();
+if (process.env.NODE_ENV === 'production') { throw new Error('Account/reset scripts are disabled in production'); }
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/chainshield';
 
@@ -20,8 +21,9 @@ async function resetAdmin() {
         }
 
         // SECURITY: Generate new random temporary password
-        const tempPassword = crypto.randomBytes(12).toString('base64url');
+        const tempPassword = 'Aa1!' + crypto.randomBytes(24).toString('hex');
 
+        user.sessionVersion += 1;
         user.password = tempPassword;
         user.mustChangePassword = true;
         user.mustSetup2FA = true;

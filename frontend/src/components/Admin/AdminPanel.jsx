@@ -92,7 +92,7 @@ function AdminPanel({ user }) {
         username: '',
         userId: '',
         email: '',
-        role: 'resident',
+        role: 'barangay_official',
         position: '',
         isActive: true,
         isVerified: false

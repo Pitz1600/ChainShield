@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Lock, BarChart, AlertTriangle, TrendingUp, AlertCircle, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 import api from '../../services/api';
 import { isOfficial } from '../../utils/permissions';
-import '../../styles/Analytics.css';
+import '../../styles/Insights.css';
 
 function Analytics({ user }) {
   if (!isOfficial(user)) {
@@ -22,11 +22,15 @@ function Analytics({ user }) {
     );
   }
 
-  const toNumber = (value, fallback = 0) => {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : fallback;
-  };
+  return <AnalyticsDashboard />;
+}
 
+const toNumber = (value, fallback = 0) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+};
+
+function AnalyticsDashboard() {
   const [summary, setSummary] = useState({
     totalTransactions: 0,
     flaggedTotal: 0,
@@ -85,7 +89,10 @@ function Analytics({ user }) {
       setLastUpdated(new Date());
     } catch (err) {
       console.error('Error fetching analytics data:', err);
-      setError(err?.response?.data?.error || 'Failed to fetch analytics data. Please try again.');
+      const message = err?.response?.data?.error;
+      setError(typeof message === 'string' && message.trim()
+        ? message
+        : 'Failed to fetch analytics data. Please try again.');
       setSummary({ totalTransactions: 0, flaggedTotal: 0, critical: 0, high: 0, medium: 0 });
       setTableAlerts([]);
       setTableTotalPages(1);

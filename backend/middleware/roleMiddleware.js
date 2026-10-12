@@ -7,16 +7,7 @@
  * Permission matrix for ChainShield
  */
 const PERMISSIONS = {
-    // Resident permissions
-    resident: [
-        'view_public_records',
-        'verify_documents',
-        'track_transactions',
-        'submit_complaints',
-        'view_bidding_summaries',
-    ],
-
-    // Barangay Official permissions (includes all resident permissions)
+    // Barangay Official permissions
     barangay_official: [
         'view_public_records',
         'verify_documents',

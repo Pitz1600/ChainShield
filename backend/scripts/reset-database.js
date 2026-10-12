@@ -7,6 +7,7 @@ require('dotenv').config({ path: require('path').resolve(__dirname, '../.env') }
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/chainshield';
 
 async function resetDatabase() {
+    if (process.env.NODE_ENV === 'production') throw new Error('Database reset is disabled in production');
     // SECURITY: Require explicit --confirm flag
     if (!process.argv.includes('--confirm')) {
         console.log('');

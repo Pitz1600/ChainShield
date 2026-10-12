@@ -10,7 +10,7 @@ function Register({ onRegister, onNavigate }) {
     lastName: '',
     birthday: '',
     email: '',
-    role: 'resident',
+    role: 'barangay_official',
     position: 'Kagawad',
     customPosition: '',
     password: '',
@@ -74,7 +74,8 @@ function Register({ onRegister, onNavigate }) {
           email: formData.email,
           password: formData.password,
           captchaToken,
-          role: 'resident'
+          role: formData.role,
+          position: formData.position
         });
 
         // Navigate to email verification
@@ -108,7 +109,7 @@ function Register({ onRegister, onNavigate }) {
           <div className="sidebar-info">
             <h3 className="sidebar-info-title">Join ChainShield</h3>
             <p className="sidebar-info-text">
-              Create your account to access digital tools and help ensure system integrity.
+              Officials and auditors can register. Email verification and administrator approval are required.
             </p>
 
 
@@ -217,6 +218,14 @@ function Register({ onRegister, onNavigate }) {
               </>
             )}
 
+            {step === 1 && <>
+              <label className="field-label">Requested role</label>
+              <select className="field-input" value={formData.role} onChange={e => setFormData({ ...formData, role: e.target.value })}>
+                <option value="barangay_official">Barangay Official</option><option value="auditor">Auditor</option>
+              </select>
+              <label className="field-label">Position *</label>
+              <input className="field-input" required value={formData.position} onChange={e => setFormData({ ...formData, position: e.target.value })} />
+            </>}
             {step === 2 && (
               <>
                 <div className="form-field">

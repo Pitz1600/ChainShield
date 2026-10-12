@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const User = require('../models/User');
 require('dotenv').config();
+if (process.env.NODE_ENV === 'production') { throw new Error('Account/reset scripts are disabled in production'); }
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
@@ -16,7 +17,7 @@ const accounts = [
     email: 'admin@chainshield.local',
     role: 'administrator',
     position: 'System Administrator',
-    password: 'Password123!',
+    password: 'Aa1!' + require('crypto').randomBytes(24).toString('hex'),
     isVerified: true,
     isActive: true,
     mustSetup2FA: true,
@@ -28,7 +29,7 @@ const accounts = [
     email: 'official@chainshield.local',
     role: 'barangay_official',
     position: 'Barangay Captain',
-    password: 'Password123!',
+    password: 'Aa1!' + require('crypto').randomBytes(24).toString('hex'),
     isVerified: true,
     isActive: true,
     mustSetup2FA: true,
@@ -40,19 +41,7 @@ const accounts = [
     email: 'auditor@chainshield.local',
     role: 'auditor',
     position: 'Financial Auditor',
-    password: 'Password123!',
-    isVerified: true,
-    isActive: true,
-    mustSetup2FA: true,
-    mustChangePassword: true,
-  },
-  {
-    firstName: 'Juan',
-    lastName: 'Dela Cruz',
-    email: 'resident@chainshield.local',
-    role: 'resident',
-    position: 'Resident Representative',
-    password: 'Password123!',
+    password: 'Aa1!' + require('crypto').randomBytes(24).toString('hex'),
     isVerified: true,
     isActive: true,
     mustSetup2FA: true,
@@ -95,7 +84,7 @@ async function seedDefaultAccounts() {
     accounts.forEach(acc => {
       console.log(`Role:      ${acc.role}`);
       console.log(`Email:     ${acc.email}`);
-      console.log(`Password:  Password123!`);
+      console.log(`Temporary password: ${acc.password}`);
       console.log(`2FA Flow:  FORCED ON FIRST LOGIN`);
       console.log('----------------------------------------------------------');
     });

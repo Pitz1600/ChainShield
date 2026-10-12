@@ -106,7 +106,7 @@ exports.getAllFeedbacks = async (req, res) => {
             query.actionStatus = { $in: ['pending_edit', 'pending_delete'] };
 
             // If not admin/official, they can only see their own pending actions
-            if (req.user && req.user.role === 'resident') {
+            if (req.user && req.user.role === 'auditor') {
                 query.author = req.user._id;
             }
         } else {
@@ -166,11 +166,11 @@ exports.getAllFeedbacks = async (req, res) => {
 
 // @desc    Create a new feedback
 // @route   POST /api/feedbacks
-// @access  Private (Resident, Barangay Official, Auditor)
+// @access  Private (Barangay Official, Auditor)
 exports.createFeedback = async (req, res) => {
     try {
-        if (!['resident', 'barangay_official', 'auditor'].includes(req.user.role)) {
-            return res.status(403).json({ error: 'Only residents, barangay officials, and auditors can post feedback.' });
+        if (!['barangay_official', 'auditor'].includes(req.user.role)) {
+            return res.status(403).json({ error: 'Only barangay officials and auditors can post feedback.' });
         }
 
         const { content, transactionId, transactionRef } = req.body;
@@ -212,8 +212,7 @@ exports.createFeedback = async (req, res) => {
             });
         }
         const isAutoApproved =
-            req.user.role === 'barangay_official'
-            || req.user.role === 'resident';
+            req.user.role === 'barangay_official';
 
         const feedback = await Feedback.create({
             author: req.user._id,
@@ -292,7 +291,7 @@ exports.updateFeedback = async (req, res) => {
         }
 
         const isAutoApproved = req.user.role === 'barangay_official';
-        // Edits apply immediately for residents/officials; spam check already applied on create.
+        // Edits apply immediately for officials; spam check already applied on create.
         if (!normalizedContent) {
             return res.status(400).json({ error: 'Content is required' });
         }
@@ -367,7 +366,7 @@ exports.deleteFeedback = async (req, res) => {
 
 // @desc    Add a reply to a feedback
 // @route   POST /api/feedbacks/:id/replies
-// @access  Private (Resident, Barangay Official)
+// @access  Private (Barangay Official)
 exports.addReply = async (req, res) => {
     try {
         // Admin is moderation-only for community feedback.
@@ -707,7 +706,7 @@ exports.deleteReply = async (req, res) => {
             return res.status(403).json({ error: 'Not authorized to delete this reply. Only the author can perform this action.' });
         }
 
-        // Residents queue the deletion
+        // Staff queue the deletion
         reply.actionStatus = 'pending_delete';
         normalizeLegacyPendingApproval(feedback);
         await feedback.save();

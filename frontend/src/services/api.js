@@ -38,12 +38,6 @@ api.interceptors.request.use(async (config) => {
     }
   }
 
-  // Add Authorization header from localStorage if available
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers['Authorization'] = `Bearer ${token}`;
-  }
-
   return config;
 }, (error) => {
   return Promise.reject(error);
@@ -91,8 +85,10 @@ api.interceptors.response.use(
     }
 
     if (error.response?.status === 403 && error.response?.data?.onboardingRequired) {
-      const { mustChangePassword, mustSetup2FA, scope } = error.response.data;
-      if (mustChangePassword) {
+      const { mustChangePassword, mustSetup2FA, pendingApproval, scope } = error.response.data;
+      if (pendingApproval) {
+        window.location.href = '/pending-approval';
+      } else if (mustChangePassword) {
         window.location.href = '/force-change-password';
       } else if (mustSetup2FA) {
         window.location.href = '/setup-2fa';
@@ -147,7 +143,6 @@ export const authAPI = {
 
   // 2FA
   setup2FA: () => api.post('/auth/2fa/setup', {}, { withCredentials: true }).catch(err => {
-    console.error('[API DEBUG] setup2FA failed:', err.response?.status, err.response?.data);
     throw err;
   }),
   verifySetup2FA: (data) => api.post('/auth/2fa/verify-setup', data, { withCredentials: true }),

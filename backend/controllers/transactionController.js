@@ -179,30 +179,8 @@ exports.getMyTransactions = async (req, res) => {
       includeArchived
     } = req.query;
 
-    const isOfficial = ['administrator', 'barangay_official', 'auditor'].includes(req.user.role);
-
-    // ── Base visibility clause ───────────────────────────────────────
-    // Residents: see all non-staged (public records) + their own staged
-    // Officials: see everything
-    let visibilityClause = null;
-    if (!isOfficial) {
-      if (includeStaged === 'true') {
-        // Residents requested staged data: show all public records
-        visibilityClause = null;
-      } else {
-        visibilityClause = {
-          $or: [
-            { staged: { $ne: true } },
-            { userId: req.user._id },
-            { fromAddress: req.user.email },
-          ]
-        };
-      }
-    } else if (includeStaged !== 'true') {
-      // Officials who didn't request staged: exclude staged
-      visibilityClause = { staged: { $ne: true } };
-    }
-    // includeStaged === 'true' for officials → no staged filter (see everything)
+    // Staff can request staged records; otherwise only published records are shown.
+    const visibilityClause = includeStaged === 'true' ? null : { staged: { $ne: true } };
 
     // ── Optional filters ─────────────────────────────────────────────
     const andClauses = [];

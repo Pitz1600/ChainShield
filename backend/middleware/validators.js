@@ -68,11 +68,11 @@ const validateRegistration = [
 
     body('role')
         .notEmpty().withMessage('Role is required')
-        .isIn(['resident', 'barangay_official']).withMessage('Invalid role. Only resident and barangay_official are allowed for public registration'),
+        .isIn(['barangay_official', 'auditor']).withMessage('Invalid role. Only barangay_official and auditor are allowed for public registration'),
 
     body('position')
-        .optional()
         .trim()
+        .notEmpty().withMessage('Position is required')
         .isLength({ max: 100 }).withMessage('Position must not exceed 100 characters'),
 
     handleValidationErrors

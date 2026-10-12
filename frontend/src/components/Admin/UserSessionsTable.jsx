@@ -129,7 +129,7 @@ function UserSessionsTable() {
                                                 <span className="sessions-user-email">{p.email || 'No email'}</span>
                                             </div>
                                         </td>
-                                        <td>{String(p.role || 'resident').replace(/_/g, ' ')}</td>
+                                        <td>{String(p.role || 'barangay_official').replace(/_/g, ' ')}</td>
                                         <td>
                                             <span className={`status-badge ${p.isOnline ? 'active' : 'inactive'}`}>
                                                 {p.isOnline ? 'Online' : 'Offline'}

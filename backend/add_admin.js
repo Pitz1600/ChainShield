@@ -1,8 +1,10 @@
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
 require('dotenv').config();
+if (process.env.NODE_ENV === 'production') { throw new Error('Account/reset scripts are disabled in production'); }
 const mongoose = require('mongoose');
 const User = require('./models/User');
+const tempPassword = 'Aa1!' + require('crypto').randomBytes(24).toString('hex');
 
 async function createAdmin() {
   try {
@@ -15,6 +17,7 @@ async function createAdmin() {
     const existing = await User.findOne({ email });
     if (existing) {
       console.log('Admin account already exists:', email);
+      existing.sessionVersion += 1;
       existing.role = 'administrator';
       existing._allowAdminChange = true;
       existing.isVerified = true;
@@ -30,7 +33,7 @@ async function createAdmin() {
       firstName: 'Admin',
       lastName: 'Master',
       email: email,
-      password: 'password123',
+      password: tempPassword,
       role: 'administrator',
       isVerified: true,
       isActive: true,
@@ -44,7 +47,7 @@ async function createAdmin() {
     await admin.save();
     console.log('Successfully created admin account:');
     console.log('Email:', email);
-    console.log('Password: password123');
+    console.log('Temporary password:', tempPassword);
     console.log('Role: administrator');
     process.exit(0);
   } catch (err) {

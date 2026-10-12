@@ -45,7 +45,7 @@ function FeedbackCard({ feedback, currentUser, onRefresh }) {
     };
 
     // Admin is moderation-only in the community feed.
-    // Residents and barangay officials can participate.
+    // Staff and barangay officials can participate.
     const canParticipate = () => !isAdmin(currentUser);
 
     // Admins and Officials can moderate moderation items
@@ -180,7 +180,7 @@ function FeedbackCard({ feedback, currentUser, onRefresh }) {
         switch (role) {
             case 'administrator': return 'badge-admin';
             case 'barangay_official': return 'badge-official';
-            default: return 'badge-resident';
+            default: return 'badge-official';
         }
     };
 
@@ -435,7 +435,7 @@ function FeedbackCard({ feedback, currentUser, onRefresh }) {
                             <div className="reply-header">
                                 <span className="reply-author">
                                     {reply.author.firstName} {reply.author.lastName}
-                                    {reply.author.role !== 'resident' && (
+                                    {reply.author.role && (
                                         <span className="reply-role"> ({formatRoleName(reply.author.role, reply.author.position)})</span>
                                     )}
                                 </span>

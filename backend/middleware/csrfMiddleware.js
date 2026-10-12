@@ -109,16 +109,12 @@ const csrfProtection = (req, res, next) => {
     }
 
     if (cookieToken !== headerToken) {
-        console.log('[CSRF-DEBUG] Blocked: Token mismatch');
-        console.log(`[CSRF-DEBUG] Cookie: ${cookieToken}`);
-        console.log(`[CSRF-DEBUG] Header: ${headerToken}`);
         return res.status(403).json({
             error: 'CSRF token mismatch. Please refresh the page and try again.',
         });
     }
 
     if (!validateCsrfToken(cookieToken)) {
-        console.log('[CSRF-DEBUG] Blocked: Invalid signature');
         return res.status(403).json({
             error: 'Invalid CSRF token. Please refresh the page and try again.',
         });

@@ -12,7 +12,6 @@ ChainShield empowers barangays to modernize their operations and audit processes
 
 *   **🔍 Automated Audit**: Monitors barangay funds, SK budgets, and procurement for anomalies.
 *   **📄 Document Verification**: Verifies the authenticity of Barangay Clearances, Indigency Certificates, and Permits.
-*   **📊 Resident Profiling**: Manages resident data securely with role-based access.
 
 ---
 
@@ -20,11 +19,10 @@ ChainShield empowers barangays to modernize their operations and audit processes
 
 | Role | Description | Key Permissions |
 |---|---|---|
-| 🏠 **Resident** | Citizens of the barangay | View own records, submit complaints, verify documents |
 | 🏛️ **Barangay Official** | Captain, Kagawad, Secretary, Treasurer | Dashboard, complaint management, CSV import, analytics |
 | 🛡️ **Administrator** | System management | Full access — user management, audit logs, system config |
 
-> **Note**: Administrators must use local email/password + mandatory TOTP 2FA. Google SSO is available for Residents, Officials, Analysts, and Investigators.
+> **Note**: Administrators must use local email/password + mandatory TOTP 2FA. Google SSO is not implemented in this snapshot. Officials and auditors may self-register, verify email, and wait for administrator approval.
 
 ---
 
@@ -48,7 +46,7 @@ ChainShield empowers barangays to modernize their operations and audit processes
 
 ```
 ┌──────────────┐
-│  Resident /  │
+│  Official /  │
 │   Official   │
 └──────┬───────┘
        │ React (Vite)
@@ -75,7 +73,7 @@ ChainShield empowers barangays to modernize their operations and audit processes
 | Control | Status | Details |
 |---|---|---|
 | Authentication | ✅ | JWT (HttpOnly cookie) + Email OTP + TOTP 2FA |
-| OAuth / SSO | ✅ | Google OAuth 2.0 (residents/officials only) |
+| OAuth / SSO | ❌ | Not implemented |
 | Password Policy | ✅ | Min 8 chars, uppercase, lowercase, number, special char |
 | RBAC | ✅ | 5 roles with explicit permission matrices |
 | Rate Limiting | ✅ | Redis-backed, 5 login attempts/15min (OWASP) |
@@ -100,7 +98,6 @@ See [`docs/concepts.md`](docs/concepts.md) for AI, blockchain gas cost, and syst
 
 ### Prerequisites
 *   Docker & Docker Compose
-*   (Optional) Google Cloud credentials for OAuth
 
 ### One-Command Start
 ```bash
@@ -110,11 +107,8 @@ docker compose up
 ```
 Access the application at **http://localhost:5173**
 
-### Google OAuth Setup (Optional)
-1. Go to [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
-2. Create an OAuth 2.0 Client ID (Web application)
-3. Add `http://localhost:5000/api/auth/google/callback` as an authorized redirect URI
-4. Copy `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` to your `.env`
+### Account provisioning
+Officials and auditors require email verification and administrator approval. Admin-created accounts receive temporary credentials by email and must change their password and set up 2FA.
 
 ---
 

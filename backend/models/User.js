@@ -24,6 +24,10 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  isApproved: { type: Boolean, default: true },
+  approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  approvedAt: Date,
+  sessionVersion: { type: Number, default: 0 },
   otp: {
     type: String
   },
@@ -69,8 +73,8 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['resident', 'barangay_official', 'administrator', 'auditor'],
-    default: 'resident'
+    enum: ['barangay_official', 'administrator', 'auditor'],
+    required: true
   },
   position: String,
   isActive: {

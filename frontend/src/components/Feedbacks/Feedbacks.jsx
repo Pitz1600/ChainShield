@@ -14,7 +14,7 @@ function Feedbacks({ user, initialTab = 'public' }) {
     const [refreshTrigger, setRefreshTrigger] = useState(0);
     const [akismetStatus, setAkismetStatus] = useState(null);
     const [cleanupState, setCleanupState] = useState({ running: false, message: '' });
-    const canPost = ['resident', 'barangay_official', 'auditor'].includes(user?.role);
+    const canPost = ['barangay_official', 'auditor'].includes(user?.role);
     const canModerate = isAdmin(user) || isOfficial(user);
 
     useEffect(() => {

@@ -129,7 +129,7 @@ app.use((req, res, next) => {
 app.use('/api/', apiLimiter);
 
 // Static files middleware for uploads
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 
 // Audit Logging
 const auditLog = require('./middleware/auditLog');
@@ -141,6 +141,7 @@ app.use(auditLog);
 
 // Parse cookies (required for CSRF double-submit cookie pattern)
 app.use(cookieParser());
+app.use('/uploads', require('./middleware/auth'), express.static(path.join(__dirname, 'uploads')));
 
 // ========================================
 // CSRF PROTECTION (Double-Submit Cookie)

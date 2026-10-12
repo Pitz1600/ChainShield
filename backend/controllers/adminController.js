@@ -5,6 +5,12 @@ const crypto = require('crypto');
 const emailService = require('../services/emailService');
 const { normalizeEmail, findUserByEmail } = require('../utils/emailNormalization');
 
+async function removesLastAdmin(user, role, isActive) {
+    return user.role === 'administrator' && user.isActive &&
+        ((role && role !== 'administrator') || isActive === false) &&
+        await User.countDocuments({ role: 'administrator', isActive: true, _id: { $ne: user._id } }) === 0;
+}
+
 /**
  * Admin Controller
  * Handles administrative functions like user management
@@ -105,7 +111,7 @@ exports.updateUserRole = async (req, res) => {
         const { role } = req.body;
 
         // Validate role
-        const validRoles = ['resident', 'barangay_official', 'auditor', 'administrator'];
+        const validRoles = ['barangay_official', 'auditor', 'administrator'];
         if (!validRoles.includes(role)) {
             return res.status(400).json({ error: 'Invalid role' });
         }
@@ -120,6 +126,8 @@ exports.updateUserRole = async (req, res) => {
             return res.status(404).json({ error: 'User not found' });
         }
 
+        if (await removesLastAdmin(user, role)) return res.status(400).json({ error: 'Cannot remove the last active administrator' });
+        if (user.role !== role) user.sessionVersion += 1;
         user.role = role;
         if (role === 'administrator') {
             user._allowAdminChange = true;
@@ -159,7 +167,9 @@ exports.deactivateUser = async (req, res) => {
             return res.status(404).json({ error: 'User not found' });
         }
 
+        if (await removesLastAdmin(user, null, false)) return res.status(400).json({ error: 'Cannot remove the last active administrator' });
         user.isActive = false;
+        user.sessionVersion += 1;
         await user.save();
 
         res.json({
@@ -220,22 +230,27 @@ exports.updateUser = async (req, res) => {
             }
         }
 
+        if (await removesLastAdmin(user, role, isActive)) return res.status(400).json({ error: 'Cannot remove the last active administrator' });
         // Update fields if provided
         if (firstName) user.firstName = firstName;
         if (lastName) user.lastName = lastName;
         if (birthday !== undefined) user.birthday = birthday;
         if (role) {
-            const validRoles = ['resident', 'barangay_official', 'auditor', 'administrator'];
+            const validRoles = ['barangay_official', 'auditor', 'administrator'];
             if (!validRoles.includes(role)) {
                 return res.status(400).json({ error: 'Invalid role' });
             }
+            if (user.role !== role) user.sessionVersion += 1;
             user.role = role;
             if (role === 'administrator') {
                 user._allowAdminChange = true;
             }
         }
         if (position !== undefined) user.position = position;
-        if (isActive !== undefined) user.isActive = isActive;
+        if (isActive !== undefined) {
+            if (user.isActive !== isActive) user.sessionVersion += 1;
+            user.isActive = isActive;
+        }
         if (isVerified !== undefined) user.isVerified = isVerified;
 
         await user.save();
@@ -446,17 +461,17 @@ exports.getAuditLogs = async (req, res) => {
  */
 exports.createUser = async (req, res) => {
     try {
-        const { firstName, lastName, birthday, email, password, role, position } = req.body;
+        const { firstName, lastName, birthday, email, role, position } = req.body;
         const normalizedEmail = normalizeEmail(email);
-        const normalizedPassword = String(password || '').trim();
+        const normalizedPassword = 'Aa1!' + crypto.randomBytes(24).toString('hex');
 
         // Basic validation
-        if (!firstName || !lastName || !email || !normalizedPassword || !role) {
+        if (!firstName || !lastName || !email || !role || !String(position || "").trim()) {
             return res.status(400).json({ error: 'All fields are required' });
         }
 
         // Restrict allowed roles for this endpoint to operational roles requested by product
-        const creatableRoles = ['administrator', 'auditor', 'barangay_official', 'resident'];
+        const creatableRoles = ['administrator', 'auditor', 'barangay_official'];
         if (!creatableRoles.includes(role)) {
             return res.status(400).json({ error: 'Invalid role for user creation.' });
         }
@@ -465,14 +480,6 @@ exports.createUser = async (req, res) => {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(String(email || '').trim())) {
             return res.status(400).json({ error: 'Invalid email format.' });
-        }
-
-        // Validate password strength
-        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-        if (!passwordRegex.test(normalizedPassword)) {
-            return res.status(400).json({
-                error: 'Password must be at least 8 characters with uppercase, lowercase, number, and special character.'
-            });
         }
 
         // Check for existing user
@@ -492,11 +499,12 @@ exports.createUser = async (req, res) => {
             position,
             invitedBy: req.user._id,
             // Admin-provisioned accounts are trusted records; onboarding still enforces password change
-            // (and mandatory 2FA for admins) before full access.
+            // and mandatory 2FA before full access.
             isVerified: true,
             isActive: true,
             mustChangePassword: true,
-            mustSetup2FA: role === 'administrator'
+            mustSetup2FA: true,
+            isApproved: true
         });
 
         // Explicitly allow administrator role assignment through this authorized admin flow
@@ -505,6 +513,13 @@ exports.createUser = async (req, res) => {
         }
 
         await user.save();
+
+        try {
+            await emailService.sendTempPasswordEmail(user.email, normalizedPassword, user.username);
+        } catch (error) {
+            await User.findByIdAndDelete(user._id);
+            throw error;
+        }
 
         // Log action
         await AuditLog.create({
@@ -557,6 +572,7 @@ exports.deleteUser = async (req, res) => {
             return res.status(404).json({ error: 'User not found' });
         }
 
+        if (await removesLastAdmin(user, null, false)) return res.status(400).json({ error: 'Cannot remove the last active administrator' });
         await User.findByIdAndDelete(userId);
 
         // Log action
@@ -583,4 +599,37 @@ exports.deleteUser = async (req, res) => {
         console.error('Delete user error:', error);
         res.status(500).json({ error: 'Failed to delete user' });
     }
+};
+
+exports.approveUser = async (req, res) => {
+    try {
+        if (String(req.params.userId) === String(req.user._id)) return res.status(400).json({ error: 'You cannot approve yourself' });
+        const user = await User.findById(req.params.userId);
+        if (!user) return res.status(404).json({ error: 'User not found' });
+        if (!user.isActive || !user.isVerified || user.isApproved !== false || !['barangay_official', 'auditor'].includes(user.role)) {
+            return res.status(400).json({ error: 'Only active, email-verified pending staff can be approved' });
+        }
+        user.isApproved = true;
+        user.approvedBy = req.user._id;
+        user.approvedAt = new Date();
+        user.mustSetup2FA = true;
+        await user.save();
+        res.json({ success: true, message: 'Account approved; two-factor setup required' });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to approve account' });
+    }
+};
+
+// Fresh authenticator proof for actions granting access.
+exports.requireStepUp = async (req, res, next) => {
+    const grantsAccess = (req.path.endsWith('/approve') || req.path.endsWith('/activate')) || req.body.role || req.body.isActive === true;
+    if (!grantsAccess) return next();
+    try {
+        const actor = await User.findById(req.user._id).select('+twoFactorSecret');
+        const code = String(req.body.totpCode || '');
+        if (!actor?.twoFactorEnabled || !/^\d{6}$/.test(code) || !require('otplib').verifySync({ token: code, secret: actor.getTwoFactorSecret() }).valid) {
+            return res.status(403).json({ error: 'A current authenticator code is required', stepUpRequired: true });
+        }
+        next();
+    } catch { res.status(403).json({ error: 'Authenticator verification failed' }); }
 };

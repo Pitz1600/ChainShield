@@ -3,12 +3,10 @@ import { AlertTriangle, List, FileText, Upload, CheckCircle, Clock } from 'lucid
 import api from '../../services/api';
 import AlertsManagement from '../Alerts/AlertsManagement';
 import MyTransactions from './MyTransactions';
-import ResidentTransactions from './ResidentTransactions';
 import '../../styles/TransactionsPage.css';
 
 function TransactionsPage({ user }) {
     const role        = user?.role;
-    const isResident  = role === 'resident';
     const isOfficial  = role === 'barangay_official';
     const isAuditor   = role === 'auditor';
     const isAdmin     = role === 'administrator';
@@ -42,21 +40,9 @@ function TransactionsPage({ user }) {
             setResolvedCount(allAlerts.filter(a => a.status === 'resolved').length);
 
             const historyResponse = await api.get('/transactions/my-transactions', {
-                params: { limit: 1, page: 1, includeStaged: isAdmin || isOfficial || isResident }
+                params: { limit: 1, page: 1, includeStaged: isAdmin || isOfficial }
             });
             setHistoryCount(historyResponse.data.count || 0);
-
-            // For residents: get verified and under-review counts from my-transactions
-            // so all three hero numbers use the same data source and visibility rules
-            if (isResident) {
-                const [verifiedRes, underReviewRes] = await Promise.all([
-                    api.get('/transactions/my-transactions', { params: { limit: 1, page: 1, status: 'Verified,Pending', includeStaged: true } }),
-                    api.get('/transactions/my-transactions', { params: { limit: 1, page: 1, status: 'Flagged,Suspicious', includeStaged: true } }),
-                ]);
-                // Patch alertCount for resident hero "Under Review" to use real tx count
-                setAlertCount(underReviewRes.data.count || 0);
-                setResolvedCount(verifiedRes.data.count || 0);
-            }
 
             // Count staged-only records so we can warn the admin
             if (isAdmin || isOfficial) {
@@ -71,7 +57,7 @@ function TransactionsPage({ user }) {
         }
     };
 
-    // Publish all staged transactions so residents can see them
+    // Publish all staged transactions so staff can see them
     const handlePublishAll = async () => {
         if (approving) return;
         setApproving(true);
@@ -93,7 +79,7 @@ function TransactionsPage({ user }) {
             await api.put('/transactions/batch-action', { ids: stagedIds, action: 'approve' });
 
             setStagedCount(0);
-            setApproveMsg(`✓ ${stagedIds.length} transactions are now publicly visible to residents.`);
+            setApproveMsg(`✓ ${stagedIds.length} transactions are now publicly visible to staff.`);
             setTxRefreshKey(k => k + 1);
             fetchCounts();
         } catch (err) {
@@ -106,11 +92,6 @@ function TransactionsPage({ user }) {
 
     // ── Hero copy per role ───────────────────────────────────────────
     const heroConfig = {
-        resident: {
-            label: 'PUBLIC SPENDING RECORDS',
-            title: 'Barangay Budget Transactions',
-            desc:  'View all public spending records for Barangay Pantal. Click any transaction to see details or report a concern.',
-        },
         barangay_official: {
             label: 'BARANGAY OFFICIAL — TRANSACTION RECORDS',
             title: 'Manage Your Submitted Transactions',
@@ -141,37 +122,6 @@ function TransactionsPage({ user }) {
 
                 {/* Stats Row */}
                 <div className="hero-stats-row">
-                    {isResident && (
-                        <>
-                            <div className="hero-stat-card">
-                                <div className="hero-stat-icon" style={{ background: 'rgba(59,130,246,0.15)' }}>
-                                    <FileText size={28} color="#3b82f6" />
-                                </div>
-                                <div className="hero-stat-info">
-                                    <div className="hero-stat-value">{historyCount}</div>
-                                    <div className="hero-stat-label">TOTAL TRANSACTIONS</div>
-                                </div>
-                            </div>
-                            <div className="hero-stat-card">
-                                <div className="hero-stat-icon" style={{ background: 'rgba(16,185,129,0.15)' }}>
-                                    <FileText size={28} color="#10b981" />
-                                </div>
-                                <div className="hero-stat-info">
-                                    <div className="hero-stat-value">{resolvedCount}</div>
-                                    <div className="hero-stat-label">APPROVED</div>
-                                </div>
-                            </div>
-                            <div className="hero-stat-card">
-                                <div className="hero-stat-icon" style={{ background: 'rgba(249,115,22,0.15)' }}>
-                                    <AlertTriangle size={28} color="#f97316" />
-                                </div>
-                                <div className="hero-stat-info">
-                                    <div className="hero-stat-value">{alertCount}</div>
-                                    <div className="hero-stat-label">UNDER REVIEW</div>
-                                </div>
-                            </div>
-                        </>
-                    )}
 
                     {isOfficial && (
                         <>
@@ -298,10 +248,10 @@ function TransactionsPage({ user }) {
                         <Clock size={18} color="#d97706" />
                         <div>
                             <div style={{ fontSize: '0.88rem', fontWeight: 600, color: '#92400e' }}>
-                                {stagedCount} imported transaction{stagedCount !== 1 ? 's' : ''} not yet visible to residents
+                                {stagedCount} imported transaction{stagedCount !== 1 ? 's' : ''} not yet visible to staff
                             </div>
                             <div style={{ fontSize: '0.76rem', color: '#b45309', marginTop: 2 }}>
-                                These records were processed by the AI pipeline but are awaiting official publication. Residents cannot see them until you publish.
+                                These records were processed by the AI pipeline but are awaiting official publication. Staff cannot see them until you publish.
                             </div>
                         </div>
                     </div>
@@ -339,7 +289,7 @@ function TransactionsPage({ user }) {
             )}
 
             {/* Tabs */}
-            {!isResident && (
+            {(
                 <div className="transactions-tabs">
                     {(isAdmin || isAuditor) && (
                         <button
@@ -373,9 +323,7 @@ function TransactionsPage({ user }) {
 
             {/* Content */}
             <div className="tab-content">
-                {isResident ? (
-                    <ResidentTransactions user={user} embedded={true} />
-                ) : activeTab === 'alerts' ? (
+                {activeTab === 'alerts' ? (
                     <AlertsManagement embedded={true} user={user} />
                 ) : activeTab === 'upload' ? (
                     <div style={{ padding: '2rem', textAlign: 'center' }}>

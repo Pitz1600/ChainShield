@@ -21,13 +21,13 @@ function Sidebar({ user, activeView, setActiveView, onLogout, isMobileMenuOpen, 
 
   // Base menu items for all users
   const baseMenuItems = [
-    { id: 'dashboard', icon: 'home', label: 'Dashboard', roles: ['resident', 'barangay_official', 'administrator'] },
-    { id: 'transactions', icon: 'history', label: 'Transactions', roles: ['resident', 'barangay_official', 'administrator'] },
-    { id: 'feedbacks', icon: 'feedbacks', label: 'Feedbacks', roles: ['resident', 'barangay_official', 'administrator'] },
+    { id: 'dashboard', icon: 'home', label: 'Dashboard', roles: ['barangay_official', 'administrator'] },
+    { id: 'transactions', icon: 'history', label: 'Transactions', roles: ['barangay_official', 'administrator'] },
+    { id: 'feedbacks', icon: 'feedbacks', label: 'Feedbacks', roles: ['barangay_official', 'administrator'] },
   ];
 
-  // Resident-specific menu items (view-only features)
-  const residentMenuItems = [
+  // Shared menu items (view-only features)
+  const sharedMenuItems = [
     // Transaction history is now part of Transactions page
   ];
 
@@ -47,8 +47,8 @@ function Sidebar({ user, activeView, setActiveView, onLogout, isMobileMenuOpen, 
   const getMenuItems = () => {
     let items = [...baseMenuItems];
 
-    // Add resident items for everyone
-    items = [...items, ...residentMenuItems];
+    // Add shared items for everyone
+    items = [...items, ...sharedMenuItems];
 
     // Add official items if user is official or admin
     if (isOfficial(user)) {

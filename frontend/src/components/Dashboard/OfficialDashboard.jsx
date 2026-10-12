@@ -139,7 +139,7 @@ function OfficialDashboard({ user, onNavigate }) {
   return (
     <div className="dashboard-container">
 
-      {/* ── HERO — same class as ResidentDashboard ── */}
+      {/* ── HERO — same class as staff dashboards ── */}
       <div className="dashboard-hero">
         <div className="hero-content">
           <span className="hero-tag">BARANGAY OFFICIAL — TRANSACTION MANAGEMENT</span>

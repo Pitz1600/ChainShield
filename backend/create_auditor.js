@@ -1,8 +1,10 @@
 require('dotenv').config({ path: '../.env' });
 const mongoose = require('mongoose');
 const User = require('./models/User');
+const tempPassword = 'Aa1!' + require('crypto').randomBytes(24).toString('hex');
 
 async function createAuditor() {
+  if (process.env.NODE_ENV === 'production') throw new Error('Account scripts are disabled in production');
   try {
     const uri = process.env.MONGODB_URI;
     console.log('Connecting to MongoDB...');
@@ -13,6 +15,7 @@ async function createAuditor() {
     const existing = await User.findOne({ email });
     if (existing) {
       console.log('Auditor account already exists:', email);
+      existing.sessionVersion += 1;
       existing.role = 'auditor';
       existing.mustChangePassword = true;
       existing.mustSetup2FA = true;
@@ -25,7 +28,7 @@ async function createAuditor() {
       firstName: 'Audit',
       lastName: 'Master',
       email: email,
-      password: 'password123',
+      password: tempPassword,
       role: 'auditor',
       isVerified: true,
       mustChangePassword: true,
@@ -35,7 +38,7 @@ async function createAuditor() {
     await auditor.save();
     console.log('Successfully created auditor account:');
     console.log('Email:', email);
-    console.log('Password: password123');
+    console.log('Temporary password:', tempPassword);
     process.exit(0);
   } catch (err) {
     console.error(err);

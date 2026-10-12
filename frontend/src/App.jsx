@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import Welcome from './components/Auth/Welcome';
 import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
+import PendingApproval from './components/Auth/PendingApproval';
 import EmailVerify from './components/Auth/EmailVerify';
 import TwoFactorSetup from './components/Auth/TwoFactorSetup';
 import ForcePasswordChange from './components/Auth/ForcePasswordChange';
@@ -53,7 +54,15 @@ function App() {
         const response = await authAPI.getProfile();
         const userData = response.data;
 
-        if (userData.mustChangePassword) {
+        if (!userData.isVerified) {
+          setIsAuthenticated(false);
+          setPendingUser(userData);
+          navigateTo('/email-verify');
+        } else if (userData.isApproved === false) {
+          setIsAuthenticated(false);
+          setPendingUser(userData);
+          navigateTo('/pending-approval');
+        } else if (userData.mustChangePassword) {
           setIsAuthenticated(false);
           localStorage.removeItem('user');
           setPendingUser(userData);
@@ -63,11 +72,6 @@ function App() {
           localStorage.removeItem('user');
           setPendingUser(userData);
           navigateTo('/setup-2fa');
-        } else if (!userData.isVerified) {
-          setIsAuthenticated(false);
-          localStorage.removeItem('user');
-          setPendingUser(userData);
-          navigateTo('/email-verify');
         } else {
           setIsAuthenticated(true);
           setUser(userData);
@@ -78,6 +82,7 @@ function App() {
             '/login',
             '/register',
             '/email-verify',
+            '/pending-approval',
             '/force-change-password',
             '/setup-2fa',
             '/reset-password'
@@ -101,8 +106,12 @@ function App() {
     checkAuth();
   }, [navigateTo]);
 
-  const handleLogin = useCallback((token, userData) => {
-    const userObj = userData || token;
+  const handleLogin = useCallback(async () => {
+    let userObj;
+    try { userObj = (await authAPI.getProfile()).data; }
+    catch { setIsAuthenticated(false); navigateTo('/login'); return; }
+    const next = !userObj.isVerified ? '/email-verify' : userObj.isApproved === false ? '/pending-approval' : userObj.mustChangePassword ? '/force-change-password' : (userObj.mustSetup2FA || (userObj.role === 'administrator' && !userObj.twoFactorEnabled)) ? '/setup-2fa' : null;
+    if (next) { setIsAuthenticated(false); setPendingUser(userObj); navigateTo(next); return; }
     localStorage.setItem('user', JSON.stringify(userObj));
     setIsAuthenticated(true);
     setUser(userObj);
@@ -157,6 +166,7 @@ function App() {
       <Route path="/welcome" element={<Welcome onNavigate={handleNavigate} />} />
       <Route path="/login" element={<Login onLogin={handleLogin} onNavigate={handleNavigate} />} />
       <Route path="/register" element={<Register onRegister={handleLogin} onNavigate={handleNavigate} />} />
+      <Route path="/pending-approval" element={<PendingApproval onCheck={handleLogin} onLogout={handleLogout} />} />
       <Route path="/email-verify" element={<EmailVerify user={pendingUser} onNavigate={handleNavigate} onLogin={handleLogin} />} />
       <Route path="/force-change-password" element={<ForcePasswordChange onNavigate={handleNavigate} onLogout={handleLogout} />} />
       <Route path="/setup-2fa" element={<TwoFactorSetup onLogin={handleLogin} onNavigate={handleNavigate} onLogout={handleLogout} />} />

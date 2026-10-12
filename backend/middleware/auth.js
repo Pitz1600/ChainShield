@@ -17,28 +17,28 @@ module.exports = async (req, res, next) => {
     // SECURITY: Check database blacklist
     const isBlacklisted = await BlacklistedToken.exists({ token });
     if (isBlacklisted) {
-      console.log('[AUTH-DEBUG] Token is blacklisted');
       // Clear invalid cookie
       res.clearCookie('token', { path: '/' });
       return res.status(401).json({ error: 'Session expired. Please log in again.' });
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log(`[AUTH-DEBUG] Token decoded for UserID: ${decoded.id}, Scope: ${decoded.scope || 'None'}`);
 
     const user = await User.findById(decoded.id);
 
     if (!user) {
-      console.warn(`[AUTH-DEBUG] User not found in DB for ID: ${decoded.id}`);
       return res.status(401).json({ error: 'Authentication failed' });
     }
 
-    if (!user.isActive) {
-      console.warn(`[AUTH-DEBUG] User account is inactive: ${user.email}`);
+    if (!user.isActive || !['administrator', 'barangay_official', 'auditor'].includes(user.role) || (decoded.sessionVersion || 0) !== user.sessionVersion) {
       return res.status(401).json({ error: 'Authentication failed' });
     }
 
-    console.log(`[AUTH-DEBUG] User found: ${user.email}, Role: ${user.role}, 2FA: ${user.twoFactorEnabled}`);
+
+    const currentApprovalPath = req.originalUrl.split('?')[0].replace(/\/$/, '');
+    if (user.isApproved === false && !['/api/auth/profile', '/api/auth/logout', '/api/auth/verify-email', '/api/auth/resend-otp'].includes(currentApprovalPath)) {
+      return res.status(403).json({ error: 'Administrator approval required', onboardingRequired: true, pendingApproval: true });
+    }
 
     req.user = user;
 
@@ -74,7 +74,6 @@ module.exports = async (req, res, next) => {
       const isAllowed = allowed.includes(currentPath);
 
       if (!isAllowed) {
-        console.warn(`[AUTH-DEBUG] Blocked scoped token (${decoded.scope}) from path: ${currentPath}. Allowed: ${JSON.stringify(allowed)}`);
         return res.status(403).json({
           error: 'Account setup required',
           onboardingRequired: true,
@@ -87,7 +86,7 @@ module.exports = async (req, res, next) => {
     // ENHANCEMENT: Also catch admins who bypassed the DB flag manually
     const adminNeedsSetup = user.role === 'administrator' && !user.twoFactorEnabled;
 
-    if (!decoded.scope && (user.mustChangePassword || user.mustSetup2FA || !user.isVerified || adminNeedsSetup)) {
+    if (!decoded.scope && (user.mustChangePassword || user.mustSetup2FA || !user.isVerified || adminNeedsSetup || !user.isApproved)) {
       const onboardingRoutes = [
         '/api/auth/force-change-password',
         '/api/auth/2fa/setup',
@@ -110,10 +109,10 @@ module.exports = async (req, res, next) => {
       const isAllowed = onboardingRoutes.includes(currentPath);
 
       if (!isAllowed) {
-        console.warn(`[AUTH-DEBUG] Onboarding: Blocked path "${currentPath}" for user ${user.email}. Needs: pwd=${user.mustChangePassword}, 2fa=${user.mustSetup2FA}, verified=${user.isVerified}`);
         return res.status(403).json({
           error: 'Account setup required',
           onboardingRequired: true,
+          pendingApproval: !user.isApproved,
           mustChangePassword: user.mustChangePassword,
           mustSetup2FA: user.mustSetup2FA
         });

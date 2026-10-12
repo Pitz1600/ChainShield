@@ -18,7 +18,7 @@ async function testAuditLogs() {
                 username: 'TestAuditUser',
                 email: 'test_audit@example.com',
                 password: 'password123',
-                role: 'resident',
+                role: 'barangay_official',
                 isVerified: true,
                 isActive: true
             });

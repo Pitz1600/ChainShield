@@ -21,8 +21,8 @@ const generateOTP = () => {
 };
 
 // Generate a limited-scope token for onboarding steps
-const generateOnboardingToken = (userId, scope) => {
-  return jwt.sign({ id: userId, scope }, process.env.JWT_SECRET, { expiresIn: '1h' });
+const generateOnboardingToken = (user, scope) => {
+  return jwt.sign({ id: user._id, sessionVersion: user.sessionVersion, scope }, process.env.JWT_SECRET, { expiresIn: '1h' });
 };
 
 // ==========================================
@@ -33,8 +33,8 @@ exports.register = async (req, res) => {
     const { firstName, lastName, birthday, email, password, role, position } = req.body;
     const normalizedEmail = normalizeEmail(email);
 
-    // SECURITY: Public registration is resident-only.
-    if (role && role !== 'resident') {
+    // Public staff registration requires administrator approval.
+    if (!['barangay_official', 'auditor'].includes(role) || !String(position || '').trim()) {
       return res.status(403).json({
         error: 'Registration failed. Please check your input and try again.'
       });
@@ -56,7 +56,8 @@ exports.register = async (req, res) => {
       birthday: birthday || null,
       email: normalizedEmail,
       password,
-      role: 'resident',
+      role,
+      isApproved: false,
       position,
       isVerified: false,
       otp,
@@ -74,7 +75,7 @@ exports.register = async (req, res) => {
       console.error('Failed to send OTP email:', emailError);
     }
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '24h' });
+    const token = jwt.sign({ id: user._id, sessionVersion: user.sessionVersion }, process.env.JWT_SECRET, { expiresIn: '24h' });
 
     // SECURITY: Send token as HttpOnly cookie
     res.cookie('token', token, {
@@ -126,7 +127,6 @@ exports.login = async (req, res) => {
     const normalizedPassword = String(password || '').trim();
 
     const user = await findUserByEmail(User, normalizedEmail, '+twoFactorSecret +recoveryCodes +failedLoginAttempts +lockUntil');
-    console.log(`[LOGIN-DEBUG] Attempt email=${normalizedEmail} found=${Boolean(user)}`);
 
     // SECURITY: Artificial delay for all auth responses
     await authDelay();
@@ -145,9 +145,6 @@ exports.login = async (req, res) => {
     // 2. Verify user existence and password
     // SECURITY: Use generic message for both non-existent user and wrong password
     if (!user || !(await user.comparePassword(normalizedPassword))) {
-      if (user) {
-        console.log(`[LOGIN-DEBUG] Password mismatch for ${normalizedEmail}`);
-      }
       if (user) {
         user.failedLoginAttempts += 1;
 
@@ -201,6 +198,7 @@ exports.login = async (req, res) => {
     // Self-heal legacy admin-created operational accounts that were left unverified by older flows.
     if (
       !user.isVerified &&
+      user.invitedBy &&
       !user.mustChangePassword &&
       ['administrator', 'barangay_official', 'auditor'].includes(user.role)
     ) {
@@ -210,7 +208,7 @@ exports.login = async (req, res) => {
 
     // CHECK 1: Must change password (new accounts)
     if (user.mustChangePassword) {
-      const onboardingToken = generateOnboardingToken(user._id, 'change_password');
+      const onboardingToken = generateOnboardingToken(user, 'change_password');
 
       // SECURITY: Must set cookie for onboarding flow persistence
       res.cookie('token', onboardingToken, {
@@ -303,7 +301,7 @@ exports.login = async (req, res) => {
 
       // SECURITY: Send token as HttpOnly cookie even for OTP step
       // This allows the user to call /resend-login-otp which is protected
-      const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '24h' });
+      const token = jwt.sign({ id: user._id, sessionVersion: user.sessionVersion }, process.env.JWT_SECRET, { expiresIn: '24h' });
       res.cookie('token', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
@@ -348,7 +346,7 @@ exports.login = async (req, res) => {
 
     // CHECK 4: Must setup 2FA (admin accounts, or flagged accounts)
     if (user.mustSetup2FA) {
-      const onboardingToken = generateOnboardingToken(user._id, 'setup_2fa');
+      const onboardingToken = generateOnboardingToken(user, 'setup_2fa');
 
       res.cookie('token', onboardingToken, {
         httpOnly: true,
@@ -366,7 +364,7 @@ exports.login = async (req, res) => {
     }
 
     // ALL CHECKS PASSED — issue full session token
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '24h' });
+    const token = jwt.sign({ id: user._id, sessionVersion: user.sessionVersion }, process.env.JWT_SECRET, { expiresIn: '24h' });
 
     // SECURITY: Send token as HttpOnly cookie
     res.cookie('token', token, {
@@ -448,7 +446,7 @@ exports.verifyLoginOtp = async (req, res) => {
 
     // Check if must setup 2FA
     if (user.mustSetup2FA) {
-      const onboardingToken = generateOnboardingToken(user._id, 'setup_2fa');
+      const onboardingToken = generateOnboardingToken(user, 'setup_2fa');
 
       res.cookie('token', onboardingToken, {
         httpOnly: true,
@@ -465,7 +463,7 @@ exports.verifyLoginOtp = async (req, res) => {
       });
     }
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '24h' });
+    const token = jwt.sign({ id: user._id, sessionVersion: user.sessionVersion }, process.env.JWT_SECRET, { expiresIn: '24h' });
 
     // SECURITY: Send token as HttpOnly cookie
     res.cookie('token', token, {
@@ -548,7 +546,7 @@ exports.verifyMfa = async (req, res) => {
       await TrustedDevice.addTrustedDevice(user._id, req.get('User-Agent'), req.ip);
     }
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '24h' });
+    const token = jwt.sign({ id: user._id, sessionVersion: user.sessionVersion }, process.env.JWT_SECRET, { expiresIn: '24h' });
 
     res.cookie('token', token, {
       httpOnly: true,
@@ -680,7 +678,7 @@ exports.forceChangePassword = async (req, res) => {
       }
 
       // Issue a standard token for verification flow (middleware handles isVerified check)
-      const onboardingToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+      const onboardingToken = jwt.sign({ id: user._id, sessionVersion: user.sessionVersion }, process.env.JWT_SECRET, { expiresIn: '1h' });
       res.cookie('token', onboardingToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
@@ -706,7 +704,7 @@ exports.forceChangePassword = async (req, res) => {
 
     // If must also setup 2FA, return that requirement
     if (user.mustSetup2FA) {
-      const onboardingToken = generateOnboardingToken(user._id, 'setup_2fa');
+      const onboardingToken = generateOnboardingToken(user, 'setup_2fa');
 
       res.cookie('token', onboardingToken, {
         httpOnly: true,
@@ -723,7 +721,7 @@ exports.forceChangePassword = async (req, res) => {
     }
 
     // ALL CHECKS PASSED — issue full session token
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '24h' });
+    const token = jwt.sign({ id: user._id, sessionVersion: user.sessionVersion }, process.env.JWT_SECRET, { expiresIn: '24h' });
 
 
 
@@ -780,33 +778,26 @@ exports.setup2FA = async (req, res) => {
 
 exports.verifySetup2FA = async (req, res) => {
   try {
-    console.log('[DEBUG] verifySetup2FA called');
     const { totpCode } = req.body;
-    console.log('[DEBUG] totpCode received:', totpCode);
 
     const user = await User.findById(req.user.id).select('+twoFactorSecret +recoveryCodes');
     if (!user) {
-      console.log('[DEBUG] User not found (401)');
       return res.status(401).json({ error: 'Authentication failed' });
     }
 
     if (user.twoFactorEnabled) {
-      console.log('[DEBUG] 2FA already enabled (400)');
       return res.status(400).json({ error: '2FA is already enabled.' });
     }
 
     const secret = user.getTwoFactorSecret();
     if (!secret) {
-      console.log('[DEBUG] No secret found (400)');
       return res.status(400).json({ error: 'Please initiate 2FA setup first.' });
     }
 
     // Verify the TOTP code
     const result = verifySync({ token: totpCode, secret });
-    console.log('[DEBUG] verifySync result:', result);
 
     if (!result.valid) {
-      console.log('[DEBUG] verification failed (400)');
       return res.status(400).json({ error: 'Invalid verification code. Please try again.' });
     }
 
@@ -827,7 +818,7 @@ exports.verifySetup2FA = async (req, res) => {
     });
 
     // Issue full token if this was part of onboarding
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '24h' });
+    const token = jwt.sign({ id: user._id, sessionVersion: user.sessionVersion }, process.env.JWT_SECRET, { expiresIn: '24h' });
 
     // SECURITY: Send token as HttpOnly cookie
     res.cookie('token', token, {
@@ -946,6 +937,8 @@ exports.disable2FA = async (req, res) => {
     }
 
     user.twoFactorEnabled = false;
+    user.mustSetup2FA = true;
+    user.sessionVersion += 1;
     user.twoFactorSecret = undefined;
     user.recoveryCodes = [];
     user.otp = undefined;
@@ -996,6 +989,8 @@ exports.reset2FA = async (req, res) => {
 
     // Clear existing 2FA and prep for setup
     user.twoFactorEnabled = false;
+    user.mustSetup2FA = true;
+    user.sessionVersion += 1;
     user.twoFactorSecret = undefined;
     user.recoveryCodes = [];
     user.otp = undefined;
@@ -1379,7 +1374,6 @@ exports.resendLoginOtp = async (req, res) => {
     await user.save();
 
     if (process.env.NODE_ENV === 'development') {
-      console.log(`[OTP-DEBUG] Resent Login OTP for ${user.email}: ${otp}`);
     }
 
     try {
@@ -1732,7 +1726,7 @@ exports.uploadProfilePicture = async (req, res) => {
     await AuditLog.logAction({
       action: 'profile_picture_update',
       userId: user._id,
-      userRole: user.role || 'resident',
+      userRole: user.role,
       username: user.username,
       ipAddress: req.ip,
       userAgent: req.get('User-Agent')
@@ -1764,7 +1758,7 @@ exports.deleteProfilePicture = async (req, res) => {
     await AuditLog.logAction({
       action: 'profile_picture_delete',
       userId: user._id,
-      userRole: user.role || 'resident',
+      userRole: user.role,
       username: user.username,
       ipAddress: req.ip,
       userAgent: req.get('User-Agent')

@@ -5,34 +5,24 @@ import '../../styles/AdminPanel.css';
 import useLockBodyScroll from '../../utils/useLockBodyScroll';
 
 function UserManagement() {
-    const managedRoleOptions = ['resident', 'barangay_official', 'auditor', 'administrator'];
+    const managedRoleOptions = ['barangay_official', 'auditor', 'administrator'];
     const formatRoleLabel = (role) => String(role || '').replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-    const formatUserRoleDisplay = (user) => {
-        if (user?.role === 'barangay_official' && user?.position) return user.position;
-        return formatRoleLabel(user?.role);
-    };
     const rolePositionOptions = {
-        resident: ['Resident'],
         barangay_official: ['Barangay Captain', 'Barangay Secretary', 'Barangay Treasurer', 'Barangay Kagawad', 'Barangay Clerk'],
         auditor: ['Internal Auditor', 'Compliance Auditor', 'Financial Auditor'],
         administrator: ['System Administrator']
     };
     const getDefaultPositionForRole = (role) => rolePositionOptions[role]?.[0] || '';
     const createRoleGuidance = {
-        resident: {
-            tone: 'neutral',
-            title: 'Resident account',
-            text: 'Login uses email + password. OTP may be required on untrusted devices.'
-        },
         barangay_official: {
             tone: 'warning',
             title: 'Barangay Official account',
-            text: 'Email OTP is required on every login. 2FA setup is optional.'
+            text: 'Email OTP is required on every login. 2FA setup is mandatory.'
         },
         auditor: {
             tone: 'info',
             title: 'Auditor account',
-            text: 'Email OTP is required on every login. 2FA setup is optional.'
+            text: 'Email OTP is required on every login. 2FA setup is mandatory.'
         },
         administrator: {
             tone: 'critical',
@@ -41,6 +31,15 @@ function UserManagement() {
         },
     };
     const [users, setUsers] = useState([]);
+    const [pendingOnly, setPendingOnly] = useState(false);
+    const pendingUsers = users.filter(u => u.isApproved === false && u.isVerified && u.isActive);
+    const reviewUser = async (user, approve) => {
+        if (!window.confirm(approve ? `Approve ${user.email} as ${formatRoleLabel(user.role)}? Confirm their identity out-of-band before approving.` : `Reject ${user.email}? Their account will be deactivated.`)) return;
+        const totpCode = approve ? window.prompt('Enter your current authenticator code') : undefined;
+        if (approve && !totpCode) return;
+        try { await api.put(`/admin/users/${user._id}/${approve ? 'approve' : 'deactivate'}`, { totpCode }); await fetchUsers(); await fetchStats(); }
+        catch (err) { alert(err.response?.data?.error || 'Review failed'); }
+    };
     const [stats, setStats] = useState({ totalUsers: 0, activeUsers: 0, pendingVerification: 0 });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -54,7 +53,7 @@ function UserManagement() {
         birthday: '',
         userId: '',
         email: '',
-        role: 'resident',
+        role: 'barangay_official',
         position: '',
         isActive: true,
         isVerified: false
@@ -66,10 +65,8 @@ function UserManagement() {
         lastName: '',
         birthday: '',
         email: '',
-        password: '',
-        confirmPassword: '',
-        role: 'resident',
-        position: getDefaultPositionForRole('resident')
+        role: 'barangay_official',
+        position: getDefaultPositionForRole('barangay_official')
     });
     const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
 
@@ -122,7 +119,9 @@ function UserManagement() {
     const handleSaveUser = async (e) => {
         e.preventDefault();
         try {
-            await api.put(`/admin/users/${editFormData.userId}`, editFormData);
+            const totpCode = window.prompt('Enter your current authenticator code to update access');
+            if (!totpCode) return;
+            await api.put(`/admin/users/${editFormData.userId}`, { ...editFormData, totpCode });
             setIsEditModalOpen(false);
             fetchUsers();
         } catch (err) {
@@ -134,13 +133,10 @@ function UserManagement() {
         e.preventDefault();
         setCreateError('');
         setCreateSuccess('');
-        if (createFormData.password !== createFormData.confirmPassword) {
-            setCreateError('Passwords do not match.');
-            return;
-        }
         try {
-            const payload = { ...createFormData };
-            delete payload.confirmPassword;
+            const totpCode = window.prompt('Enter your current authenticator code to create this account');
+            if (!totpCode) return;
+            const payload = { ...createFormData, totpCode };
             await api.post('/admin/users', payload);
             setIsCreateModalOpen(false);
             setCreateFormData({
@@ -148,14 +144,12 @@ function UserManagement() {
                 lastName: '',
                 birthday: '',
                 email: '',
-                password: '',
-                confirmPassword: '',
-                role: 'resident',
-                position: getDefaultPositionForRole('resident')
+                role: 'barangay_official',
+                position: getDefaultPositionForRole('barangay_official')
             });
             fetchUsers();
             fetchStats(); // Update stats
-            setCreateSuccess('User created successfully. Ask the user to log in and complete first-password onboarding.');
+            setCreateSuccess('Temporary credentials emailed. The user must change their password and set up 2FA.');
         } catch (err) {
             setCreateError(err.response?.data?.error || err.message);
         }
@@ -259,6 +253,10 @@ function UserManagement() {
                 </div>
             )}
 
+            <div role="tablist" aria-label="User queues">
+                <button role="tab" aria-selected={!pendingOnly} onClick={() => setPendingOnly(false)}>All users</button>
+                <button role="tab" aria-selected={pendingOnly} onClick={() => setPendingOnly(true)}>Pending approvals ({pendingUsers.length})</button>
+            </div>
             {/* Users Table */}
             <div className="table-container">
                 <table className="data-table">
@@ -273,7 +271,7 @@ function UserManagement() {
                         </tr>
                     </thead>
                     <tbody>
-                        {users.map(user => (
+                        {(pendingOnly ? pendingUsers : users).map(user => (
                             <tr key={user._id}>
                                 <td>
                                     <div className="user-cell">
@@ -288,7 +286,7 @@ function UserManagement() {
                                 </td>
                                 <td>
                                     <span className={`role-badge ${user.role}`}>
-                                        {formatUserRoleDisplay(user)}
+                                        {formatRoleLabel(user.role)}
                                     </span>
                                 </td>
                                 <td>
@@ -310,6 +308,10 @@ function UserManagement() {
                                 </td>
                                 <td>
                                     <div className="actions-cell">
+                                        {user.isApproved === false && user.isVerified && user.isActive && <>
+                                            <button onClick={() => reviewUser(user, true)}>Approve</button>
+                                            <button onClick={() => reviewUser(user, false)}>Reject</button>
+                                        </>}
                                         <button
                                             className="icon-btn edit"
                                             onClick={() => handleEditUser(user)}
@@ -487,31 +489,7 @@ function UserManagement() {
                                             required
                                         />
                                     </div>
-                                    <div className="form-group">
-                                        <label className="form-label">Password</label>
-                                        <input
-                                            type="password"
-                                            className="form-input"
-                                            value={createFormData.password}
-                                            onChange={(e) => setCreateFormData({ ...createFormData, password: e.target.value })}
-                                            autoComplete="new-password"
-                                            required
-                                            minLength={8}
-                                        />
-                                        <div className="form-hint">Minimum 8 chars, uppercase, lowercase, number, and special character.</div>
-                                    </div>
-                                    <div className="form-group">
-                                        <label className="form-label">Confirm Password</label>
-                                        <input
-                                            type="password"
-                                            className="form-input"
-                                            value={createFormData.confirmPassword}
-                                            onChange={(e) => setCreateFormData({ ...createFormData, confirmPassword: e.target.value })}
-                                            autoComplete="new-password"
-                                            required
-                                            minLength={8}
-                                        />
-                                    </div>
+                                    <p>Temporary credentials will be emailed to the user.</p>
                                     <div className="form-group">
                                         <label className="form-label">Role</label>
                                         <select

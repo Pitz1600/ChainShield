@@ -2,14 +2,14 @@ import React, { useState, lazy, Suspense, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
+import PageErrorBoundary from './PageErrorBoundary';
 import '../../styles/MainLayout.css';
 
 // Lazy load components for better performance and Firefox compatibility
 const Dashboard = lazy(() => import('../Dashboard/Dashboard'));
-const ResidentDashboard = lazy(() => import('../Dashboard/ResidentDashboard'));
 const OfficialDashboard = lazy(() => import('../Dashboard/OfficialDashboard'));
 const TransactionsPage = lazy(() => import('../Transactions/TransactionsPage'));
-const Analytics = lazy(() => import('../Analytics/Analytics'));
+const Analytics = lazy(() => import('../Insights/Insights'));
 const IntegrityChecker = lazy(() => import('../IntegrityChecker/IntegrityChecker'));
 const AdminPanel = lazy(() => import('../Admin/AdminPanel'));
 const DocumentVerification = lazy(() => import('../DocumentVerification/DocumentVerification'));
@@ -74,6 +74,7 @@ function MainLayout({ user, onLogout, onNavigate }) {
           toggleMobileMenu={toggleMobileMenu}
         />
         <div className="content-area">
+          <PageErrorBoundary key={pathToView}>
           <Suspense fallback={
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '400px' }}>
               <div style={{ textAlign: 'center' }}>
@@ -83,9 +84,7 @@ function MainLayout({ user, onLogout, onNavigate }) {
             </div>
           }>
             {pathToView === 'dashboard' && (
-              user?.role === 'resident'
-                ? <ResidentDashboard user={user} onNavigate={handleViewChange} />
-                : user?.role === 'barangay_official'
+              user?.role === 'barangay_official'
                   ? <OfficialDashboard user={user} onNavigate={handleViewChange} />
                   : <Dashboard user={user} onNavigate={onNavigate} />
             )}
@@ -96,6 +95,7 @@ function MainLayout({ user, onLogout, onNavigate }) {
             {pathToView === 'feedbacks' && <Feedbacks user={user} />}
             {pathToView === 'profile' && <Profile user={user} />}
           </Suspense>
+          </PageErrorBoundary>
         </div>
       </div>
     </div>

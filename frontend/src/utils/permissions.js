@@ -5,14 +5,6 @@
 
 // Permission matrix - must match backend/middleware/roleMiddleware.js
 export const PERMISSIONS = {
-    resident: [
-        'view_public_records',
-        'verify_documents',
-        'track_transactions',
-        'submit_complaints',
-        'view_bidding_summaries',
-    ],
-
     barangay_official: [
         'view_public_records',
         'verify_documents',
@@ -114,7 +106,6 @@ export const isOfficial = (user) => {
  */
 export const getRoleName = (role) => {
     const roleNames = {
-        resident: 'Resident',
         barangay_official: 'Barangay Official',
         administrator: 'Administrator',
         auditor: 'Auditor',

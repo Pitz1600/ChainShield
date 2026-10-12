@@ -48,6 +48,8 @@ const auditLogSchema = new mongoose.Schema({
             'admin_update_user_role',
             'admin_deactivate_user',
             'admin_activate_user',
+            'admin_approve_user',
+            'residents_retired',
             'admin_update_user',
             'admin_create_user',
             'admin_delete_user',

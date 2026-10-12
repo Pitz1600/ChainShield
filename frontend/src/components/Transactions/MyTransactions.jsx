@@ -219,7 +219,7 @@ function MyTransactions({ user, embedded = false }) {
 
   const isAdminOrAuditor = ['administrator', 'auditor', 'barangay_official'].includes(user?.role);
   const isAuditor = user?.role === 'auditor';
-  const canLeaveTxFeedback = user?.role === 'resident';
+  const canLeaveTxFeedback = user?.role === 'barangay_official';
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [feedbackTx, setFeedbackTx] = useState(null);
 
