@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Shield, Lock, Mail, AlertCircle, ArrowRight, Smartphone, Key, Send } from 'lucide-react';
+import CaptchaWidget from './CaptchaWidget';
 import '../../styles/Login.css';
 import { authAPI } from '../../services/api';
 
@@ -7,6 +8,9 @@ function Login({ onLogin, onNavigate }) {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState('');
+  const captchaRef = useRef(null);
+  const captchaEnabled = import.meta.env.VITE_CAPTCHA_ENABLED === 'true';
 
   // Multi-step login state
   const [step, setStep] = useState('credentials'); // credentials | totp | otp | rememberDevice
@@ -73,9 +77,11 @@ function Login({ onLogin, onNavigate }) {
         return;
       }
 
+      if (captchaEnabled && !captchaToken) { setError('Please complete the security check.'); return; }
       const payload = {
         email: String(formData.email || '').trim().toLowerCase(),
-        password: String(formData.password || '').trim()
+        password: String(formData.password || '').trim(),
+        captchaToken
       };
 
       // Include TOTP code if on that step
@@ -120,6 +126,10 @@ function Login({ onLogin, onNavigate }) {
         setError('Login failed. Please check your credentials or server status.');
       }
     } finally {
+      if (!(step === 'totp' && !formData.password)) {
+        captchaRef.current?.reset();
+        setCaptchaToken('');
+      }
       setLoading(false);
     }
   };
@@ -206,7 +216,8 @@ function Login({ onLogin, onNavigate }) {
         </label>
       </div>
 
-      <button type="submit" disabled={loading || totpCode.length < 6} className="submit-button">
+      {formData.password && <CaptchaWidget key="totp" ref={captchaRef} action="login" onToken={setCaptchaToken} />}
+      <button type="submit" disabled={loading || totpCode.length < 6 || (Boolean(formData.password) && captchaEnabled && !captchaToken)} className="submit-button">
         {loading ? (
           <>
             <span className="spinner"></span>
@@ -349,7 +360,8 @@ function Login({ onLogin, onNavigate }) {
         </button>
       </div>
 
-      <button type="submit" disabled={loading} className="submit-button">
+      <CaptchaWidget key="credentials" ref={captchaRef} action="login" onToken={setCaptchaToken} />
+      <button type="submit" disabled={loading || (captchaEnabled && !captchaToken)} className="submit-button">
         {loading ? (
           <>
             <span className="spinner"></span>

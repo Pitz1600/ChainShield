@@ -5,6 +5,7 @@ ChainShield enforces a multi-layered authentication strategy to prevent unauthor
 
 ### Anti-Enumeration Measures
 - **Generic Login Errors:** All failed authentication attempts return the same generic "Invalid credentials" message to prevent user/email harvesting.
+- **Bot Protection:** Login (including the second TOTP request) and registration require server-verified Cloudflare Turnstile tokens before validation or controller work. Verification fails closed on provider outages, enforces action and hostname, strips tokens from request bodies, and records `captcha_failed` audit events. Production refuses startup with disabled CAPTCHA, missing configuration, or test secrets. See [CAPTCHA setup](CAPTCHA_SETUP.md).
 - **Artificial Delay:** All authentication routes (`/login`, `/register`, etc.) incorporate an artificial response delay of **500-900ms** to mitigate timing attacks.
 - **Account Lockout:** Accounts are temporarily locked for **15 minutes** after **5 consecutive failed attempts**.
 

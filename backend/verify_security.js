@@ -1,3 +1,5 @@
+// Run the local backend with CAPTCHA_ENABLED=false (never in production),
+// or supply a fresh route-specific CAPTCHA_TOKEN for this script.
 const axios = require('axios');
 const https = require('https');
 
@@ -65,6 +67,7 @@ async function runTests() {
         };
 
         const loginRes = await client.post('/auth/login', {
+      captchaToken: process.env.CAPTCHA_TOKEN,
             email: ADMIN_EMAIL,
             password: ADMIN_PASSWORD
         }, { headers: loginHeaders });

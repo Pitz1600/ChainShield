@@ -84,6 +84,7 @@ ChainShield empowers barangays to modernize their operations and audit processes
 | File Encryption | ❌ | Upload files are stored as plaintext on disk |
 | Audit Logging | ✅ | All actions logged with IP, user agent, timestamp |
 | HTTPS / TLS | ✅ | Enforced in production via Nginx/reverse proxy |
+| Bot Protection | ✅ | Server-verified Turnstile on login (including TOTP) and registration; production requires CAPTCHA |
 | Container Security | ✅ | Non-root Docker user (nodeuser, UID 1001) |
 | CI Security Audit | ✅ | GitHub Actions `npm audit` on every push |
 
@@ -123,3 +124,5 @@ Research Prototype - Academic Use Only
 ---
 
 **ChainShield** - Modernizing Barangay Governance with Technology 🇵🇭
+
+CAPTCHA deployment, development configuration, proxy trust, and manual QA are documented in [docs/CAPTCHA_SETUP.md](docs/CAPTCHA_SETUP.md).

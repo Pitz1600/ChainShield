@@ -66,7 +66,7 @@ const auditLogMiddleware = (req, res, next) => {
         try {
             // Only log successful requests or specific failures if needed. 
             // For now, let's log everything that isn't a 404
-            if (res.statusCode === 404) return;
+            if (res.statusCode === 404 || req.captchaFailed) return;
 
             const readableAction = getReadableAction(req.method, req.originalUrl);
 

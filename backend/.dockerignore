@@ -1,0 +1,7 @@
+node_modules
+.npm-cache
+.env
+.env.*
+!.env.example
+uploads
+.aider*

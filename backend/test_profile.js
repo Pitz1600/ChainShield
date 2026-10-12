@@ -1,3 +1,5 @@
+// Run the local backend with CAPTCHA_ENABLED=false (never in production),
+// or supply a fresh route-specific CAPTCHA_TOKEN for this script.
 const axios = require('axios');
 require('dotenv').config({ path: '../.env' });
 
@@ -10,6 +12,7 @@ async function testProfile() {
 
     // 1. Login
     const loginRes = await api.post('/auth/login', {
+      captchaToken: process.env.CAPTCHA_TOKEN,
       email: 'auditor@example.com',
       password: 'password123'
     });

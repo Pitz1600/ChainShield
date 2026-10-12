@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Shield, User, Mail, Lock, AlertCircle, Building, Calendar, FileText, ShieldCheck } from 'lucide-react';
+import CaptchaWidget from './CaptchaWidget';
 import '../../styles/Register.css';
 import api from '../../services/api';
 
@@ -17,6 +18,9 @@ function Register({ onRegister, onNavigate }) {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState('');
+  const captchaRef = useRef(null);
+  const captchaEnabled = import.meta.env.VITE_CAPTCHA_ENABLED === 'true';
   const [step, setStep] = useState(1);
 
   const handleSubmit = async (e) => {
@@ -60,6 +64,7 @@ function Register({ onRegister, onNavigate }) {
         return;
       }
 
+      if (captchaEnabled && !captchaToken) { setError('Please complete the security check.'); return; }
       setLoading(true);
       try {
         const res = await api.post('/auth/register', {
@@ -68,6 +73,7 @@ function Register({ onRegister, onNavigate }) {
           birthday: formData.birthday || null,
           email: formData.email,
           password: formData.password,
+          captchaToken,
           role: 'resident'
         });
 
@@ -76,6 +82,9 @@ function Register({ onRegister, onNavigate }) {
 
       } catch (err) {
         setError(err.response?.data?.error || 'Registration failed. Please try again.');
+      } finally {
+        captchaRef.current?.reset();
+        setCaptchaToken('');
         setLoading(false);
       }
     }
@@ -255,7 +264,8 @@ function Register({ onRegister, onNavigate }) {
               </>
             )}
 
-            <button type="submit" disabled={loading} className="submit-button">
+            {step === 2 && <CaptchaWidget ref={captchaRef} action="register" onToken={setCaptchaToken} />}
+            <button type="submit" disabled={loading || (step === 2 && captchaEnabled && !captchaToken)} className="submit-button">
               {loading ? (
                 <>
                   <span className="spinner"></span>

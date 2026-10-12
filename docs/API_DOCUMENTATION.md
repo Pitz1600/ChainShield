@@ -35,7 +35,7 @@ Response: { "csrfToken": "..." }
 ```
 POST /auth/register
 Rate Limit: 10/hour
-Body: { firstName, lastName, email, password, role, birthday?, position? }
+Body: { firstName, lastName, email, password, role, birthday?, position?, captchaToken }
 Response 201: { token, user: { id, firstName, lastName, email, role, isVerified } }
 ```
 
@@ -46,11 +46,21 @@ Response 201: { token, user: { id, firstName, lastName, email, role, isVerified 
 ```
 POST /auth/login
 Rate Limit: 5/15min (OWASP recommendation, Redis-backed)
-Body: { email, password, totpCode? }
+Body: { email, password, totpCode?, captchaToken }
 Response 200 (full session): { token, user: {...} }
 Response 200 (TOTP required): { totpRequired: true, userId }
 Response 200 (new device): { otpRequired: true, userId }
 ```
+
+When CAPTCHA is enabled, login and registration require a fresh Turnstile token with
+`action: login` or `action: register`, respectively, and the configured frontend hostname.
+The second login request containing `totpCode` also requires a fresh token.
+Missing, expired, reused, mismatched, or unverifiable tokens return:
+```json
+{ "error": "Captcha verification failed. Please try again.", "code": "CAPTCHA_FAILED" }
+```
+HTTP status is `400`. Reset the widget after every attempted request, including other errors.
+OTP and authenticated MFA verification do not require CAPTCHA.
 
 ### Verify Login OTP
 ```

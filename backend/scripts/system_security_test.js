@@ -26,7 +26,7 @@ const sendJson = async (method, url, token, data, csrf) => {
   const t0 = now();
   try {
     const res = await axios({ method, url, data, headers, validateStatus: () => true });
-    return { status: res.status, ms: now() - t0 };
+    return { status: res.status, ms: now() - t0, code: res.data?.code };
   } catch (err) {
     return { status: 0, ms: now() - t0, error: err.message };
   }
@@ -82,7 +82,7 @@ const sendMultipart = async (url, token, csrf, filename, content) => {
   const t0 = now();
   try {
     const res = await axios.post(url, body, { headers, validateStatus: () => true });
-    return { status: res.status, ms: now() - t0 };
+    return { status: res.status, ms: now() - t0, code: res.data?.code };
   } catch (err) {
     return { status: 0, ms: now() - t0, error: err.message };
   }
@@ -108,6 +108,18 @@ async function main() {
 
   const csrf = await getCsrf();
   const results = [];
+
+  // Set CAPTCHA_ENABLED=true here and on the running backend for these checks.
+  if (process.env.CAPTCHA_ENABLED === 'true') {
+    for (const route of ['login', 'register']) {
+      const actual = await sendJson('POST', `${API_BASE}/auth/${route}`, null, {
+        email: 'captcha-probe@example.com', password: 'InvalidPassword123!', totpCode: '000000'
+      });
+      results.push({ test: `CAPTCHA ${route}`, steps: 'Submit without captchaToken',
+        expected: '400 CAPTCHA_FAILED', actual, notes: 'Must reject before controller' });
+      if (actual.status !== 400 || actual.code !== 'CAPTCHA_FAILED') process.exitCode = 1;
+    }
+  }
 
   // 1. Authentication Bypass
   results.push({
@@ -214,6 +226,7 @@ async function main() {
     const extra = r.actual?.extra ? ` ${r.actual.extra}` : '';
     const actualText = `status=${status}, ${ms}ms${extra}`;
     const pass = (() => {
+      if (r.test.startsWith('CAPTCHA ')) return status === 400 && r.actual.code === 'CAPTCHA_FAILED' ? 'Pass' : 'Fail';
       if (r.test === 'Authentication Bypass') return status === 401 ? 'Pass' : 'Fail';
       if (r.test === 'Authorization Escalation') return status === 403 ? 'Pass' : 'Fail';
       if (r.test === 'File Upload Attack') return status === 400 || status === 415 ? 'Pass' : 'Fail';

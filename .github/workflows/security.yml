@@ -25,6 +25,10 @@ jobs:
         working-directory: backend
         run: npm ci
 
+      - name: Run CAPTCHA tests
+        working-directory: backend
+        run: npm test
+
       - name: Run npm audit (fail on high/critical)
         working-directory: backend
         run: npm audit --audit-level=high

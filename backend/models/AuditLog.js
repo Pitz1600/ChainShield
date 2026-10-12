@@ -27,6 +27,7 @@ const auditLogSchema = new mongoose.Schema({
             'user_verified',
             'user_logout',
             'login_failed',
+            'captcha_failed',
             // 2FA Actions
             'totp_setup',
             'totp_disabled',

@@ -14,9 +14,14 @@ const { scheduleSecurityReviews } = require('./tasks/securityTasks');
 
 // Load environment variables
 dotenv.config();
+require('./middleware/captcha').validateCaptchaConfig();
 
 // Initialize Express app
 const app = express();
+// Direct connections default to zero. Configure the actual trusted proxy hop count.
+const proxyHops = Number(process.env.TRUST_PROXY_HOPS || 0);
+if (!Number.isInteger(proxyHops) || proxyHops < 0) throw new Error('TRUST_PROXY_HOPS must be a non-negative integer');
+app.set('trust proxy', proxyHops);
 
 // Create uploads directory if it doesn't exist
 const uploadsDir = path.join(__dirname, 'uploads');

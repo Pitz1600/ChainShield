@@ -27,6 +27,10 @@ services:
       SMTP_PASS: ${SMTP_PASS}
       EMAIL_FROM: ${EMAIL_FROM}
       EMAIL_FROM_NAME: ${EMAIL_FROM_NAME}
+      CAPTCHA_ENABLED: ${CAPTCHA_ENABLED:-false}
+      TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY}
+      TURNSTILE_EXPECTED_HOSTNAME: ${TURNSTILE_EXPECTED_HOSTNAME}
+      TRUST_PROXY_HOPS: ${TRUST_PROXY_HOPS:-0}
       AKISMET_ENABLED: ${AKISMET_ENABLED}
       AKISMET_API_KEY: ${AKISMET_API_KEY}
       AKISMET_BLOG: ${AKISMET_BLOG}
@@ -129,6 +133,8 @@ services:
       - "5173:5173"
     environment:
       - VITE_API_URL=/api
+      - VITE_CAPTCHA_ENABLED=${CAPTCHA_ENABLED:-false}
+      - VITE_TURNSTILE_SITE_KEY=${VITE_TURNSTILE_SITE_KEY}
     volumes:
       - ./frontend:/app
       - frontend_node_modules:/app/node_modules

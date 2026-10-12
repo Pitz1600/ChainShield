@@ -16,20 +16,15 @@ const {
 } = require('../middleware/validators');
 const { csrfProtection, issueCsrfToken } = require('../middleware/csrfMiddleware');
 
-// TEMP FIX
-router.get('/hack-reset', async (req, res) => {
-  const User = require('../models/User');
-  await User.updateMany({}, { $set: { mustChangePassword: false, mustSetup2FA: false, isVerified: true } });
-  res.json({ success: true });
-});
+const { verifyCaptcha } = require('../middleware/captcha');
 
 const { uploadProfile } = require('../middleware/upload');
 
 // ==========================================
 // PUBLIC ROUTES (rate-limited)
 // ==========================================
-router.post('/register', registrationLimiter, validateRegistration, authController.register);
-router.post('/login', loginLimiter, validateLogin, authController.login);
+router.post('/register', registrationLimiter, verifyCaptcha('register'), validateRegistration, authController.register);
+router.post('/login', loginLimiter, verifyCaptcha('login'), validateLogin, authController.login);
 router.post('/verify-login-otp', loginLimiter, validateOTP, authController.verifyLoginOtp);
 router.post('/verify-mfa', authMiddleware, otpVerificationLimiter, validateTOTP, authController.verifyMfa);
 router.post('/resend-login-otp', authMiddleware, otpResendLimiter, authController.resendLoginOtp);

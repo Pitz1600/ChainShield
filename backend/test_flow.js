@@ -1,9 +1,11 @@
+// Run the local backend with CAPTCHA_ENABLED=false (never in production),
+// or supply a fresh route-specific CAPTCHA_TOKEN for this script.
 const axios = require('axios');
 
 async function testFlow() {
   const api = axios.create({ baseURL: 'http://localhost:5000/api' });
   
-  const loginRes = await api.post('/auth/login', { email: 'auditor@example.com', password: 'password123' });
+  const loginRes = await api.post('/auth/login', { captchaToken: process.env.CAPTCHA_TOKEN, email: 'auditor@example.com', password: 'password123' });
   console.log('Login Response:', loginRes.data);
   const cookies = loginRes.headers['set-cookie'];
   
