@@ -148,6 +148,7 @@ const strictLimiter = rateLimit({
 });
 
 module.exports = {
+    makeStore,
     loginLimiter,
     otpVerificationLimiter,
     otpResendLimiter,

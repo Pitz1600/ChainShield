@@ -1,3 +1,4 @@
+import TextField from '../Forms/TextField';
 import React, { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, RefreshCw, Eye, Clock, X } from 'lucide-react';
 import api from '../../services/api';
@@ -67,11 +68,11 @@ function AuditLogViewer() {
 
     const getActionIcon = (action) => {
         switch (action) {
-            case 'analyst_rate_limited': return <Clock size={16} />;
-            case 'model_retrained': return <RefreshCw size={16} />;
+            case 'analyst_rate_limited': return ;
+            case 'model_retrained': return ;
             case 'suspicious_login':
-            case 'login_failed': return <AlertTriangle size={16} />;
-            default: return <Eye size={16} />;
+            case 'login_failed': return ;
+            default: return ;
         }
     };
 
@@ -131,9 +132,7 @@ function AuditLogViewer() {
 
                 <div className="hero-stats-row">
                     <div className="hero-stat-card">
-                        <div className="hero-stat-icon" style={{ background: 'rgba(239, 68, 68, 0.2)' }}>
-                            <AlertTriangle size={28} color="#ef4444" />
-                        </div>
+
                         <div className="hero-stat-info">
                             <div className="hero-stat-value">{summary.suspiciousLast7Days || 0}</div>
                             <div className="hero-stat-label">SUSPICIOUS (7D)</div>
@@ -141,9 +140,7 @@ function AuditLogViewer() {
                     </div>
 
                     <div className="hero-stat-card">
-                        <div className="hero-stat-icon" style={{ background: 'rgba(16, 185, 129, 0.2)' }}>
-                            <Eye size={28} color="#10b981" />
-                        </div>
+
                         <div className="hero-stat-info">
                             <div className="hero-stat-value">{summary.onlineCount || 0}</div>
                             <div className="hero-stat-label">ONLINE USERS</div>
@@ -151,9 +148,7 @@ function AuditLogViewer() {
                     </div>
 
                     <div className="hero-stat-card">
-                        <div className="hero-stat-icon" style={{ background: 'rgba(59, 130, 246, 0.2)' }}>
-                            <Clock size={28} color="#3b82f6" />
-                        </div>
+
                         <div className="hero-stat-info">
                             <div className="hero-stat-value">{pagination.total || 0}</div>
                             <div className="hero-stat-label">TOTAL LOGS</div>
@@ -165,7 +160,7 @@ function AuditLogViewer() {
             <div className="filters-section">
                 <div className="filter-group">
                     <label>Action Type:</label>
-                    <select
+                    <TextField field="action" as="select"
                         value={filters.action}
                         onChange={(e) => setFilters({ ...filters, action: e.target.value, page: 1 })}
                     >
@@ -173,12 +168,12 @@ function AuditLogViewer() {
                         {actionOptions.map((opt) => (
                             <option key={opt.value} value={opt.value}>{opt.label}</option>
                         ))}
-                    </select>
+                    </TextField>
                 </div>
 
                 <div className="filter-group">
                     <label>Time Range:</label>
-                    <select
+                    <TextField field="days" as="select"
                         value={filters.days}
                         onChange={(e) => setFilters({ ...filters, days: parseInt(e.target.value, 10), page: 1 })}
                     >
@@ -186,7 +181,7 @@ function AuditLogViewer() {
                         <option value="7">Last 7 Days</option>
                         <option value="30">Last 30 Days</option>
                         <option value="90">Last 90 Days</option>
-                    </select>
+                    </TextField>
                 </div>
 
                 <div className="filter-group" style={{ flexDirection: 'row', alignItems: 'center' }}>

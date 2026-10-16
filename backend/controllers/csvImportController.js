@@ -162,6 +162,7 @@ exports.importTransactions = async (req, res) => {
             transactionId: r.transactionId,
             txHash: r.txHash,
             amount: mappedTxs[idx]?.amount,
+            currency: mappedTxs[idx]?.currency || 'PHP',
             transactionType: mappedTxs[idx]?.transactionType,
             fromAddress: r.fromAddress || mappedTxs[idx]?.fromAddress,
             toAddress: r.toAddress || mappedTxs[idx]?.toAddress,

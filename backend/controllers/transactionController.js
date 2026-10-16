@@ -249,7 +249,7 @@ exports.getMyTransactions = async (req, res) => {
         .sort({ [sortField]: sortDir })
         .limit(limitNum)
         .skip((pageNum - 1) * limitNum)
-        .select('transactionId transactionType amount status timestamp blockchainTxId blockNumber riskScore zScore riskLevel flagged velocityFlag receiverPatternFlag amountSpikeFlag mlUsed mlScore verificationStatus verifiedBy fromAddress toAddress description fraudPatterns reasons metadata networkFeatures agency programName lineItems staged currency beneficiaryType approvedBudget remainingBudget budget isArchived archivedAt archivedBy'),
+        .select('transactionId transactionType amount status timestamp blockchainTxId blockNumber riskScore zScore riskLevel flagged velocityFlag receiverPatternFlag amountSpikeFlag mlUsed mlScore verificationStatus verifiedBy verifiedAt fromAddress toAddress description fraudPatterns reasons metadata networkFeatures agency programName lineItems staged currency beneficiaryType approvedBudget remainingBudget budget isArchived archivedAt archivedBy'),
       Transaction.countDocuments(query)
     ]);
 
@@ -259,6 +259,7 @@ exports.getMyTransactions = async (req, res) => {
       transactionId: txn.transactionId,
       type: txn.transactionType,
       amount: txn.amount,
+      currency: txn.currency || 'PHP',
       status: txn.status || 'completed',
       date: txn.timestamp,
       blockchainHash: txn.blockchainTxId,
@@ -274,6 +275,7 @@ exports.getMyTransactions = async (req, res) => {
       mlScore: txn.mlScore,
       verificationStatus: txn.verificationStatus,
       verifiedBy: txn.verifiedBy,
+      verifiedAt: txn.verifiedAt || null,
       fromAddress: txn.fromAddress,
       toAddress: txn.toAddress,
       description: txn.description,
@@ -361,8 +363,10 @@ exports.updateVerificationStatus = async (req, res) => {
 
     if (transaction.verificationStatus === 'Pending') {
       transaction.verifiedBy = undefined; // cleared on undo
+      transaction.verifiedAt = undefined;
     } else {
       transaction.verifiedBy = verifierName;
+      transaction.verifiedAt = new Date();
     }
 
     // Atomically attach remark if provided with status update
@@ -397,6 +401,7 @@ exports.updateVerificationStatus = async (req, res) => {
         _id: transaction._id,
         verificationStatus: transaction.verificationStatus,
         verifiedBy: transaction.verifiedBy,
+        verifiedAt: transaction.verifiedAt || null,
         blockchainTxId: transaction.blockchainTxId,
         blockNumber: transaction.blockNumber,
         remarks: transaction.remarks
@@ -418,7 +423,7 @@ exports.deleteTransaction = async (req, res) => {
         : { transactionId: id }
     );
     if (!tx) return res.status(404).json({ error: 'Transaction not found' });
-    
+
     tx.isArchived = true;
     tx.archivedAt = new Date();
     tx.archivedBy = req.user?.firstName
@@ -489,7 +494,8 @@ exports.approveTransaction = async (req, res) => {
     if (!tx) return res.status(404).json({ error: 'Transaction not found' });
 
     tx.verificationStatus = 'Verified';
-    tx.verifiedBy = req.user?.name || req.user?.fullName || req.user?.email || req.user?.role || 'Official';
+    tx.verifiedBy = req.user?.firstName ? `${req.user.firstName} ${req.user.lastName || ''}`.trim() : (req.user?.name || req.user?.fullName || req.user?.email || req.user?.role || 'Official');
+    tx.verifiedAt = new Date();
     tx.staged = false;
 
     if (tx.flagged && !tx.blockchainTxId) {
@@ -512,6 +518,7 @@ exports.approveTransaction = async (req, res) => {
         _id: tx._id,
         verificationStatus: tx.verificationStatus,
         verifiedBy: tx.verifiedBy,
+        verifiedAt: tx.verifiedAt || null,
         blockchainTxId: tx.blockchainTxId,
         blockNumber: tx.blockNumber
       }
@@ -570,6 +577,7 @@ exports.batchAction = async (req, res) => {
         } else if (action === 'approve') {
           tx.verificationStatus = 'Verified';
           tx.verifiedBy = verifierName;
+          tx.verifiedAt = new Date();
           tx.staged = false;
           if (tx.flagged && !tx.blockchainTxId) {
             try {
@@ -584,6 +592,7 @@ exports.batchAction = async (req, res) => {
           tx.verificationStatus = 'Flagged';
           tx.flagged = true;
           tx.verifiedBy = verifierName;
+          tx.verifiedAt = new Date();
           await tx.save();
           results.success.push({ id, action: 'flagged' });
         } else if (action === 'remark') {

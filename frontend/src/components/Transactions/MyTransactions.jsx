@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import VerificationHistory from './VerificationHistory';
+import TransactionReference from './TransactionReference';
+import { clampPage } from '../../utils/fieldValidation';
+import useFieldErrors from '../../utils/useFieldErrors';
+import { apiFieldErrors } from '../../utils/fieldValidation';
+import TextField from '../Forms/TextField';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   AlertTriangle, CheckCircle, Clock, FileText,
@@ -9,7 +15,7 @@ import {
 import api from '../../services/api';
 import FeedbackModal from '../Feedbacks/FeedbackModal';
 import useLockBodyScroll from '../../utils/useLockBodyScroll';
-import { formatAddressLabel } from '../../utils/helpers';
+import { formatAddressLabel, formatCurrency } from '../../utils/helpers';
 import '../../styles/MyTransactions.css';
 import '../../styles/ColorfulIcons.css';
 import AuditorWorkspace from './AuditorWorkspace';
@@ -61,13 +67,6 @@ const classifyReason = (reason) => {
   }
   return { label: 'Signal', text: raw };
 };
-const shouldShowInBulletin = (reason) => {
-  const lower = String(reason || '').trim().toLowerCase();
-  if (lower.startsWith('ai summary:') || lower.startsWith('summary:')) return false;
-  if (lower.startsWith('ml hybrid assessment')) return false;
-  return true;
-};
-
 /* ------------------------------------------------------------------ */
 /*  SVG Risk Gauge Component                                           */
 /* ------------------------------------------------------------------ */
@@ -110,11 +109,10 @@ function FormulaBreakdown({ tx }) {
   const zScore = ((riskScore - mean) / stddev).toFixed(2);
   const threshold = 1.5;
   const isSuspicious = Math.abs(parseFloat(zScore)) > threshold;
-  const mlReasons = getMlReasons(tx);
 
   return (
     <div className="formula-card">
-      <h4 className="formula-title"><Info size={14} style={{ display: 'inline', marginRight: 6 }} />Anomaly Analysis</h4>
+      <h4 className="formula-title">Anomaly Analysis</h4>
       <div className="formula-body">
         <div className="formula-row">
           <span className="formula-label">Formula</span>
@@ -155,37 +153,8 @@ function FormulaBreakdown({ tx }) {
 /* ------------------------------------------------------------------ */
 /*  Status Badge                                                         */
 /* ------------------------------------------------------------------ */
-const getStatusBadge = (status, isArchived = false) => {
-  if (isArchived) {
-    return (
-      <span style={{
-        padding: '0.25rem 0.75rem', borderRadius: '9999px', fontSize: '0.75rem',
-        fontWeight: '600', backgroundColor: '#f1f5f9', color: '#64748b'
-      }}>Archived</span>
-    );
-  }
-  const map = {
-    Verified: { color: '#10b981', bg: '#d1fae5', label: 'Verified' },
-    Flagged: { color: '#f97316', bg: '#ffedd5', label: 'Flagged' },
-    Pending: { color: '#f59e0b', bg: '#fef3c7', label: 'Pending' },
-    Rejected: { color: '#ef4444', bg: '#fee2e2', label: 'Rejected' },
-    Suspicious: { color: '#ea580c', bg: '#ffedd5', label: 'Suspicious' },
-    Clean: { color: '#0ea5e9', bg: '#e0f2fe', label: 'Clean' },
-    Archived: { color: '#64748b', bg: '#f1f5f9', label: 'Archived' }
-  };
-  const config = map[status] || map.Pending;
-  return (
-    <span style={{
-      padding: '0.25rem 0.75rem', borderRadius: '9999px', fontSize: '0.75rem',
-      fontWeight: '600', backgroundColor: config.bg, color: config.color
-    }}>{config.label}</span>
-  );
-};
-
-/* ================================================================== */
-/*  Main Component                                                       */
-/* ================================================================== */
-function MyTransactions({ user, embedded = false }) {
+function MyTransactions({ user, embedded = false, refreshKey = 0 }) {
+  const [fieldErrors, setFieldErrors] = useFieldErrors();
   const [searchParams] = useSearchParams();
   const initialSearch = searchParams.get('search') || '';
   const [transactions, setTransactions] = useState([]);
@@ -272,18 +241,12 @@ function MyTransactions({ user, embedded = false }) {
     return () => clearTimeout(t);
   }, [searchInput]);
 
-  /* ---- Fetch ---- */
-  useEffect(() => { fetchMyTransactions(); }, [filters, sortBy, sortOrder, currentPage]);
-
-  useEffect(() => {
-    const handler = (e) => { if (e.key === 'tx_refresh') fetchMyTransactions(); };
-    window.addEventListener('storage', handler);
-    return () => window.removeEventListener('storage', handler);
-  }, []);
-
-  const fetchMyTransactions = async () => {
+  const fetchRequestId = useRef(0);
+  const fetchMyTransactions = useCallback(async () => {
+    const requestId = ++fetchRequestId.current;
     try {
       setLoading(true);
+      setError('');
       const params = {
         limit: 5000,
         sortBy,
@@ -295,13 +258,24 @@ function MyTransactions({ user, embedded = false }) {
         ...(filters.dateTo && { dateTo: filters.dateTo }),
       };
       const res = await api.get('/transactions/my-transactions', { params });
-      setTransactions(res.data.transactions || []);
-      setSelected(new Set());
+      if (requestId !== fetchRequestId.current) return;
+      const records = res.data.transactions || [];
+      setTransactions(records);
+      setSelected(previous => new Set([...previous].filter(id => records.some(record => record._id === id))));
     } catch (err) {
+      if (requestId !== fetchRequestId.current) return;
+      setFieldErrors(apiFieldErrors(err));
       if (err.response?.status === 404) setTransactions([]);
       else { console.error(err); setError('Failed to load transactions.'); }
-    } finally { setLoading(false); }
-  };
+    } finally { if (requestId === fetchRequestId.current) setLoading(false); }
+  }, [filters, sortBy, sortOrder, isAdminOrAuditor, setFieldErrors]);
+
+  useEffect(() => { fetchMyTransactions(); }, [fetchMyTransactions, refreshKey]);
+  useEffect(() => {
+    const handler = event => { if (event.key === 'tx_refresh') fetchMyTransactions(); };
+    window.addEventListener('storage', handler);
+    return () => window.removeEventListener('storage', handler);
+  }, [fetchMyTransactions]);
 
   /* ---- Open modal (fetch full details) ---- */
   const openModal = async (txSummary) => {
@@ -312,6 +286,7 @@ function MyTransactions({ user, embedded = false }) {
       const res = await api.get(`/transactions/${txSummary._id}`);
       setSelectedTx(res.data);
     } catch (e) {
+      setFieldErrors(apiFieldErrors(e));
       console.warn('Could not fetch full details, using summary:', e.message);
     } finally { setModalLoading(false); }
   };
@@ -335,6 +310,7 @@ function MyTransactions({ user, embedded = false }) {
         showToast(`Transaction marked as ${updated.verificationStatus}.`);
       }
     } catch (err) {
+      setFieldErrors(apiFieldErrors(err));
       console.error(err);
       showToast('Failed to update transaction.', 'error');
     } finally {
@@ -353,6 +329,7 @@ function MyTransactions({ user, embedded = false }) {
       setTabRemarkInput('');
       showToast('Official remark added successfully.');
     } catch (err) {
+      setFieldErrors(apiFieldErrors(err));
       console.error(err);
       showToast('Failed to add remark.', 'error');
     } finally {
@@ -373,6 +350,7 @@ function MyTransactions({ user, embedded = false }) {
       setSelected(new Set());
       showToast(`Batch auditor remark added to ${results.success.length} transactions.`);
     } catch (err) {
+      setFieldErrors(apiFieldErrors(err));
       console.error(err);
       showToast('Failed to add batch remark.', 'error');
     } finally {
@@ -389,6 +367,7 @@ function MyTransactions({ user, embedded = false }) {
       setSelectedTx(null);
       showToast('Transaction archived successfully.');
     } catch (err) {
+      setFieldErrors(apiFieldErrors(err));
       console.error(err);
       showToast('Failed to archive transaction.', 'error');
     } finally {
@@ -405,6 +384,7 @@ function MyTransactions({ user, embedded = false }) {
       setSelectedTx(null);
       showToast('Transaction restored from archive.');
     } catch (err) {
+      setFieldErrors(apiFieldErrors(err));
       console.error(err);
       showToast('Failed to restore transaction.', 'error');
     } finally {
@@ -429,6 +409,7 @@ function MyTransactions({ user, embedded = false }) {
       if (results.failed.length) msg += ` ${results.failed.length} failed.`;
       showToast(msg);
     } catch (err) {
+      setFieldErrors(apiFieldErrors(err));
       console.error(err); showToast(`Batch ${action} failed.`, 'error');
     } finally {
       setActionLoading(false);
@@ -487,8 +468,10 @@ function MyTransactions({ user, embedded = false }) {
   };
 
   const filteredTransactions = filterByStatus(transactions);
-  const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage);
-  const indexOfLastItem = currentPage * itemsPerPage;
+  const totalPages = Math.max(1, Math.ceil(filteredTransactions.length / itemsPerPage));
+  const visiblePage = clampPage(currentPage, filteredTransactions.length, itemsPerPage);
+  useEffect(() => { setCurrentPage(page => clampPage(page, filteredTransactions.length, itemsPerPage)); }, [filteredTransactions.length]);
+  const indexOfLastItem = visiblePage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentTransactions = filteredTransactions.slice(indexOfFirstItem, indexOfLastItem);
   const pendingCount = transactions.filter(t =>
@@ -511,8 +494,8 @@ function MyTransactions({ user, embedded = false }) {
 
       {/* Toast */}
       {actionMessage.text && (
-        <div className={`toast ${actionMessage.type}`}>
-          {actionMessage.type === 'error' ? <AlertTriangle size={16} /> : <CheckCircle size={16} />}
+        <div role="status" className={`toast ${actionMessage.type}`}>
+
           {actionMessage.text}
         </div>
       )}
@@ -529,21 +512,21 @@ function MyTransactions({ user, embedded = false }) {
           </div>
           <div className="hero-stats">
             <div className="stat-card">
-              <div className="stat-icon"><FileText size={24} color="#3b82f6" /></div>
+
               <div className="stat-info">
                 <div className="stat-value">{transactions.length}</div>
                 <div className="stat-label">Total</div>
               </div>
             </div>
             <div className="stat-card">
-              <div className="stat-icon"><CheckCircle size={24} color="#10b981" /></div>
+
               <div className="stat-info">
                 <div className="stat-value">{transactions.filter(t => t.verificationStatus === 'Verified').length}</div>
                 <div className="stat-label">Approved</div>
               </div>
             </div>
             <div className="stat-card">
-              <div className="stat-icon"><Clock size={24} color="#f59e0b" /></div>
+
               <div className="stat-info">
                 <div className="stat-value">{pendingCount}</div>
                 <div className="stat-label">Pending</div>
@@ -557,9 +540,9 @@ function MyTransactions({ user, embedded = false }) {
       <form className="filters-section" onSubmit={e => e.preventDefault()}>
         <div className="filter-group" style={{ flex: 2 }}>
           <label>Search Transactions</label>
-          <input
+          <TextField error={fieldErrors["search"]} onEdit={() => setFieldErrors({})} field="search"
             type="text"
-            placeholder="Search ID, Payer, Payee, Description..."
+            placeholder="Search payer, payee, description, or reference…"
             value={searchInput}
             onChange={e => setSearchInput(e.target.value)}
             style={{ flex: 1, borderRadius: 6 }}
@@ -567,21 +550,21 @@ function MyTransactions({ user, embedded = false }) {
         </div>
         <div className="filter-group">
           <label>From Date</label>
-          <input type="date" value={filters.dateFrom} onChange={e => { setFilters(p => ({ ...p, dateFrom: e.target.value })); setCurrentPage(1); }} />
+          <TextField error={fieldErrors["dateFrom"]} onEdit={() => setFieldErrors({})} field="dateFrom" type="date" value={filters.dateFrom} onChange={e => { setFilters(p => ({ ...p, dateFrom: e.target.value })); setCurrentPage(1); }} />
         </div>
         <div className="filter-group">
           <label>To Date</label>
-          <input type="date" value={filters.dateTo} onChange={e => { setFilters(p => ({ ...p, dateTo: e.target.value })); setCurrentPage(1); }} />
+          <TextField error={fieldErrors["dateTo"]} onEdit={() => setFieldErrors({})} field="dateTo" type="date" value={filters.dateTo} onChange={e => { setFilters(p => ({ ...p, dateTo: e.target.value })); setCurrentPage(1); }} />
         </div>
         {/* Sort */}
         <div className="filter-group">
           <label>Sort By</label>
           <div style={{ display: 'flex', gap: 6 }}>
-            <select value={sortBy} onChange={e => { setSortBy(e.target.value); setCurrentPage(1); }} style={{ flex: 1, padding: '0.5rem', borderRadius: 6, border: '1px solid #d1d5db', fontSize: '0.875rem' }}>
+            <TextField error={fieldErrors["sortBy"]} onEdit={() => setFieldErrors({})} field="sortBy" as="select" value={sortBy} onChange={e => { setSortBy(e.target.value); setCurrentPage(1); }} style={{ flex: 1, padding: '0.5rem', borderRadius: 6, border: '1px solid #d1d5db', fontSize: '0.875rem' }}>
               <option value="timestamp">Date</option>
               <option value="riskScore">Risk Score</option>
               <option value="status">Status</option>
-            </select>
+            </TextField>
             <button type="button" onClick={() => setSortOrder(p => p === 'desc' ? 'asc' : 'desc')}
               style={{ padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: 6, background: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
               title={sortOrder === 'desc' ? 'Descending' : 'Ascending'}>
@@ -596,26 +579,6 @@ function MyTransactions({ user, embedded = false }) {
             Clear
           </button>
         </div>
-      </form>
-
-      {error && (
-        <div className="error-banner"><AlertTriangle size={16} /> {error}</div>
-      )}
-
-      {transactions.length === 0 ? (
-        <div className="empty-state">
-          <div className="empty-icon"><FileText size={48} color="#94a3b8" /></div>
-          <h3>No Transactions Found</h3>
-          <p>No transactions match your filters.</p>
-        </div>
-      ) : (
-        <>
-          {pendingCount > 0 && (
-            <div className="pending-banner">
-              <strong>{pendingCount}</strong> transactions awaiting review.
-            </div>
-          )}
-
           {/* Toolbar */}
           <div className="transactions-toolbar">
             {/* Status filter chips */}
@@ -640,7 +603,7 @@ function MyTransactions({ user, embedded = false }) {
             {availablePrograms.length > 0 && (
               <div className="filter-group program-category-filter">
                 <label htmlFor="transaction-program-category">Program Category</label>
-                <select
+                <TextField error={fieldErrors["activeProgramFilter"]} onEdit={() => setFieldErrors({})} field="activeProgramFilter" as="select"
                   id="transaction-program-category"
                   value={activeProgramFilter}
                   onChange={e => { setProgramFilter(e.target.value); setCurrentPage(1); }}
@@ -649,10 +612,31 @@ function MyTransactions({ user, embedded = false }) {
                   {availablePrograms.map((program) => (
                     <option key={program} value={program}>{program}</option>
                   ))}
-                </select>
+                </TextField>
               </div>
             )}
           </div>
+
+        <button type="button" className="table-refresh" disabled={loading} onClick={fetchMyTransactions}>{loading ? 'Refreshing…' : 'Refresh table'}</button>
+      </form>
+
+      {error && (
+        <div className="error-banner"> {error}</div>
+      )}
+
+      {transactions.length === 0 ? (
+        <div className="empty-state">
+
+          <h3>No Transactions Found</h3>
+          <p>No transactions match your filters.</p>
+        </div>
+      ) : (
+        <>
+          {pendingCount > 0 && (
+            <div className="pending-banner">
+              <strong>{pendingCount}</strong> transactions awaiting review.
+            </div>
+          )}
 
           {/* Batch action bar */}
           {isAdminOrAuditor && (
@@ -696,7 +680,7 @@ function MyTransactions({ user, embedded = false }) {
                         style={{ width: 16, height: 16 }} />
                     </th>
                   )}
-                  <th>ID</th>
+
                   <th>Date</th>
                   <th>Amount</th>
                   <th>Description</th>
@@ -726,10 +710,10 @@ function MyTransactions({ user, embedded = false }) {
                             onChange={() => toggleSelect(t._id)} style={{ width: 16, height: 16 }} />
                         </td>
                       )}
-                      <td className="font-mono" style={{ fontWeight: 500 }}>{t.transactionId || t._id}</td>
+
                       <td>{new Date(t.date || t.timestamp || t.createdAt).toLocaleDateString()}</td>
-                      <td className="font-bold">PHP {Number(t.amount || 0).toLocaleString()}</td>
-                      <td style={{ maxWidth: 200, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <td className="font-bold">{formatCurrency(t.amount || 0, t.currency)}</td>
+                      <td title={t.description || t.transactionType || 'N/A'} style={{ maxWidth: 200, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {t.description || t.transactionType || 'N/A'}
                       </td>
                       <td>
@@ -742,8 +726,7 @@ function MyTransactions({ user, embedded = false }) {
                             {vBadge.label}
                           </span>
                         )}
-                        {t.isArchived && t.archivedBy && <span className="verified-by"> archived by {t.archivedBy}</span>}
-                        {!t.isArchived && t.verifiedBy && <span className="verified-by"> by {t.verifiedBy}</span>}
+
                         {Array.isArray(t.remarks) && t.remarks.length > 0 && (
                           <span title={`${t.remarks.length} auditor remark(s)`} style={{ marginLeft: 6, display: 'inline-flex', alignItems: 'center', gap: 2, padding: '2px 6px', borderRadius: 4, background: '#fef3c7', color: '#92400e', fontSize: '0.7rem', fontWeight: 600 }}>
                             <MessageSquare size={11} /> {t.remarks.length}
@@ -825,7 +808,7 @@ function MyTransactions({ user, embedded = false }) {
                 <div className="modal-tabs">
                   {[
                     { key: 'ai',        label: 'AI Analysis' },
-                    { key: 'csv',       label: 'Import Data' },
+                    { key: 'details',   label: 'Transaction details' },
                     ...(isAdminOrAuditor ? [{ key: 'breakdown', label: 'Breakdown' }] : []),
                     ...(isAdminOrAuditor ? [{ key: 'remarks', label: `Auditor Remarks${selectedTx.remarks?.length ? ` (${selectedTx.remarks.length})` : ''}` }] : []),
                   ].map(tab => (
@@ -839,6 +822,7 @@ function MyTransactions({ user, embedded = false }) {
 
                 {/* Body */}
                 <div className="tx-modal-body tx-modal-body-wide">
+                  <TransactionReference value={selectedTx.transactionId || selectedTx._id} />
 
                   {/* TAB 2: AI ANALYSIS */}
                   {modalTab === 'ai' && (
@@ -898,12 +882,12 @@ function MyTransactions({ user, embedded = false }) {
                   )}
 
                   {/* TAB 3: CSV / IMPORT DATA */}
-                  {modalTab === 'csv' && (
+                  {modalTab === 'details' && (
                     <div>
                       <div className="csv-details-banner">
                         <div>
-                          <div className="csv-banner-title">CSV Import Source</div>
-                          <div className="csv-banner-sub">This transaction was imported from a CSV batch upload and processed through the AI pipeline.</div>
+                          <div className="csv-banner-title">Transaction details</div>
+                          <div className="csv-banner-sub">Review the original transaction information and its verification history.</div>
                         </div>
                         {selectedTx.staged && (
                           <span className="csv-staged-badge">Awaiting Approval</span>
@@ -911,10 +895,6 @@ function MyTransactions({ user, embedded = false }) {
                       </div>
 
                       <div className="csv-fields-grid">
-                        <div className="csv-field">
-                          <div className="csv-field-label">Transaction ID (Original)</div>
-                          <div className="csv-field-value font-mono">{selectedTx.transactionId || '-'}</div>
-                        </div>
                         <div className="csv-field">
                           <div className="csv-field-label">Payer Name (From)</div>
                         <div className="csv-field-value">{formatAddressLabel(selectedTx.fromAddress) || '-'}</div>
@@ -925,7 +905,7 @@ function MyTransactions({ user, embedded = false }) {
                         </div>
                         <div className="csv-field">
                           <div className="csv-field-label">Amount</div>
-                          <div className="csv-field-value font-bold">&#8369;{Number(selectedTx.amount || 0).toLocaleString()}</div>
+                          <div className="csv-field-value font-bold">{formatCurrency(selectedTx.amount || 0, selectedTx.currency)}</div>
                         </div>
                         <div className="csv-field">
                           <div className="csv-field-label">Transaction Type</div>
@@ -949,7 +929,7 @@ function MyTransactions({ user, embedded = false }) {
                         </div>
                         <div className="csv-field">
                           <div className="csv-field-label">Currency</div>
-                          <div className="csv-field-value">{selectedTx.currency || 'PHP'}</div>
+                          <div className="csv-field-value">{selectedTx.currency === 'PHP' || !selectedTx.currency ? 'Philippine peso (₱)' : selectedTx.currency}</div>
                         </div>
                         <div className="csv-field">
                           <div className="csv-field-label">Post Date</div>
@@ -986,10 +966,10 @@ function MyTransactions({ user, embedded = false }) {
                                     <td style={{ padding: '6px 8px', color: '#64748b' }}>{item.unit || '—'}</td>
                                     <td style={{ padding: '6px 8px', color: '#64748b' }}>{item.quantity != null ? item.quantity.toLocaleString() : '—'}</td>
                                     <td style={{ padding: '6px 8px', color: '#475569' }}>
-                                      {item.unitPrice != null ? `₱${item.unitPrice.toLocaleString('en-PH', { minimumFractionDigits: 2 })}` : '—'}
+                                      {item.unitPrice != null ? formatCurrency(item.unitPrice, selectedTx.currency) : '—'}
                                     </td>
                                     <td style={{ padding: '6px 8px', fontWeight: 600, color: '#1e293b' }}>
-                                      {item.totalPrice != null ? `₱${item.totalPrice.toLocaleString('en-PH', { minimumFractionDigits: 2 })}` : '—'}
+                                      {item.totalPrice != null ? formatCurrency(item.totalPrice, selectedTx.currency) : '—'}
                                     </td>
                                     <td style={{ padding: '6px 8px', color: '#64748b', fontSize: '0.75rem' }}>{item.supplier || '—'}</td>
                                   </tr>
@@ -997,7 +977,7 @@ function MyTransactions({ user, embedded = false }) {
                                 <tr style={{ background: '#f8fafc', borderTop: '1px solid #e2e8f0' }}>
                                   <td colSpan={4} style={{ padding: '6px 8px', fontWeight: 600, color: '#64748b', fontSize: '0.78rem' }}>Items subtotal</td>
                                   <td style={{ padding: '6px 8px', fontWeight: 700, color: '#1e40af', fontSize: '0.88rem' }}>
-                                    ₱{selectedTx.lineItems.reduce((s, it) => s + (it.totalPrice || 0), 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+                                    {formatCurrency(selectedTx.lineItems.reduce((sum, item) => sum + Number(item.totalPrice || 0), 0), selectedTx.currency)}
                                   </td>
                                   <td />
                                 </tr>
@@ -1007,21 +987,7 @@ function MyTransactions({ user, embedded = false }) {
                         </div>
                       )}
 
-                      <div className="formula-card" style={{ marginTop: '1.25rem' }}>
-                        <h4 className="formula-title">AI Pipeline Results</h4>
-                        <div className="formula-body">
-                          <div className="formula-row"><span className="formula-label">Risk Score</span><span className="formula-val formula-zscore" style={{ color: RISK_COLOR(selectedTx.riskScore ?? 0) }}>{selectedTx.riskScore ?? '-'}/100</span></div>
-                          <div className="formula-row"><span className="formula-label">Risk Level</span><span className="formula-val">{selectedTx.riskLevel || '-'}</span></div>
-                          <div className="formula-row"><span className="formula-label">Flagged</span><span className="formula-val">{selectedTx.flagged ? 'Yes' : 'No'}</span></div>
-                          <div className="formula-row"><span className="formula-label">Verification Status</span><span className="formula-val">{selectedTx.verificationStatus || '-'}</span></div>
-                          {selectedTx.blockchainTxId && (
-                            <>
-                              <div className="formula-row"><span className="formula-label">On-Chain</span><span className="formula-val" style={{ color: '#15803d' }}>Recorded</span></div>
-                              <div className="formula-row"><span className="formula-label">Block #</span><span className="formula-val">{selectedTx.blockNumber || '-'}</span></div>
-                            </>
-                          )}
-                        </div>
-                      </div>
+                      <VerificationHistory transaction={selectedTx} />
                     </div>
                   )}
 
@@ -1049,97 +1015,6 @@ function MyTransactions({ user, embedded = false }) {
                     return (
                       <div>
 
-                        {/* Risk strip */}
-                        <div style={{
-                          display: 'flex', alignItems: 'center', gap: 8,
-                          padding: '8px 12px', borderRadius: 8, marginBottom: '1rem',
-                          background: selectedTx.riskScore >= 90 ? '#fee2e2'
-                            : selectedTx.riskScore >= 71 ? '#ffedd5'
-                            : selectedTx.riskScore >= 41 ? '#fef3c7' : '#dcfce7',
-                        }}>
-                          <div style={{ width: 10, height: 10, borderRadius: '50%', flexShrink: 0,
-                            background: RISK_COLOR(selectedTx.riskScore ?? 0) }} />
-                          <span style={{ fontSize: '0.8rem', color: '#475569' }}>AI Risk Assessment</span>
-                          <span style={{ fontSize: '0.85rem', fontWeight: 600, marginLeft: 'auto',
-                            color: RISK_COLOR(selectedTx.riskScore ?? 0) }}>
-                            Score: {selectedTx.riskScore ?? 0} — {RISK_LABEL(selectedTx.riskScore ?? 0)}
-                          </span>
-                        </div>
-
-                        {/* Flag reasons */}
-                        {selectedTx.flagged && Array.isArray(selectedTx.reasons) &&
-                          selectedTx.reasons.filter(r => shouldShowInBulletin(r)).length > 0 && (
-                          <div style={{
-                            padding: '8px 12px', background: '#fef9c3',
-                            border: '0.5px solid #fde047', borderRadius: 8,
-                            marginBottom: '1rem', fontSize: '0.8rem',
-                            color: '#854d0e', lineHeight: 1.6
-                          }}>
-                            <span style={{ fontWeight: 600 }}>⚠ Flagged: </span>
-                            {selectedTx.reasons.filter(r => shouldShowInBulletin(r)).join(' · ')}
-                          </div>
-                        )}
-
-                        {/* Transaction identity */}
-                        <div style={sectionLabel}>Transaction identity</div>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: '1rem' }}>
-                          {[
-                            { label: 'Transaction ID', value: selectedTx.transactionId || selectedTx._id, mono: true },
-                            { label: 'Date',           value: new Date(selectedTx.timestamp || selectedTx.createdAt).toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' }) },
-                            { label: 'Agency / Office', value: selectedTx.agency || '—' },
-                            { label: 'Program / Budget', value: selectedTx.programName || '—' },
-                          ].map(({ label, value, mono }) => (
-                            <div key={label} style={{ background: '#f8fafc', borderRadius: 8, padding: '8px 12px' }}>
-                              <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginBottom: 4 }}>{label}</div>
-                              <div style={{ fontSize: '0.82rem', fontWeight: 500, fontFamily: mono ? 'monospace' : 'inherit', wordBreak: 'break-all' }}>{value}</div>
-                            </div>
-                          ))}
-                        </div>
-
-                        {/* Transaction classification */}
-                        <div style={sectionLabel}>Classification</div>
-                        <div style={{ marginBottom: '1rem', border: '0.5px solid #e2e8f0', borderRadius: 8, overflow: 'hidden' }}>
-                          <div style={{ ...rowStyle }}>
-                            <div style={rowLabel}>Transaction Type</div>
-                            <div style={rowVal}>
-                              <span style={{ padding: '2px 10px', borderRadius: 4, fontSize: '0.78rem', fontWeight: 600, background: '#eff6ff', color: '#1e40af' }}>
-                                {selectedTx.transactionType || 'Other'}
-                              </span>
-                            </div>
-                          </div>
-                          <div style={{ ...rowStyle }}>
-                            <div style={rowLabel}>Beneficiary Type</div>
-                            <div style={rowVal}>{selectedTx.beneficiaryType || '—'}</div>
-                          </div>
-                          <div style={{ ...rowStyle, borderBottom: 'none' }}>
-                            <div style={rowLabel}>Verification Status</div>
-                            <div style={rowVal}>{getStatusBadge(selectedTx.verificationStatus || 'Pending')}</div>
-                          </div>
-                        </div>
-
-                        {/* Parties involved */}
-                        <div style={sectionLabel}>Parties involved</div>
-                        <div style={{ marginBottom: '1rem', border: '0.5px solid #e2e8f0', borderRadius: 8, overflow: 'hidden' }}>
-                          <div style={{ ...rowStyle }}>
-                            <div>
-                              <div style={rowLabel}>Payer</div>
-                              <div style={rowSub}>Disbursing office</div>
-                            </div>
-                            <div style={{ ...rowVal, fontWeight: 400, color: '#475569' }}>
-                              {formatAddressLabel(selectedTx.fromAddress) || selectedTx.agency || '—'}
-                            </div>
-                          </div>
-                          <div style={{ ...rowStyle, borderBottom: 'none' }}>
-                            <div>
-                              <div style={rowLabel}>Payee</div>
-                              <div style={rowSub}>Recipient / supplier</div>
-                            </div>
-                            <div style={{ ...rowVal, fontWeight: 400, color: '#475569' }}>
-                              {formatAddressLabel(selectedTx.toAddress) || '—'}
-                            </div>
-                          </div>
-                        </div>
-
                         {/* Amount breakdown */}
                         <div style={sectionLabel}>Amount breakdown</div>
                         <div style={{ marginBottom: '1rem', border: '0.5px solid #e2e8f0', borderRadius: 8, overflow: 'hidden' }}>
@@ -1149,7 +1024,7 @@ function MyTransactions({ user, embedded = false }) {
                               <div style={rowSub}>Outflow / disbursed</div>
                             </div>
                             <div style={{ fontSize: '0.9rem', fontWeight: 500, color: debit > 0 ? '#1e293b' : '#cbd5e1' }}>
-                              ₱ {debit > 0 ? debit.toLocaleString('en-PH', { minimumFractionDigits: 2 }) : '0.00'}
+                              {formatCurrency(debit, selectedTx.currency)}
                             </div>
                           </div>
                           <div style={{ ...rowStyle }}>
@@ -1158,81 +1033,18 @@ function MyTransactions({ user, embedded = false }) {
                               <div style={rowSub}>Inflow / received</div>
                             </div>
                             <div style={{ fontSize: '0.9rem', fontWeight: 500, color: credit > 0 ? '#1e293b' : '#cbd5e1' }}>
-                              ₱ {credit > 0 ? credit.toLocaleString('en-PH', { minimumFractionDigits: 2 }) : '0.00'}
+                              {formatCurrency(credit, selectedTx.currency)}
                             </div>
                           </div>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 14px', background: '#f8fafc' }}>
                             <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1e293b' }}>Net Transaction Amount</span>
                             <span style={{ fontSize: '1.05rem', fontWeight: 700, color: '#1e40af' }}>
-                              ₱ {net.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+                              {formatCurrency(net, selectedTx.currency)}
                             </span>
                           </div>
                         </div>
 
                         {/* Description */}
-                        {/* Line Items — from itemized CSV columns */}
-                        {Array.isArray(selectedTx.lineItems) && selectedTx.lineItems.length > 0 && (() => {
-                          const itemTotal = selectedTx.lineItems.reduce((s, it) => s + (it.totalPrice || 0), 0);
-                          return (
-                            <>
-                              <div style={sectionLabel}>
-                                Itemized Line Items
-                                <span style={{ marginLeft: 8, background: '#eff6ff', color: '#1e40af', borderRadius: 4, padding: '1px 7px', fontSize: '0.68rem', fontWeight: 700, letterSpacing: 0 }}>
-                                  {selectedTx.lineItems.length} item{selectedTx.lineItems.length !== 1 ? 's' : ''}
-                                </span>
-                              </div>
-                              <div style={{ marginBottom: '1rem', border: '0.5px solid #e2e8f0', borderRadius: 8, overflow: 'hidden' }}>
-                                {/* Table header */}
-                                <div style={{ display: 'grid', gridTemplateColumns: '2fr 60px 70px 80px 90px 1.5fr', gap: 0, background: '#f1f5f9', borderBottom: '0.5px solid #e2e8f0', padding: '6px 12px' }}>
-                                  {['Item / Description', 'Unit', 'Qty', 'Unit Price', 'Total', 'Supplier'].map(h => (
-                                    <div key={h} style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</div>
-                                  ))}
-                                </div>
-                                {/* Item rows */}
-                                {selectedTx.lineItems.map((item, i) => (
-                                  <div key={i} style={{
-                                    display: 'grid', gridTemplateColumns: '2fr 60px 70px 80px 90px 1.5fr',
-                                    gap: 0, padding: '8px 12px',
-                                    borderBottom: i < selectedTx.lineItems.length - 1 ? '0.5px solid #f1f5f9' : 'none',
-                                    background: i % 2 === 0 ? '#ffffff' : '#fafafa',
-                                    alignItems: 'center'
-                                  }}>
-                                    <div style={{ fontSize: '0.82rem', fontWeight: 500, color: '#1e293b', paddingRight: 8 }}>
-                                      {item.name}
-                                      {item.notes && <div style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 400, marginTop: 1 }}>{item.notes}</div>}
-                                    </div>
-                                    <div style={{ fontSize: '0.8rem', color: '#64748b' }}>{item.unit || '—'}</div>
-                                    <div style={{ fontSize: '0.8rem', color: '#64748b' }}>{item.quantity != null ? item.quantity.toLocaleString() : '—'}</div>
-                                    <div style={{ fontSize: '0.8rem', color: '#475569' }}>
-                                      {item.unitPrice != null ? `₱${item.unitPrice.toLocaleString('en-PH', { minimumFractionDigits: 2 })}` : '—'}
-                                    </div>
-                                    <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1e293b' }}>
-                                      {item.totalPrice != null ? `₱${item.totalPrice.toLocaleString('en-PH', { minimumFractionDigits: 2 })}` : '—'}
-                                    </div>
-                                    <div style={{ fontSize: '0.75rem', color: '#64748b', paddingLeft: 4 }}>{item.supplier || '—'}</div>
-                                  </div>
-                                ))}
-                                {/* Subtotal footer */}
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', background: '#f8fafc', borderTop: '0.5px solid #e2e8f0' }}>
-                                  <span style={{ fontSize: '0.78rem', color: '#64748b' }}>Items subtotal</span>
-                                  <span style={{ fontSize: '0.92rem', fontWeight: 700, color: '#1e40af' }}>
-                                    ₱{itemTotal.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
-                                  </span>
-                                </div>
-                              </div>
-                            </>
-                          );
-                        })()}
-
-                        <div style={sectionLabel}>Description</div>
-                        <div style={{
-                          padding: '10px 14px', border: '0.5px solid #e2e8f0',
-                          borderRadius: 8, fontSize: '0.85rem',
-                          color: '#1e293b', lineHeight: 1.7, marginBottom: '1rem'
-                        }}>
-                          {selectedTx.description || '—'}
-                        </div>
-
                         {/* Auditor Remarks moved to separate tab */}
 
                         {/* Blockchain */}
@@ -1276,7 +1088,7 @@ function MyTransactions({ user, embedded = false }) {
                           <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#334155', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
                             <MessageSquare size={15} color="#3b82f6" /> Add Auditor Finding / Remark
                           </div>
-                          <textarea
+                          <TextField error={fieldErrors["remark"]} onEdit={() => setFieldErrors({})} field="remark" as="textarea"
                             rows={3}
                             style={{
                               width: '100%', padding: '10px 12px', borderRadius: 6, border: '1px solid #cbd5e1',
@@ -1407,7 +1219,7 @@ function MyTransactions({ user, embedded = false }) {
                 <p style={{ color: '#475569', fontSize: '0.9rem', marginBottom: 16 }}>
                   Add an official auditor remark to <strong>{selected.size}</strong> selected transaction(s).
                 </p>
-                <textarea
+                <TextField error={fieldErrors["remark"]} onEdit={() => setFieldErrors({})} field="remark" as="textarea"
                   rows={4}
                   style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #cbd5e1', fontSize: '0.9rem', fontFamily: 'inherit', resize: 'vertical', marginBottom: 16, color: '#1e293b' }}
                   placeholder="Enter official remark to apply to all selected records..."

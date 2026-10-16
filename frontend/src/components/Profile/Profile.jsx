@@ -1,3 +1,6 @@
+import useFieldErrors from '../../utils/useFieldErrors';
+import { apiFieldErrors } from '../../utils/fieldValidation';
+import TextField from '../Forms/TextField';
 import React, { useState, useEffect } from 'react';
 import { User, Edit, Lock, Mail, Building, Target, Send, X, Shield, Smartphone, Copy, CheckCircle, AlertTriangle, Trash2 } from 'lucide-react';
 import api, { authAPI } from '../../services/api';
@@ -10,6 +13,7 @@ import useLockBodyScroll from '../../utils/useLockBodyScroll';
  * Restored as a dedicated page for new tab access.
  */
 function Profile({ user }) {
+  const [fieldErrors, setFieldErrors] = useFieldErrors();
   const [showEditModal, setShowEditModal] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [show2faModal, setShow2faModal] = useState(false);
@@ -107,7 +111,8 @@ function Profile({ user }) {
       await authAPI.sendProfileOtp();
       setEditOtpSent(true);
       setMessage('OTP sent to your email!');
-    } catch (err) { setError(err.response?.data?.message || 'Failed to send OTP'); }
+    } catch (err) {
+      setFieldErrors(apiFieldErrors(err)); setError(err.response?.data?.message || 'Failed to send OTP'); }
   };
 
   const handleSendPasswordOTP = async () => {
@@ -115,7 +120,8 @@ function Profile({ user }) {
       await authAPI.sendPasswordOtp();
       setPasswordOtpSent(true);
       setMessage('OTP sent to your email!');
-    } catch (err) { setError(err.response?.data?.message || 'Failed to send OTP'); }
+    } catch (err) {
+      setFieldErrors(apiFieldErrors(err)); setError(err.response?.data?.message || 'Failed to send OTP'); }
   };
 
   const handleSend2faOTP = async () => {
@@ -124,7 +130,8 @@ function Profile({ user }) {
       await api.post('/auth/2fa/send-otp');
       setTwoFactorOtpSent(true);
       setMessage('OTP sent to your email!');
-    } catch (err) { setError(err.response?.data?.error || 'Failed to send OTP'); }
+    } catch (err) {
+      setFieldErrors(apiFieldErrors(err)); setError(err.response?.data?.error || 'Failed to send OTP'); }
     finally { setLoading(false); }
   };
 
@@ -139,6 +146,7 @@ function Profile({ user }) {
       setMessage('Profile picture removed');
       setTimeout(() => window.location.reload(), 1000);
     } catch (err) {
+      setFieldErrors(apiFieldErrors(err));
       setError(err.response?.data?.error || 'Failed to delete profile picture');
     } finally {
       setUploading(false);
@@ -153,12 +161,13 @@ function Profile({ user }) {
       await authAPI.updateProfile(editForm);
       setMessage('Profile updated successfully!');
       setTimeout(() => window.location.reload(), 1500);
-    } catch (err) { setError(err.response?.data?.message || 'Failed to update profile'); }
+    } catch (err) {
+      setFieldErrors(apiFieldErrors(err)); setError(err.response?.data?.message || 'Failed to update profile'); }
   };
 
   const handlePasswordChange = async (e) => {
     e.preventDefault();
-    if (passwordForm.newPassword !== passwordForm.confirmPassword) { setError('New passwords do not match'); return; }
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) { setFieldErrors({ confirmPassword: 'New passwords do not match' }); setError('New passwords do not match'); return; }
     try {
       await authAPI.changePassword({
         currentPassword: passwordForm.currentPassword,
@@ -167,7 +176,8 @@ function Profile({ user }) {
       });
       setMessage('Password updated successfully!');
       setTimeout(() => handleClosePasswordModal(), 1500);
-    } catch (err) { setError(err.response?.data?.error || 'Failed to update password'); }
+    } catch (err) {
+      setFieldErrors(apiFieldErrors(err)); setError(err.response?.data?.error || 'Failed to update password'); }
   };
 
   const handle2faVerify = async (e) => {
@@ -185,7 +195,8 @@ function Profile({ user }) {
         setTwoFactorForm({ ...twoFactorForm, mode: 'verify-totp' });
         setMessage('2FA reset initiated. Please scan the QR code.');
       }
-    } catch (err) { setError(err.response?.data?.error || 'Verification failed'); }
+    } catch (err) {
+      setFieldErrors(apiFieldErrors(err)); setError(err.response?.data?.error || 'Verification failed'); }
     finally { setLoading(false); }
   };
 
@@ -197,7 +208,8 @@ function Profile({ user }) {
       setRecoveryCodes(response.data.recoveryCodes);
       setTwoFactorForm({ ...twoFactorForm, mode: 'recovery' });
       setMessage('2FA enabled successfully!');
-    } catch (err) { setError(err.response?.data?.error || 'Invalid TOTP code'); }
+    } catch (err) {
+      setFieldErrors(apiFieldErrors(err)); setError(err.response?.data?.error || 'Invalid TOTP code'); }
     finally { setLoading(false); }
   };
 
@@ -214,7 +226,8 @@ function Profile({ user }) {
       setShowRecoveryModal(false);
       setShow2faModal(true);
       setMessage('Recovery codes regenerated successfully!');
-    } catch (err) { setError(err.response?.data?.error || 'Verification failed'); }
+    } catch (err) {
+      setFieldErrors(apiFieldErrors(err)); setError(err.response?.data?.error || 'Verification failed'); }
     finally { setLoading(false); }
   };
 
@@ -285,10 +298,10 @@ function Profile({ user }) {
           {/* Info Cards */}
           <div className="profile-cards">
             {[
-              { icon: <User size={24} />, label: 'Full Name', value: `${user.firstName} ${user.lastName}`, hint: 'Official record name', color: '#3b82f6' },
-              { icon: <Mail size={24} />, label: 'Email', value: user.email, hint: 'Login address', color: '#22c55e' },
-              { icon: <Target size={24} />, label: 'Role', value: roleDisplay, hint: 'Access level', color: '#8b5cf6' },
-              ...(user.role !== 'barangay_official' && user.position ? [{ icon: <Building size={24} />, label: 'Position / Title', value: user.position, hint: 'Assigned role in the organization', color: '#f59e0b' }] : [])
+              { icon: null, label: 'Full Name', value: `${user.firstName} ${user.lastName}`, hint: 'Official record name', color: '#3b82f6' },
+              { icon: null, label: 'Email', value: user.email, hint: 'Login address', color: '#22c55e' },
+              { icon: null, label: 'Role', value: roleDisplay, hint: 'Access level', color: '#8b5cf6' },
+              ...(user.role !== 'barangay_official' && user.position ? [{ icon: null, label: 'Position / Title', value: user.position, hint: 'Assigned role in the organization', color: '#f59e0b' }] : [])
             ].map((item, i) => (
               <div key={i} className="profile-info-card">
                 <div className="info-item">
@@ -387,10 +400,10 @@ function Profile({ user }) {
               {error && <div className="error-banner">{error}</div>}
               {message && <div className="success-banner">{message}</div>}
               <form onSubmit={handleEditSubmit} className="inner-form">
-                <div className="form-group"><label className="form-label">First Name</label><input type="text" className="form-input" value={editForm.firstName} onChange={(e) => setEditForm({ ...editForm, firstName: e.target.value })} required /></div>
-                <div className="form-group"><label className="form-label">Last Name</label><input type="text" className="form-input" value={editForm.lastName} onChange={(e) => setEditForm({ ...editForm, lastName: e.target.value })} required /></div>
-                <div className="form-group"><label className="form-label">Email</label><input type="email" className="form-input" value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} required /></div>
-                <div className="otp-section"><label className="form-label">OTP Verification</label><div className="otp-input-group"><input type="text" className="form-input" value={editForm.otp} onChange={(e) => setEditForm({ ...editForm, otp: e.target.value })} required disabled={!editOtpSent} /><button type="button" className="otp-btn" onClick={handleSendEditOTP} disabled={editOtpSent}><Send size={16} /> {editOtpSent ? 'Sent' : 'Send OTP'}</button></div></div>
+                <div className="form-group"><label className="form-label">First Name</label><TextField error={fieldErrors["firstName"]} onEdit={() => setFieldErrors({})} field="firstName" type="text" className="form-input" value={editForm.firstName} onChange={(e) => setEditForm({ ...editForm, firstName: e.target.value })} required /></div>
+                <div className="form-group"><label className="form-label">Last Name</label><TextField error={fieldErrors["lastName"]} onEdit={() => setFieldErrors({})} field="lastName" type="text" className="form-input" value={editForm.lastName} onChange={(e) => setEditForm({ ...editForm, lastName: e.target.value })} required /></div>
+                <div className="form-group"><label className="form-label">Email</label><TextField error={fieldErrors["email"]} onEdit={() => setFieldErrors({})} field="email" type="email" className="form-input" value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} required /></div>
+                <div className="otp-section"><label className="form-label">OTP Verification</label><div className="otp-input-group"><TextField error={fieldErrors["otp"]} onEdit={() => setFieldErrors({})} field="otp" type="text" className="form-input" value={editForm.otp} onChange={(e) => setEditForm({ ...editForm, otp: e.target.value })} required disabled={!editOtpSent} /><button type="button" className="otp-btn" onClick={handleSendEditOTP} disabled={editOtpSent}><Send size={16} /> {editOtpSent ? 'Sent' : 'Send OTP'}</button></div></div>
                 <button type="submit" className="update-btn">Save Changes</button>
               </form>
             </div>
@@ -406,10 +419,10 @@ function Profile({ user }) {
               {error && <div className="error-banner">{error}</div>}
               {message && <div className="success-banner">{message}</div>}
               <form onSubmit={handlePasswordChange} className="inner-form">
-                <div className="form-group"><label className="form-label">Current Password</label><input type="password" className="form-input" value={passwordForm.currentPassword} onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })} required /></div>
-                <div className="form-group"><label className="form-label">New Password</label><input type="password" className="form-input" value={passwordForm.newPassword} onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })} required /></div>
-                <div className="form-group"><label className="form-label">Confirm New Password</label><input type="password" className="form-input" value={passwordForm.confirmPassword} onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })} required /></div>
-                <div className="otp-section"><label className="form-label">OTP Code</label><div className="otp-input-group"><input type="text" className="form-input" value={passwordForm.otp} onChange={(e) => setPasswordForm({ ...passwordForm, otp: e.target.value })} required disabled={!passwordOtpSent} /><button type="button" className="otp-btn" onClick={handleSendPasswordOTP} disabled={passwordOtpSent}><Send size={16} /> {passwordOtpSent ? 'Sent' : 'Send OTP'}</button></div></div>
+                <div className="form-group"><label className="form-label">Current Password</label><TextField error={fieldErrors["currentPassword"]} onEdit={() => setFieldErrors({})} field="currentPassword" type="password" className="form-input" value={passwordForm.currentPassword} onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })} required /></div>
+                <div className="form-group"><label className="form-label">New Password</label><TextField error={fieldErrors["newPassword"]} onEdit={() => setFieldErrors({})} field="newPassword" type="password" className="form-input" value={passwordForm.newPassword} onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })} required /></div>
+                <div className="form-group"><label className="form-label">Confirm New Password</label><TextField error={fieldErrors["confirmPassword"]} onEdit={() => setFieldErrors({})} field="confirmPassword" type="password" className="form-input" value={passwordForm.confirmPassword} onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })} required /></div>
+                <div className="otp-section"><label className="form-label">OTP Code</label><div className="otp-input-group"><TextField error={fieldErrors["otp"]} onEdit={() => setFieldErrors({})} field="otp" type="text" className="form-input" value={passwordForm.otp} onChange={(e) => setPasswordForm({ ...passwordForm, otp: e.target.value })} required disabled={!passwordOtpSent} /><button type="button" className="otp-btn" onClick={handleSendPasswordOTP} disabled={passwordOtpSent}><Send size={16} /> {passwordOtpSent ? 'Sent' : 'Send OTP'}</button></div></div>
                 <button type="submit" className="update-btn">Update Password</button>
               </form>
             </div>
@@ -429,7 +442,7 @@ function Profile({ user }) {
               {message && <div className="success-banner">{message}</div>}
               {twoFactorForm.mode === 'recovery' ? (
                 <div className="recovery-flow">
-                  <div className="recovery-notice"><Shield size={24} /><div><strong>Save these codes!</strong><p>Required if you lose your phone.</p></div></div>
+                  <div className="recovery-notice"><div><strong>Save these codes!</strong><p>Required if you lose your phone.</p></div></div>
                   <div className="recovery-grid">{recoveryCodes.map((c, i) => <div key={i} className="recovery-code">{c}</div>)}</div>
                   <button className="update-btn" onClick={() => window.location.reload()}>I have saved these codes</button>
                 </div>
@@ -440,16 +453,16 @@ function Profile({ user }) {
                     <img src={qrCode} alt="QR" className="qr-image" />
                     <div className="secret-display"><code>{secret}</code><button type="button" onClick={copySecret}>{copied ? <CheckCircle size={16} color="#22c55e" /> : <Copy size={16} />}</button></div>
                   </div>
-                  <div className="form-group"><label className="form-label">Authenticator Code</label><input type="text" className="form-input" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength="6" value={twoFactorForm.totpCode} onChange={(e) => setTwoFactorForm({ ...twoFactorForm, totpCode: e.target.value.replace(/\D/g, '').slice(0, 6) })} required /></div>
+                  <div className="form-group"><label className="form-label">Authenticator Code</label><TextField error={fieldErrors["totpCode"]} onEdit={() => setFieldErrors({})} field="totpCode" type="text" className="form-input" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength="6" value={twoFactorForm.totpCode} onChange={(e) => setTwoFactorForm({ ...twoFactorForm, totpCode: e.target.value.replace(/\D/g, '').slice(0, 6) })} required /></div>
                   <button type="submit" className="update-btn" disabled={loading}>Complete Setup</button>
                 </form>
               ) : (
                 <form className="inner-form" onSubmit={handle2faVerify}>
                   <div className="form-group">
                     <label className="form-label">Account Password</label>
-                    <input type="password" className="form-input" value={twoFactorForm.password} onChange={(e) => setTwoFactorForm({ ...twoFactorForm, password: e.target.value })} required />
+                    <TextField error={fieldErrors["password"]} onEdit={() => setFieldErrors({})} field="password" type="password" className="form-input" value={twoFactorForm.password} onChange={(e) => setTwoFactorForm({ ...twoFactorForm, password: e.target.value })} required />
                   </div>
-                  <div className="otp-section"><label className="form-label">Email OTP</label><div className="otp-input-group"><input type="text" className="form-input" value={twoFactorForm.otp} onChange={(e) => setTwoFactorForm({ ...twoFactorForm, otp: e.target.value })} required /><button type="button" className="otp-btn" onClick={handleSend2faOTP} disabled={twoFactorOtpSent || loading}>{twoFactorOtpSent ? 'Sent' : 'Send Code'}</button></div></div>
+                  <div className="otp-section"><label className="form-label">Email OTP</label><div className="otp-input-group"><TextField error={fieldErrors["otp"]} onEdit={() => setFieldErrors({})} field="otp" type="text" className="form-input" value={twoFactorForm.otp} onChange={(e) => setTwoFactorForm({ ...twoFactorForm, otp: e.target.value })} required /><button type="button" className="otp-btn" onClick={handleSend2faOTP} disabled={twoFactorOtpSent || loading}>{twoFactorOtpSent ? 'Sent' : 'Send Code'}</button></div></div>
                   <button type="submit" className={`update-btn ${twoFactorForm.mode === 'disable' ? 'danger' : ''}`} disabled={loading || !twoFactorOtpSent}>{twoFactorForm.mode === 'disable' ? 'Confirm Disable' : 'Initiate Setup'}</button>
                 </form>
               )}
@@ -469,9 +482,9 @@ function Profile({ user }) {
                 <p className="form-hint">Regenerating codes will invalidate your old ones. You will see 8 new codes.</p>
                 <div className="form-group">
                   <label className="form-label">Account Password</label>
-                  <input type="password" className="form-input" value={recoveryForm.password} onChange={(e) => setRecoveryForm({ ...recoveryForm, password: e.target.value })} required />
+                  <TextField error={fieldErrors["password"]} onEdit={() => setFieldErrors({})} field="password" type="password" className="form-input" value={recoveryForm.password} onChange={(e) => setRecoveryForm({ ...recoveryForm, password: e.target.value })} required />
                 </div>
-                <div className="otp-section"><label className="form-label">Email OTP</label><div className="otp-input-group"><input type="text" className="form-input" value={recoveryForm.otp} onChange={(e) => setRecoveryForm({ ...recoveryForm, otp: e.target.value })} required /><button type="button" className="otp-btn" onClick={handleSend2faOTP} disabled={twoFactorOtpSent || loading}>{twoFactorOtpSent ? 'Sent' : 'Send Code'}</button></div></div>
+                <div className="otp-section"><label className="form-label">Email OTP</label><div className="otp-input-group"><TextField error={fieldErrors["otp"]} onEdit={() => setFieldErrors({})} field="otp" type="text" className="form-input" value={recoveryForm.otp} onChange={(e) => setRecoveryForm({ ...recoveryForm, otp: e.target.value })} required /><button type="button" className="otp-btn" onClick={handleSend2faOTP} disabled={twoFactorOtpSent || loading}>{twoFactorOtpSent ? 'Sent' : 'Send Code'}</button></div></div>
                 <button type="submit" className="update-btn" disabled={loading}>Regenerate Codes</button>
               </form>
             </div>

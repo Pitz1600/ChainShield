@@ -273,9 +273,7 @@ function Dashboard({ user, onNavigate }) {
         <div className="budget-overview-card">
           <div className="budget-overview-header">
             <div className="budget-overview-title-area">
-              <div className="budget-overview-icon-badge">
-                <Landmark size={22} />
-              </div>
+
               <div>
                 <h3 className="card-title" style={{ marginBottom: 2 }}>Barangay Pantal — Budget & Financial Overview</h3>
                 <p className="card-subtitle">Real-time allocated public budget vs total recorded transaction expenditures</p>
@@ -294,9 +292,7 @@ function Dashboard({ user, onNavigate }) {
           <div className="budget-overview-grid">
             {/* Estimated Barangay Budget */}
             <div className="budget-metric-card highlight-blue">
-              <div className="budget-metric-icon blue">
-                <Building2 size={20} />
-              </div>
+
               <div className="budget-metric-body">
                 <div className="budget-metric-label">Estimated Barangay Budget</div>
                 <div className="budget-metric-value" style={{ color: '#1d4ed8' }}>
@@ -310,9 +306,7 @@ function Dashboard({ user, onNavigate }) {
 
             {/* Total Budget of All Transactions */}
             <DashboardLink className="budget-metric-card highlight-green" to={transactionDestination()}>
-              <div className="budget-metric-icon green">
-                <Coins size={20} />
-              </div>
+
               <div className="budget-metric-body">
                 <div className="budget-metric-label">Total Transactions Budget</div>
                 <div className="budget-metric-value" style={{ color: '#15803d' }}>
@@ -326,9 +320,7 @@ function Dashboard({ user, onNavigate }) {
 
             {/* Remaining Barangay Funds */}
             <div className="budget-metric-card highlight-amber">
-              <div className="budget-metric-icon amber">
-                <Wallet size={20} />
-              </div>
+
               <div className="budget-metric-body">
                 <div className="budget-metric-label">Remaining Barangay Funds</div>
                 <div className="budget-metric-value" style={{ color: '#b45309' }}>
@@ -342,9 +334,7 @@ function Dashboard({ user, onNavigate }) {
 
             {/* Budget Utilization Rate */}
             <div className="budget-metric-card highlight-purple">
-              <div className="budget-metric-icon purple">
-                <TrendingUp size={20} />
-              </div>
+
               <div className="budget-metric-body">
                 <div className="budget-metric-label">Budget Utilization</div>
                 <div className="budget-metric-value" style={{ color: '#7e22ce' }}>
@@ -602,7 +592,7 @@ function Dashboard({ user, onNavigate }) {
             </div>
           ) : rtAlerts.length === 0 ? (
             <div style={{ padding: '1.5rem', textAlign: 'center', color: '#64748b' }}>
-              <CheckCircle size={32} color="#10b981" style={{ marginBottom: 8 }} />
+
               <p>No suspicious transactions detected</p>
             </div>
           ) : (
@@ -613,7 +603,7 @@ function Dashboard({ user, onNavigate }) {
                 return (
                   <DashboardLink key={alert._id} className={`rt-alert-row ${isHigh ? 'rt-high' : ''}`} to={transactionDestination({ transaction: alert._id })}>
                     <div className="rt-alert-id font-mono">{alert.transactionId || alert._id?.toString().slice(-8)}</div>
-                    <div className="rt-alert-amount">PHP {Number(alert.amount || 0).toLocaleString()}</div>
+                    <div className="rt-alert-amount">₱ {Number(alert.amount || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</div>
                     <div className={`rt-alert-risk risk-chip ${alert.riskScore >= 90 ? 'risk-critical' : alert.riskScore >= 71 ? 'risk-high' : alert.riskScore >= 41 ? 'risk-medium' : 'risk-low'}`}>
                       {alert.riskScore} Risk
                     </div>
@@ -625,7 +615,7 @@ function Dashboard({ user, onNavigate }) {
                     </div>
                     {hasTxHash ? (
                       <div className="rt-chain-badge" title={alert.blockchainTxId}>
-                        <Link2 size={12} style={{ display: 'inline', marginRight: 3 }} />
+
                         {alert.blockchainTxId.slice(0, 10)}...
                       </div>
                     ) : (

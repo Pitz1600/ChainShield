@@ -154,7 +154,7 @@ function OfficialDashboard({ user, onNavigate }) {
 
         <div className="hero-stats-grid">
           <div className="hero-stat-card total">
-            <div className="stat-icon" style={{ color: '#93c5fd' }}><Landmark size={24} /></div>
+
             <div className="stat-content">
               <div className="hero-stat-value">{formatPHP(budgetSummary.estimatedBarangayBudget || 15000000)}</div>
               <div className="hero-stat-label">Estimated Budget</div>
@@ -203,7 +203,7 @@ function OfficialDashboard({ user, onNavigate }) {
 
           {pagedTxns.length === 0 ? (
             <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>
-              <FileText size={32} color="#cbd5e1" style={{ marginBottom: 8 }} />
+
               <p style={{ marginBottom: 12 }}>No transactions yet.</p>
               <button onClick={() => onNavigate('transactions')}
                 style={{ padding: '8px 18px', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600, fontSize: '0.85rem' }}>

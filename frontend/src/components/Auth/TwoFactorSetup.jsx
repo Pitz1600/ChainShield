@@ -1,9 +1,13 @@
+import useFieldErrors from '../../utils/useFieldErrors';
+import { apiFieldErrors } from '../../utils/fieldValidation';
+import TextField from '../Forms/TextField';
 import React, { useState, useEffect, useRef } from 'react';
 import { Shield, Smartphone, Copy, CheckCircle, AlertTriangle, ArrowRight } from 'lucide-react';
 import '../../styles/Login.css';
 import { authAPI } from '../../services/api';
 
 function TwoFactorSetup({ onLogin, onNavigate, onLogout }) {
+  const [fieldErrors, setFieldErrors] = useFieldErrors();
     const [step, setStep] = useState('loading'); // loading | scan | verify | recovery
     const [qrCode, setQrCode] = useState('');
     const [secret, setSecret] = useState('');
@@ -31,7 +35,7 @@ function TwoFactorSetup({ onLogin, onNavigate, onLogout }) {
         } catch (err) {
             const msg = err.response?.data?.error || '';
             console.error('[TwoFactorSetup] Init error:', msg, err);
-            
+
             // If 2FA is already enabled (e.g. after a successful verify + page reload),
             // skip straight to a done state instead of showing an error.
             if (msg.toLowerCase().includes('already enabled')) {
@@ -58,6 +62,7 @@ function TwoFactorSetup({ onLogin, onNavigate, onLogout }) {
                 setStep('recovery');
             }
         } catch (err) {
+      setFieldErrors(apiFieldErrors(err));
             setTotpCode(''); // clear so user can type a fresh code
             setError(err.response?.data?.error || 'Invalid code. Please try again.');
         } finally {
@@ -77,6 +82,7 @@ function TwoFactorSetup({ onLogin, onNavigate, onLogout }) {
             setStep('scan');
             // Success message
         } catch (err) {
+      setFieldErrors(apiFieldErrors(err));
             setError(err.response?.data?.error || 'Failed to restart setup.');
         } finally {
             setLoading(false);
@@ -110,7 +116,7 @@ function TwoFactorSetup({ onLogin, onNavigate, onLogout }) {
     const renderScanStep = () => (
         <div className="setup-content">
             <div className="security-badge">
-                <Smartphone size={24} />
+
                 <span>Set Up Authenticator App</span>
             </div>
 
@@ -140,7 +146,7 @@ function TwoFactorSetup({ onLogin, onNavigate, onLogout }) {
                     <label className="field-label">
                         <span><strong>Step 3:</strong> Enter the 6-digit code from your app</span>
                     </label>
-                    <input
+                    <TextField error={fieldErrors["totpCode"]} onEdit={() => setFieldErrors({})} field="totpCode"
                         type="text"
                         value={totpCode}
                         onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
@@ -200,12 +206,12 @@ function TwoFactorSetup({ onLogin, onNavigate, onLogout }) {
     const renderRecoveryStep = () => (
         <div className="setup-content">
             <div className="security-badge success">
-                <CheckCircle size={24} />
+
                 <span>2FA Enabled Successfully!</span>
             </div>
 
             <div className="recovery-warning">
-                <AlertTriangle size={20} />
+
                 <div>
                     <strong>Save your recovery codes!</strong>
                     <p>These codes can be used to access your account if you lose your authenticator device. Each code can only be used once.</p>
@@ -297,7 +303,7 @@ function TwoFactorSetup({ onLogin, onNavigate, onLogout }) {
 
                     {error && (
                         <div className="alert-box error">
-                            <span className="alert-icon"><AlertTriangle size={20} /></span>
+
                             <span className="alert-message">{error}</span>
                         </div>
                     )}
@@ -311,11 +317,11 @@ function TwoFactorSetup({ onLogin, onNavigate, onLogout }) {
 
                     {step === 'error' && (
                         <div style={{ textAlign: 'center', padding: '2rem' }}>
-                            <AlertTriangle size={48} color="#ef4444" />
+
                             <p style={{ marginTop: '1rem', color: '#374151', fontWeight: 600 }}>{error}</p>
-                            <button 
-                                className="submit-button" 
-                                style={{ marginTop: '1.5rem' }} 
+                            <button
+                                className="submit-button"
+                                style={{ marginTop: '1.5rem' }}
                                 onClick={initSetup}
                                 disabled={loading}
                             >
@@ -327,7 +333,7 @@ function TwoFactorSetup({ onLogin, onNavigate, onLogout }) {
 
                     {step === 'done' && (
                         <div style={{ textAlign: 'center', padding: '2rem' }}>
-                            <CheckCircle size={48} color="#22c55e" />
+
                             <p style={{ marginTop: '1rem', color: '#374151', fontWeight: 600 }}>2FA is already enabled on your account.</p>
                             <button className="submit-button" style={{ marginTop: '1.5rem' }} onClick={handleFinish}>
                                 <span>Go to Dashboard</span>

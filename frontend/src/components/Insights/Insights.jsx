@@ -1,3 +1,4 @@
+import TextField from '../Forms/TextField';
 import React, { useState, useEffect, useCallback } from 'react';
 import { Lock, BarChart, AlertTriangle, TrendingUp, AlertCircle, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 import api from '../../services/api';
@@ -9,7 +10,7 @@ function Analytics({ user }) {
     return (
       <div style={{ padding: '2rem', textAlign: 'center' }}>
         <div style={{ maxWidth: '500px', margin: '0 auto', padding: '2rem', background: '#fef2f2', borderRadius: '8px', border: '1px solid #fecaca' }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}><Lock size={48} color="#991b1b" /></div>
+          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}></div>
           <h2 style={{ color: '#991b1b', marginBottom: '0.5rem' }}>Access Denied</h2>
           <p style={{ color: '#7f1d1d' }}>
             Analytics Dashboard is only available to Barangay Officials and Administrators.
@@ -129,7 +130,7 @@ function AnalyticsDashboard() {
 
         <div className="hero-stats-grid">
           <div className="hero-stat-card">
-            <div className="stat-icon"><BarChart size={24} color="#3b82f6" /></div>
+
             <div className="stat-content">
               <div className="stat-value">{summary.totalTransactions}</div>
               <div className="stat-label">Total Transactions</div>
@@ -137,7 +138,7 @@ function AnalyticsDashboard() {
           </div>
 
           <div className="hero-stat-card">
-            <div className="stat-icon"><AlertTriangle size={24} color="#f59e0b" /></div>
+
             <div className="stat-content">
               <div className="stat-value">{summary.flaggedTotal}</div>
               <div className="stat-label">Flagged Alerts</div>
@@ -145,7 +146,7 @@ function AnalyticsDashboard() {
           </div>
 
           <div className="hero-stat-card">
-            <div className="stat-icon"><TrendingUp size={24} color="#f97316" /></div>
+
             <div className="stat-content">
               <div className="stat-value">{highOrCritical}</div>
               <div className="stat-label">High + Critical</div>
@@ -153,7 +154,7 @@ function AnalyticsDashboard() {
           </div>
 
           <div className="hero-stat-card">
-            <div className="stat-icon"><AlertCircle size={24} color="#ef4444" /></div>
+
             <div className="stat-content">
               <div className="stat-value">{summary.critical}</div>
               <div className="stat-label">Critical Alerts</div>
@@ -165,7 +166,7 @@ function AnalyticsDashboard() {
       <div className="analytics-toolbar">
         <div className="analytics-toolbar-left">
           <label htmlFor="severity-filter" className="toolbar-label">Table Filter</label>
-          <select
+          <TextField field="severityFilter" as="select"
             id="severity-filter"
             className="toolbar-select"
             value={severityFilter}
@@ -178,7 +179,7 @@ function AnalyticsDashboard() {
             <option value="critical">Critical</option>
             <option value="high">High</option>
             <option value="medium">Medium</option>
-          </select>
+          </TextField>
         </div>
         <div className="analytics-toolbar-right">
           <button

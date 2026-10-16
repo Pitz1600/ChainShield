@@ -1,9 +1,13 @@
+import useFieldErrors from '../../utils/useFieldErrors';
+import { apiFieldErrors } from '../../utils/fieldValidation';
+import TextField from '../Forms/TextField';
 import React, { useState } from 'react';
 import { Shield, Lock, ArrowRight, AlertCircle, CheckCircle, Eye, EyeOff } from 'lucide-react';
 import '../../styles/Login.css';
 import { authAPI } from '../../services/api';
 
 function ForcePasswordChange({ onNavigate, onLogout }) {
+  const [fieldErrors, setFieldErrors] = useFieldErrors();
     // Default email is empty, but user should probably enter their own.
     // Ideally we could pre-fill if we knew the current email, but for admin reset it's fine to ask.
     const [newEmail, setNewEmail] = useState('');
@@ -57,6 +61,7 @@ function ForcePasswordChange({ onNavigate, onLogout }) {
             // Token is in cookie now
             onNavigate('login');
         } catch (err) {
+      setFieldErrors(apiFieldErrors(err));
             setError(err.response?.data?.error || 'Failed to change password.');
         } finally {
             setLoading(false);
@@ -118,7 +123,7 @@ function ForcePasswordChange({ onNavigate, onLogout }) {
 
                     {error && (
                         <div className="alert-box error">
-                            <span className="alert-icon"><AlertCircle size={20} /></span>
+
                             <span className="alert-message">{error}</span>
                         </div>
                     )}
@@ -126,10 +131,10 @@ function ForcePasswordChange({ onNavigate, onLogout }) {
                     <form onSubmit={handleSubmit} className="auth-form">
                         <div className="form-field">
                             <label className="field-label">
-                                <span className="label-icon"><Lock size={18} /></span>
+
                                 <span>New Email Address</span>
                             </label>
-                            <input
+                            <TextField error={fieldErrors["newEmail"]} onEdit={() => setFieldErrors({})} field="newEmail"
                                 type="email"
                                 value={newEmail}
                                 onChange={(e) => setNewEmail(e.target.value)}
@@ -142,11 +147,11 @@ function ForcePasswordChange({ onNavigate, onLogout }) {
 
                         <div className="form-field">
                             <label className="field-label">
-                                <span className="label-icon"><Lock size={18} /></span>
+
                                 <span>New Password</span>
                             </label>
                             <div style={{ position: 'relative' }}>
-                                <input
+                                <TextField error={fieldErrors["newPassword"]} onEdit={() => setFieldErrors({})} field="newPassword"
                                     type={showPassword ? 'text' : 'password'}
                                     value={newPassword}
                                     onChange={(e) => setNewPassword(e.target.value)}
@@ -187,10 +192,10 @@ function ForcePasswordChange({ onNavigate, onLogout }) {
 
                         <div className="form-field">
                             <label className="field-label">
-                                <span className="label-icon"><Lock size={18} /></span>
+
                                 <span>Confirm Password</span>
                             </label>
-                            <input
+                            <TextField error={fieldErrors["confirmPassword"]} onEdit={() => setFieldErrors({})} field="confirmPassword"
                                 type={showPassword ? 'text' : 'password'}
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
@@ -212,7 +217,7 @@ function ForcePasswordChange({ onNavigate, onLogout }) {
                             ].map(({ key, label }) => (
                                 <div key={key} className="req-item" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '3px 0' }}>
                                     {passwordChecks[key]
-                                        ? <CheckCircle size={14} color="#27ae60" />
+                                        ? null
                                         : <div style={{ width: 14, height: 14, borderRadius: '50%', border: '2px solid #ccc' }} />}
                                     <span style={{ fontSize: 13, color: passwordChecks[key] ? '#27ae60' : '#999' }}>{label}</span>
                                 </div>

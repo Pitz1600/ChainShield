@@ -107,6 +107,9 @@ const transactionSchema = new mongoose.Schema({
   verifiedBy: {
     type: String
   },
+  verifiedAt: {
+    type: Date
+  },
   metadata: {
     type: Map,
     of: mongoose.Schema.Types.Mixed

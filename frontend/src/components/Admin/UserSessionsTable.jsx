@@ -1,3 +1,4 @@
+import TextField from '../Forms/TextField';
 import React, { useEffect, useMemo, useState } from 'react';
 import { RefreshCw } from 'lucide-react';
 import api from '../../services/api';
@@ -72,15 +73,15 @@ function UserSessionsTable() {
             <div className="filters-section" style={{ marginBottom: '1.25rem' }}>
                 <div className="filter-group">
                     <label>Session Status:</label>
-                    <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+                    <TextField field="statusFilter" as="select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
                         <option value="all">All</option>
                         <option value="online">Online Only</option>
                         <option value="offline">Offline Only</option>
-                    </select>
+                    </TextField>
                 </div>
                 <div className="filter-group">
                     <label>Search User:</label>
-                    <input
+                    <TextField field="search"
                         className="form-input"
                         type="text"
                         placeholder="Name, email, or role..."

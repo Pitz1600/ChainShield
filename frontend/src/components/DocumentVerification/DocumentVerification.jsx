@@ -1,3 +1,6 @@
+import useFieldErrors from '../../utils/useFieldErrors';
+import { apiFieldErrors } from '../../utils/fieldValidation';
+import TextField from '../Forms/TextField';
 import React, { useState } from 'react';
 import { AlertTriangle, CheckCircle, XCircle, Info, FileText, Paperclip } from 'lucide-react';
 import api from '../../services/api';
@@ -5,6 +8,7 @@ import { isOfficial } from '../../utils/permissions';
 import '../../styles/DocumentVerification.css';
 
 function DocumentVerification({ user }) {
+  const [fieldErrors, setFieldErrors] = useFieldErrors();
     const [documentId, setDocumentId] = useState('');
     const [file, setFile] = useState(null);
     const [verifying, setVerifying] = useState(false);
@@ -61,6 +65,7 @@ function DocumentVerification({ user }) {
                 blockchainHash: data.blockchainHash || null
             });
         } catch (err) {
+      setFieldErrors(apiFieldErrors(err));
             setError('Error verifying document: ' + (err.response?.data?.error || err.message));
         } finally {
             setVerifying(false);
@@ -88,7 +93,7 @@ function DocumentVerification({ user }) {
 
                     <div className="form-group">
                         <label htmlFor="documentId">Document ID / Reference Number</label>
-                        <input
+                        <TextField error={fieldErrors["documentId"]} onEdit={() => setFieldErrors({})} field="documentId"
                             id="documentId"
                             type="text"
                             value={documentId}
@@ -109,7 +114,7 @@ function DocumentVerification({ user }) {
                         />
                         {file && (
                             <div className="file-info">
-                                <span><Paperclip size={16} /> {file.name}</span>
+                                <span> {file.name}</span>
                                 <span className="file-size">({(file.size / 1024).toFixed(2)} KB)</span>
                             </div>
                         )}
@@ -117,7 +122,7 @@ function DocumentVerification({ user }) {
 
                     {error && (
                         <div className="error-message">
-                            <span><AlertTriangle size={20} color="#f59e0b" /></span>
+                            <span></span>
                             <span>{error}</span>
                         </div>
                     )}
@@ -142,9 +147,7 @@ function DocumentVerification({ user }) {
 
                 {result && (
                     <div className={`result-card ${result.verified ? 'verified' : 'not-verified'}`}>
-                        <div className="result-icon">
-                            {result.verified ? <CheckCircle size={20} color="#10b981" /> : <XCircle size={20} color="#ef4444" />}
-                        </div>
+
                         <h3>{result.status}</h3>
                         <p>{result.message}</p>
 
@@ -191,7 +194,7 @@ function DocumentVerification({ user }) {
             </div>
 
             <div className="info-section">
-                <h3><Info size={20} style={{ display: 'inline', marginRight: '8px' }} /> How It Works</h3>
+                <h3> How It Works</h3>
                 <div className="info-grid">
                     <div className="info-item">
                         <div className="info-number">1</div>

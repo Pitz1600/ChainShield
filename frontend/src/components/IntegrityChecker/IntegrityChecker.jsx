@@ -1,30 +1,15 @@
-import React, { useState } from 'react';
+import TextField from '../Forms/TextField';
+import React, { useState, useRef, useEffect } from 'react';
 import { Lock, Upload, AlertCircle, CheckCircle, Clock, FileText, AlertTriangle, TrendingUp, Shield, BarChart, Info, Settings, Zap, Download, ChevronLeft, ChevronRight, Link, Clipboard, Plus, Trash2, X, Loader2 } from 'lucide-react';
 import api from '../../services/api';
+import { manualRowErrors, rowPages, clampPage } from '../../utils/fieldValidation';
+import TransactionReference from '../Transactions/TransactionReference';
 import { isOfficial } from '../../utils/permissions';
-import { formatAddressLabel } from '../../utils/helpers';
+import { formatAddressLabel, formatCurrency } from '../../utils/helpers';
 import '../../styles/IntegrityChecker.css';
 import useLockBodyScroll from '../../utils/useLockBodyScroll';
 
-const IntegrityChecker = ({ user }) => {
-    // Permission check - only officials and admins can import
-    if (!isOfficial(user)) {
-        return (
-            <div style={{ padding: '2rem', textAlign: 'center' }}>
-                <div style={{ maxWidth: '500px', margin: '0 auto', padding: '2rem', background: '#fef2f2', borderRadius: '8px', border: '1px solid #fecaca' }}>
-                    <div style={{ fontSize: '3rem', marginBottom: '1rem' }}><Lock size={48} color="#991b1b" /></div>
-                    <h2 style={{ color: '#991b1b', marginBottom: '0.5rem' }}>Access Denied</h2>
-                    <p style={{ color: '#7f1d1d' }}>
-                        Integrity Checker is only available to Barangay Officials and Administrators.
-                    </p>
-                    <p style={{ color: '#991b1b', fontSize: '0.875rem', marginTop: '1rem' }}>
-                        Your role: <strong>{user?.role || 'Unknown'}</strong>
-                    </p>
-                </div>
-            </div>
-        );
-    }
-
+const IntegrityCheckerContent = () => {
     const [file, setFile] = useState(null);
     const [uploading, setUploading] = useState(false);
     const [results, setResults] = useState(null);
@@ -33,29 +18,8 @@ const IntegrityChecker = ({ user }) => {
     const [actionMessage, setActionMessage] = useState('');
     const [error, setError] = useState(null);
     const [tablePage, setTablePage] = useState(1);
-    const [detailsPage, setDetailsPage] = useState(1);
     const TABLE_PAGE_SIZE = 10;
-    const DETAILS_PAGE_SIZE = 5;
     const TOAST_DURATION = 4000;
-    const ML_REASON_REGEX = /ml|ai summary|hybrid/i;
-    const classifyReason = (reason) => {
-        const raw = String(reason || '').trim();
-        const lower = raw.toLowerCase();
-        if (lower.startsWith('ai summary:') || lower.startsWith('summary:')) {
-            return { label: 'Summary', text: raw.replace(/^ai summary:\s*/i, '').replace(/^summary:\s*/i, '') };
-        }
-        if (lower.includes('ml') || lower.includes('hybrid')) {
-            return { label: 'ML', text: raw.replace(/^ml\s*/i, '').replace(/^ml\s*hybrid\s*/i, '') };
-        }
-        return { label: 'Signal', text: raw };
-    };
-    const shouldShowInBulletin = (reason) => {
-        const lower = String(reason || '').trim().toLowerCase();
-        if (lower.startsWith('ai summary:') || lower.startsWith('summary:')) return false;
-        if (lower.startsWith('ml hybrid assessment')) return false;
-        return true;
-    };
-
     // Manual Entry State
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [manualRows, setManualRows] = useState([{
@@ -70,6 +34,31 @@ const IntegrityChecker = ({ user }) => {
     }]);
     const [currentRowIndex, setCurrentRowIndex] = useState(0);
     const [modalError, setModalError] = useState(null);
+    const [manualErrors, setManualErrors] = useState({});
+    const rowActionPending = useRef(false);
+    const downloadPending = useRef(false);
+    const manualFormRef = useRef(null);
+    const [downloading, setDownloading] = useState(false);
+    const [downloadError, setDownloadError] = useState('');
+    const [retryUntil, setRetryUntil] = useState(0);
+    const [retrySeconds, setRetrySeconds] = useState(0);
+    const focusManualError = (index, errors) => {
+        setCurrentRowIndex(index);
+        setManualErrors(errors);
+        setModalError(`Row ${index + 1}: ${Object.values(errors)[0]}`);
+        requestAnimationFrame(() => manualFormRef.current?.querySelector(`[data-field="${Object.keys(errors)[0]}"]`)?.focus());
+    };
+    useEffect(() => {
+        if (!retryUntil) return;
+        const tick = () => setRetrySeconds(Math.max(0, Math.ceil((retryUntil - Date.now()) / 1000)));
+        tick();
+        const timer = setInterval(tick, 1000);
+        return () => clearInterval(timer);
+    }, [retryUntil]);
+    useEffect(() => {
+        setTablePage(page => clampPage(page, results?.results?.length || 0, TABLE_PAGE_SIZE));
+    }, [results]);
+    useEffect(() => { rowActionPending.current = false; }, [manualRows]);
     useLockBodyScroll(isModalOpen || Boolean(selectedTx));
 
     const RESULTS_CACHE_KEY = 'integrity_checker_results_v1';
@@ -129,7 +118,6 @@ const IntegrityChecker = ({ user }) => {
         setResults(null);
         setSelectedTx(null);
         setTablePage(1);
-        setDetailsPage(1);
         setActionMessage('');
         setError(null);
         try {
@@ -162,10 +150,10 @@ const IntegrityChecker = ({ user }) => {
                 results: prev.results.filter(r => r.transactionId !== tx.transactionId)
             }));
             setSelectedTx(null);
-            try { localStorage.setItem('tx_refresh', String(Date.now())); } catch (e) {}
+            try { localStorage.setItem('tx_refresh', String(Date.now())); } catch { /* Cross-tab refresh is optional when storage is unavailable. */ }
             setActionMessage(`Approved ${tx.transactionId} successfully.`);
         } catch (err) {
-            alert('Approve failed: ' + (err.response?.data?.error || err.message));
+            setActionMessage('Approve failed: ' + (err.response?.data?.error || err.message));
         } finally {
             setApprovingId(null);
         }
@@ -180,10 +168,10 @@ const IntegrityChecker = ({ user }) => {
                 results: prev.results.filter(r => r.transactionId !== tx.transactionId)
             }));
             setSelectedTx(null);
-            try { localStorage.setItem('tx_refresh', String(Date.now())); } catch (e) {}
+            try { localStorage.setItem('tx_refresh', String(Date.now())); } catch { /* Cross-tab refresh is optional when storage is unavailable. */ }
             setActionMessage(`Flagged ${tx.transactionId} for manual review.`);
         } catch (err) {
-            alert('Flag failed: ' + (err.response?.data?.error || err.message));
+            setActionMessage('Flag failed: ' + (err.response?.data?.error || err.message));
         } finally {
             setApprovingId(null);
         }
@@ -198,25 +186,16 @@ const IntegrityChecker = ({ user }) => {
                 results: prev.results.filter(r => r.transactionId !== tx.transactionId)
             }));
             setSelectedTx(null);
-            try { localStorage.setItem('tx_refresh', String(Date.now())); } catch (e) {}
+            try { localStorage.setItem('tx_refresh', String(Date.now())); } catch { /* Cross-tab refresh is optional when storage is unavailable. */ }
             setActionMessage(`Denied and archived ${tx.transactionId}.`);
         } catch (err) {
-            alert('Archive failed: ' + (err.response?.data?.error || err.message));
+            setActionMessage('Archive failed: ' + (err.response?.data?.error || err.message));
         } finally {
             setApprovingId(null);
         }
     };
 
-    const formatCurrencyDisplay = (value) => {
-        if (!value && value !== 0) return '';
-        const number = parseFloat(value);
-        if (isNaN(number)) return value;
-        return new Intl.NumberFormat('en-PH', {
-            style: 'currency',
-            currency: 'PHP',
-            minimumFractionDigits: 2
-        }).format(number);
-    };
+    const formatCurrencyDisplay = formatCurrency;
 
     const getRiskCategory = (result) => {
         if (result.anomalyCategory && result.anomalyCategory !== 'Other') return result.anomalyCategory;
@@ -241,74 +220,47 @@ const IntegrityChecker = ({ user }) => {
     };
 
     const handleAddManualRow = () => {
-        setManualRows([...manualRows, {
-            date: new Date().toISOString().split('T')[0],
-            agency: '',
-            programName: '',
-            payerName: '',
-            payeeName: '',
-            debitAmount: '0',
-            creditAmount: '0',
-            description: ''
+        if (rowActionPending.current) return;
+        const invalidIndex = manualRows.findIndex(row => Object.keys(manualRowErrors(row)).length);
+        if (invalidIndex !== -1) { focusManualError(invalidIndex, manualRowErrors(manualRows[invalidIndex])); return; }
+        rowActionPending.current = true;
+        setManualRows(rows => [...rows, {
+            date: new Date().toISOString().split('T')[0], agency: '', programName: '',
+            payerName: '', payeeName: '', debitAmount: '0', creditAmount: '0', description: ''
         }]);
         setCurrentRowIndex(manualRows.length);
+        setManualErrors({});
+        setModalError(null);
     };
 
     const handleRemoveManualRow = (index) => {
-        const newRows = manualRows.filter((_, i) => i !== index);
-        setManualRows(newRows);
-        if (currentRowIndex >= newRows.length) {
-            setCurrentRowIndex(Math.max(0, newRows.length - 1));
-        }
+        if (manualRows.length <= 1) return;
+        setManualRows(rows => rows.filter((_, i) => i !== index));
+        setCurrentRowIndex(current => Math.max(0, Math.min(current > index ? current - 1 : current, manualRows.length - 2)));
+        setManualErrors({});
+        setModalError(null);
+    };
+    const navigateManualRow = index => {
+        setCurrentRowIndex(Math.max(0, Math.min(index, manualRows.length - 1)));
+        setManualErrors({});
+        setModalError(null);
     };
 
     const handleManualFieldChange = (field, value) => {
         setModalError(null);
         setError(null);
-        const newRows = [...manualRows];
-        newRows[currentRowIndex][field] = value;
-        setManualRows(newRows);
-    };
-
-    const validateManualRow = (row, index) => {
-        if (!row.date) return `Row ${index + 1}: Date is required.`;
-        if (!row.agency?.trim()) return `Row ${index + 1}: Agency is required.`;
-        if (row.agency.length > 120) return `Row ${index + 1}: Agency is too long (max 120).`;
-        if (!row.programName?.trim()) return `Row ${index + 1}: Program Name is required.`;
-        if (row.programName.length > 120) return `Row ${index + 1}: Program Name is too long (max 120).`;
-        if (!row.payerName?.trim()) return `Row ${index + 1}: Payer Name is required.`;
-        if (row.payerName.length > 100) return `Row ${index + 1}: Payer Name is too long (max 100).`;
-        if (!row.payeeName?.trim()) return `Row ${index + 1}: Payee Name is required.`;
-        if (row.payeeName.length > 100) return `Row ${index + 1}: Payee Name is too long (max 100).`;
-        if (!row.description?.trim()) return `Row ${index + 1}: Description is required.`;
-        if (row.description.length > 500) return `Row ${index + 1}: Description is too long (max 500).`;
-
-        const debit = parseFloat(row.debitAmount?.toString().replace(/,/g, ''));
-        const credit = parseFloat(row.creditAmount?.toString().replace(/,/g, ''));
-        if (isNaN(debit) || debit < 0) return `Row ${index + 1}: Invalid Debit amount.`;
-        if (isNaN(credit) || credit < 0) return `Row ${index + 1}: Invalid Credit amount.`;
-        if (debit === 0 && credit === 0) return `Row ${index + 1}: Amount must be a positive number greater than 0 (debit and credit cannot both be 0).`;
-
-        const specialChars = /[<>{}[\]\\]/;
-        if (specialChars.test(row.agency) || specialChars.test(row.programName) || specialChars.test(row.payerName) || specialChars.test(row.payeeName) || specialChars.test(row.description)) {
-            return `Row ${index + 1}: Special characters like < > { } [ ] are not allowed.`;
-        }
-
-        return null;
+        setManualErrors(previous => ({ ...previous, [field]: undefined }));
+        setManualRows(rows => rows.map((row, index) => index === currentRowIndex ? { ...row, [field]: value } : row));
     };
 
     const handleAnalyzeManual = async () => {
         setModalError(null);
 
-        // Comprehensive Validation
+        if (uploading) return;
         for (let i = 0; i < manualRows.length; i++) {
-            const errorMsg = validateManualRow(manualRows[i], i);
-            if (errorMsg) {
-                setModalError(errorMsg);
-                return;
-            }
+            const errors = manualRowErrors(manualRows[i]);
+            if (Object.keys(errors).length) { focusManualError(i, errors); return; }
         }
-
         setUploading(true);
         setError(null);
         setResults(null);
@@ -319,14 +271,14 @@ const IntegrityChecker = ({ user }) => {
             const csvContent = [
                 headers.join(','),
                 ...manualRows.map(row => [
-                    `"${row.date || ''}"`,
-                    `"${row.agency || ''}"`,
-                    `"${row.programName || ''}"`,
-                    `"${row.payerName || ''}"`,
-                    `"${row.payeeName || ''}"`,
+                    `"${String(row.date || '').replace(/"/g, '""')}"`,
+                    `"${String(row.agency || '').replace(/"/g, '""')}"`,
+                    `"${String(row.programName || '').replace(/"/g, '""')}"`,
+                    `"${String(row.payerName || '').replace(/"/g, '""')}"`,
+                    `"${String(row.payeeName || '').replace(/"/g, '""')}"`,
                     row.debitAmount?.toString().replace(/,/g, '') || '0',
                     row.creditAmount?.toString().replace(/,/g, '') || '0',
-                    `"${row.description || ''}"`
+                    `"${String(row.description || '').replace(/"/g, '""')}"`
                 ].join(','))
             ].join('\n');
 
@@ -342,7 +294,7 @@ const IntegrityChecker = ({ user }) => {
 
             setResults(response.data);
             setIsModalOpen(false);
-            try { localStorage.setItem('tx_refresh', String(Date.now())); } catch (e) {}
+            try { localStorage.setItem('tx_refresh', String(Date.now())); } catch { /* Cross-tab refresh is optional when storage is unavailable. */ }
 
             // Clear all manual entry form data after successful analysis
             setManualRows([{
@@ -376,21 +328,34 @@ const IntegrityChecker = ({ user }) => {
     };
 
     const handleDownloadTemplate = async () => {
+        if (downloadPending.current || Date.now() < retryUntil) return;
+        downloadPending.current = true;
+        setDownloading(true);
+        setDownloadError('');
         try {
-            const response = await api.get('/transactions/template', {
-                responseType: 'blob'
-            });
-
+            const response = await api.get('/transactions/template', { responseType: 'blob' });
             const url = window.URL.createObjectURL(response.data);
             const a = document.createElement('a');
             a.href = url;
             a.download = 'transaction_import_template.csv';
             document.body.appendChild(a);
             a.click();
+            a.remove();
             window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
         } catch (err) {
-            setError(formatCsvError(err, 'Template download failed'));
+            let data = err.response?.data;
+            if (data instanceof Blob) {
+                try { data = JSON.parse(await data.text()); } catch { data = null; }
+            }
+            if (err.response?.status === 429) {
+                const seconds = Math.max(1, Number(data?.retryAfterSeconds || err.response.headers?.['retry-after']) || 600);
+                setRetrySeconds(seconds);
+                setRetryUntil(Date.now() + seconds * 1000);
+            }
+            setDownloadError(data?.error || 'Template download failed. Please try again.');
+        } finally {
+            downloadPending.current = false;
+            setDownloading(false);
         }
     };
 
@@ -404,7 +369,6 @@ const IntegrityChecker = ({ user }) => {
         setError(null);
         setResults(null);
         setTablePage(1);
-        setDetailsPage(1);
 
         try {
             const formData = new FormData();
@@ -416,7 +380,7 @@ const IntegrityChecker = ({ user }) => {
 
             setResults(response.data);
             setFile(null);
-            try { localStorage.setItem('tx_refresh', String(Date.now())); } catch (e) {}
+            try { localStorage.setItem('tx_refresh', String(Date.now())); } catch { /* Cross-tab refresh is optional when storage is unavailable. */ }
             // Reset file input
             document.getElementById('csvFileInput').value = '';
         } catch (err) {
@@ -429,8 +393,8 @@ const IntegrityChecker = ({ user }) => {
     return (
         <div className="csv-import-container">
             {actionMessage && (
-                <div className="toast toast-floating success">
-                    <CheckCircle size={18} style={{ marginRight: '6px' }} /> {actionMessage}
+                <div role="status" className="toast toast-floating success">
+                     {actionMessage}
                 </div>
             )}
             <div className="page-hero integrity-checker-hero">
@@ -440,28 +404,28 @@ const IntegrityChecker = ({ user }) => {
 
                 <div className="hero-features-grid">
                     <div className="hero-feature-card">
-                        <div className="feature-icon"><CheckCircle size={20} color="#34d399" /></div>
+
                         <div className="feature-text">
                             <strong>No Template Needed</strong>
                             <p>Upload ANY budget CSV</p>
                         </div>
                     </div>
                     <div className="hero-feature-card">
-                        <div className="feature-icon"><Settings size={20} color="#818cf8" /></div>
+
                         <div className="feature-text">
                             <strong>Smart Detection</strong>
                             <p>Auto-maps columns</p>
                         </div>
                     </div>
                     <div className="hero-feature-card">
-                        <div className="feature-icon"><Shield size={20} color="#fbbf24" /></div>
+
                         <div className="feature-text">
                             <strong>Risk Analysis</strong>
                             <p>Detects anomalies instantly</p>
                         </div>
                     </div>
                     <div className="hero-feature-card">
-                        <div className="feature-icon"><BarChart size={20} color="#60a5fa" /></div>
+
                         <div className="feature-text">
                             <strong>Verified</strong>
                             <p>Checks PhilGEPS & PSA</p>
@@ -481,7 +445,7 @@ const IntegrityChecker = ({ user }) => {
                             disabled={uploading}
                         />
                         <div className="file-input-content">
-                            <Upload size={48} color="#cbd5e1" style={{ marginBottom: '1rem' }} />
+
                             <span className="file-name">{file ? file.name : 'Click to upload or drag and drop CSV'}</span>
                             <span className="file-limit">Maximum file size: 10MB</span>
 
@@ -489,6 +453,7 @@ const IntegrityChecker = ({ user }) => {
                                 <span className="separator">or</span>
                                 <button
                                     className="btn-link-template"
+                                    disabled={downloading || retrySeconds > 0}
                                     onClick={(e) => {
                                         e.preventDefault();
                                         e.stopPropagation(); // Prevent opening file dialog
@@ -497,8 +462,9 @@ const IntegrityChecker = ({ user }) => {
                                     type="button"
                                 >
                                     <Download size={16} />
-                                    <span>Download Sample Template</span>
+                                    <span>{downloading ? 'Downloading…' : retrySeconds > 0 ? `Retry in ${retrySeconds}s` : 'Download Sample Template'}</span>
                                 </button>
+                                {downloadError && <p className="field-error" role="alert">{downloadError}{retrySeconds > 0 && ` Retry in ${retrySeconds}s.`}</p>}
                             </div>
                         </div>
                     </div>
@@ -530,7 +496,7 @@ const IntegrityChecker = ({ user }) => {
 
                 {uploading && (
                     <div className="analyzing-state">
-                        <Loader2 className="animate-spin" size={48} />
+
                         <h3>Integrity checking in progress...</h3>
                         <p>Our AI is analyzing patterns and blockchain signatures</p>
                     </div>
@@ -538,7 +504,7 @@ const IntegrityChecker = ({ user }) => {
 
                 {isModalOpen && (
                     <div className="integrity-modal-overlay">
-                        <div className="integrity-modal">
+                        <div className="integrity-modal" ref={manualFormRef} role="dialog" aria-modal="true" aria-label="Manual transaction entry">
                             <div className="modal-header">
                                 <div className="modal-title-group">
                                     <h3>Manual Transaction Entry</h3>
@@ -552,15 +518,42 @@ const IntegrityChecker = ({ user }) => {
                             <div className="modal-body">
                                 {modalError && (
                                     <div className="modal-inner-error">
-                                        <AlertCircle size={18} />
+
                                         <span>{modalError}</span>
                                     </div>
                                 )}
 
+                                {manualRows.length >= 2 && (
+                                    <div className="modal-pagination">
+                                        <button
+                                            className="btn-nav"
+                                            onClick={() => navigateManualRow(currentRowIndex - 1)}
+                                            disabled={currentRowIndex === 0}
+                                            type="button"
+                                        >
+                                            <ChevronLeft size={16} /> Previous
+                                        </button>
+
+                                        <div className="nav-indicators">
+                                            {rowPages(currentRowIndex, manualRows.length).map(idx => (
+                                                <button key={idx} type="button" className={`row-page ${currentRowIndex === idx ? 'active' : ''}`} aria-current={currentRowIndex === idx ? 'page' : undefined} aria-label={`Go to row ${idx + 1}`} onClick={() => navigateManualRow(idx)}>{idx + 1}</button>
+                                            ))}
+                                        </div>
+
+                                        <button
+                                            className="btn-nav"
+                                            onClick={() => navigateManualRow(currentRowIndex + 1)}
+                                            disabled={currentRowIndex === manualRows.length - 1}
+                                            type="button"
+                                        >
+                                            Next <ChevronRight size={16} />
+                                        </button>
+                                    </div>
+                                )}
                                 <div className="form-grid">
                                     <div className="form-group date-col">
                                         <label>Date</label>
-                                        <input
+                                        <TextField error={manualErrors.date} field="date"
                                             type="date"
                                             value={manualRows[currentRowIndex].date}
                                             onChange={(e) => handleManualFieldChange('date', e.target.value)}
@@ -574,7 +567,7 @@ const IntegrityChecker = ({ user }) => {
                                                 {manualRows[currentRowIndex].agency.length}/120
                                             </span>
                                         </label>
-                                        <input
+                                        <TextField error={manualErrors.agency} field="agency"
                                             type="text"
                                             placeholder="e.g. Barangay Pantal"
                                             value={manualRows[currentRowIndex].agency}
@@ -589,7 +582,7 @@ const IntegrityChecker = ({ user }) => {
                                                 {manualRows[currentRowIndex].programName.length}/120
                                             </span>
                                         </label>
-                                        <input
+                                        <TextField error={manualErrors.programName} field="programName"
                                             type="text"
                                             placeholder="e.g. Office Supplies"
                                             value={manualRows[currentRowIndex].programName}
@@ -604,7 +597,7 @@ const IntegrityChecker = ({ user }) => {
                                                 {manualRows[currentRowIndex].payerName.length}/100
                                             </span>
                                         </label>
-                                        <input
+                                        <TextField error={manualErrors.payerName} field="payerName"
                                             type="text"
                                             placeholder="e.g. Barangay Pantal"
                                             value={manualRows[currentRowIndex].payerName}
@@ -619,7 +612,7 @@ const IntegrityChecker = ({ user }) => {
                                                 {manualRows[currentRowIndex].payeeName.length}/100
                                             </span>
                                         </label>
-                                        <input
+                                        <TextField error={manualErrors.payeeName} field="payeeName"
                                             type="text"
                                             placeholder="e.g. Supplier Name"
                                             value={manualRows[currentRowIndex].payeeName}
@@ -630,8 +623,8 @@ const IntegrityChecker = ({ user }) => {
                                     <div className="form-group">
                                         <label>Debit Amount (Payment Out)</label>
                                         <div className="currency-input-wrapper">
-                                            <span className="currency-symbol">PHP</span>
-                                            <input
+                                            <span className="currency-symbol">₱</span>
+                                            <TextField error={manualErrors.debitAmount} field="debitAmount"
                                                 type="text"
                                                 placeholder="0.00"
                                                 value={manualRows[currentRowIndex].debitAmount}
@@ -656,8 +649,8 @@ const IntegrityChecker = ({ user }) => {
                                     <div className="form-group">
                                         <label>Credit Amount (Funds In)</label>
                                         <div className="currency-input-wrapper">
-                                            <span className="currency-symbol">PHP</span>
-                                            <input
+                                            <span className="currency-symbol">₱</span>
+                                            <TextField error={manualErrors.creditAmount} field="creditAmount"
                                                 type="text"
                                                 placeholder="0.00"
                                                 value={manualRows[currentRowIndex].creditAmount}
@@ -686,7 +679,7 @@ const IntegrityChecker = ({ user }) => {
                                                 {manualRows[currentRowIndex].description.length}/500
                                             </span>
                                         </label>
-                                        <textarea
+                                        <TextField error={manualErrors.description} field="description" as="textarea"
                                             placeholder="Enter transaction details..."
                                             value={manualRows[currentRowIndex].description}
                                             onChange={(e) => handleManualFieldChange('description', e.target.value)}
@@ -695,44 +688,15 @@ const IntegrityChecker = ({ user }) => {
                                     </div>
                                 </div>
 
-                                {manualRows.length >= 2 && (
-                                    <div className="modal-pagination">
-                                        <button
-                                            className="btn-nav"
-                                            onClick={() => setCurrentRowIndex(currentRowIndex - 1)}
-                                            disabled={currentRowIndex === 0}
-                                            type="button"
-                                        >
-                                            <ChevronLeft size={16} /> Previous
-                                        </button>
 
-                                        <div className="nav-indicators">
-                                            {manualRows.map((_, idx) => (
-                                                <span
-                                                    key={idx}
-                                                    className={`nav-dot ${currentRowIndex === idx ? 'active' : ''}`}
-                                                    onClick={() => setCurrentRowIndex(idx)}
-                                                ></span>
-                                            ))}
-                                        </div>
-
-                                        <button
-                                            className="btn-nav"
-                                            onClick={() => setCurrentRowIndex(currentRowIndex + 1)}
-                                            disabled={currentRowIndex === manualRows.length - 1}
-                                            type="button"
-                                        >
-                                            Next <ChevronRight size={16} />
-                                        </button>
-                                    </div>
-                                )}
                             </div>
 
                             <div className="modal-footer">
                                 <div className="footer-left">
-                                    <button className="btn-add-row" onClick={handleAddManualRow} type="button">
+                                    <button className="btn-add-row" onClick={handleAddManualRow} type="button" disabled={manualRows.some(row => Object.keys(manualRowErrors(row)).length > 0)} aria-describedby={manualRows.some(row => Object.keys(manualRowErrors(row)).length > 0) ? 'add-row-hint' : undefined}>
                                         <Plus size={16} /> Add another row
                                     </button>
+                                    {manualRows.some(row => Object.keys(manualRowErrors(row)).length > 0) && <span id="add-row-hint" className="field-hint">Complete all required fields with valid amounts before adding a row.</span>}
                                     {manualRows.length > 1 && (
                                         <button className="btn-remove-row" onClick={() => handleRemoveManualRow(currentRowIndex)} type="button">
                                             <Trash2 size={16} /> Remove row
@@ -741,7 +705,7 @@ const IntegrityChecker = ({ user }) => {
                                 </div>
                                 <div className="footer-right">
                                     <button className="btn-cancel" onClick={() => setIsModalOpen(false)} type="button">Cancel</button>
-                                    <button className="btn-analyze" onClick={handleAnalyzeManual} type="button">
+                                    <button className="btn-analyze" onClick={handleAnalyzeManual} type="button" disabled={uploading}>
                                         <Zap size={18} /> Analyze
                                     </button>
                                 </div>
@@ -752,7 +716,7 @@ const IntegrityChecker = ({ user }) => {
 
                 {error && (
                     <div className="alert alert-error">
-                        <span className="alert-icon"><AlertCircle size={20} /></span>
+
                         <div className="alert-content">
                             <div className="alert-title">{typeof error === 'string' ? 'Error' : error.title}</div>
                             <div className="alert-message">
@@ -818,11 +782,11 @@ const IntegrityChecker = ({ user }) => {
                     <div className="results-container animate-fade-in">
                         <div className="results-header">
                             <div className="results-header-main">
-                                <h3><CheckCircle size={24} className="success-icon" /> Integrity Check Complete</h3>
+                                <h3> Integrity Check Complete</h3>
                                 <p>{results.message || 'AI analysis done. All rows are now pending official verification before blockchain/DB write.'}</p>
                                 {results.mappingConfidence && (
                                     <p className="mapping-confidence">
-                                        <BarChart size={16} className="mapping-icon" /> Column Detection Confidence: <strong>{results.mappingConfidence}%</strong>
+                                         Column Detection Confidence: <strong>{results.mappingConfidence}%</strong>
                                     </p>
                                 )}
                             </div>
@@ -841,13 +805,13 @@ const IntegrityChecker = ({ user }) => {
                             {results.flaggedCount > 0 && (
                                 <div className="stat-card danger">
                                     <div className="stat-value">{results.flaggedCount}</div>
-                                    <div className="stat-label"><AlertTriangle size={18} style={{ marginRight: '4px' }} /> Flagged for Review</div>
+                                    <div className="stat-label"> Flagged for Review</div>
                                 </div>
                             )}
                             {results.highRiskCount > 0 && (
                                 <div className="stat-card warning">
                                     <div className="stat-value">{results.highRiskCount}</div>
-                                    <div className="stat-label"><AlertTriangle size={18} style={{ marginRight: '4px' }} /> High Risk</div>
+                                    <div className="stat-label"> High Risk</div>
                                 </div>
                             )}
                             {results.failed > 0 && (
@@ -860,7 +824,7 @@ const IntegrityChecker = ({ user }) => {
                                 <div className="stat-card verified">
                                     <div className="stat-value">{results.blockchainVerified}</div>
                                     <div className="stat-label">
-                                        <Shield size={18} className="stat-icon-shield" /> Verified on Blockchain
+                                         Verified on Blockchain
                                     </div>
                                 </div>
                             )}
@@ -869,7 +833,7 @@ const IntegrityChecker = ({ user }) => {
                         {results.columnMappings && (
                             <div className="column-mappings">
                                 <div className="section-title-row">
-                                    <h4><Clipboard size={18} style={{ marginRight: '4px', verticalAlign: 'text-bottom' }} /> Detected Column Mappings</h4>
+                                    <h4> Detected Column Mappings</h4>
                                     <span className="section-count">{Object.keys(results.columnMappings).length} fields mapped</span>
                                 </div>
                                 <div className="mappings-table-wrapper">
@@ -912,7 +876,7 @@ const IntegrityChecker = ({ user }) => {
                                         <thead>
                                             <tr>
                                                 <th>Row</th>
-                                                <th>Transaction ID</th>
+
                                                 <th>Type</th>
                                                 <th>Amount</th>
                                                 <th>From</th>
@@ -934,9 +898,9 @@ const IntegrityChecker = ({ user }) => {
                                                     onClick={() => setSelectedTx(result)}
                                                 >
                                                     <td data-label="Row">{result.row}</td>
-                                                    <td data-label="Transaction ID" className="transaction-id">{result.transactionId}</td>
+
                                                     <td data-label="Type">{result.transactionType}</td>
-                                                    <td data-label="Amount" className="amount">{formatCurrencyDisplay(result.amount)}</td>
+                                                    <td data-label="Amount" className="amount">{formatCurrencyDisplay(result.amount, result.currency)}</td>
                                                     <td data-label="From">{formatAddressLabel(result.fromAddress) || '-'}</td>
                                                     <td data-label="To">{formatAddressLabel(result.toAddress) || '-'}</td>
                                                     <td data-label="Risk Score">
@@ -960,13 +924,13 @@ const IntegrityChecker = ({ user }) => {
                                                         {result.blockchainTxId ? (
                                                             <div className="blockchain-hash-wrapper">
                                                                 <span className="blockchain-hash-text" title={result.blockchainTxId}>
-                                                                    <Link size={12} className="link-icon" /> ...
+                                                                     ...
                                                                 </span>
                                                                 <button
                                                                     className="btn-copy-hash"
-                                                                    onClick={() => {
-                                                                        navigator.clipboard.writeText(result.blockchainTxId);
-                                                                        alert('Blockchain hash copied to clipboard!');
+                                                                    onClick={async () => {
+                                                                        try { await navigator.clipboard.writeText(result.blockchainTxId); setActionMessage('Blockchain hash copied.'); }
+                                                                        catch { setActionMessage('Unable to copy the blockchain hash.'); }
                                                                     }}
                                                                     title="Copy blockchain hash"
                                                                 >
@@ -979,9 +943,9 @@ const IntegrityChecker = ({ user }) => {
                                                     </td>
                                                     <td data-label="Status">
                                                         {result.flagged ? (
-                                                            <span className="badge badge-danger"><AlertTriangle size={14} className="badge-icon" /> FLAGGED</span>
+                                                            <span className="badge badge-danger"> FLAGGED</span>
                                                         ) : (
-                                                            <span className="badge badge-success"><CheckCircle size={14} className="badge-icon" /> Clean</span>
+                                                            <span className="badge badge-success"> Clean</span>
                                                         )}
                                                     </td>
                                                     <td data-label="Actions" className="actions-cell">
@@ -1055,7 +1019,7 @@ const IntegrityChecker = ({ user }) => {
                         {results.errors && results.errors.length > 0 && (
                             <div className="errors-container">
                                 <div className="section-title-row errors-head">
-                                    <h4><AlertTriangle size={18} style={{ marginRight: '6px', color: '#ef4444' }} /> Errors ({results.errors.length})</h4>
+                                    <h4> Errors ({results.errors.length})</h4>
                                     <span className="section-count">Review and fix invalid rows before re-uploading.</span>
                                 </div>
                                 <div className="errors-table-wrapper">
@@ -1094,8 +1058,7 @@ const IntegrityChecker = ({ user }) => {
                                 <div className="tx-grid">
                                     <div className="tx-grid-row">
                                         <div className="tx-grid-col">
-                                            <label>ID</label>
-                                            <div className="font-mono">{selectedTx.transactionId}</div>
+                                            <TransactionReference value={selectedTx.transactionId} />
                                         </div>
                                         <div className="tx-grid-col">
                                             <label>Type</label>
@@ -1105,7 +1068,7 @@ const IntegrityChecker = ({ user }) => {
                                     <div className="tx-grid-row">
                                         <div className="tx-grid-col">
                                             <label>Amount</label>
-                                            <div className="font-bold">{formatCurrencyDisplay(selectedTx.amount)}</div>
+                                            <div className="font-bold">{formatCurrencyDisplay(selectedTx.amount, selectedTx.currency)}</div>
                                         </div>
                                         <div className="tx-grid-col">
                                             <label>Risk</label>
@@ -1165,7 +1128,7 @@ const IntegrityChecker = ({ user }) => {
                 )}
 
                 <div className="supported-columns-section" style={{ borderRadius: '16px', border: '1px solid #e2e8f0', background: 'white' }}>
-                    <h4><FileText size={18} /> Supported Column Names (Auto-Detected)</h4>
+                    <h4> Supported Column Names (Auto-Detected)</h4>
                     {(hasMissingColumns || shouldShowMissingFallback) && (
                         <div className="missing-columns-banner">
                             <div className="missing-columns-title">Missing required columns</div>
@@ -1196,4 +1159,24 @@ const IntegrityChecker = ({ user }) => {
     );
 };
 
-export default IntegrityChecker;
+export default function IntegrityChecker({ user }) {
+    // Permission check - only officials and admins can import
+    if (!isOfficial(user)) {
+        return (
+            <div style={{ padding: '2rem', textAlign: 'center' }}>
+                <div style={{ maxWidth: '500px', margin: '0 auto', padding: '2rem', background: '#fef2f2', borderRadius: '8px', border: '1px solid #fecaca' }}>
+                    <div style={{ fontSize: '3rem', marginBottom: '1rem' }}></div>
+                    <h2 style={{ color: '#991b1b', marginBottom: '0.5rem' }}>Access Denied</h2>
+                    <p style={{ color: '#7f1d1d' }}>
+                        Integrity Checker is only available to Barangay Officials and Administrators.
+                    </p>
+                    <p style={{ color: '#991b1b', fontSize: '0.875rem', marginTop: '1rem' }}>
+                        Your role: <strong>{user?.role || 'Unknown'}</strong>
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
+    return <IntegrityCheckerContent />;
+}

@@ -94,9 +94,7 @@ function Sidebar({ user, activeView, setActiveView, onLogout, isMobileMenuOpen, 
       {showLogoutConfirm && (
         <div className="logout-modal-overlay">
           <div className="logout-modal">
-            <div className="modal-icon-wrapper">
-              <LogOut size={32} />
-            </div>
+
             <h3 className="modal-title">Confirm Logout</h3>
             <p className="modal-message">
               Are you sure you want to end your session? You will need to sign in again to access the portal.
@@ -115,7 +113,7 @@ function Sidebar({ user, activeView, setActiveView, onLogout, isMobileMenuOpen, 
 
       <aside className={`sidebar ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
         <div className="sidebar-header">
-          <div className="sidebar-logo">
+          <div className="sidebar-logo"><img src="/ChainShield_logo.png" alt="" className="portal-brand-logo" />
             <div className="logo-text">
               <h2 className="logo-title">CHAINSHIELD</h2>
               <p className="logo-subtitle">Barangay Portal</p>
@@ -127,7 +125,7 @@ function Sidebar({ user, activeView, setActiveView, onLogout, isMobileMenuOpen, 
           </button>
         </div>
 
-        <div className="sidebar-user-profile" onClick={() => setActiveView('profile')} style={{ cursor: 'pointer' }}>
+        <button type="button" aria-label="Open profile" className="sidebar-user-profile" onClick={() => setActiveView('profile')} style={{ cursor: 'pointer' }}>
           <div className="user-avatar-container">
             {user?.profilePicture ? (
               <img
@@ -141,13 +139,8 @@ function Sidebar({ user, activeView, setActiveView, onLogout, isMobileMenuOpen, 
               </div>
             )}
           </div>
-          <div className="user-info">
-            <span className="user-name">{user?.firstName} {user?.lastName}</span>
-            <span className="user-role">
-              {user?.role === 'barangay_official' && user?.position ? user.position : user?.role?.replace('_', ' ')}
-            </span>
-          </div>
-        </div>
+          <span className="user-info">Profile</span>
+        </button>
 
         <nav className="sidebar-nav">
           {showNav && menuItems.map(item => {

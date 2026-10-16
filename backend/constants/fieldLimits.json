@@ -1,0 +1,18 @@
+{
+  "firstName": 50,
+  "lastName": 50,
+  "email": 254,
+  "userEmail": 254,
+  "newEmail": 254,
+  "position": 100,
+  "agency": 120,
+  "programName": 120,
+  "payerName": 100,
+  "payeeName": 100,
+  "description": 500,
+  "search": 200,
+  "shortText": 255,
+  "longText": 2000,
+  "subject": 200,
+  "complaintDescription": 2000
+}

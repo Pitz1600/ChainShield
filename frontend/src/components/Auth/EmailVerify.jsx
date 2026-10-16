@@ -1,11 +1,19 @@
+import useFieldErrors from '../../utils/useFieldErrors';
+import { apiFieldErrors } from '../../utils/fieldValidation';
+import TextField from '../Forms/TextField';
 import { useState, useRef, useEffect } from "react";
 import { Shield, AlertCircle, CheckCircle, Mail, ChevronLeft } from 'lucide-react';
 import api from "../../services/api";
 import "../../styles/EmailVerify.css";
 
 const EmailVerify = ({ user, onNavigate, onLogin }) => {
+  const [fieldErrors, setFieldErrors] = useFieldErrors();
   const [otp, setOtp] = useState(new Array(6).fill(""));
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
+  const requestPending = useRef(false);
+  const navigationTimer = useRef(null);
+  useEffect(() => () => clearTimeout(navigationTimer.current), []);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [resendCooldown, setResendCooldown] = useState(0);
@@ -23,7 +31,7 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
   }, [resendCooldown]);
 
   const handleChange = (element, index) => {
-    if (isNaN(element.value)) return false;
+    if (!/^\d?$/.test(element.value)) return false;
 
     if (isInvalidOtp) setIsInvalidOtp(false);
     if (error) setError("");
@@ -74,13 +82,15 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
 
   const handleVerify = async (e) => {
     if (e) e.preventDefault();
+    if (requestPending.current || success === 'Email verified successfully!') return;
     const code = otp.join("");
-    if (code.length !== 6) {
+    if (!/^\d{6}$/.test(code)) {
       setError("Please enter a complete 6-digit verification code.");
       setIsInvalidOtp(true);
       return;
     }
 
+    requestPending.current = true;
     setLoading(true);
     setError("");
     setSuccess("");
@@ -91,12 +101,13 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
 
       if (res.data.success) {
         setSuccess("Email verified successfully!");
-        setTimeout(async () => {
+        navigationTimer.current = setTimeout(async () => {
           try {
             // Fetch fresh profile to ensure we have the latest status
             const profileRes = await api.get('/auth/profile');
             onLogin(null, profileRes.data);
           } catch (err) {
+            setFieldErrors(apiFieldErrors(err));
             console.error("Failed to refresh profile:", err);
             // Fallback: just redirect to login to force a refresh
             onNavigate('login');
@@ -104,21 +115,23 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
         }, 1500);
       }
     } catch (err) {
-      setIsInvalidOtp(true);
-      const serverError = err.response?.data?.error;
-      const errorMessage = serverError 
-        ? `${serverError} The 6-digit verification code you entered is invalid or does not match what was sent to your email.`
-        : (err.code === 'ECONNABORTED' 
-            ? 'Verification request timed out. Please check your internet connection and try again.' 
-            : 'Incorrect verification code. The 6-digit code you entered does not match what was sent to your email.');
-      setError(errorMessage);
+      setFieldErrors(apiFieldErrors(err));
+      const invalidCode = err.response?.status === 400;
+      setIsInvalidOtp(invalidCode);
+      setError(err.response?.data?.error || (err.code === 'ECONNABORTED'
+        ? 'Verification timed out. Please try again.'
+        : 'Unable to verify your email. Check your connection and try again.'));
+      if (invalidCode) inputRefs.current[0]?.focus();
     } finally {
+      requestPending.current = false;
       setLoading(false);
     }
   };
 
   const handleResendOtp = async () => {
-    if (resendCooldown > 0) return;
+    if (resendCooldown > 0 || requestPending.current || success === 'Email verified successfully!') return;
+    requestPending.current = true;
+    setResending(true);
     if (isInvalidOtp) setIsInvalidOtp(false);
     setError("");
     setSuccess("");
@@ -130,7 +143,11 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
       if (inputRefs.current[0]) inputRefs.current[0].focus();
       setResendCooldown(60);
     } catch (err) {
+      setFieldErrors(apiFieldErrors(err));
       setError(err.response?.data?.error || "Failed to resend OTP. Please try again.");
+    } finally {
+      requestPending.current = false;
+      setResending(false);
     }
   };
 
@@ -173,20 +190,6 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
             </p>
           </div>
 
-          {error && (
-            <div className="alert-box error">
-              <span className="alert-icon"><AlertCircle size={20} /></span>
-              <span className="alert-message">{error}</span>
-            </div>
-          )}
-
-          {success && (
-            <div className="alert-box success">
-              <span className="alert-icon"><CheckCircle size={20} /></span>
-              <span className="alert-message">{success}</span>
-            </div>
-          )}
-
           <div className="auth-form">
             <p className="verify-text">
               Enter the 6-digit verification code below to confirm your identity.
@@ -194,10 +197,10 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
 
             <div className="otp-container">
               {otp.map((data, index) => (
-                <input
+                <TextField error={fieldErrors["otp"]} onEdit={() => setFieldErrors({})} field="otp"
                   className={`otp-input ${isInvalidOtp ? 'error' : ''}`}
                   type="text"
-                  name="otp"
+                  name="otp" inputMode="numeric" autoComplete="one-time-code" aria-label={`Verification digit ${index + 1}`} aria-invalid={isInvalidOtp || undefined} aria-describedby={error ? "verification-error" : undefined}
                   maxLength="1"
                   key={index}
                   value={data}
@@ -210,20 +213,16 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
               ))}
             </div>
 
-            {isInvalidOtp && (
-              <p className="otp-error-explanation">
-                The verification code entered is incorrect. It does not match the 6-digit code sent to your email. Please check your inbox and re-enter the code.
-              </p>
-            )}
-
             <p className="helper-text">
               This code will expire in 10 minutes.
             </p>
 
+            {error && <p id="verification-error" className="field-error" role="alert">{error}</p>}
+            {success && <p className="alert-box success" role="status">{success}</p>}
             <button
               className="submit-button"
               onClick={handleVerify}
-              disabled={loading}
+              disabled={loading || resending || success === 'Email verified successfully!'}
               style={{ marginTop: '0' }}
             >
               {loading ? (
@@ -244,9 +243,9 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
               <button
                 className="resend-link"
                 onClick={handleResendOtp}
-                disabled={loading || resendCooldown > 0}
+                disabled={loading || resending || resendCooldown > 0 || success === 'Email verified successfully!'}
               >
-                {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend code'}
+                {resending ? 'Sending…' : resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend code'}
               </button>
             </p>
           </div>

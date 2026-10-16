@@ -1,9 +1,13 @@
+import useFieldErrors from '../../utils/useFieldErrors';
+import { apiFieldErrors } from '../../utils/fieldValidation';
+import TextField from '../Forms/TextField';
 import React, { useState } from 'react';
 import { Shield, Lock, Mail, ArrowRight, AlertCircle, CheckCircle } from 'lucide-react';
 import api from '../../services/api';
 import '../../styles/Login.css'; // Reuse login styles
 
 const AdminOnboarding = ({ user, onNavigate, onLogin }) => {
+  const [fieldErrors, setFieldErrors] = useFieldErrors();
     const [formData, setFormData] = useState({
         newEmail: user?.email || '',
         newPassword: '',
@@ -58,6 +62,7 @@ const AdminOnboarding = ({ user, onNavigate, onLogin }) => {
                 }
             }
         } catch (err) {
+      setFieldErrors(apiFieldErrors(err));
             setError(err.response?.data?.message || 'Failed to update account');
         } finally {
             setLoading(false);
@@ -95,14 +100,14 @@ const AdminOnboarding = ({ user, onNavigate, onLogin }) => {
 
                     {error && (
                         <div className="alert-box error">
-                            <span className="alert-icon"><AlertCircle size={20} /></span>
+
                             <span className="alert-message">{error}</span>
                         </div>
                     )}
 
                     {success && (
                         <div className="alert-box success">
-                            <span className="alert-icon"><CheckCircle size={20} /></span>
+
                             <span className="alert-message">{success}</span>
                         </div>
                     )}
@@ -110,10 +115,10 @@ const AdminOnboarding = ({ user, onNavigate, onLogin }) => {
                     <form onSubmit={handleSubmit} className="auth-form">
                         <div className="form-field">
                             <label className="field-label">
-                                <span className="label-icon"><Mail size={18} /></span>
+
                                 <span>Update Email Address</span>
                             </label>
-                            <input
+                            <TextField error={fieldErrors["newEmail"]} onEdit={() => setFieldErrors({})} field="newEmail"
                                 type="email"
                                 value={formData.newEmail}
                                 onChange={(e) => setFormData({ ...formData, newEmail: e.target.value })}
@@ -125,10 +130,10 @@ const AdminOnboarding = ({ user, onNavigate, onLogin }) => {
 
                         <div className="form-field">
                             <label className="field-label">
-                                <span className="label-icon"><Lock size={18} /></span>
+
                                 <span>New Password</span>
                             </label>
-                            <input
+                            <TextField error={fieldErrors["newPassword"]} onEdit={() => setFieldErrors({})} field="newPassword"
                                 type="password"
                                 value={formData.newPassword}
                                 onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
@@ -139,10 +144,10 @@ const AdminOnboarding = ({ user, onNavigate, onLogin }) => {
 
                         <div className="form-field">
                             <label className="field-label">
-                                <span className="label-icon"><Lock size={18} /></span>
+
                                 <span>Confirm Password</span>
                             </label>
-                            <input
+                            <TextField error={fieldErrors["confirmPassword"]} onEdit={() => setFieldErrors({})} field="confirmPassword"
                                 type="password"
                                 value={formData.confirmPassword}
                                 onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}

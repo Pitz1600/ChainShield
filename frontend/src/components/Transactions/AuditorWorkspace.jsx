@@ -1,10 +1,16 @@
+import VerificationHistory from './VerificationHistory';
+import TransactionReference from './TransactionReference';
+import useFieldErrors from '../../utils/useFieldErrors';
+import { apiFieldErrors } from '../../utils/fieldValidation';
+import TextField from '../Forms/TextField';
 import React, { useState } from 'react';
 import { FileText, CheckCircle, AlertTriangle, Clock, X, DollarSign, Users, Briefcase, FileSignature, Check, Ban, RefreshCw, MessageSquare, Plus, Minus, Save } from 'lucide-react';
 import api from '../../services/api';
-import { formatAddressLabel } from '../../utils/helpers';
+import { formatAddressLabel, formatCurrency } from '../../utils/helpers';
 import '../../styles/AuditorWorkspace.css';
 
 export default function AuditorWorkspace({ tx, onClose, onAction, showToast }) {
+  const [fieldErrors, setFieldErrors] = useFieldErrors();
   const [tab, setTab] = useState('general');
   const [remarks, setRemarks] = useState('');
   const [loading, setLoading] = useState(false);
@@ -31,6 +37,7 @@ export default function AuditorWorkspace({ tx, onClose, onAction, showToast }) {
         setTimeout(() => onClose(), 500);
       }
     } catch (e) {
+      setFieldErrors(apiFieldErrors(e));
       console.error(e);
       showToast('Action failed', 'error');
     }
@@ -38,14 +45,14 @@ export default function AuditorWorkspace({ tx, onClose, onAction, showToast }) {
   };
 
   const tabs = [
-    { id: 'general', label: 'General Info', icon: <FileText size={16} /> },
-    { id: 'budget', label: 'Budget Analysis', icon: <DollarSign size={16} /> },
-    { id: 'expense', label: 'Expense Verification', icon: <FileSignature size={16} /> },
-    { id: 'supplier', label: 'Supplier Verification', icon: <Briefcase size={16} /> },
-    { id: 'beneficiary', label: 'Beneficiary Verification', icon: <Users size={16} /> },
-    { id: 'timeline', label: 'Transaction Timeline', icon: <Clock size={16} /> },
-    { id: 'ai', label: 'AI Analysis', icon: <AlertTriangle size={16} /> },
-    { id: 'decision', label: 'Auditor Decision', icon: <CheckCircle size={16} /> }
+    { id: 'general', label: 'Transaction details', icon: <FileText size={16} />},
+    { id: 'budget', label: 'Budget Analysis', icon: <DollarSign size={16} />},
+    { id: 'expense', label: 'Expense Verification', icon: <FileSignature size={16} />},
+    { id: 'supplier', label: 'Supplier Verification', icon: <Briefcase size={16} />},
+    { id: 'beneficiary', label: 'Beneficiary Verification', icon: <Users size={16} />},
+    { id: 'timeline', label: 'Transaction Timeline', icon: <Clock size={16} />},
+    { id: 'ai', label: 'AI Analysis', icon: <AlertTriangle size={16} />},
+    { id: 'decision', label: 'Auditor Decision', icon: <CheckCircle size={16} />}
   ];
 
   const budget = tx.budget || {};
@@ -56,9 +63,9 @@ export default function AuditorWorkspace({ tx, onClose, onAction, showToast }) {
 
   const items = tx.lineItems || tx.items || [];
   const itemsTotal = items.reduce((s, it) => s + (parseFloat(it.totalPrice || 0)), 0);
-  
+
   const supplier = tx.supplier || {};
-  
+
   const confidence = tx.confidence_score !== undefined ? tx.confidence_score : (tx.riskScore > 50 ? tx.riskScore : 100 - (tx.riskScore || 0));
   const recommendation = tx.recommendation || (tx.riskScore >= 71 ? "Manual review strongly recommended." : "Transaction appears normal.");
   const reasons = Array.isArray(tx.explanation) ? tx.explanation : (Array.isArray(tx.reasons) ? tx.reasons : []);
@@ -69,16 +76,17 @@ export default function AuditorWorkspace({ tx, onClose, onAction, showToast }) {
       <div className="aw-header">
         <div>
           <h2 className="aw-header-title">Auditor Workspace</h2>
-          <div className="aw-header-subtitle">TX ID: {tx.transactionId || tx._id}</div>
+          <div className="aw-header-subtitle">Review transaction details and supporting evidence.</div>
         </div>
         <button onClick={onClose} className="aw-close-btn" aria-label="Close">
           <X size={20} />
         </button>
       </div>
 
+      <TransactionReference value={tx.transactionId || tx._id} />
       {/* AI DISCLAIMER - VISIBLE ON ALL TABS */}
       <div className="aw-disclaimer">
-        <h4><AlertTriangle size={18} /> AI Decision Support Notice</h4>
+        <h4> AI Decision Support Notice</h4>
         <p>
           AI-generated analysis is intended solely as a decision-support tool. Machine learning predictions are based on historical data and recognized patterns and may not always be accurate. <strong>AI can make mistakes.</strong> The assigned Barangay Auditor is responsible for reviewing all supporting documents, verifying the transaction, and making the final approval, rejection, or revision decision.
         </p>
@@ -87,8 +95,8 @@ export default function AuditorWorkspace({ tx, onClose, onAction, showToast }) {
       {/* TABS HEADER */}
       <div className="aw-tabs">
         {tabs.map(t => (
-          <button 
-            key={t.id} 
+          <button
+            key={t.id}
             onClick={() => setTab(t.id)}
             className={`aw-tab-btn ${tab === t.id ? 'active' : ''}`}
           >
@@ -99,16 +107,13 @@ export default function AuditorWorkspace({ tx, onClose, onAction, showToast }) {
 
       {/* TAB CONTENT */}
       <div className="aw-content">
-        
+
         {/* GENERAL INFO */}
         {tab === 'general' && (
           <div className="aw-card">
-            <h3>General Information</h3>
+            <h3>Transaction details</h3>
+            <VerificationHistory transaction={tx} />
             <div className="aw-grid">
-              <div className="aw-data-item">
-                <span className="aw-data-label">Transaction ID</span>
-                <span className="aw-data-value mono">{tx.transactionId || tx._id}</span>
-              </div>
               <div className="aw-data-item">
                 <span className="aw-data-label">Current Status</span>
                 <span className="aw-data-value">{tx.verificationStatus || 'Pending'}</span>
@@ -144,16 +149,16 @@ export default function AuditorWorkspace({ tx, onClose, onAction, showToast }) {
             <div className="aw-budget-grid">
               <div className="aw-budget-card">
                 <div className="aw-data-label">Approved Budget</div>
-                <div className="aw-budget-val">₱ {approved.toLocaleString(undefined, {minimumFractionDigits: 2})}</div>
+                <div className="aw-budget-val">{formatCurrency(approved, tx.currency)}</div>
               </div>
               <div className={`aw-budget-card ${approved > 0 && requested > approved ? 'warning' : 'highlight'}`}>
                 <div className="aw-data-label">Requested Amount</div>
-                <div className="aw-budget-val">₱ {requested.toLocaleString(undefined, {minimumFractionDigits: 2})}</div>
+                <div className="aw-budget-val">{formatCurrency(requested, tx.currency)}</div>
               </div>
               <div className="aw-budget-card">
                 <div className="aw-data-label">Remaining Budget</div>
                 <div className="aw-budget-val" style={{ color: remaining > 0 ? '#10b981' : '#94a3b8' }}>
-                  ₱ {remaining.toLocaleString(undefined, {minimumFractionDigits: 2})}
+                  {formatCurrency(remaining, tx.currency)}
                 </div>
               </div>
             </div>
@@ -161,8 +166,8 @@ export default function AuditorWorkspace({ tx, onClose, onAction, showToast }) {
             <div style={{ marginBottom: 24 }}>
               <span className="aw-data-label">Budget Utilization: {utilPct}% {approved > 0 && utilPct > 100 && '(OVER BUDGET)'}</span>
               <div className="aw-progress-bar">
-                <div 
-                  className="aw-progress-fill" 
+                <div
+                  className="aw-progress-fill"
                   style={{ width: `${Math.min(utilPct, 100)}%`, background: utilPct > 100 ? '#ef4444' : '#10b981' }}
                 ></div>
               </div>
@@ -171,7 +176,7 @@ export default function AuditorWorkspace({ tx, onClose, onAction, showToast }) {
             {/* Interactive Approved Budget Controller */}
             <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, padding: 18 }}>
               <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#334155', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
-                <DollarSign size={16} color="#2563eb" /> Set / Adjust Approved Budget Amount
+                 Set / Adjust Approved Budget Amount
               </div>
               <p style={{ fontSize: '0.82rem', color: '#64748b', marginBottom: 14, margin: 0 }}>
                 Adjust the approved fund allocation for this project/program up or down. Remaining budget will automatically re-calculate.
@@ -179,8 +184,8 @@ export default function AuditorWorkspace({ tx, onClose, onAction, showToast }) {
 
               <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10, marginTop: 12 }}>
                 <div style={{ display: 'flex', alignItems: 'center', background: '#fff', border: '1px solid #cbd5e1', borderRadius: 8, padding: '4px 10px' }}>
-                  <span style={{ fontWeight: 700, color: '#475569', marginRight: 6 }}>₱</span>
-                  <input
+                  <span style={{ fontWeight: 700, color: '#475569', marginRight: 6 }}>{tx.currency === 'PHP' || !tx.currency ? '₱' : tx.currency}</span>
+                  <TextField error={fieldErrors["budgetInput"]} onEdit={() => setFieldErrors({})} field="budgetInput"
                     type="number"
                     step="5000"
                     style={{ border: 'none', outline: 'none', fontSize: '1rem', fontWeight: 600, color: '#0f172a', width: 140 }}
@@ -232,6 +237,7 @@ export default function AuditorWorkspace({ tx, onClose, onAction, showToast }) {
                       }
                       showToast('Approved budget updated successfully.');
                     } catch (e) {
+      setFieldErrors(apiFieldErrors(e));
                       console.error(e);
                       showToast('Failed to update approved budget.', 'error');
                     } finally {
@@ -256,8 +262,8 @@ export default function AuditorWorkspace({ tx, onClose, onAction, showToast }) {
             <h3>
               <span>Expense Verification</span>
               <span style={{ fontSize: '0.9rem', color: itemsTotal > requested ? '#f87171' : '#34d399' }}>
-                Total: ₱ {itemsTotal.toLocaleString(undefined, {minimumFractionDigits: 2})} 
-                <span style={{ color: 'var(--text-muted)', marginLeft: 8 }}>(Declared: ₱ {requested.toLocaleString(undefined, {minimumFractionDigits: 2})})</span>
+                Total: {formatCurrency(itemsTotal, tx.currency)}
+                <span style={{ color: 'var(--text-muted)', marginLeft: 8 }}>(Declared: {formatCurrency(requested, tx.currency)})</span>
               </span>
             </h3>
             {items.length === 0 ? (
@@ -283,8 +289,8 @@ export default function AuditorWorkspace({ tx, onClose, onAction, showToast }) {
                           {isHighPrice && <span style={{ marginLeft: 8, color: '#f87171', fontSize: '0.75rem', fontWeight: 'bold' }}>Unusual Price</span>}
                         </td>
                         <td>{item.quantity || 1}</td>
-                        <td>₱ {parseFloat(item.unitPrice || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
-                        <td className={isHighPrice ? 'price-high' : ''}>₱ {parseFloat(item.totalPrice || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
+                        <td>{formatCurrency(item.unitPrice || 0, tx.currency)}</td>
+                        <td className={isHighPrice ? 'price-high' : ''}>{formatCurrency(item.totalPrice || 0, tx.currency)}</td>
                         <td>{item.supplier || '-'}</td>
                       </tr>
                     );
@@ -306,7 +312,7 @@ export default function AuditorWorkspace({ tx, onClose, onAction, showToast }) {
               </div>
               <div className="aw-data-item">
                 <span className="aw-data-label">Total Historical Spending</span>
-                <span className="aw-data-value">₱ {parseFloat(supplier.historicalSpending || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+                <span className="aw-data-value">{formatCurrency(supplier.historicalSpending || 0, tx.currency)}</span>
               </div>
               <div className="aw-data-item">
                 <span className="aw-data-label">Number of Previous Projects</span>
@@ -394,7 +400,7 @@ export default function AuditorWorkspace({ tx, onClose, onAction, showToast }) {
                 </div>
               </div>
             </div>
-            
+
             <div className="aw-card">
               <h3>Reasons for Prediction (Detected Anomalies)</h3>
               <ul style={{ margin: 0, paddingLeft: 20, color: '#475569', lineHeight: 1.6 }}>
@@ -421,7 +427,7 @@ export default function AuditorWorkspace({ tx, onClose, onAction, showToast }) {
             {Array.isArray(tx.remarks) && tx.remarks.length > 0 && (
               <div style={{ marginBottom: 20, background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: 8, padding: 16 }}>
                 <div className="aw-data-label" style={{ marginBottom: 10, color: '#d97706', display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <MessageSquare size={14} /> Previous Official Remarks ({tx.remarks.length})
+                   Previous Official Remarks ({tx.remarks.length})
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 180, overflowY: 'auto' }}>
                   {tx.remarks.map((rmk, idx) => (
@@ -436,12 +442,12 @@ export default function AuditorWorkspace({ tx, onClose, onAction, showToast }) {
                 </div>
               </div>
             )}
-            
+
             <div style={{ marginBottom: 20 }}>
               <div className="aw-data-label" style={{ marginBottom: 8 }}>Enter New Auditor Remarks / Findings</div>
-              <textarea 
+              <TextField error={fieldErrors["remarks"]} onEdit={() => setFieldErrors({})} field="remarks" as="textarea"
                 className="aw-remarks"
-                rows={4} 
+                rows={4}
                 value={remarks}
                 onChange={e => setRemarks(e.target.value)}
                 placeholder="Enter findings, document requests, or reasons for approval/rejection..."

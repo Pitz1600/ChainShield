@@ -1,0 +1,64 @@
+/* Scoped to active portal surfaces; preserved feedback styles are not targeted. */
+.sidebar .sidebar-logo::before { content: none !important; }
+.sidebar .portal-brand-logo { display: block; width: 80px; height: 80px; object-fit: contain; }
+.sidebar .logo-text { text-align: center; }
+.sidebar button.sidebar-user-profile { width: calc(100% - 1.5rem); border: 0; color: inherit; text-align: left; font: inherit; }
+.sidebar .sidebar-user-profile .user-info { color: #e2e8f0; }
+.sidebar .sidebar-user-profile:focus-visible { outline: 2px solid #a5b4fc; outline-offset: 2px; }
+:is(.dashboard-container, .official-dashboard, .analytics-container, .transactions-page, .my-transactions, .csv-import-container, .admin-panel) :is(.hero-stats-grid, .hero-stats-row, .hero-stats, .stats-grid, .stats-row, .results-stats, .hero-features-grid) { display: grid !important; grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)) !important; align-items: stretch; }
+:is(.dashboard-container, .official-dashboard, .analytics-container, .transactions-page, .my-transactions, .csv-import-container, .admin-panel) :is(.hero-stat-card, .stat-card, .stats-card, .hero-feature-card):not(a):not(button) { min-width: 0; height: 100%; box-sizing: border-box; border: 0 !important; cursor: default; transform: none !important; }
+:is(.dashboard-container, .official-dashboard, .analytics-container, .transactions-page, .my-transactions, .csv-import-container, .admin-panel) :is(.hero-stat-card, .stat-card, .stats-card, .hero-feature-card):not(a):not(button):hover { transform: none !important; box-shadow: none !important; }
+:is(.dashboard-container, .official-dashboard, .analytics-container, .transactions-page, .my-transactions, .csv-import-container, .admin-panel) :is(.hero-title, .page-title, .hero-tag, .formula-title, .hero-feature-card) { border: 0 !important; cursor: default; }
+:is(.auth-main, .main-content) :is(.label-icon, .alert-icon, .stat-icon, .stats-icon, .hero-icon, .empty-icon, .illustration-icon):empty { display: none; }
+:is(.transactions-page, .my-transactions, .csv-import-container, .admin-panel, .analytics-container) :is(.file-name, .stat-label, .stats-label) { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.my-transactions .filters-section { display: flex; flex-wrap: wrap; gap: .75rem; align-items: end; }
+.my-transactions .filters-section .transactions-toolbar { flex: 1 0 100%; margin: 0; flex-wrap: wrap; }
+.my-transactions .filters-section .filter-group { min-width: min(100%, 150px); }
+.my-transactions .table-refresh, .transaction-reference button { padding: .5rem .8rem; border: 1px solid #cbd5e1; border-radius: .5rem; cursor: pointer; background: #fff; color: #334155; }
+.my-transactions .table-refresh:disabled { opacity: .6; cursor: wait; }
+.transaction-reference { padding: .75rem 0; margin-bottom: .75rem; border-bottom: 1px solid #e2e8f0; }
+.transaction-reference p { margin: .35rem 0; color: #64748b; font-size: .85rem; }
+.transaction-reference [role="status"] { margin-left: .5rem; }
+.verification-history { display: grid; grid-template-columns: minmax(100px, 1fr) 2fr; gap: .5rem; }
+.verification-history dd { margin: 0; overflow-wrap: anywhere; }
+.integrity-modal .nav-indicators { display: flex; gap: .35rem; flex-wrap: wrap; }
+.integrity-modal .row-page { min-width: 36px; min-height: 36px; border: 1px solid #cbd5e1; border-radius: .5rem; color: #334155; background: white; cursor: pointer; }
+.integrity-modal .row-page.active { background: #4338ca; color: white; }
+.integrity-modal .footer-left { flex-wrap: wrap; }
+.integrity-modal #add-row-hint { flex-basis: 100%; max-width: 350px; white-space: normal; }
+.integrity-modal .btn-add-row:disabled { opacity: .55; cursor: not-allowed; }
+.integrity-modal .form-group:has(.field-error) { min-width: 0; }
+.csv-import-container .template-download-container { flex-wrap: wrap; }
+.csv-import-container .template-download-container .field-error { max-width: 350px; white-space: normal; }
+@media (max-width: 600px) {
+  .my-transactions .filters-section > .filter-group { flex: 1 0 100% !important; }
+  .integrity-modal .modal-footer { flex-direction: column; gap: .75rem; }
+  .verification-history { grid-template-columns: 1fr; }
+}
+
+.csv-import-container .hero-feature-card { height: 100%; min-width: 0; }
+.operation-toast { position: fixed; bottom: 1rem; right: 1rem; z-index: 3000; max-width: min(90vw, 420px); padding: 1rem; background: #fef2f2; border: 1px solid #fecaca; border-radius: .75rem; color: #991b1b; box-shadow: 0 4px 12px #0002; }
+.operation-toast button { margin-left: .75rem; cursor: pointer; background: transparent; color: inherit; border: 0; text-decoration: underline; }
+.password-control { flex-wrap: wrap; }
+.password-control .field-error { order: 1; }
+:is(.dashboard-container, .analytics-container, .transactions-page, .csv-import-container, .admin-panel) :is(.dashboard-hero, .analytics-hero, .page-hero, .admin-hero) { border: 0 !important; }
+.integrity-modal .modal-body { min-height: 0; flex: 1; }
+.integrity-modal .form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.integrity-modal .form-group { min-width: 0; }
+.integrity-modal .form-group input, .integrity-modal .form-group textarea { min-width: 0; width: 100%; box-sizing: border-box; }
+.integrity-modal .form-group.date-col, .integrity-modal .form-group.full-width { grid-column: 1 / -1; }
+.integrity-modal .modal-pagination { margin: 0 0 1rem; }
+@media (max-width: 640px) {
+  .integrity-modal .form-grid { grid-template-columns: minmax(0, 1fr); }
+  .integrity-modal .modal-body { padding: 1rem; }
+  .integrity-modal .modal-footer { padding: .75rem 1rem; flex-shrink: 0; }
+  .integrity-modal .modal-header { padding: 1rem; }
+}
+
+.sidebar .sidebar-logo { height: auto; gap: .6rem; }
+.sidebar .portal-brand-logo { flex-shrink: 0; }
+@media (max-width: 640px) {
+  .integrity-modal .modal-pagination { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; padding: .5rem; }
+  .integrity-modal .nav-indicators { grid-column: 1 / -1; grid-row: 1; justify-content: center; }
+  .integrity-modal .btn-nav { justify-content: center; padding: .5rem; }
+}

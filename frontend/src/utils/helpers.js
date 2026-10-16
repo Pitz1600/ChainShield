@@ -39,3 +39,14 @@ export const exportToCSV = (data, filename) => {
   link.download = filename;
   link.click();
 };
+
+export const formatCurrency = (value, currency = 'PHP') => {
+  if (value === null || value === undefined || value === '') return '—';
+  const amount = Number(value);
+  if (!Number.isFinite(amount)) return '—';
+  try {
+    return new Intl.NumberFormat('en-PH', { style: 'currency', currency, currencyDisplay: 'narrowSymbol', minimumFractionDigits: 2 }).format(amount);
+  } catch {
+    return `${currency} ${amount.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`;
+  }
+};

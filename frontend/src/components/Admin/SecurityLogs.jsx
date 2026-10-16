@@ -1,3 +1,4 @@
+import TextField from '../Forms/TextField';
 import React, { useState } from 'react';
 import { Shield, Search } from 'lucide-react';
 
@@ -73,15 +74,15 @@ function SecurityLogs() {
     <div style={{ padding: '2rem', maxWidth: '1400px', margin: '0 auto' }}>
       {/* Header with title and buttons */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '2rem' }}>
-        <Shield size={28} color="#667eea" />
+
         <h2 style={{ fontSize: '1.5rem', fontWeight: '700', color: '#111827', margin: 0 }}>Security Logs</h2>
       </div>
 
       {/* Search and Filter Section */}
       <div style={{ marginBottom: '2rem', display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', alignItems: 'center', flex: '1', minWidth: '250px', backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '0.5rem', padding: '0.5rem 1rem' }}>
-          <Search size={18} color="#9ca3af" />
-          <input
+
+          <TextField field="search"
             type="text"
             placeholder="Search..."
             value={searchQuery}

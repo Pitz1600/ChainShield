@@ -1,9 +1,13 @@
+import useFieldErrors from '../../utils/useFieldErrors';
+import { apiFieldErrors } from '../../utils/fieldValidation';
+import TextField from '../Forms/TextField';
 import React, { useState } from 'react';
 import { Shield, Lock, ArrowRight, AlertCircle, CheckCircle, Mail } from 'lucide-react';
 import '../../styles/Login.css';
 import { authAPI } from '../../services/api';
 
 function ResetPassword({ onNavigate }) {
+  const [fieldErrors, setFieldErrors] = useFieldErrors();
   const [step, setStep] = useState('request'); // request | reset | done
   const [email, setEmail] = useState('');
   const [token, setToken] = useState('');
@@ -33,6 +37,7 @@ function ResetPassword({ onNavigate }) {
       setSuccess(response.data.message || 'If an account exists with this email, a reset link has been sent.');
       setStep('reset');
     } catch (err) {
+      setFieldErrors(apiFieldErrors(err));
       // Always show generic message to prevent enumeration
       setSuccess('If an account exists with this email, a reset link has been sent.');
       setStep('reset');
@@ -64,6 +69,7 @@ function ResetPassword({ onNavigate }) {
       await authAPI.resetPassword(payload);
       setStep('done');
     } catch (err) {
+      setFieldErrors(apiFieldErrors(err));
       setError(err.response?.data?.error || 'Password reset failed. The token may be expired.');
     } finally {
       setLoading(false);
@@ -115,14 +121,14 @@ function ResetPassword({ onNavigate }) {
 
           {error && (
             <div className="alert-box error">
-              <span className="alert-icon"><AlertCircle size={20} /></span>
+
               <span className="alert-message">{error}</span>
             </div>
           )}
 
           {success && step === 'reset' && (
             <div className="security-badge success">
-              <CheckCircle size={20} />
+
               <span>{success}</span>
             </div>
           )}
@@ -131,10 +137,10 @@ function ResetPassword({ onNavigate }) {
             <form onSubmit={handleRequestReset} className="auth-form">
               <div className="form-field">
                 <label className="field-label">
-                  <span className="label-icon"><Mail size={18} /></span>
+
                   <span>Email Address</span>
                 </label>
-                <input
+                <TextField error={fieldErrors["email"]} onEdit={() => setFieldErrors({})} field="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -167,7 +173,7 @@ function ResetPassword({ onNavigate }) {
                 <label className="field-label">
                   <span>Reset Token</span>
                 </label>
-                <input
+                <TextField error={fieldErrors["token"]} onEdit={() => setFieldErrors({})} field="token"
                   type="text"
                   value={token}
                   onChange={(e) => setToken(e.target.value)}
@@ -180,10 +186,10 @@ function ResetPassword({ onNavigate }) {
 
               <div className="form-field">
                 <label className="field-label">
-                  <span className="label-icon"><Lock size={18} /></span>
+
                   <span>New Password</span>
                 </label>
-                <input
+                <TextField error={fieldErrors["newPassword"]} onEdit={() => setFieldErrors({})} field="newPassword"
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
@@ -196,10 +202,10 @@ function ResetPassword({ onNavigate }) {
 
               <div className="form-field">
                 <label className="field-label">
-                  <span className="label-icon"><Lock size={18} /></span>
+
                   <span>Confirm Password</span>
                 </label>
-                <input
+                <TextField error={fieldErrors["confirmPassword"]} onEdit={() => setFieldErrors({})} field="confirmPassword"
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
@@ -213,7 +219,7 @@ function ResetPassword({ onNavigate }) {
                 <label className="field-label">
                   <span>2FA Code (if enabled)</span>
                 </label>
-                <input
+                <TextField error={fieldErrors["totpCode"]} onEdit={() => setFieldErrors({})} field="totpCode"
                   type="text"
                   value={totpCode}
                   onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
@@ -243,7 +249,7 @@ function ResetPassword({ onNavigate }) {
           {step === 'done' && (
             <div className="auth-form">
               <div className="security-badge success">
-                <CheckCircle size={24} />
+
                 <span>Password has been reset successfully!</span>
               </div>
               <p style={{ textAlign: 'center', color: '#6b7280', margin: '16px 0 24px' }}>

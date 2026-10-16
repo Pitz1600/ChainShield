@@ -1,3 +1,6 @@
+import useFieldErrors from '../../utils/useFieldErrors';
+import { apiFieldErrors } from '../../utils/fieldValidation';
+import TextField from '../Forms/TextField';
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
@@ -16,6 +19,7 @@ import '../../styles/Alerts.css';
 import useLockBodyScroll from '../../utils/useLockBodyScroll';
 
 function AlertsManagement({ embedded = false, user = null }) {
+  const [fieldErrors, setFieldErrors] = useFieldErrors();
   const [searchParams, setSearchParams] = useSearchParams();
   const ageFilter = searchParams.get('age');
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
@@ -62,6 +66,7 @@ function AlertsManagement({ embedded = false, user = null }) {
       setAlerts(response.data.alerts || []);
       setError(null);
     } catch (err) {
+      setFieldErrors(apiFieldErrors(err));
       console.error('Error fetching alerts:', err);
       setError('Failed to load alerts. Please try again.');
     } finally {
@@ -201,6 +206,7 @@ function AlertsManagement({ embedded = false, user = null }) {
       const res = await api.get(`/transactions/${alert.id}`);
       setFullTx(res.data);
     } catch (err) {
+      setFieldErrors(apiFieldErrors(err));
       console.warn('Could not fetch full transaction detail:', err?.message || err);
     } finally {
       setTxLoading(false);
@@ -349,8 +355,8 @@ function AlertsManagement({ embedded = false, user = null }) {
           </button>
         )}
         <div className="alerts-search-wrap">
-          <Search size={18} className="alerts-search-icon" />
-          <input
+
+          <TextField error={fieldErrors["search"]} onEdit={() => setFieldErrors({})} field="search"
             type="text"
             placeholder="Search by transaction ID, agency, or risk type..."
             value={searchTerm}
@@ -379,10 +385,10 @@ function AlertsManagement({ embedded = false, user = null }) {
             ))}
           </div>
 
-          <select className="alerts-sort-select" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+          <TextField error={fieldErrors["sortBy"]} onEdit={() => setFieldErrors({})} field="sortBy" as="select" className="alerts-sort-select" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
             <option value="timestamp">Sort: Date</option>
             <option value="riskScore">Sort: Risk Score</option>
-          </select>
+          </TextField>
 
           <button
             type="button"
@@ -401,7 +407,7 @@ function AlertsManagement({ embedded = false, user = null }) {
 
       {filteredAlerts.length === 0 ? (
         <div className="alerts-empty-state">
-          <CheckCircle size={40} color="#10b981" />
+
           <h3>No alerts found</h3>
           <p>All transactions are within normal parameters.</p>
         </div>
@@ -788,7 +794,7 @@ function AlertsManagement({ embedded = false, user = null }) {
                       <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#334155', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
                         <MessageSquare size={15} color="#3b82f6" /> Add Auditor Finding / Remark
                       </div>
-                      <textarea
+                      <TextField error={fieldErrors["tabRemarkInput"]} onEdit={() => setFieldErrors({})} field="tabRemarkInput" as="textarea"
                         rows={3}
                         style={{
                           width: '100%', padding: '10px 12px', borderRadius: 6, border: '1px solid #cbd5e1',
@@ -813,6 +819,7 @@ function AlertsManagement({ embedded = false, user = null }) {
                               setAlerts(prev => prev.map(a => (a._id === targetId || a.id === targetId) ? { ...a, ...updated } : a));
                               setTabRemarkInput('');
                             } catch (err) {
+      setFieldErrors(apiFieldErrors(err));
                               console.error(err);
                             } finally {
                               setActionLoading(false);

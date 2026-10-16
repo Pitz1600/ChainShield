@@ -1,3 +1,6 @@
+import useFieldErrors from '../../utils/useFieldErrors';
+import { apiFieldErrors } from '../../utils/fieldValidation';
+import TextField from '../Forms/TextField';
 import React, { useState, useEffect } from 'react';
 import { Users, User, CheckCircle, Clock, Edit2, X, Shield, Activity, Mail, Trash2 } from 'lucide-react';
 import api from '../../services/api';
@@ -5,6 +8,7 @@ import '../../styles/AdminPanel.css';
 import useLockBodyScroll from '../../utils/useLockBodyScroll';
 
 function UserManagement() {
+  const [fieldErrors, setFieldErrors] = useFieldErrors();
     const managedRoleOptions = ['barangay_official', 'auditor', 'administrator'];
     const formatRoleLabel = (role) => String(role || '').replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
     const rolePositionOptions = {
@@ -38,7 +42,8 @@ function UserManagement() {
         const totpCode = approve ? window.prompt('Enter your current authenticator code') : undefined;
         if (approve && !totpCode) return;
         try { await api.put(`/admin/users/${user._id}/${approve ? 'approve' : 'deactivate'}`, { totpCode }); await fetchUsers(); await fetchStats(); }
-        catch (err) { alert(err.response?.data?.error || 'Review failed'); }
+        catch (err) {
+      setFieldErrors(apiFieldErrors(err)); setError(err.response?.data?.error || 'Review failed'); }
     };
     const [stats, setStats] = useState({ totalUsers: 0, activeUsers: 0, pendingVerification: 0 });
     const [loading, setLoading] = useState(true);
@@ -125,7 +130,8 @@ function UserManagement() {
             setIsEditModalOpen(false);
             fetchUsers();
         } catch (err) {
-            alert(err.response?.data?.error || err.message);
+      setFieldErrors(apiFieldErrors(err));
+            setError(err.response?.data?.error || err.message);
         }
     };
 
@@ -151,6 +157,7 @@ function UserManagement() {
             fetchStats(); // Update stats
             setCreateSuccess('Temporary credentials emailed. The user must change their password and set up 2FA.');
         } catch (err) {
+      setFieldErrors(apiFieldErrors(err));
             setCreateError(err.response?.data?.error || err.message);
         }
     };
@@ -182,15 +189,17 @@ function UserManagement() {
             fetchUsers();
             fetchStats(); // Update stats
         } catch (err) {
-            alert(err.response?.data?.error || err.message);
+      setFieldErrors(apiFieldErrors(err));
+            setError(err.response?.data?.error || err.message);
         }
     };
 
     if (loading) return <div className="loading-spinner">Loading users...</div>;
-    if (error) return <div className="error-message">{error}</div>;
+
 
     return (
         <div className="user-management">
+            {error && <div className="operation-toast" role="alert">{error}<button type="button" onClick={() => setError(null)} aria-label="Dismiss error">Dismiss</button></div>}
             {/* Unified Hero Banner */}
             <div className="admin-hero">
                 <div className="hero-text-section">
@@ -204,9 +213,7 @@ function UserManagement() {
 
                 <div className="hero-stats-row">
                     <div className="hero-stat-card">
-                        <div className="hero-stat-icon" style={{ background: 'rgba(59, 130, 246, 0.2)', color: '#3b82f6' }}>
-                            <Users size={24} />
-                        </div>
+
                         <div className="hero-stat-info">
                             <span className="hero-stat-value">{stats.totalUsers}</span>
                             <span className="hero-stat-label">Total Users</span>
@@ -214,9 +221,7 @@ function UserManagement() {
                     </div>
 
                     <div className="hero-stat-card">
-                        <div className="hero-stat-icon" style={{ background: 'rgba(16, 185, 129, 0.2)', color: '#10b981' }}>
-                            <Activity size={24} />
-                        </div>
+
                         <div className="hero-stat-info">
                             <span className="hero-stat-value">{stats.activeUsers}</span>
                             <span className="hero-stat-label">Active Users</span>
@@ -224,9 +229,7 @@ function UserManagement() {
                     </div>
 
                     <div className="hero-stat-card">
-                        <div className="hero-stat-icon" style={{ background: 'rgba(245, 158, 11, 0.2)', color: '#f59e0b' }}>
-                            <Clock size={24} />
-                        </div>
+
                         <div className="hero-stat-info">
                             <span className="hero-stat-value">{stats.pendingVerification}</span>
                             <span className="hero-stat-label">Pending</span>
@@ -305,11 +308,11 @@ function UserManagement() {
                                 <td>
                                     {user.isVerified ? (
                                         <span className="verified-badge">
-                                            <CheckCircle size={14} /> Verified
+                                             Verified
                                         </span>
                                     ) : (
                                         <span className="unverified-badge">
-                                            <Clock size={14} /> Pending
+                                             Pending
                                         </span>
                                     )}
                                 </td>
@@ -362,7 +365,7 @@ function UserManagement() {
                                 <div className="form-grid">
                                     <div className="form-group">
                                         <label className="form-label">First Name</label>
-                                        <input
+                                        <TextField error={fieldErrors["firstName"]} onEdit={() => setFieldErrors({})} field="firstName"
                                             type="text"
                                             className="form-input"
                                             value={editFormData.firstName}
@@ -372,7 +375,7 @@ function UserManagement() {
                                     </div>
                                     <div className="form-group">
                                         <label className="form-label">Last Name</label>
-                                        <input
+                                        <TextField error={fieldErrors["lastName"]} onEdit={() => setFieldErrors({})} field="lastName"
                                             type="text"
                                             className="form-input"
                                             value={editFormData.lastName}
@@ -382,7 +385,7 @@ function UserManagement() {
                                     </div>
                                     <div className="form-group">
                                         <label className="form-label">Birthday</label>
-                                        <input
+                                        <TextField error={fieldErrors["birthday"]} onEdit={() => setFieldErrors({})} field="birthday"
                                             type="date"
                                             className="form-input"
                                             value={editFormData.birthday}
@@ -391,7 +394,7 @@ function UserManagement() {
                                     </div>
                                     <div className="form-group">
                                         <label className="form-label">Email</label>
-                                        <input
+                                        <TextField error={fieldErrors["email"]} onEdit={() => setFieldErrors({})} field="email"
                                             type="email"
                                             className="form-input"
                                             value={editFormData.email}
@@ -401,7 +404,7 @@ function UserManagement() {
                                     </div>
                                     <div className="form-group">
                                         <label className="form-label">Role</label>
-                                        <select
+                                        <TextField error={fieldErrors["role"]} onEdit={() => setFieldErrors({})} field="role" as="select"
                                             className="form-select"
                                             value={editFormData.role}
                                             onChange={(e) => handleEditRoleChange(e.target.value)}
@@ -414,11 +417,11 @@ function UserManagement() {
                                                     {role.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
                                                 </option>
                                             ))}
-                                        </select>
+                                        </TextField>
                                     </div>
                                     <div className="form-group">
                                         <label className="form-label">Position / Title</label>
-                                        <select
+                                        <TextField error={fieldErrors["position"]} onEdit={() => setFieldErrors({})} field="position" as="select"
                                             className="form-select"
                                             value={editFormData.position}
                                             onChange={(e) => setEditFormData({ ...editFormData, position: e.target.value })}
@@ -429,7 +432,7 @@ function UserManagement() {
                                             ].map((position) => (
                                                 <option key={position} value={position}>{position}</option>
                                             ))}
-                                        </select>
+                                        </TextField>
                                     </div>
                                 </div>
                                 <div className="modal-footer">
@@ -462,7 +465,7 @@ function UserManagement() {
                                 <div className="form-grid">
                                     <div className="form-group">
                                         <label className="form-label">First Name</label>
-                                        <input
+                                        <TextField error={fieldErrors["firstName"]} onEdit={() => setFieldErrors({})} field="firstName"
                                             type="text"
                                             className="form-input"
                                             value={createFormData.firstName}
@@ -472,7 +475,7 @@ function UserManagement() {
                                     </div>
                                     <div className="form-group">
                                         <label className="form-label">Last Name</label>
-                                        <input
+                                        <TextField error={fieldErrors["lastName"]} onEdit={() => setFieldErrors({})} field="lastName"
                                             type="text"
                                             className="form-input"
                                             value={createFormData.lastName}
@@ -482,7 +485,7 @@ function UserManagement() {
                                     </div>
                                     <div className="form-group">
                                         <label className="form-label">Birthday</label>
-                                        <input
+                                        <TextField error={fieldErrors["birthday"]} onEdit={() => setFieldErrors({})} field="birthday"
                                             type="date"
                                             className="form-input"
                                             value={createFormData.birthday}
@@ -491,7 +494,7 @@ function UserManagement() {
                                     </div>
                                     <div className="form-group">
                                         <label className="form-label">Email</label>
-                                        <input
+                                        <TextField error={fieldErrors["email"]} onEdit={() => setFieldErrors({})} field="email"
                                             type="email"
                                             className="form-input"
                                             value={createFormData.email}
@@ -503,7 +506,7 @@ function UserManagement() {
                                     <p>Temporary credentials will be emailed to the user.</p>
                                     <div className="form-group">
                                         <label className="form-label">Role</label>
-                                        <select
+                                        <TextField error={fieldErrors["role"]} onEdit={() => setFieldErrors({})} field="role" as="select"
                                             className="form-select"
                                             value={createFormData.role}
                                             onChange={(e) => handleCreateRoleChange(e.target.value)}
@@ -513,7 +516,7 @@ function UserManagement() {
                                                     {role.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
                                                 </option>
                                             ))}
-                                        </select>
+                                        </TextField>
                                     </div>
                                     <div className={`form-group full-width role-policy-hint ${createRoleGuidance[createFormData.role]?.tone || 'neutral'}`}>
                                         <div className="role-policy-title">{createRoleGuidance[createFormData.role]?.title || 'Role policy'}</div>
@@ -521,7 +524,7 @@ function UserManagement() {
                                     </div>
                                     <div className="form-group full-width">
                                         <label className="form-label">Position / Title</label>
-                                        <select
+                                        <TextField error={fieldErrors["position"]} onEdit={() => setFieldErrors({})} field="position" as="select"
                                             className="form-select"
                                             value={createFormData.position}
                                             onChange={(e) => setCreateFormData({ ...createFormData, position: e.target.value })}
@@ -529,7 +532,7 @@ function UserManagement() {
                                             {(rolePositionOptions[createFormData.role] || ['']).map((position) => (
                                                 <option key={position} value={position}>{position}</option>
                                             ))}
-                                        </select>
+                                        </TextField>
                                     </div>
                                 </div>
                                 <div className="modal-footer">

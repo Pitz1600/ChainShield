@@ -1,3 +1,6 @@
+import useFieldErrors from '../../utils/useFieldErrors';
+import { apiFieldErrors } from '../../utils/fieldValidation';
+import TextField from '../Forms/TextField';
 import React, { useState } from 'react';
 import { Shield, Lock, AlertCircle, Info, ChevronLeft, Check, ArrowRight, Key, Unlock } from 'lucide-react';
 import api from '../../services/api';
@@ -5,6 +8,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import '../../styles/NewPassword.css';
 
 function NewPassword({ resetToken, userEmail, onNavigate, onPasswordReset }) {
+  const [fieldErrors, setFieldErrors] = useFieldErrors();
   const [formData, setFormData] = useState({
     password: '',
     confirmPassword: ''
@@ -43,6 +47,7 @@ function NewPassword({ resetToken, userEmail, onNavigate, onPasswordReset }) {
         onNavigate('login');
       }, 2000);
     } catch (err) {
+      setFieldErrors(apiFieldErrors(err));
       setError(err.response?.data?.error || 'Failed to reset password. Please try again.');
     } finally {
       setLoading(false);
@@ -88,7 +93,7 @@ function NewPassword({ resetToken, userEmail, onNavigate, onPasswordReset }) {
 
           {error && (
             <div className="alert-box error">
-              <span className="alert-icon"><AlertCircle size={20} /></span>
+
               <span className="alert-message">{error}</span>
             </div>
           )}
@@ -105,11 +110,11 @@ function NewPassword({ resetToken, userEmail, onNavigate, onPasswordReset }) {
           <form onSubmit={handleSubmit} className="auth-form">
             <div className="form-field">
               <label className="field-label">
-                <span className="label-icon"><Lock size={16} /></span>
+
                 <span>New Password</span>
                 <span className="required">*</span>
               </label>
-              <input
+              <TextField error={fieldErrors["password"]} onEdit={() => setFieldErrors({})} field="password"
                 type="password"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -122,11 +127,11 @@ function NewPassword({ resetToken, userEmail, onNavigate, onPasswordReset }) {
 
             <div className="form-field">
               <label className="field-label">
-                <span className="label-icon"><Unlock size={16} /></span>
+
                 <span>Confirm New Password</span>
                 <span className="required">*</span>
               </label>
-              <input
+              <TextField error={fieldErrors["confirmPassword"]} onEdit={() => setFieldErrors({})} field="confirmPassword"
                 type="password"
                 value={formData.confirmPassword}
                 onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
@@ -139,7 +144,7 @@ function NewPassword({ resetToken, userEmail, onNavigate, onPasswordReset }) {
 
             <div className="password-requirements">
               <div className="requirements-header">
-                <span className="requirements-icon"><Info size={18} /></span>
+
                 <span className="requirements-title">Password Requirements:</span>
               </div>
               <ul className="requirements-list">

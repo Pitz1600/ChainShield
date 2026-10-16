@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { validateFieldLengths } = require('../middleware/fieldLimits');
 const authController = require('../controllers/authController');
 const authMiddleware = require('../middleware/auth');
 const {
@@ -23,19 +24,20 @@ const { uploadProfile } = require('../middleware/upload');
 // ==========================================
 // PUBLIC ROUTES (rate-limited)
 // ==========================================
-router.post('/register', registrationLimiter, verifyCaptcha('register'), validateRegistration, authController.register);
-router.post('/login', loginLimiter, verifyCaptcha('login'), validateLogin, authController.login);
+router.post('/register', registrationLimiter, verifyCaptcha('register'), validateFieldLengths, validateRegistration, authController.register);
+router.post('/login', loginLimiter, verifyCaptcha('login'), validateFieldLengths, validateLogin, authController.login);
 router.post('/verify-login-otp', loginLimiter, validateOTP, authController.verifyLoginOtp);
 router.post('/verify-mfa', authMiddleware, otpVerificationLimiter, validateTOTP, authController.verifyMfa);
 router.post('/resend-login-otp', authMiddleware, otpResendLimiter, authController.resendLoginOtp);
 
 // Forgot / Reset Password (public, rate-limited)
-router.post('/forgot-password', loginLimiter, authController.forgotPassword);
-router.post('/reset-password', loginLimiter, authController.resetPassword);
+router.post('/forgot-password', loginLimiter, validateFieldLengths, authController.forgotPassword);
+router.post('/reset-password', loginLimiter, validateFieldLengths, authController.resetPassword);
 
 // ==========================================
 // ONBOARDING ROUTES (require auth token, limited scope)
 // ==========================================
+router.use(validateFieldLengths);
 router.post('/force-change-password', authMiddleware, authController.forceChangePassword);
 
 // ==========================================

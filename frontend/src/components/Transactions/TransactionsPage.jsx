@@ -132,27 +132,21 @@ function TransactionsPage({ user }) {
                     {isOfficial && (
                         <>
                             <div className="hero-stat-card">
-                                <div className="hero-stat-icon" style={{ background: 'rgba(59,130,246,0.15)' }}>
-                                    <FileText size={28} color="#3b82f6" />
-                                </div>
+
                                 <div className="hero-stat-info">
                                     <div className="hero-stat-value">{historyCount}</div>
                                     <div className="hero-stat-label">SUBMITTED</div>
                                 </div>
                             </div>
                             <div className="hero-stat-card">
-                                <div className="hero-stat-icon" style={{ background: 'rgba(16,185,129,0.15)' }}>
-                                    <FileText size={28} color="#10b981" />
-                                </div>
+
                                 <div className="hero-stat-info">
                                     <div className="hero-stat-value">{resolvedCount}</div>
                                     <div className="hero-stat-label">APPROVED</div>
                                 </div>
                             </div>
                             <div className="hero-stat-card">
-                                <div className="hero-stat-icon" style={{ background: 'rgba(249,115,22,0.15)' }}>
-                                    <AlertTriangle size={28} color="#f97316" />
-                                </div>
+
                                 <div className="hero-stat-info">
                                     <div className="hero-stat-value">{alertCount}</div>
                                     <div className="hero-stat-label">FLAGGED</div>
@@ -164,27 +158,21 @@ function TransactionsPage({ user }) {
                     {isAuditor && (
                         <>
                             <div className="hero-stat-card">
-                                <div className="hero-stat-icon" style={{ background: 'rgba(239,68,68,0.15)' }}>
-                                    <AlertTriangle size={28} color="#ef4444" />
-                                </div>
+
                                 <div className="hero-stat-info">
                                     <div className="hero-stat-value">{alertCount}</div>
                                     <div className="hero-stat-label">OPEN ALERTS</div>
                                 </div>
                             </div>
                             <div className="hero-stat-card">
-                                <div className="hero-stat-icon" style={{ background: 'rgba(239,68,68,0.2)' }}>
-                                    <AlertTriangle size={28} color="#ef4444" />
-                                </div>
+
                                 <div className="hero-stat-info">
                                     <div className="hero-stat-value">{criticalCount}</div>
                                     <div className="hero-stat-label">CRITICAL</div>
                                 </div>
                             </div>
                             <div className="hero-stat-card">
-                                <div className="hero-stat-icon" style={{ background: 'rgba(16,185,129,0.15)' }}>
-                                    <FileText size={28} color="#10b981" />
-                                </div>
+
                                 <div className="hero-stat-info">
                                     <div className="hero-stat-value">{resolvedCount}</div>
                                     <div className="hero-stat-label">RESOLVED</div>
@@ -196,36 +184,28 @@ function TransactionsPage({ user }) {
                     {isAdmin && (
                         <>
                             <div className="hero-stat-card">
-                                <div className="hero-stat-icon" style={{ background: 'rgba(239,68,68,0.2)' }}>
-                                    <AlertTriangle size={28} color="#ef4444" />
-                                </div>
+
                                 <div className="hero-stat-info">
                                     <div className="hero-stat-value">{alertCount}</div>
                                     <div className="hero-stat-label">TOTAL ALERTS</div>
                                 </div>
                             </div>
                             <div className="hero-stat-card">
-                                <div className="hero-stat-icon" style={{ background: 'rgba(239,68,68,0.2)' }}>
-                                    <AlertTriangle size={28} color="#ef4444" />
-                                </div>
+
                                 <div className="hero-stat-info">
                                     <div className="hero-stat-value">{criticalCount}</div>
                                     <div className="hero-stat-label">CRITICAL</div>
                                 </div>
                             </div>
                             <div className="hero-stat-card">
-                                <div className="hero-stat-icon" style={{ background: 'rgba(249,115,22,0.2)' }}>
-                                    <AlertTriangle size={28} color="#f97316" />
-                                </div>
+
                                 <div className="hero-stat-info">
                                     <div className="hero-stat-value">{highCount}</div>
                                     <div className="hero-stat-label">HIGH RISK</div>
                                 </div>
                             </div>
                             <div className="hero-stat-card">
-                                <div className="hero-stat-icon" style={{ background: 'rgba(34,197,94,0.2)' }}>
-                                    <FileText size={28} color="#22c55e" />
-                                </div>
+
                                 <div className="hero-stat-info">
                                     <div className="hero-stat-value">{mediumCount}</div>
                                     <div className="hero-stat-label">MEDIUM RISK</div>
@@ -251,7 +231,7 @@ function TransactionsPage({ user }) {
                     flexWrap: 'wrap',
                 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <Clock size={18} color="#d97706" />
+
                         <div>
                             <div style={{ fontSize: '0.88rem', fontWeight: 600, color: '#92400e' }}>
                                 {stagedCount} imported transaction{stagedCount !== 1 ? 's' : ''} not yet visible to staff
@@ -289,7 +269,7 @@ function TransactionsPage({ user }) {
                     color: approveMsg.startsWith('✓') ? '#166534' : '#991b1b',
                     display: 'flex', alignItems: 'center', gap: 8,
                 }}>
-                    {approveMsg.startsWith('✓') ? <CheckCircle size={16} /> : <AlertTriangle size={16} />}
+
                     {approveMsg}
                 </div>
             )}
@@ -334,7 +314,7 @@ function TransactionsPage({ user }) {
                 ) : activeTab === 'upload' ? (
                     <div style={{ padding: '2rem', textAlign: 'center' }}>
                         <div style={{ maxWidth: 480, margin: '0 auto', background: '#f8fafc', border: '0.5px solid #e2e8f0', borderRadius: 12, padding: '2rem' }}>
-                            <Upload size={40} color="#3b82f6" style={{ marginBottom: '1rem' }} />
+
                             <h3 style={{ margin: '0 0 0.5rem', color: '#1e293b' }}>Upload Transaction CSV</h3>
                             <p style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
                                 Import your barangay transaction records. The AI pipeline will automatically analyze each transaction for anomalies.
@@ -348,7 +328,7 @@ function TransactionsPage({ user }) {
                         </div>
                     </div>
                 ) : (
-                    <MyTransactions key={txRefreshKey} user={user} embedded={true} />
+                    <MyTransactions refreshKey={txRefreshKey} user={user} embedded={true} />
                 )}
             </div>
         </div>

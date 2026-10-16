@@ -1,0 +1,5 @@
+.field-error { display: block; flex-basis: 100%; color: #b91c1c; font-size: .85rem; line-height: 1.4; margin-top: .25rem; white-space: normal; }
+input[aria-invalid="true"], textarea[aria-invalid="true"], select[aria-invalid="true"] { border-color: #b91c1c !important; outline-color: #b91c1c; background-color: #fff7f7; }
+.password-control { display: flex; align-items: center; gap: .5rem; }
+.password-control input { min-width: 0; flex: 1; }
+.password-control button { padding: .65rem; background: transparent; border: 1px solid #cbd5e1; border-radius: .5rem; cursor: pointer; color: #334155; }

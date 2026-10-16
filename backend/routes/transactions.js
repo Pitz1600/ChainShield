@@ -1,10 +1,15 @@
 const express = require('express');
 const router = express.Router();
+const { validateFieldLengths } = require('../middleware/fieldLimits');
+router.use(validateFieldLengths);
 const multer = require('multer');
 const path = require('path');
 const csvImportController = require('../controllers/csvImportController');
 const transactionController = require('../controllers/transactionController');
 const auth = require('../middleware/auth');
+const { makeStore } = require('../middleware/rateLimiter');
+const { createTemplateDownloadLimiter } = require('../middleware/templateDownloadLimiter');
+const templateDownloadLimiter = createTemplateDownloadLimiter(makeStore('template_download'));
 const { requireOfficial, requireRole } = require('../middleware/roleMiddleware');
 
 const requireVerifier = requireRole(['administrator', 'barangay_official', 'auditor']);
@@ -43,7 +48,7 @@ const upload = multer({
 
 // CSV Import routes - requires barangay official or admin role
 router.post('/import', auth, requireOfficial, upload.single('csvFile'), csvImportController.importTransactions);
-router.get('/template', auth, csvImportController.downloadTemplate);
+router.get('/template', auth, templateDownloadLimiter, csvImportController.downloadTemplate);
 
 // Standard transaction routes - all authenticated users can view
 router.get('/my-transactions', auth, transactionController.getMyTransactions);

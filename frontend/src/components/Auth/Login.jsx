@@ -1,3 +1,6 @@
+import useFieldErrors from '../../utils/useFieldErrors';
+import { apiFieldErrors } from '../../utils/fieldValidation';
+import TextField from '../Forms/TextField';
 import React, { useState, useEffect, useRef } from 'react';
 import { Shield, Lock, Mail, AlertCircle, ArrowRight, Smartphone, Key, Send } from 'lucide-react';
 import CaptchaWidget from './CaptchaWidget';
@@ -5,6 +8,7 @@ import '../../styles/Login.css';
 import { authAPI } from '../../services/api';
 
 function Login({ onLogin, onNavigate }) {
+  const [fieldErrors, setFieldErrors] = useFieldErrors();
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -110,6 +114,11 @@ function Login({ onLogin, onNavigate }) {
         onLogin(null, data.user);
       }
     } catch (err) {
+      const validationErrors = apiFieldErrors(err);
+      if (err.response?.status === 401 && !err.response?.data?.retryAfterSeconds) {
+        const message = err.response?.data?.error || 'Check your credentials.';
+        setFieldErrors(step === 'totp' ? { totpCode: message } : { email: message, password: message });
+      } else setFieldErrors(validationErrors);
       if (err.response?.status === 429) {
         const retryAfterHeader = err.response.headers?.['ratelimit-reset'] || err.response.headers?.['retry-after'];
         const bodySeconds = err.response.data?.retryAfterSeconds;
@@ -157,6 +166,7 @@ function Login({ onLogin, onNavigate }) {
         onLogin(null, data.user);
       }
     } catch (err) {
+      setFieldErrors(apiFieldErrors(err));
       if (err.response?.data?.error) {
         setError(err.response.data.error);
       } else {
@@ -175,6 +185,7 @@ function Login({ onLogin, onNavigate }) {
       await authAPI.resendLoginOtp({ userId });
       setResendCooldown(60);
     } catch (err) {
+      setFieldErrors(apiFieldErrors(err));
       setError(err.response?.data?.error || 'Failed to resend code. Please try again.');
     }
   };
@@ -182,16 +193,16 @@ function Login({ onLogin, onNavigate }) {
   const renderTotpStep = () => (
     <form onSubmit={handleSubmit} className="auth-form">
       <div className="security-badge">
-        <Smartphone size={24} />
+
         <span>Two-Factor Authentication Required</span>
       </div>
 
       <div className="form-field">
         <label className="field-label">
-          <span className="label-icon"><Key size={18} /></span>
+
           <span>Authenticator Code</span>
         </label>
-        <input
+        <TextField error={fieldErrors["totpCode"]} onEdit={() => setFieldErrors({})} field="totpCode"
           type="text"
           value={totpCode}
           onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
@@ -217,6 +228,7 @@ function Login({ onLogin, onNavigate }) {
       </div>
 
       {formData.password && <CaptchaWidget key="totp" ref={captchaRef} action="login" onToken={setCaptchaToken} />}
+      {alertMessage && <p className="field-error" role="alert">{alertMessage}</p>}
       <button type="submit" disabled={loading || totpCode.length < 6 || (Boolean(formData.password) && captchaEnabled && !captchaToken)} className="submit-button">
         {loading ? (
           <>
@@ -240,7 +252,7 @@ function Login({ onLogin, onNavigate }) {
   const renderOtpStep = () => (
     <form onSubmit={handleOtpSubmit} className="auth-form">
       <div className="security-badge warning">
-        <AlertCircle size={24} />
+
         <span>New Device Detected</span>
       </div>
       <p className="auth-subtitle" style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
@@ -249,10 +261,10 @@ function Login({ onLogin, onNavigate }) {
 
       <div className="form-field">
         <label className="field-label">
-          <span className="label-icon"><Mail size={18} /></span>
+
           <span>Email Verification Code</span>
         </label>
-        <input
+        <TextField error={fieldErrors["otpCode"]} onEdit={() => setFieldErrors({})} field="otpCode"
           type="text"
           value={otpCode}
           onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
@@ -276,6 +288,7 @@ function Login({ onLogin, onNavigate }) {
         </label>
       </div>
 
+      {alertMessage && <p className="field-error" role="alert">{alertMessage}</p>}
       <button type="submit" disabled={loading || otpCode.length < 6} className="submit-button">
         {loading ? (
           <>
@@ -315,10 +328,10 @@ function Login({ onLogin, onNavigate }) {
     <form onSubmit={handleSubmit} className="auth-form">
       <div className="form-field">
         <label className="field-label">
-          <span className="label-icon"><Mail size={18} /></span>
+
           <span>Email Address</span>
         </label>
-        <input
+        <TextField error={fieldErrors["email"]} onEdit={() => setFieldErrors({})} field="email"
           type="email"
           value={formData.email}
           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -331,10 +344,10 @@ function Login({ onLogin, onNavigate }) {
 
       <div className="form-field">
         <label className="field-label">
-          <span className="label-icon"><Lock size={18} /></span>
+
           <span>Password</span>
         </label>
-        <input
+        <TextField error={fieldErrors["password"]} onEdit={() => setFieldErrors({})} field="password"
           type="password"
           value={formData.password}
           onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -361,6 +374,7 @@ function Login({ onLogin, onNavigate }) {
       </div>
 
       <CaptchaWidget key="credentials" ref={captchaRef} action="login" onToken={setCaptchaToken} />
+      {alertMessage && <p className="field-error" role="alert">{alertMessage}</p>}
       <button type="submit" disabled={loading || (captchaEnabled && !captchaToken)} className="submit-button">
         {loading ? (
           <>
@@ -429,17 +443,10 @@ function Login({ onLogin, onNavigate }) {
             </p>
           </div>
 
-          {alertMessage && (
-            <div className="alert-box error">
-              <span className="alert-icon"><AlertCircle size={20} /></span>
-              <span className="alert-message">{alertMessage}</span>
-            </div>
-          )}
-
       {step === 'credentials' && renderCredentialsStep()}
       {step === 'totp' && renderTotpStep()}
       {step === 'otp' && renderOtpStep()}
-      
+
 
           <div className="auth-footer">
             <p className="footer-text">

@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const { validateFieldLengths } = require('../middleware/fieldLimits');
+router.use(validateFieldLengths);
 const multer = require('multer');
 const path = require('path');
 const auth = require('../middleware/auth');
@@ -62,7 +64,7 @@ const validateComplaint = [
 ];
 
 // Submit a new complaint
-router.post('/', auth, upload.array('attachments', 5), validateComplaint, async (req, res) => {
+router.post('/', auth, upload.array('attachments', 5), validateFieldLengths, validateComplaint, async (req, res) => {
     // Check for validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {

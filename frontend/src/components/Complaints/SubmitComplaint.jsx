@@ -1,9 +1,13 @@
+import useFieldErrors from '../../utils/useFieldErrors';
+import { apiFieldErrors } from '../../utils/fieldValidation';
+import TextField from '../Forms/TextField';
 import React, { useState } from 'react';
 import { CheckCircle, AlertTriangle, Paperclip, X, Info, Lightbulb } from 'lucide-react';
 import api from '../../services/api';
 import '../../styles/SubmitComplaint.css';
 
 function SubmitComplaint({ user }) {
+  const [fieldErrors, setFieldErrors] = useFieldErrors();
     const [formData, setFormData] = useState({
         category: '',
         subject: '',
@@ -105,6 +109,7 @@ function SubmitComplaint({ user }) {
             // Hide success message after 5 seconds
             setTimeout(() => setSuccess(false), 5000);
         } catch (err) {
+      setFieldErrors(apiFieldErrors(err));
             setError('Error submitting complaint: ' + (err.response?.data?.error || err.message));
         } finally {
             setSubmitting(false);
@@ -121,13 +126,13 @@ function SubmitComplaint({ user }) {
 
             {success && (
                 <div className="success-banner">
-                    <CheckCircle size={20} style={{ marginRight: '8px' }} /> Your report has been submitted successfully! You will receive updates via email.
+                     Your report has been submitted successfully! You will receive updates via email.
                 </div>
             )}
 
             {error && (
                 <div className="error-banner">
-                    <AlertTriangle size={20} style={{ marginRight: '8px' }} /> {error}
+                     {error}
                 </div>
             )}
 
@@ -136,7 +141,7 @@ function SubmitComplaint({ user }) {
                     <div className="form-row">
                         <div className="form-group">
                             <label htmlFor="category">Category *</label>
-                            <select
+                            <TextField error={fieldErrors["category"]} onEdit={() => setFieldErrors({})} field="category" as="select"
                                 id="category"
                                 name="category"
                                 value={formData.category}
@@ -147,12 +152,12 @@ function SubmitComplaint({ user }) {
                                 {categories.map(cat => (
                                     <option key={cat} value={cat}>{cat}</option>
                                 ))}
-                            </select>
+                            </TextField>
                         </div>
 
                         <div className="form-group">
                             <label htmlFor="location">Location</label>
-                            <input
+                            <TextField error={fieldErrors["location"]} onEdit={() => setFieldErrors({})} field="location"
                                 id="location"
                                 name="location"
                                 type="text"
@@ -165,7 +170,7 @@ function SubmitComplaint({ user }) {
 
                     <div className="form-group">
                         <label htmlFor="subject">Subject *</label>
-                        <input
+                        <TextField error={fieldErrors["subject"]} onEdit={() => setFieldErrors({})} field="subject"
                             id="subject"
                             name="subject"
                             type="text"
@@ -178,7 +183,7 @@ function SubmitComplaint({ user }) {
 
                     <div className="form-group">
                         <label htmlFor="description">Description *</label>
-                        <textarea
+                        <TextField error={fieldErrors["description"]} onEdit={() => setFieldErrors({})} field="description" maxLength={2000} as="textarea"
                             id="description"
                             name="description"
                             value={formData.description}
@@ -204,7 +209,7 @@ function SubmitComplaint({ user }) {
                             <div className="file-list">
                                 {files.map((file, index) => (
                                     <div key={index} className="file-item">
-                                        <span><Paperclip size={16} /> {file.name}</span>
+                                        <span> {file.name}</span>
                                         <button
                                             type="button"
                                             onClick={() => removeFile(index)}
@@ -242,7 +247,7 @@ function SubmitComplaint({ user }) {
                 </form>
 
                 <div className="complaint-info">
-                    <h3><Info size={20} style={{ marginRight: '8px', marginLeft: 0, display: 'inline-block', verticalAlign: 'text-bottom' }} /> What Happens Next?</h3>
+                    <h3> What Happens Next?</h3>
                     <ol>
                         <li>Your report is reviewed by barangay officials</li>
                         <li>You'll receive a confirmation email with a tracking number</li>

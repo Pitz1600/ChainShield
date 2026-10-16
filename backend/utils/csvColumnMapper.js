@@ -1,3 +1,4 @@
+const fieldLimits = require('../constants/fieldLimits.json');
 /**
  * Intelligent CSV Column Mapper
  * Auto-detects columns from any budget CSV format
@@ -360,6 +361,16 @@ class CSVColumnMapper {
         }
         if (!transaction.programName || String(transaction.programName).trim() === '') {
             errors.push('Missing program name');
+        }
+
+        // Manual entries use this import path too; enforce the same text limits.
+        for (const field of ['agency', 'programName', 'description']) {
+            if (String(transaction[field] || '').length > fieldLimits[field]) {
+                errors.push(`${field} must not exceed ${fieldLimits[field]} characters`);
+            }
+        }
+        for (const [field, limit] of [['fromAddress', fieldLimits.payerName], ['toAddress', fieldLimits.payeeName]]) {
+            if (String(transaction[field] || '').length > limit) errors.push(`${field} must not exceed ${limit} characters`);
         }
 
         // Check for amount

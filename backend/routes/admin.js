@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const { validateFieldLengths } = require('../middleware/fieldLimits');
+router.use(validateFieldLengths);
 const adminController = require('../controllers/adminController');
 const authMiddleware = require('../middleware/auth');
 const { requireAdmin } = require('../middleware/roleMiddleware');
