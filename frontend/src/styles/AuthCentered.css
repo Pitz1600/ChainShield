@@ -1,0 +1,30 @@
+.auth-container.auth-centered { display: block; min-height: 100vh; background: #f8fafc; }
+.auth-centered .auth-main { min-height: 100vh; min-height: 100svh; box-sizing: border-box; padding: 32px 20px; background: transparent; }
+.auth-centered .auth-content { width: 100%; min-width: 0; margin: auto; }
+.auth-centered.login-screen .auth-content { max-width: 460px; }
+.auth-centered.register-screen .auth-content { max-width: 800px; }
+.auth-centered .back-button { margin-bottom: 16px; }
+.auth-centered .auth-header { text-align: center; margin-bottom: 24px; }
+.auth-centered .auth-form { box-sizing: border-box; width: 100%; padding: 28px; }
+.auth-centered .field-input { min-width: 0; box-sizing: border-box; }
+.auth-centered .registration-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+.auth-centered .registration-fields .form-field { display: flex; flex-direction: column; min-width: 0; margin: 0; }
+.auth-centered .registration-fields .field-hint { line-height: 1.5; }
+.auth-centered .password-control { width: 100%; min-width: 0; }
+.auth-centered .terms-box { margin: 24px 0; }
+.auth-centered .registration-approval-note { margin: 16px 0 0; color: #64748b; font-size: 14px; line-height: 1.6; text-align: center; }
+.auth-centered .auth-footer { text-align: center; }
+@media (max-width: 600px) {
+  .auth-centered .auth-main { padding: 20px 16px; }
+  .auth-centered .auth-form { padding: 20px; }
+  .auth-centered .registration-fields { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .auth-centered .auth-title { font-size: 28px; }
+}
+
+.auth-centered.login-screen .auth-header {
+  padding: 28px 24px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+.auth-centered.login-screen .auth-header .auth-title { color: #fff; }
+.auth-centered.login-screen .auth-header .auth-subtitle { color: #eff6ff; }

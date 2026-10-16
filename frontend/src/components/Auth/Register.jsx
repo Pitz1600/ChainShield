@@ -1,6 +1,6 @@
+import '../../styles/AuthCentered.css';
 import TextField from '../Forms/TextField';
 import React, { useState, useRef } from 'react';
-import { Shield, User, Mail, Lock, AlertCircle, Building, Calendar, FileText, ShieldCheck } from 'lucide-react';
 import CaptchaWidget from './CaptchaWidget';
 import '../../styles/Register.css';
 import api from '../../services/api';
@@ -94,31 +94,7 @@ function Register({ onNavigate }) {
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-sidebar register-sidebar">
-        <div className="auth-sidebar-content">
-          <div className="sidebar-brand" onClick={() => onNavigate('welcome')} style={{ cursor: 'pointer' }}>
-            <div className="sidebar-logo"><img src="/ChainShield_logo.png" alt="ChainShield Logo" className="logo-image" /></div>
-            <h2 className="sidebar-title">ChainShield</h2>
-            <p className="sidebar-subtitle">Transaction Verification System</p>
-          </div>
-
-          <div className="sidebar-illustration">
-            <div className="illustration-circle green"></div>
-            <div className="illustration-icon"><FileText size={48} color="white" /></div>
-          </div>
-
-          <div className="sidebar-info">
-            <h3 className="sidebar-info-title">Join ChainShield</h3>
-            <p className="sidebar-info-text">
-              Officials and auditors can register. Email verification and administrator approval are required.
-            </p>
-
-
-          </div>
-        </div>
-      </div>
-
+    <div className="auth-container auth-centered register-screen">
       <div className="auth-main">
         <div className="auth-content">
           <button className="back-button" onClick={() => onNavigate('welcome')}>
@@ -131,147 +107,72 @@ function Register({ onNavigate }) {
           </div>
 
           <form onSubmit={handleSubmit} className="auth-form">
-            {(
-              <>
-                <div className="form-field">
-                  <label className="field-label">
-
-                    <span>First Name</span>
-                    <span className="required">*</span>
-                  </label>
-                  <TextField error={fieldErrors.firstName} onEdit={() => setFieldErrors({})} field="firstName"
-                    type="text"
-                    value={formData.firstName}
-                    onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                    className="field-input"
-                    placeholder="Juan"
-                    required
-                  />
+            <div className="registration-fields">
+              {[
+                { field: 'firstName', label: 'First Name', placeholder: 'Juan', autoComplete: 'given-name' },
+                { field: 'lastName', label: 'Last Name', placeholder: 'Dela Cruz', autoComplete: 'family-name' },
+                { field: 'email', label: 'Email Address', type: 'email', placeholder: 'juan.delacruz@example.com', autoComplete: 'email', hint: "We'll send a verification code to this email" },
+                { field: 'birthday', label: 'Date of Birth', type: 'date', optional: true, autoComplete: 'bday', hint: 'Optional' },
+              ].map(({ field, label, type = 'text', optional, hint, ...inputProps }) => (
+                <div className="form-field" key={field}>
+                  <label className="field-label" htmlFor={`register-${field}`}>{label}{!optional && <span className="required">*</span>}</label>
+                  <TextField {...inputProps} id={`register-${field}`} name={field} field={field} type={type}
+                    error={fieldErrors[field]} onEdit={() => setFieldErrors({})}
+                    value={formData[field]} onChange={event => setFormData({ ...formData, [field]: event.target.value })}
+                    className="field-input" required={!optional}
+                    max={type === 'date' ? new Date().toISOString().split('T')[0] : undefined} />
+                  {hint && <span className="field-hint">{hint}</span>}
                 </div>
-
-                <div className="form-field">
-                  <label className="field-label">
-
-                    <span>Last Name</span>
-                    <span className="required">*</span>
-                  </label>
-                  <TextField error={fieldErrors.lastName} onEdit={() => setFieldErrors({})} field="lastName"
-                    type="text"
-                    value={formData.lastName}
-                    onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                    className="field-input"
-                    placeholder="Dela Cruz"
-                    required
-                  />
+              ))}
+              <div className="form-field">
+                <label className="field-label" htmlFor="register-role">Requested role<span className="required">*</span></label>
+                <TextField id="register-role" name="role" field="role" as="select" className="field-input" required
+                  error={fieldErrors.role} onEdit={() => setFieldErrors({})}
+                  value={formData.role} onChange={event => setFormData({ ...formData, role: event.target.value })}>
+                  <option value="barangay_official">Barangay Official</option>
+                  <option value="auditor">Auditor</option>
+                </TextField>
+              </div>
+              <div className="form-field">
+                <label className="field-label" htmlFor="register-position">Position<span className="required">*</span></label>
+                <TextField id="register-position" name="position" field="position" className="field-input" autoComplete="organization-title" required
+                  error={fieldErrors.position} onEdit={() => setFieldErrors({})}
+                  value={formData.position} onChange={event => setFormData({ ...formData, position: event.target.value })} />
+              </div>
+              {[
+                { field: 'password', label: 'Password', placeholder: 'Create a strong password', hint: 'Minimum 8 characters with uppercase, lowercase, number, and special character' },
+                { field: 'confirmPassword', label: 'Confirm Password', placeholder: 'Re-enter your password', hint: 'Must match the password above' },
+              ].map(({ field, label, placeholder, hint }) => (
+                <div className="form-field" key={field}>
+                  <label className="field-label" htmlFor={`register-${field}`}>{label}<span className="required">*</span></label>
+                  <div className="password-control">
+                    <TextField id={`register-${field}`} name={field} field={field} type={visiblePasswords[field] ? 'text' : 'password'}
+                      autoComplete="new-password" error={fieldErrors[field]} onEdit={() => setFieldErrors({})}
+                      value={formData[field]} onChange={event => setFormData({ ...formData, [field]: event.target.value })}
+                      className="field-input" placeholder={placeholder} required />
+                    <button type="button" aria-label={`${visiblePasswords[field] ? 'Hide' : 'Show'} ${field === 'password' ? 'password' : 'confirmation password'}`}
+                      aria-pressed={Boolean(visiblePasswords[field])}
+                      onClick={() => setVisiblePasswords(previous => ({ ...previous, [field]: !previous[field] }))}>
+                      {visiblePasswords[field] ? 'Hide' : 'Show'}
+                    </button>
+                  </div>
+                  <span className="field-hint">{hint}</span>
                 </div>
-
-                <div className="form-field">
-                  <label className="field-label">
-
-                    <span>Date of Birth</span>
-                  </label>
-                  <TextField error={fieldErrors.birthday} onEdit={() => setFieldErrors({})} field="birthday"
-                    type="date"
-                    value={formData.birthday}
-                    onChange={(e) => setFormData({ ...formData, birthday: e.target.value })}
-                    className="field-input"
-                    max={new Date().toISOString().split('T')[0]}
-                  />
-                  <span className="field-hint">Optional - for age verification</span>
-                </div>
-
-                <div className="form-field">
-                  <label className="field-label">
-
-                    <span>Email Address</span>
-                    <span className="required">*</span>
-                  </label>
-                  <TextField field="email" error={fieldErrors.email} onEdit={() => setFieldErrors({})}
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="field-input"
-                    placeholder="juan.delacruz@example.com"
-                    required
-                  />
-                  <span className="field-hint">We'll send a verification code to this email</span>
-                </div>
-
-
-              </>
-            )}
-
-            {<>
-              <label className="field-label">Requested role</label>
-              <TextField error={fieldErrors.role} onEdit={() => setFieldErrors({})} field="role" as="select" className="field-input" value={formData.role} onChange={e => setFormData({ ...formData, role: e.target.value })}>
-                <option value="barangay_official">Barangay Official</option><option value="auditor">Auditor</option>
-              </TextField>
-              <label className="field-label">Position *</label>
-              <TextField error={fieldErrors.position} onEdit={() => setFieldErrors({})} field="position" className="field-input" required value={formData.position} onChange={e => setFormData({ ...formData, position: e.target.value })} />
-            </>}
-            {(
-              <>
-                <div className="form-field">
-                  <label className="field-label">
-
-                    <span>Password</span>
-                  </label>
-                  <div className="password-control"><TextField error={fieldErrors.password} onEdit={() => setFieldErrors({})} field="password"
-                    type={visiblePasswords.password ? 'text' : 'password'}
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    className="field-input"
-                    placeholder="Create a strong password"
-                    required
-                  /><button type="button" aria-label={`${visiblePasswords.password ? 'Hide' : 'Show'} password`} aria-pressed={Boolean(visiblePasswords.password)} onClick={() => setVisiblePasswords(previous => ({ ...previous, password: !previous.password }))}>{visiblePasswords.password ? 'Hide' : 'Show'}</button></div>
-                  <span className="field-hint">Minimum 8 characters with uppercase, lowercase, number, and special character</span>
-                </div>
-
-                <div className="form-field">
-                  <label className="field-label">
-
-                    <span>Confirm Password</span>
-                    <span className="required">*</span>
-                  </label>
-                  <div className="password-control"><TextField error={fieldErrors.confirmPassword} onEdit={() => setFieldErrors({})} field="confirmPassword"
-                    type={visiblePasswords.confirmPassword ? 'text' : 'password'}
-                    value={formData.confirmPassword}
-                    onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                    className="field-input"
-                    placeholder="Re-enter your password"
-                    required
-                  /><button type="button" aria-label={`${visiblePasswords.confirmPassword ? 'Hide' : 'Show'} confirmation password`} aria-pressed={Boolean(visiblePasswords.confirmPassword)} onClick={() => setVisiblePasswords(previous => ({ ...previous, confirmPassword: !previous.confirmPassword }))}>{visiblePasswords.confirmPassword ? 'Hide' : 'Show'}</button></div>
-                  <span className="field-hint">Must match the password above</span>
-                </div>
-
-                <div className="terms-box">
-                  <label className="checkbox-label">
-                    <input type="checkbox" className="checkbox-input" required />
-                    <span>
-                      I agree to the <a href="#" className="link-text">Terms of Service</a> and{' '}
-                      <a href="#" className="link-text">Privacy Policy</a>
-                    </span>
-                  </label>
-                </div>
-              </>
-            )}
-
-            {<CaptchaWidget ref={captchaRef} action="register" onToken={setCaptchaToken} />}
+              ))}
+            </div>
+            <div className="terms-box">
+              <label className="checkbox-label">
+                <input type="checkbox" className="checkbox-input" required />
+                <span>I agree to the <a href="#" className="link-text">Terms of Service</a> and <a href="#" className="link-text">Privacy Policy</a></span>
+              </label>
+            </div>
+            <CaptchaWidget ref={captchaRef} action="register" onToken={setCaptchaToken} />
             {error && <p className="field-error" role="alert">{error}</p>}
             <button type="submit" disabled={loading || (captchaEnabled && !captchaToken)} className="submit-button">
-              {loading ? (
-                <>
-                  <span className="spinner"></span>
-                  <span>Creating Account...</span>
-                </>
-              ) : (
-                <>
-                  <span>Create Account</span>
-                  <span className="button-icon">→</span>
-                </>
-              )}
+              {loading ? <><span className="spinner" /><span>Creating Account...</span></> : <><span>Create Account</span><span className="button-icon">→</span></>}
             </button>
           </form>
+          <p className="registration-approval-note">Verify your email after registering. An administrator must approve your account before you can access the portal.</p>
 
           <div className="auth-footer">
             <p className="footer-text">

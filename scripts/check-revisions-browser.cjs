@@ -67,7 +67,22 @@ const server = http.createServer((req,res)=>{
   const evaluate=async expression=>{const result=await send('script.evaluate',{expression,target:{context},awaitPromise:true});if(result.type==='exception')throw new Error(result.exceptionDetails.text);return result.result.value;};
   const wait=async expression=>{for(let i=0;i<100;i++){if(await evaluate(expression))return;await new Promise(r=>setTimeout(r,50));}throw new Error('Timed out: '+expression);};
   const navigate=async route=>send('browsingContext.navigate',{context,url:`http://127.0.0.1:${port}${route}`,wait:'complete'});
+  await navigate('/login');await wait('!!document.querySelector(".login-screen [data-field=password]")');
+  assert.equal(await evaluate('document.querySelectorAll(".auth-sidebar").length'),0);
+  assert.equal(await evaluate('document.querySelector(".auth-content").getBoundingClientRect().width <= 460'),true);
+  assert.equal(await evaluate('Math.abs(document.querySelector(".auth-content").getBoundingClientRect().left + document.querySelector(".auth-content").getBoundingClientRect().width / 2 - innerWidth / 2) < 2'),true);
+  const loginImage=await send('browsingContext.captureScreenshot',{context});fs.writeFileSync('/tmp/chainshield-login-centered.png',Buffer.from(loginImage.data,'base64'));
   await navigate('/register');await wait('!!document.querySelector("[data-field=confirmPassword]")');
+  assert.equal(await evaluate('document.querySelectorAll(".auth-sidebar").length'),0);
+  assert.equal(await evaluate('document.querySelector("[data-field=firstName]").getBoundingClientRect().top === document.querySelector("[data-field=lastName]").getBoundingClientRect().top'),true);
+  assert.equal(await evaluate('document.querySelector(".registration-approval-note").textContent.includes("administrator")'),true);
+  const registrationImage=await send('browsingContext.captureScreenshot',{context});fs.writeFileSync('/tmp/chainshield-register-centered.png',Buffer.from(registrationImage.data,'base64'));
+  await send('browsingContext.setViewport',{context,viewport:{width:390,height:844},devicePixelRatio:1});
+  assert.equal(await evaluate('document.querySelector("[data-field=firstName]").getBoundingClientRect().top < document.querySelector("[data-field=lastName]").getBoundingClientRect().top'),true);
+  assert.equal(await evaluate('document.documentElement.scrollWidth <= innerWidth'),true);
+  const registrationMobile=await send('browsingContext.captureScreenshot',{context});fs.writeFileSync('/tmp/chainshield-register-mobile.png',Buffer.from(registrationMobile.data,'base64'));
+  await send('browsingContext.setViewport',{context,viewport:{width:1280,height:900},devicePixelRatio:1});
+
   assert.equal(await evaluate('document.querySelectorAll("form").length'),1);
   assert.equal(await evaluate('document.querySelector("[data-field=firstName]").maxLength'),50);
   assert.equal(await evaluate('document.querySelector("[data-field=password]").hasAttribute("maxlength")'),false);

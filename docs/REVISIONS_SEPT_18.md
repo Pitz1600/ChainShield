@@ -1,16 +1,16 @@
 # September 18 revisions
 
-Source: `Revisions SEPT 18.xlsx`. Row numbers refer to the spreadsheet. Feedback code is preserved, and login/register left-panel content is deferred by request.
+Source: `Revisions SEPT 18.xlsx`. Row numbers refer to the spreadsheet. Feedback code is preserved. Following approval, login/register left panels are removed in favor of centered forms.
 
 | Row | Revision | Implementation |
 | --- | --- | --- |
-| 2 | Login/register left-panel content | Deferred pending discussion with the leader; existing content preserved. |
+| 2 | Login/register left-panel content | Removed following approval: compact centered login and wider registration with two desktop columns, one mobile column, no logo or brand-name heading, and an email-verification/approval note. |
 | 3 | One-step registration | One form containing personal details, role/position, and security fields; email verification and administrator approval retained. |
 | 4 | Show password | Independent accessible Show/Hide buttons for password and confirmation. |
 | 5 | Verification feedback | Local success/error messages, invalid-digit highlighting, request guards, and distinct network-error wording. |
-| 6 | Logo above title | Portal sidebar uses a separate logo image with the title below; existing auth branding retained. |
+| 6 | Logo above title | Portal sidebar uses a separate logo image with the title below; login/register branding was subsequently removed by request. |
 | 7 | Ellipsis | Constrained summaries, filenames, and table descriptions truncate; full information remains in details or accessible text. |
-| 8 | Icons only for actions | Decorative icons removed from active screens; action icons, branding, and data visualizations retained. Deferred auth panels are unchanged. |
+| 8 | Icons only for actions | Decorative icons removed from active screens; action icons, branding, and data visualizations retained. Login/register left panels have been removed following approval. |
 | 9 | Equal card sizes | Responsive grids stretch comparable cards to equal dimensions within their group. |
 | 10 | Local refresh | Transaction table refresh fetches data without remounting the view, retaining filters, sorting, and valid pagination. Existing dashboard/session refresh actions already fetch data locally. |
 | 11 | Verification column | Table shows status; reviewer/archive identity and timestamps are available in details. |

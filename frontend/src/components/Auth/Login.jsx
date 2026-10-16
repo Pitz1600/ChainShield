@@ -1,3 +1,4 @@
+import '../../styles/AuthCentered.css';
 import useFieldErrors from '../../utils/useFieldErrors';
 import { apiFieldErrors } from '../../utils/fieldValidation';
 import TextField from '../Forms/TextField';
@@ -397,33 +398,7 @@ function Login({ onLogin, onNavigate }) {
     : error;
 
   return (
-    <div className="auth-container">
-      <div className="auth-sidebar">
-        <div className="auth-sidebar-content">
-          <div className="sidebar-brand" onClick={() => onNavigate('welcome')} style={{ cursor: 'pointer' }}>
-            <div className="sidebar-logo"><img src="/ChainShield_logo.png" alt="ChainShield Logo" className="logo-image" /></div>
-            <h2 className="sidebar-title">ChainShield</h2>
-            <p className="sidebar-subtitle">Transaction Verification System</p>
-          </div>
-
-          <div className="sidebar-illustration">
-            <div className="illustration-circle"></div>
-            <div className="illustration-icon"><Lock size={64} /></div>
-          </div>
-
-          <div className="sidebar-info">
-            <h3 className="sidebar-info-title">Secure Access</h3>
-            <p className="sidebar-info-text">
-              {step === 'totp'
-                ? 'Enter the code from your authenticator app to verify your identity.'
-                : step === 'otp'
-                  ? 'A new device was detected. Please verify with the code sent to your email.'
-                  : 'Sign in to access authorized digital services and monitor system activity.'}
-            </p>
-          </div>
-        </div>
-      </div>
-
+    <div className="auth-container auth-centered login-screen">
       <div className="auth-main">
         <div className="auth-content">
           <button className="back-button" onClick={() => onNavigate('welcome')}>
