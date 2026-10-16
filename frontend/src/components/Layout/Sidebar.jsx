@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, AlertTriangle, List, Upload, BarChart3, Search, Settings, User, Shield, LogOut, X, MessageSquare } from 'lucide-react';
+import { Home, AlertTriangle, List, Upload, BarChart3, Search, Settings, User, Shield, LogOut, X } from 'lucide-react';
 import { isAdmin, isOfficial } from '../../utils/permissions';
 import '../../styles/Sidebar.css';
 import useLockBodyScroll from '../../utils/useLockBodyScroll';
@@ -15,15 +15,13 @@ function Sidebar({ user, activeView, setActiveView, onLogout, isMobileMenuOpen, 
     search: Search,
     settings: Settings,
     user: User,
-    shield: Shield,
-    feedbacks: MessageSquare
+    shield: Shield
   };
 
   // Base menu items for all users
   const baseMenuItems = [
     { id: 'dashboard', icon: 'home', label: 'Dashboard', roles: ['barangay_official', 'administrator'] },
     { id: 'transactions', icon: 'history', label: 'Transactions', roles: ['barangay_official', 'administrator'] },
-    { id: 'feedbacks', icon: 'feedbacks', label: 'Feedbacks', roles: ['barangay_official', 'administrator'] },
   ];
 
   // Shared menu items (view-only features)

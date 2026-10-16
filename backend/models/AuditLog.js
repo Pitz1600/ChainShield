@@ -30,6 +30,8 @@ const auditLogSchema = new mongoose.Schema({
             'captcha_failed',
             // 2FA Actions
             'totp_setup',
+            'totp_setup_restarted',
+            'totp_reset_initiated',
             'totp_disabled',
             // Device Actions
             'new_device_detected',

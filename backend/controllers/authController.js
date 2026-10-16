@@ -751,7 +751,7 @@ exports.setup2FA = async (req, res) => {
 
     // Allow setup only if 2FA is not already enabled
     // If a previous setup exists but wasn't verified, generate a new one
-    if (user.twoFactorEnabled && user.recoveryCodes && user.recoveryCodes.length > 0) {
+    if (user.twoFactorEnabled) {
       return res.status(400).json({ error: '2FA is already enabled.' });
     }
 
@@ -779,6 +779,10 @@ exports.setup2FA = async (req, res) => {
 exports.verifySetup2FA = async (req, res) => {
   try {
     const { totpCode } = req.body;
+    if (typeof totpCode !== 'string' || !/^\d{6}$/.test(totpCode)) {
+      return res.status(400).json({ error: 'Enter the 6-digit code from your authenticator app.' });
+    }
+
 
     const user = await User.findById(req.user.id).select('+twoFactorSecret +recoveryCodes');
     if (!user) {
@@ -845,13 +849,20 @@ exports.verifySetup2FA = async (req, res) => {
 // ==========================================
 exports.restart2FASetup = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id);
+    const user = await User.findById(req.user.id).select('+twoFactorSecret');
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Generate a fresh TOTP secret
-    const { secret, qrCode } = await user.generateTOTPSecret();
+    if (user.twoFactorEnabled) {
+      return res.status(400).json({ error: '2FA is already enabled.' });
+    }
+
+    const secret = generateSecret();
+    const otpAuthUrl = generateURI({ secret, issuer: 'ChainShield', accountName: user.email });
+    const qrCode = await QRCode.toDataURL(otpAuthUrl);
+    user.setTwoFactorSecret(secret);
+    await user.save();
 
     await AuditLog.logAction({
       action: 'totp_setup_restarted',
@@ -971,7 +982,7 @@ exports.reset2FA = async (req, res) => {
 
     // Verify password
     if (!(await user.comparePassword(password))) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+      return res.status(400).json({ error: 'Incorrect account password. Please try again.' });
     }
 
     // Verify Email OTP
@@ -987,6 +998,11 @@ exports.reset2FA = async (req, res) => {
       return res.status(400).json({ error: 'Invalid verification code.' });
     }
 
+    // Prepare the QR code before invalidating sessions or consuming the OTP.
+    const secret = generateSecret();
+    const otpAuthUrl = generateURI({ secret, issuer: 'ChainShield', accountName: user.email });
+    const qrCodeDataUrl = await QRCode.toDataURL(otpAuthUrl);
+
     // Clear existing 2FA and prep for setup
     user.twoFactorEnabled = false;
     user.mustSetup2FA = true;
@@ -997,14 +1013,19 @@ exports.reset2FA = async (req, res) => {
     user.otpExpires = undefined;
     user.otpAttempts = 0;
 
-    // Generate NEW TOTP secret
-    const secret = generateSecret();
     user.setTwoFactorSecret(secret);
+    // Prepare the replacement token before saving the session revocation.
+    const setupToken = generateOnboardingToken(user, 'setup_2fa');
     await user.save();
 
-    // Generate QR code
-    const otpAuthUrl = generateURI({ secret, issuer: 'ChainShield', accountName: user.email });
-    const qrCodeDataUrl = await QRCode.toDataURL(otpAuthUrl);
+    // Revoke old sessions while allowing this browser to finish setup.
+    res.cookie('token', setupToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+      maxAge: 3600000,
+      path: '/'
+    });
 
     res.json({
       success: true,

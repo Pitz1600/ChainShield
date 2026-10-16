@@ -35,7 +35,6 @@ function App() {
       case 'analytics': return '/dashboard/analytics';
       case 'integrity_checker': return '/dashboard/integrity-checker';
       case 'admin': return '/dashboard/admin';
-      case 'feedbacks': return '/dashboard/feedbacks';
       case 'profile': return '/dashboard/profile';
       default: return '/welcome';
     }

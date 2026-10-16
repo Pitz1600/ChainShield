@@ -55,7 +55,7 @@ module.exports = async (req, res, next) => {
     if (decoded.scope) {
       const allowedPaths = {
         'change_password': ['/api/auth/force-change-password'],
-        'setup_2fa': ['/api/auth/2fa/setup', '/api/auth/2fa/verify-setup'],
+        'setup_2fa': ['/api/auth/2fa/setup', '/api/auth/2fa/restart-setup', '/api/auth/2fa/verify-setup'],
         'mfa_verification': ['/api/auth/verify-mfa'],
         'verify_email': ['/api/auth/verify-email', '/api/auth/resend-otp']
       };
@@ -90,6 +90,7 @@ module.exports = async (req, res, next) => {
       const onboardingRoutes = [
         '/api/auth/force-change-password',
         '/api/auth/2fa/setup',
+        '/api/auth/2fa/restart-setup',
         '/api/auth/2fa/verify-setup',
         '/api/auth/verify-email',
         '/api/auth/resend-otp',

@@ -8,7 +8,6 @@ import {
   ChevronRight,
   X,
   ArrowUpDown,
-  Link2,
   MessageSquare
 } from 'lucide-react';
 import api from '../../services/api';
@@ -28,7 +27,7 @@ function AlertsManagement({ embedded = false, user = null }) {
   const [selectedAlert, setSelectedAlert] = useState(null);
   const [fullTx, setFullTx] = useState(null);
   const [showModal, setShowModal] = useState(false);
-  const [modalTab, setModalTab] = useState('details');
+  const [modalTab, setModalTab] = useState('ai');
   const [txLoading, setTxLoading] = useState(false);
   const [tabRemarkInput, setTabRemarkInput] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
@@ -193,7 +192,7 @@ function AlertsManagement({ embedded = false, user = null }) {
 
   const handleInvestigate = async (alert) => {
     setSelectedAlert(alert);
-    setModalTab('details');
+    setModalTab('ai');
     setShowModal(true);
     setFullTx(null);
     setTxLoading(true);
@@ -507,7 +506,6 @@ function AlertsManagement({ embedded = false, user = null }) {
 
             <div className="modal-tabs">
               {[
-                { key: 'details', label: 'Details' },
                 { key: 'ai', label: 'AI Analysis' },
                 { key: 'csv', label: 'Import Data' },
                 ...(canSeeBreakdown ? [{ key: 'breakdown', label: 'Breakdown' }] : []),
@@ -525,91 +523,6 @@ function AlertsManagement({ embedded = false, user = null }) {
             </div>
 
             <div className="tx-modal-body tx-modal-body-wide">
-              {modalTab === 'details' && (
-                <div className="tx-grid">
-                  <div className="tx-grid-row">
-                    <div className="tx-grid-col">
-                      <label>Transaction ID</label>
-                      <div className="font-mono">{tx?.transactionId || tx?.documentId || tx?.id}</div>
-                    </div>
-                    <div className="tx-grid-col">
-                      <label>Date and Time</label>
-                      <div>{new Date(tx?.timestamp || tx?.createdAt).toLocaleString()}</div>
-                    </div>
-                  </div>
-
-                  <div className="tx-grid-row">
-                    <div className="tx-grid-col">
-                      <label>Sender (From)</label>
-                      <div className="addr-ellipsis" title={tx?.fromAddress || ''}>{formatAddressLabel(tx?.fromAddress) || 'N/A'}</div>
-                    </div>
-                    <div className="tx-grid-col">
-                      <label>Receiver (To)</label>
-                      <div className="addr-ellipsis" title={tx?.toAddress || ''}>{formatAddressLabel(tx?.toAddress) || 'N/A'}</div>
-                    </div>
-                  </div>
-
-                  <div className="tx-grid-row">
-                    <div className="tx-grid-col">
-                      <label>Amount</label>
-                      <div className="font-bold amount-text">PHP {Number(tx?.amount || 0).toLocaleString()}</div>
-                    </div>
-                    <div className="tx-grid-col">
-                      <label>Transaction Type</label>
-                      <div>{tx?.transactionType || tx?.documentType || 'N/A'}</div>
-                    </div>
-                  </div>
-
-                  <div className="tx-grid-row">
-                    {isMeaningfulValue(tx?.agency || tx?.issuer) && (
-                      <div className="tx-grid-col">
-                        <label>Agency</label>
-                        <div>{tx?.agency || tx?.issuer}</div>
-                      </div>
-                    )}
-                    <div className="tx-grid-col">
-                      <label>Beneficiary Type</label>
-                      <div>{tx?.beneficiaryType || 'N/A'}</div>
-                    </div>
-                  </div>
-                  <div className="tx-grid-row">
-                    <div className="tx-grid-col">
-                      <label>AI Combined</label>
-                      <div>{tx?.mlUsed ? 'Yes' : 'No'}</div>
-                    </div>
-                    <div className="tx-grid-col">
-                      <label>ML Score</label>
-                      <div>{tx?.mlScore ?? '-'}</div>
-                    </div>
-                  </div>
-
-                  <div className="tx-grid-row">
-                    <div className="tx-grid-col">
-                      <label>Blockchain Status</label>
-                      <div className={tx?.blockchainTxId ? 'chain-pill recorded' : 'chain-pill not-recorded'}>
-                        {tx?.blockchainTxId ? 'Recorded on Chain' : 'Not recorded'}
-                      </div>
-                    </div>
-                    <div className="tx-grid-col">
-                      <label>Block Number</label>
-                      <div>{tx?.blockNumber ? `#${tx.blockNumber}` : '-'}</div>
-                    </div>
-                  </div>
-
-                  {tx?.blockchainTxId && (
-                    <div className="tx-grid-desc">
-                      <label><Link2 size={12} style={{ display: 'inline', marginRight: 4 }} />Blockchain Tx Hash</label>
-                      <div className="hash-box">{tx.blockchainTxId}</div>
-                    </div>
-                  )}
-
-                  <div className="tx-grid-desc">
-                    <label>Description</label>
-                    <p>{tx?.description || tx?.type || 'N/A'}</p>
-                  </div>
-                </div>
-              )}
-
               {modalTab === 'ai' && (
                 <FormulaPanel
                   score={txRisk}

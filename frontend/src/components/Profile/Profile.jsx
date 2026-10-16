@@ -119,11 +119,13 @@ function Profile({ user }) {
   };
 
   const handleSend2faOTP = async () => {
+    setLoading(true); setError(''); setMessage('');
     try {
       await api.post('/auth/2fa/send-otp');
       setTwoFactorOtpSent(true);
       setMessage('OTP sent to your email!');
     } catch (err) { setError(err.response?.data?.error || 'Failed to send OTP'); }
+    finally { setLoading(false); }
   };
 
   // Profile Picture Handlers
@@ -170,7 +172,7 @@ function Profile({ user }) {
 
   const handle2faVerify = async (e) => {
     e.preventDefault();
-    setLoading(true); setError('');
+    setLoading(true); setError(''); setMessage('');
     try {
       if (twoFactorForm.mode === 'disable') {
         await authAPI.disable2FA({ password: twoFactorForm.password, otp: twoFactorForm.otp });
@@ -189,7 +191,7 @@ function Profile({ user }) {
 
   const handleTotpVerify = async (e) => {
     e.preventDefault();
-    setLoading(true); setError('');
+    setLoading(true); setError(''); setMessage('');
     try {
       const response = await authAPI.verifySetup2FA({ totpCode: twoFactorForm.totpCode });
       setRecoveryCodes(response.data.recoveryCodes);
@@ -201,7 +203,7 @@ function Profile({ user }) {
 
   const handleRegenerateRecoveryCodes = async (e) => {
     e.preventDefault();
-    setLoading(true); setError('');
+    setLoading(true); setError(''); setMessage('');
     try {
       const response = await authAPI.regenerateRecoveryCodes({
         password: recoveryForm.password,
@@ -438,7 +440,7 @@ function Profile({ user }) {
                     <img src={qrCode} alt="QR" className="qr-image" />
                     <div className="secret-display"><code>{secret}</code><button type="button" onClick={copySecret}>{copied ? <CheckCircle size={16} color="#22c55e" /> : <Copy size={16} />}</button></div>
                   </div>
-                  <div className="form-group"><label className="form-label">Authenticator Code</label><input type="text" className="form-input" maxLength="6" value={twoFactorForm.totpCode} onChange={(e) => setTwoFactorForm({ ...twoFactorForm, totpCode: e.target.value })} required /></div>
+                  <div className="form-group"><label className="form-label">Authenticator Code</label><input type="text" className="form-input" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength="6" value={twoFactorForm.totpCode} onChange={(e) => setTwoFactorForm({ ...twoFactorForm, totpCode: e.target.value.replace(/\D/g, '').slice(0, 6) })} required /></div>
                   <button type="submit" className="update-btn" disabled={loading}>Complete Setup</button>
                 </form>
               ) : (
@@ -447,8 +449,8 @@ function Profile({ user }) {
                     <label className="form-label">Account Password</label>
                     <input type="password" className="form-input" value={twoFactorForm.password} onChange={(e) => setTwoFactorForm({ ...twoFactorForm, password: e.target.value })} required />
                   </div>
-                  <div className="otp-section"><label className="form-label">Email OTP</label><div className="otp-input-group"><input type="text" className="form-input" value={twoFactorForm.otp} onChange={(e) => setTwoFactorForm({ ...twoFactorForm, otp: e.target.value })} required /><button type="button" className="otp-btn" onClick={handleSend2faOTP} disabled={twoFactorOtpSent}>{twoFactorOtpSent ? 'Sent' : 'Send Code'}</button></div></div>
-                  <button type="submit" className={`update-btn ${twoFactorForm.mode === 'disable' ? 'danger' : ''}`} disabled={loading}>{twoFactorForm.mode === 'disable' ? 'Confirm Disable' : 'Initiate Setup'}</button>
+                  <div className="otp-section"><label className="form-label">Email OTP</label><div className="otp-input-group"><input type="text" className="form-input" value={twoFactorForm.otp} onChange={(e) => setTwoFactorForm({ ...twoFactorForm, otp: e.target.value })} required /><button type="button" className="otp-btn" onClick={handleSend2faOTP} disabled={twoFactorOtpSent || loading}>{twoFactorOtpSent ? 'Sent' : 'Send Code'}</button></div></div>
+                  <button type="submit" className={`update-btn ${twoFactorForm.mode === 'disable' ? 'danger' : ''}`} disabled={loading || !twoFactorOtpSent}>{twoFactorForm.mode === 'disable' ? 'Confirm Disable' : 'Initiate Setup'}</button>
                 </form>
               )}
             </div>
@@ -469,7 +471,7 @@ function Profile({ user }) {
                   <label className="form-label">Account Password</label>
                   <input type="password" className="form-input" value={recoveryForm.password} onChange={(e) => setRecoveryForm({ ...recoveryForm, password: e.target.value })} required />
                 </div>
-                <div className="otp-section"><label className="form-label">Email OTP</label><div className="otp-input-group"><input type="text" className="form-input" value={recoveryForm.otp} onChange={(e) => setRecoveryForm({ ...recoveryForm, otp: e.target.value })} required /><button type="button" className="otp-btn" onClick={handleSend2faOTP} disabled={twoFactorOtpSent}>{twoFactorOtpSent ? 'Sent' : 'Send Code'}</button></div></div>
+                <div className="otp-section"><label className="form-label">Email OTP</label><div className="otp-input-group"><input type="text" className="form-input" value={recoveryForm.otp} onChange={(e) => setRecoveryForm({ ...recoveryForm, otp: e.target.value })} required /><button type="button" className="otp-btn" onClick={handleSend2faOTP} disabled={twoFactorOtpSent || loading}>{twoFactorOtpSent ? 'Sent' : 'Send Code'}</button></div></div>
                 <button type="submit" className="update-btn" disabled={loading}>Regenerate Codes</button>
               </form>
             </div>

@@ -4,7 +4,7 @@ import {
   AlertTriangle, CheckCircle, Clock, FileText,
   ChevronLeft, ChevronRight,
   ArrowUpDown, Filter, X, Trash2, Flag, ThumbsUp,
-  Link2, Info, MessageSquare, Archive, ArchiveRestore
+  Info, MessageSquare, Archive, ArchiveRestore
 } from 'lucide-react';
 import api from '../../services/api';
 import FeedbackModal from '../Feedbacks/FeedbackModal';
@@ -212,7 +212,7 @@ function MyTransactions({ user, embedded = false }) {
   const itemsPerPage = 12;
 
   // Modal tab state
-  const [modalTab, setModalTab] = useState('details');
+  const [modalTab, setModalTab] = useState('ai');
 
   // Action state
   const [actionLoading, setActionLoading] = useState(false);
@@ -237,7 +237,7 @@ function MyTransactions({ user, embedded = false }) {
     let cancelled = false;
     setModalLoading(true);
     api.get(`/transactions/${encodeURIComponent(transactionId)}`)
-      .then(({ data }) => { if (!cancelled) { setSelectedTx(data); setModalTab('details'); } })
+      .then(({ data }) => { if (!cancelled) { setSelectedTx(data); setModalTab('ai'); } })
       .catch(() => { if (!cancelled) setActionMessage({ text: 'Unable to open this transaction.', type: 'error' }); })
       .finally(() => { if (!cancelled) setModalLoading(false); });
     return () => { cancelled = true; };
@@ -306,7 +306,7 @@ function MyTransactions({ user, embedded = false }) {
   /* ---- Open modal (fetch full details) ---- */
   const openModal = async (txSummary) => {
     setSelectedTx(txSummary);   // show immediately with summary data
-    setModalTab('details');     // always reset to first tab
+    setModalTab('ai');     // always reset to first tab
     setModalLoading(true);
     try {
       const res = await api.get(`/transactions/${txSummary._id}`);
@@ -824,7 +824,6 @@ function MyTransactions({ user, embedded = false }) {
                 {/* Tabs */}
                 <div className="modal-tabs">
                   {[
-                    { key: 'details',   label: 'Details' },
                     { key: 'ai',        label: 'AI Analysis' },
                     { key: 'csv',       label: 'Import Data' },
                     ...(isAdminOrAuditor ? [{ key: 'breakdown', label: 'Breakdown' }] : []),
@@ -840,99 +839,6 @@ function MyTransactions({ user, embedded = false }) {
 
                 {/* Body */}
                 <div className="tx-modal-body tx-modal-body-wide">
-
-                  {/* TAB 1: DETAILS */}
-                  {modalTab === 'details' && (
-                    <div className="tx-grid">
-                      <div className="tx-grid-row">
-                        <div className="tx-grid-col">
-                          <label>Transaction ID</label>
-                          <div className="font-mono">{selectedTx.transactionId || selectedTx._id}</div>
-                        </div>
-                        <div className="tx-grid-col">
-                          <label>Date &amp; Time</label>
-                          <div>{new Date(selectedTx.date || selectedTx.timestamp || selectedTx.createdAt).toLocaleString()}</div>
-                        </div>
-                      </div>
-                      <div className="tx-grid-row">
-                        <div className="tx-grid-col">
-                          <label>Sender (From)</label>
-                          <div className="addr-ellipsis" title={selectedTx.fromAddress}>{formatAddressLabel(selectedTx.fromAddress) || 'N/A'}</div>
-                        </div>
-                        <div className="tx-grid-col">
-                          <label>Receiver (To)</label>
-                          <div className="addr-ellipsis" title={selectedTx.toAddress}>{formatAddressLabel(selectedTx.toAddress) || 'N/A'}</div>
-                        </div>
-                      </div>
-                      <div className="tx-grid-row">
-                        <div className="tx-grid-col">
-                          <label>Amount</label>
-                          <div className="font-bold amount-text">&#8369;{Number(selectedTx.amount || 0).toLocaleString()}</div>
-                        </div>
-                        <div className="tx-grid-col">
-                          <label>Transaction Type</label>
-                          <div>{selectedTx.transactionType || selectedTx.type || 'N/A'}</div>
-                        </div>
-                      </div>
-                      <div className="tx-grid-row">
-                        <div className="tx-grid-col">
-                          <label>Status</label>
-                          <div>
-                            {getStatusBadge(selectedTx.verificationStatus || 'Pending')}
-                            {selectedTx.verifiedBy && <span className="verified-by"> by {selectedTx.verifiedBy}</span>}
-                          </div>
-                        </div>
-                        <div className="tx-grid-col">
-                          <label>Beneficiary Type</label>
-                          <div>{selectedTx.beneficiaryType || 'N/A'}</div>
-                        </div>
-                      </div>
-                      <div className="tx-grid-row">
-                        <div className="tx-grid-col">
-                          <label>AI Combined</label>
-                          <div>{selectedTx.mlUsed ? 'Yes' : 'No'}</div>
-                        </div>
-                        <div className="tx-grid-col">
-                          <label>ML Score</label>
-                          <div>{selectedTx.mlScore ?? '-'}</div>
-                        </div>
-                      </div>
-                      {(isMeaningfulValue(selectedTx.agency) || isMeaningfulValue(selectedTx.programName)) && (
-                        <div className="tx-grid-row">
-                          <div className="tx-grid-col">
-                            <label>Agency</label>
-                            <div>{isMeaningfulValue(selectedTx.agency) ? selectedTx.agency : '-'}</div>
-                          </div>
-                          <div className="tx-grid-col">
-                            <label>Program</label>
-                            <div>{isMeaningfulValue(selectedTx.programName) ? selectedTx.programName : '-'}</div>
-                          </div>
-                        </div>
-                      )}
-                      <div className="tx-grid-row">
-                        <div className="tx-grid-col">
-                          <label>Blockchain Status</label>
-                          <div className={selectedTx.blockchainTxId ? 'chain-pill recorded' : 'chain-pill not-recorded'}>
-                            {selectedTx.blockchainTxId ? 'Recorded on Chain' : 'Not yet recorded'}
-                          </div>
-                        </div>
-                        <div className="tx-grid-col">
-                          <label>Block Number</label>
-                          <div>{selectedTx.blockNumber ? `#${selectedTx.blockNumber}` : '-'}</div>
-                        </div>
-                      </div>
-                      {selectedTx.blockchainTxId && (
-                        <div className="tx-grid-desc">
-                          <label><Link2 size={12} style={{ display: 'inline', marginRight: 4 }} />Blockchain Tx Hash</label>
-                          <div className="hash-box">{selectedTx.blockchainTxId}</div>
-                        </div>
-                      )}
-                      <div className="tx-grid-desc">
-                        <label>Description</label>
-                        <p>{selectedTx.description || selectedTx.transactionType || 'N/A'}</p>
-                      </div>
-                    </div>
-                  )}
 
                   {/* TAB 2: AI ANALYSIS */}
                   {modalTab === 'ai' && (

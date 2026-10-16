@@ -14,7 +14,6 @@ const IntegrityChecker = lazy(() => import('../IntegrityChecker/IntegrityChecker
 const AdminPanel = lazy(() => import('../Admin/AdminPanel'));
 const DocumentVerification = lazy(() => import('../DocumentVerification/DocumentVerification'));
 const SubmitComplaint = lazy(() => import('../Complaints/SubmitComplaint'));
-const Feedbacks = lazy(() => import('../Feedbacks/Feedbacks'));
 const Profile = lazy(() => import('../Profile/Profile'));
 
 function MainLayout({ user, onLogout, onNavigate }) {
@@ -32,7 +31,6 @@ function MainLayout({ user, onLogout, onNavigate }) {
         case 'analytics': return 'analytics';
         case 'integrity-checker': return 'integrity_checker';
         case 'admin': return 'admin';
-        case 'feedbacks': return 'feedbacks';
         case 'profile': return 'profile';
         default: return 'dashboard';
       }
@@ -51,7 +49,6 @@ function MainLayout({ user, onLogout, onNavigate }) {
       analytics: '/dashboard/analytics',
       integrity_checker: '/dashboard/integrity-checker',
       admin: '/dashboard/admin',
-      feedbacks: '/dashboard/feedbacks',
       profile: '/dashboard/profile'
     };
     navigate(viewToPath[view] || '/dashboard');
@@ -92,7 +89,6 @@ function MainLayout({ user, onLogout, onNavigate }) {
             {pathToView === 'analytics' && <Analytics user={user} />}
             {pathToView === 'integrity_checker' && <IntegrityChecker user={user} />}
             {pathToView === 'admin' && <AdminPanel user={user} />}
-            {pathToView === 'feedbacks' && <Feedbacks user={user} />}
             {pathToView === 'profile' && <Profile user={user} />}
           </Suspense>
           </PageErrorBoundary>
