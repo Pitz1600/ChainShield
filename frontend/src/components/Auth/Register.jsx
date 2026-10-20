@@ -5,6 +5,7 @@ import CaptchaWidget from './CaptchaWidget';
 import '../../styles/Register.css';
 import api from '../../services/api';
 import { apiFieldErrors } from '../../utils/fieldValidation';
+import LegalPolicyModal from './LegalPolicyModal';
 
 function Register({ onNavigate }) {
   const [formData, setFormData] = useState({
@@ -25,6 +26,7 @@ function Register({ onNavigate }) {
   const captchaEnabled = import.meta.env.VITE_CAPTCHA_ENABLED === 'true';
   const [visiblePasswords, setVisiblePasswords] = useState({});
   const [fieldErrors, setFieldErrors] = useState({});
+  const [legalPolicy, setLegalPolicy] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -161,10 +163,10 @@ function Register({ onNavigate }) {
               ))}
             </div>
             <div className="terms-box">
-              <label className="checkbox-label">
-                <input type="checkbox" className="checkbox-input" required />
-                <span>I agree to the <a href="#" className="link-text">Terms of Service</a> and <a href="#" className="link-text">Privacy Policy</a></span>
-              </label>
+              <div className="checkbox-label">
+                <input id="register-terms" type="checkbox" className="checkbox-input" required aria-label="I agree to the Terms of Service and Privacy Policy" />
+                <span><label htmlFor="register-terms">I agree to the </label><button type="button" className="legal-policy-link" onClick={() => setLegalPolicy('terms')}>Terms of Service</button> and <button type="button" className="legal-policy-link" onClick={() => setLegalPolicy('privacy')}>Privacy Policy</button></span>
+              </div>
             </div>
             <CaptchaWidget ref={captchaRef} action="register" onToken={setCaptchaToken} />
             {error && <p className="field-error" role="alert">{error}</p>}
@@ -184,6 +186,7 @@ function Register({ onNavigate }) {
           </div>
         </div>
       </div>
+      {legalPolicy && <LegalPolicyModal policy={legalPolicy} onClose={() => setLegalPolicy(null)} />}
     </div >
   );
 }

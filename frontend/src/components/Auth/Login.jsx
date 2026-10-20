@@ -423,14 +423,7 @@ function Login({ onLogin, onNavigate }) {
       {step === 'otp' && renderOtpStep()}
 
 
-          <div className="auth-footer">
-            <p className="footer-text">
-              Don't have an account?{' '}
-              <button className="link-button" onClick={() => onNavigate('register')}>
-                Create Account
-              </button>
-            </p>
-          </div>
+
         </div>
       </div>
     </div>
