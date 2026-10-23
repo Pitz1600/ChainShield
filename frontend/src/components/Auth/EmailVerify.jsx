@@ -2,8 +2,10 @@ import useFieldErrors from '../../utils/useFieldErrors';
 import { apiFieldErrors } from '../../utils/fieldValidation';
 import TextField from '../Forms/TextField';
 import { useState, useRef, useEffect } from "react";
-import { Shield, AlertCircle, CheckCircle, Mail, ChevronLeft } from 'lucide-react';
+import { ArrowRight, ChevronLeft } from 'lucide-react';
 import api from "../../services/api";
+import "../../styles/Login.css";
+import "../../styles/AuthCentered.css";
 import "../../styles/EmailVerify.css";
 
 const EmailVerify = ({ user, onNavigate, onLogin }) => {
@@ -152,35 +154,11 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
   };
 
   return (
-    <div className="auth-container">
-      {/* Sidebar - Same matches Login.jsx */}
-      <div className="auth-sidebar">
-        <div className="auth-sidebar-content">
-          <div className="sidebar-brand">
-            <div className="sidebar-logo"><img src="/ChainShield_logo.png" alt="ChainShield Logo" className="logo-image" /></div>
-            <h2 className="sidebar-title">ChainShield</h2>
-            <p className="sidebar-subtitle">Transaction Verification System</p>
-          </div>
-
-          <div className="sidebar-illustration">
-            <div className="illustration-circle"></div>
-            <div className="illustration-icon"><Mail size={64} /></div>
-          </div>
-
-          <div className="sidebar-info">
-            <h3 className="sidebar-info-title">Verify Your Account</h3>
-            <p className="sidebar-info-text">
-              We need to verify your email address to ensure the security of your account and barangay records.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
+    <div className="auth-container auth-centered email-verify-screen">
       <div className="auth-main">
         <div className="auth-content">
           <button className="back-button" onClick={() => onNavigate("welcome")}>
-            <ChevronLeft size={16} style={{ marginRight: '4px' }} /> Back to Home
+            <ChevronLeft size={16} aria-hidden="true" /> Back to Home
           </button>
 
           <div className="auth-header">
@@ -198,7 +176,7 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
             <div className="otp-container">
               {otp.map((data, index) => (
                 <TextField error={fieldErrors["otp"]} onEdit={() => setFieldErrors({})} field="otp"
-                  className={`otp-input ${isInvalidOtp ? 'error' : ''}`}
+                  className={`verification-digit ${isInvalidOtp ? 'error' : ''}`}
                   type="text"
                   name="otp" inputMode="numeric" autoComplete="one-time-code" aria-label={`Verification digit ${index + 1}`} aria-invalid={isInvalidOtp || undefined} aria-describedby={error ? "verification-error" : undefined}
                   maxLength="1"
@@ -223,7 +201,6 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
               className="submit-button"
               onClick={handleVerify}
               disabled={loading || resending || success === 'Email verified successfully!'}
-              style={{ marginTop: '0' }}
             >
               {loading ? (
                 <>
@@ -233,7 +210,7 @@ const EmailVerify = ({ user, onNavigate, onLogin }) => {
               ) : (
                 <>
                   <span>Verify Account</span>
-                  <span className="button-icon">→</span>
+                  <ArrowRight size={18} aria-hidden="true" />
                 </>
               )}
             </button>

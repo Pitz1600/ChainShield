@@ -1,0 +1,42 @@
+.receipt-controls { margin-top: 1rem; text-align: left; }
+.receipt-panel { padding: 24px; border: 1px solid var(--border-color, #e2e8f0); border-radius: 16px; margin-top: 12px; background: var(--bg-card, #fff); color: var(--text-primary, #1e293b); box-shadow: 0 8px 24px -20px rgb(15 23 42 / .25); text-align: left; min-width: 0; }
+.receipt-heading { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+.receipt-heading-icon { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 42px; height: 42px; border-radius: 12px; background: #eef2ff; color: #4f46e5; }
+.receipt-heading h3 { margin: 0; font-size: 16px; font-weight: 700; color: #1e293b; }
+.receipt-heading p { margin: 4px 0 0; font-size: 13px; color: #64748b; }
+.receipt-panel label { display: block; margin: 16px 0; font-size: 14px; font-weight: 600; }
+.receipt-panel select { display: block; box-sizing: border-box; width: 100%; min-width: 0; margin-top: 8px; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; color: #334155; font: inherit; font-size: 13px; }
+.receipt-button { display: inline-flex; justify-content: center; align-items: center; gap: 8px; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; color: #475569; font: inherit; font-size: 13px; font-weight: 600; line-height: 1.5; cursor: pointer; overflow-wrap: anywhere; transition: background .2s, border-color .2s; }
+.receipt-button svg { flex-shrink: 0; }
+.receipt-button:hover:not(:disabled) { background: #eef2ff; border-color: #a5b4fc; color: #4338ca; }
+.receipt-button:disabled, .receipt-panel select:disabled { opacity: .55; cursor: not-allowed; }
+.receipt-button:focus-visible, .receipt-panel select:focus-visible, .receipt-upload input:focus-visible { outline: 3px solid #6366f1; outline-offset: 3px; }
+.receipt-toggle { background: #eef2ff; border-color: #c7d2fe; color: #4f46e5; }
+.receipt-controls > .receipt-button + .receipt-button { margin: 8px 0 0 8px; }
+.receipt-source { padding: 12px 14px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; color: #475569; font-size: 13px; line-height: 1.6; overflow-wrap: anywhere; }
+.receipt-context { margin: 12px 0 20px; font-size: 13px; line-height: 1.7; color: #64748b; }
+.receipt-panel .receipt-upload { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 24px 16px; border: 1px dashed #a5b4fc; border-radius: 12px; background: #f8faff; color: #4f46e5; text-align: center; }
+.receipt-upload span { color: #64748b; font-size: 12px; font-weight: 400; line-height: 1.6; }
+.receipt-upload input { width: 100%; max-width: 320px; min-width: 0; color: #64748b; font: inherit; font-size: 12px; }
+.receipt-upload input::file-selector-button { margin-right: 10px; padding: 8px 12px; border: 1px solid #c7d2fe; border-radius: 6px; background: #fff; color: #4f46e5; font: inherit; cursor: pointer; }
+.receipt-file-list { list-style: none; padding: 0; margin: 16px 0; display: grid; gap: 10px; }
+.receipt-file-list:empty { display: none; }
+.receipt-file-list li { display: flex; align-items: center; gap: 12px; padding: 14px; border: 1px solid #e2e8f0; border-radius: 10px; background: #fff; min-width: 0; }
+.receipt-file-icon { flex-shrink: 0; color: #6366f1; }
+.receipt-file-details, .receipt-queued-name { flex: 1; min-width: 0; overflow-wrap: anywhere; font-size: 13px; }
+.receipt-file-details strong { display: block; color: #334155; font-weight: 600; }
+.receipt-file-details span, .receipt-queued-name small { display: block; margin-top: 5px; color: #64748b; font-size: 12px; }
+.receipt-download, .receipt-remove { flex-shrink: 0; }
+.receipt-remove { padding: 6px 10px; color: #b91c1c; border-color: #fecaca; }
+.receipt-button.receipt-remove:hover:not(:disabled) { background: #fef2f2; color: #991b1b; border-color: #fca5a5; }
+.receipt-attach { width: 100%; color: #fff; border-color: transparent; background: linear-gradient(135deg, #6366f1, #4f46e5); }
+.receipt-button.receipt-attach:hover:not(:disabled) { color: #fff; background: #4338ca; border-color: transparent; }
+.receipt-empty { padding: 28px 16px; border: 1px dashed #cbd5e1; border-radius: 10px; background: #f8fafc; color: #64748b; text-align: center; font-size: 14px; line-height: 1.7; }
+.receipt-message { padding: 12px 14px; border: 1px solid #c7d2fe; border-radius: 8px; background: #eef2ff; color: #4338ca; font-size: 13px; line-height: 1.6; overflow-wrap: anywhere; margin: 12px 0; }
+.receipt-message-error { background: #fef2f2; border-color: #fecaca; color: #b91c1c; }
+@media (max-width: 600px) {
+  .receipt-panel { padding: 16px; }
+  .receipt-file-list li { flex-wrap: wrap; padding: 12px; }
+  .receipt-download { width: 100%; }
+  .receipt-upload input { max-width: 100%; }
+}

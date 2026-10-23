@@ -1,0 +1,41 @@
+.auth-centered.two-factor-screen .auth-content { max-width: 460px; }
+.two-factor-screen .auth-header {
+  padding: 28px 24px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+.two-factor-screen .auth-header .auth-title { color: #fff; }
+.two-factor-screen .auth-header .auth-subtitle { color: #eff6ff; line-height: 1.6; }
+.two-factor-screen .back-button { display: inline-flex; align-items: center; gap: 8px; }
+.two-factor-screen .setup-back-icon { transform: rotate(180deg); }
+.two-factor-screen .setup-content { padding: 28px; min-width: 0; }
+.two-factor-screen .auth-form.setup-verification-form { margin-top: 24px; padding: 0; border: 0; border-radius: 0; box-shadow: none; }
+.two-factor-screen .qr-code { max-width: 100%; height: auto; }
+.two-factor-screen .secret-code { min-width: 0; overflow-wrap: anywhere; }
+.two-factor-screen .copy-btn { flex-shrink: 0; }
+.two-factor-screen .setup-restart-button {
+  width: 100%;
+  padding: 12px 16px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  color: #64748b;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.two-factor-screen .setup-restart-button:hover:not(:disabled) { background: #f1f5f9; }
+.two-factor-screen .setup-restart-button:disabled { opacity: 0.6; cursor: not-allowed; }
+.two-factor-screen button:focus-visible { outline: 3px solid #2563eb; outline-offset: 3px; }
+.two-factor-screen .setup-state { text-align: center; }
+.two-factor-screen .setup-state .spinner { border-color: #dbeafe; border-top-color: #2563eb; }
+.two-factor-screen .recovery-code { min-width: 0; overflow-wrap: anywhere; }
+.two-factor-screen .checkbox-label { align-items: flex-start; line-height: 1.6; }
+.two-factor-screen .checkbox-input { flex-shrink: 0; margin-top: 4px; }
+@media (max-width: 600px) {
+  .two-factor-screen .setup-content { padding: 20px; }
+  .two-factor-screen .auth-header { padding: 24px 20px; }
+  .two-factor-screen .recovery-code { font-size: 12px; letter-spacing: 1px; }
+}

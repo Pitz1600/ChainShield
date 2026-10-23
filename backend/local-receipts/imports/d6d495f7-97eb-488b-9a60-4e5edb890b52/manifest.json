@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "importId": "d6d495f7-97eb-488b-9a60-4e5edb890b52",
+  "sourceCsvName": "transaction_2026_01_income.csv",
+  "uploadedAt": "2026-10-23T10:39:58.155Z",
+  "uploadedBy": "6a9b875ec51dcf8af9d6d67b",
+  "transactionIds": [
+    "CSDEMO-261023-01-I-001",
+    "CSDEMO-261023-01-I-002",
+    "CSDEMO-261023-01-I-003",
+    "CSDEMO-261023-01-I-004",
+    "CSDEMO-261023-01-I-005",
+    "CSDEMO-261023-01-I-006",
+    "CSDEMO-261023-01-I-007",
+    "CSDEMO-261023-01-I-008",
+    "CSDEMO-261023-01-I-009",
+    "CSDEMO-261023-01-I-010",
+    "CSDEMO-261023-01-I-011",
+    "CSDEMO-261023-01-I-012",
+    "CSDEMO-261023-01-I-013",
+    "CSDEMO-261023-01-I-014",
+    "CSDEMO-261023-01-I-015",
+    "CSDEMO-261023-01-I-016",
+    "CSDEMO-261023-01-I-017",
+    "CSDEMO-261023-01-I-018",
+    "CSDEMO-261023-01-I-019",
+    "CSDEMO-261023-01-I-020",
+    "CSDEMO-261023-01-I-021",
+    "CSDEMO-261023-01-I-022",
+    "CSDEMO-261023-01-I-023",
+    "CSDEMO-261023-01-I-024",
+    "CSDEMO-261023-01-I-025"
+  ],
+  "receipts": [
+    {
+      "receiptId": "59de112c-a4ec-40c2-acdb-7241ed1900e0",
+      "storedName": "59de112c-a4ec-40c2-acdb-7241ed1900e0.png",
+      "originalName": "Screenshot 2026-10-14 at 20-20-55 ChainShield.png",
+      "mimeType": "image/png",
+      "size": 201769,
+      "uploadedAt": "2026-10-23T10:39:58.368Z",
+      "uploadedBy": "6a9b875ec51dcf8af9d6d67b"
+    }
+  ]
+}

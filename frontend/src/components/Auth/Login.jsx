@@ -11,6 +11,7 @@ import { authAPI } from '../../services/api';
 function Login({ onLogin, onNavigate }) {
   const [fieldErrors, setFieldErrors] = useFieldErrors();
   const [formData, setFormData] = useState({ email: '', password: '' });
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [captchaToken, setCaptchaToken] = useState('');
@@ -348,14 +349,25 @@ function Login({ onLogin, onNavigate }) {
 
           <span>Password</span>
         </label>
-        <TextField error={fieldErrors["password"]} onEdit={() => setFieldErrors({})} field="password"
-          type="password"
-          value={formData.password}
-          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-          className="field-input"
-          placeholder="Enter your password"
-          required
-        />
+        <div className="password-control">
+          <TextField error={fieldErrors["password"]} onEdit={() => setFieldErrors({})} field="password"
+            type={showPassword ? 'text' : 'password'}
+            autoComplete="current-password"
+            value={formData.password}
+            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+            className="field-input"
+            placeholder="Enter your password"
+            required
+          />
+          <button
+            type="button"
+            aria-label={showPassword ? 'Hide password' : 'Show password'}
+            aria-pressed={showPassword}
+            onClick={() => setShowPassword(previous => !previous)}
+          >
+            {showPassword ? 'Hide' : 'Show'}
+          </button>
+        </div>
         <span className="field-hint">Minimum 8 characters</span>
       </div>
 
