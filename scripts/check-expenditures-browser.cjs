@@ -16,6 +16,7 @@ const server = http.createServer((req, res) => {
  if (url.pathname.startsWith('/api/')) {
   if (url.pathname === '/api/auth/profile') return json(res, mode === 'auditor' ? { ...user, _id: 'auditor', id: 'auditor', role: 'auditor' } : user);
   if (url.pathname === '/api/auth/csrf-token') return json(res, { csrfToken: 'test-only' });
+  if (url.pathname === '/api/reports/access') return json(res, { enabled: true, reportTypes: ['summary', 'register'] });
   if (url.pathname === '/api/budget-proposals/access') return json(res, { canSubmit: false, canReview: false });
   if (url.pathname === '/api/approved-budgets/access') return json(res, { enabled: true, canRead: true, canSubmit: mode === 'treasurer', canReview: mode === 'auditor' });
   if (url.pathname === '/api/approved-budgets') return json(res, [{ ...budget, totals: totals() }]);

@@ -23,8 +23,7 @@ function normalize(body, proposal) {
   return { input, allocationId, amountCentavos, allocation };
 }
 function totals(rows, approved) {
-  const sum = status => rows.filter(r => status.includes(r.reviewStatus)).reduce((n, r) => n + r.amountCentavos, 0);
-  const verified = sum(['verified']), pending = sum(['submitted', 'correction_required']);
-  return { approved, recorded: rows.reduce((n, r) => n + r.amountCentavos, 0), verified, pending, available: approved - verified - pending };
+  const result = require('./financialTotals').totals(rows, approved);
+  return { approved: result.approved, recorded: result.allRecorded, verified: result.verified, pending: result.pendingReserved, available: result.available };
 }
 module.exports = { enabled, treasurer, reader, normalize, totals };

@@ -1,0 +1,20 @@
+const router = require('express').Router();
+const policy = require('../services/reportPolicy');
+const service = require('../services/financialReportService');
+const AuditLog = require('../models/AuditLog');
+const wrap = fn => (req, res, next) => Promise.resolve(fn(req, res)).catch(next);
+router.use((req, res, next) => { res.set('Cache-Control', 'private, no-store'); next(); });
+router.use(require('../middleware/auth'));
+router.get('/access', (req, res) => res.json(policy.access(req.user)));
+router.use((req, res, next) => { try { policy.requireAccess(req.user); next(); } catch (e) { next(e); } });
+router.get('/options', wrap(async (req, res) => res.json(await service.options(req.query))));
+router.post('/preview', wrap(async (req, res) => {
+  const filters = service.normalize(req.body);
+  policy.requireAccess(req.user, filters.type);
+  const report = await service.generate(filters, req.user);
+  const logged = await AuditLog.logAction({ action: 'financial_report_generated', userId: req.user._id, userRole: req.user.role, username: req.user.username, details: { reportId: report.reportId, type: filters.type, templateVersion: report.templateVersion, filters, recordCount: report.recordCount, generatedAt: report.generatedAt } });
+  if (!logged) report.notices.push('Operational warning: report generation audit event could not be recorded.');
+  res.json(report);
+}));
+router.use((error, req, res, next) => error.status ? res.status(error.status).json({ error: error.message }) : next(error));
+module.exports = router;

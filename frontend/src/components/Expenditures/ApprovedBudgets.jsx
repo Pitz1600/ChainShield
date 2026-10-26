@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { expendituresAPI as api } from '../../services/api';
+import { expendituresAPI as api, reportsAPI } from '../../services/api';
 import CsvExpenditureImport from './CsvExpenditureImport';
 import '../BudgetProposals/BudgetProposalForm.css';
 import './Expenditures.css';
@@ -11,6 +11,8 @@ const blank = () => ({ allocationId: '', amount: '', timestamp: '', transactionT
 export default function ApprovedBudgets({ user }) {
   const location = useLocation(), navigate = useNavigate();
   const id = location.pathname.startsWith(base) ? location.pathname.slice(base.length).replace(/^\//, '') : '';
+  const [reportAccess, setReportAccess] = useState([]);
+  useEffect(() => { let active = true; reportsAPI.access().then(r => { if (active) setReportAccess(r.data.reportTypes); }).catch(() => {}); return () => { active = false; }; }, []);
   const [access, setAccess] = useState(null), [rows, setRows] = useState([]), [detail, setDetail] = useState(null);
   const [form, setForm] = useState(blank), [files, setFiles] = useState([]), [open, setOpen] = useState(false);
   const [entryMode, setEntryMode] = useState('manual');
@@ -35,6 +37,7 @@ export default function ApprovedBudgets({ user }) {
   return <section className="budget-proposals expenditure-page"><header className="bp-page-header"><div><h1>Approved Budgets</h1><p>{disclosure}</p></div></header>{error && <p role="alert" className="bp-error">{error}</p>}
     {!access ? <p>Loading access…</p> : !access.enabled ? <p>Budget expenditures await backup and rollout verification.</p> : !access.canRead ? <p>An approved Treasurer or authorized auditor account is required.</p> : !id ? <>{rows.map(p => <article className="bp-card" key={p._id}><h2>{p.title}</h2><p>{p.proposalNumber} · Approved {new Date(p.reviewedAt).toLocaleDateString()}</p>{summary(p.totals)}<button onClick={() => navigate(`${base}/${p._id}`)}>View Budget</button></article>)}{!rows.length && <p>No approved budgets yet.</p>}</> : !detail ? <p>Loading budget…</p> : <>
       <button onClick={() => navigate(base)}>Back to approved budgets</button><h2>{detail.budget.title}</h2><p>{detail.budget.proposalNumber} · Approved {new Date(detail.budget.reviewedAt).toLocaleString()} · Approver {detail.budget.reviewedBy}</p>{summary(detail.totals)}
+      <div>{[['summary', 'Print budget report'], ['register', 'Print expenditure register']].filter(([type]) => reportAccess.includes(type)).map(([type, label]) => <button key={type} onClick={() => navigate('/dashboard/reports', { state: { reportType: type, proposalId: id, fiscalYear: detail.budget.fiscalYear } })}>{label}</button>)}</div>
       <h3>Approved allocations</h3>{detail.allocations.map(a => <div className="bp-card" key={a.itemId}><strong>{a.name}</strong><p>{a.description}</p><dl className="expenditure-allocation-totals">{Object.entries({ Approved: a.estimatedAmountCentavos, Pending: a.totals.pending, Verified: a.totals.verified, Available: a.totals.available }).map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{money(value)}</dd></div>)}</dl></div>)}
       {access.canSubmit && <button className="bp-primary" disabled={busy} onClick={() => { setOpen(!open); setFiles([]); setForm(blank()); }}>Record Expenditure</button>}
       {open && <div className="bp-actions expenditure-entry-tabs" role="group" aria-label="Expenditure entry method"><button type="button" disabled={busy} aria-pressed={entryMode === 'manual'} onClick={() => setEntryMode('manual')}>Manual Entry</button><button type="button" disabled={busy} aria-pressed={entryMode === 'csv'} onClick={() => setEntryMode('csv')}>Upload CSV</button></div>}

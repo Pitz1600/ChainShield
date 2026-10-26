@@ -155,6 +155,7 @@ app.use(csrfProtection);
 // CSRF token endpoint (public — must be before CSRF protection is applied to routes)
 app.get('/api/auth/csrf-token', issueCsrfToken);
 
+app.use('/api/reports', require('./routes/reports'));
 app.use('/api/approved-budgets', require('./routes/budgetExpenditures'));
 app.use('/api/budget-proposals', require('./routes/budgetProposals'));
 app.use('/api/transactions', require('./routes/transactions'));

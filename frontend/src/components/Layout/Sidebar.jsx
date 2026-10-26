@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { budgetProposalsAPI, expendituresAPI } from '../../services/api';
+import { budgetProposalsAPI, expendituresAPI, reportsAPI } from '../../services/api';
 import { Home, AlertTriangle, List, Upload, BarChart3, Search, Settings, User, Shield, LogOut, X } from 'lucide-react';
 import { isAdmin, isOfficial } from '../../utils/permissions';
 import '../../styles/Sidebar.css';
@@ -10,6 +10,8 @@ function Sidebar({ user, activeView, setActiveView, onLogout, isMobileMenuOpen, 
   useEffect(() => { let active = true; budgetProposalsAPI.access().then(r => { if (active) setBudgetAccess(r.data.canSubmit || r.data.canReview); }).catch(() => {}); return () => { active = false; }; }, [user?._id]);
   const [expenditureAccess, setExpenditureAccess] = useState(false);
   useEffect(() => { let active = true; expendituresAPI.access().then(r => { if (active) setExpenditureAccess(r.data.canRead); }).catch(() => {}); return () => { active = false; }; }, [user?._id]);
+  const [reportAccess, setReportAccess] = useState(false);
+  useEffect(() => { let active = true; setReportAccess(false); reportsAPI.access().then(r => { if (active) setReportAccess(r.data.reportTypes.length > 0); }).catch(() => {}); return () => { active = false; }; }, [user?._id]);
   // Icon mapping
   const iconMap = {
     home: Home,
@@ -49,6 +51,7 @@ function Sidebar({ user, activeView, setActiveView, onLogout, isMobileMenuOpen, 
   // Build menu based on user role
   const getMenuItems = () => {
     let items = [...baseMenuItems];
+    if (reportAccess) items.push({ id: 'reports', icon: 'history', label: 'Financial Reports' });
     if (budgetAccess || (user?.role === 'barangay_official' && user?.position === 'Barangay Captain')) items.push({ id: 'budget_proposals', icon: 'history', label: 'Budget Proposals' });
 
     // Add shared items for everyone

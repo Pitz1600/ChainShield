@@ -274,3 +274,9 @@ export const expendituresAPI = {
   review: (id, expenseId, data) => api.post(`/approved-budgets/${id}/expenditures/${expenseId}/review`, data),
   download: (id, expenseId, fileId) => api.get(`/approved-budgets/${id}/expenditures/${expenseId}/evidence/${fileId}`, { responseType: 'blob' })
 };
+
+export const reportsAPI = {
+  access: signal => api.get('/reports/access', { signal }),
+  options: (params, signal) => api.get('/reports/options', { params, signal }),
+  preview: (filters, signal) => api.post('/reports/preview', filters, { signal })
+};

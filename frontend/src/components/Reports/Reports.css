@@ -1,0 +1,36 @@
+.financial-reports { padding: 24px; }
+.report-controls fieldset { border: 1px solid #aaa; padding: 16px; margin: 12px 0; display: flex; flex-wrap: wrap; gap: 16px; }
+.report-controls label { display: flex; flex-direction: column; gap: 6px; }
+.report-controls input, .report-controls select, .report-controls button { padding: 8px; font: inherit; }
+.report-controls button { margin: 8px 0; cursor: pointer; }
+.report-controls [role=alert] { color: #a00; }
+.financial-report { background: white; color: black; padding: 24px; margin-top: 24px; font: 14px Arial, sans-serif; overflow-wrap: anywhere; }
+.financial-report h1 { font-size: 22px; }
+.financial-report h2 { font-size: 18px; margin: 18px 0 10px; }
+.financial-report h3 { font-size: 14px; }
+.financial-report table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.financial-report th, .financial-report td { border: 1px solid #777; padding: 6px; text-align: left; vertical-align: top; overflow-wrap: anywhere; }
+.report-totals { display: flex; flex-wrap: wrap; gap: 18px; margin: 18px 0; }
+.report-totals dd { margin: 4px 0; font-weight: bold; }
+.report-signatures { display: flex; gap: 60px; margin-top: 30px; }
+.financial-report footer { margin-top: 24px; }
+@media print {
+  body.financial-report-page:not(.financial-print-ready) #root { display: none !important; }
+  body.financial-print-ready { margin: 0 !important; background: white !important; }
+  body.financial-print-ready * { overflow: visible !important; max-height: none !important; }
+  body.financial-print-ready #root, body.financial-print-ready .app-layout, body.financial-print-ready .main-content, body.financial-print-ready .content-area, body.financial-print-ready .financial-reports { display: block !important; height: auto !important; min-height: 0 !important; width: auto !important; margin: 0 !important; padding: 0 !important; }
+  body.financial-print-ready .sidebar, body.financial-print-ready .top-bar, body.financial-print-ready .topbar, body.financial-print-ready .report-controls, body.financial-print-ready [role=dialog], body.financial-print-ready [class*="overlay"], body.financial-print-ready .main-content > :not(.content-area), body.financial-print-ready button { display: none !important; }
+  .financial-report { margin: 0; padding: 0; font-size: 10pt; color: black; background: white; }
+  .financial-report thead { display: table-header-group; }
+  .financial-report tr { break-inside: avoid; }
+  .financial-report th, .financial-report td { padding: 3px; }
+  .financial-report h1, .financial-report h2, .financial-report h3 { break-after: avoid; }
+  .report-totals > div, .report-signatures { break-inside: avoid; }
+}
+
+.report-allocation { border: 1px solid #777; padding: 12px; margin: 14px 0; }
+.report-allocation .report-totals { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media print {
+  .report-allocation { break-inside: avoid; }
+  .financial-report tr.report-long-row { break-inside: auto; }
+}

@@ -8,7 +8,8 @@
     "dev": "nodemon server.js",
     "seed": "node scripts/seed-default-accounts.js",
     "test": "node --test test/*.test.js",
-    "test:expenditures:integration": "node --test test/budgetExpenditures.integration.test.js"
+    "test:expenditures:integration": "node --test test/budgetExpenditures.integration.test.js",
+    "test:reports:integration": "node --test test/financialReports.integration.test.js"
   },
   "keywords": [],
   "author": "",

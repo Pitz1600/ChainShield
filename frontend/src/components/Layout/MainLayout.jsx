@@ -7,6 +7,7 @@ import PageErrorBoundary from './PageErrorBoundary';
 import '../../styles/MainLayout.css';
 
 // Lazy load components for better performance and Firefox compatibility
+const FinancialReports = lazy(() => import('../Reports/FinancialReports'));
 const ApprovedBudgets = lazy(() => import('../Expenditures/ApprovedBudgets'));
 const BudgetProposalsPage = lazy(() => import('../BudgetProposals/BudgetProposalsPage'));
 const Dashboard = lazy(() => import('../Dashboard/Dashboard'));
@@ -35,6 +36,7 @@ function MainLayout({ user, onLogout, onNavigate }) {
       if (path === '/dashboard/budget-proposals' || path.startsWith('/dashboard/budget-proposals/')) return 'budget_proposals';
       const segment = path.replace('/dashboard/', '');
       switch (segment) {
+        case 'reports': return 'reports';
         case 'transactions': return 'transactions';
         case 'analytics': return 'analytics';
         case 'integrity-checker': return 'integrity_checker';
@@ -53,6 +55,7 @@ function MainLayout({ user, onLogout, onNavigate }) {
   const handleViewChange = (view) => {
     const viewToPath = {
       dashboard: '/dashboard',
+      reports: '/dashboard/reports',
       transactions: '/dashboard/transactions',
       budget_proposals: '/dashboard/budget-proposals',
       approved_budgets: '/dashboard/approved-budgets',
@@ -95,6 +98,7 @@ function MainLayout({ user, onLogout, onNavigate }) {
                   ? <OfficialDashboard user={user} onNavigate={handleViewChange} />
                   : <Dashboard user={user} onNavigate={onNavigate} />
             )}
+            {pathToView === 'reports' && <FinancialReports user={user} />}
             {pathToView === 'approved_budgets' && <ApprovedBudgets user={user} />}
             {pathToView === 'budget_proposals' && <BudgetProposalsPage user={user} />}
             {pathToView === 'transactions' && (budgetSubmission ? <ApprovedBudgets user={user} /> : <TransactionsPage user={user} />)}

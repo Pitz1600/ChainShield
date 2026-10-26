@@ -10,6 +10,7 @@ const auditLogSchema = new mongoose.Schema({
     action: {
         type: String,
         enum: [
+            'financial_report_generated',
             'budget_expenditure_assignment',
             'budget_proposal_changed',
             'budget_proposal_assignment',
