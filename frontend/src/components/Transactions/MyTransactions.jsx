@@ -293,7 +293,7 @@ function MyTransactions({ user, embedded = false, refreshKey = 0 }) {
 
   /* ---- Modal single-item actions ---- */
   const handleAction = async (status, remarkText = null) => {
-    if (!selectedTx || !isAdminOrAuditor) return;
+    if (!selectedTx || !isAuditor) return;
     setActionLoading(true);
     try {
       if (status === 'Remarks') {
@@ -395,6 +395,7 @@ function MyTransactions({ user, embedded = false, refreshKey = 0 }) {
   /* ---- Batch action ---- */
   const handleBatchAction = async (action) => {
     if (selected.size === 0 || !isAdminOrAuditor) return;
+    if (action === 'approve' && !isAuditor) return;
     const ids = [...selected];
     setActionLoading(true);
     try {
@@ -647,9 +648,11 @@ function MyTransactions({ user, embedded = false, refreshKey = 0 }) {
                   <MessageSquare size={14} /> Batch Auditor Remark
                 </button>
               )}
+              {isAuditor && (
               <button className="batch-btn approve" disabled={actionLoading || selected.size === 0} onClick={() => handleBatchAction('approve')}>
                 <ThumbsUp size={14} /> Approve All
               </button>
+              )}
               <button className="batch-btn flag" disabled={actionLoading || selected.size === 0} onClick={() => handleBatchAction('flag')}>
                 <Flag size={14} /> Flag All
               </button>
@@ -1171,6 +1174,8 @@ function MyTransactions({ user, embedded = false, refreshKey = 0 }) {
                     )}
                     {isAdminOrAuditor && (
                       <>
+                        {isAuditor && (
+                          <>
                         <button className="btn-verify" disabled={actionLoading} onClick={() => handleAction('Verified')}>
                           <ThumbsUp size={14} style={{ display: 'inline', marginRight: 4 }} />
                           Approve
@@ -1179,6 +1184,8 @@ function MyTransactions({ user, embedded = false, refreshKey = 0 }) {
                           <X size={14} style={{ display: 'inline', marginRight: 4 }} />
                           Deny
                         </button>
+                          </>
+                        )}
                         {selectedTx.isArchived ? (
                           <button className="btn-archive" disabled={actionLoading} onClick={() => handleUnarchive()}>
                             <ArchiveRestore size={14} style={{ display: 'inline', marginRight: 4 }} />

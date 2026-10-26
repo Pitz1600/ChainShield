@@ -1,5 +1,4 @@
 import VerificationHistory from './VerificationHistory';
-import TransactionReference from './TransactionReference';
 import useFieldErrors from '../../utils/useFieldErrors';
 import { apiFieldErrors } from '../../utils/fieldValidation';
 import TextField from '../Forms/TextField';
@@ -81,15 +80,6 @@ export default function AuditorWorkspace({ tx, onClose, onAction, showToast }) {
         <button onClick={onClose} className="aw-close-btn" aria-label="Close">
           <X size={20} />
         </button>
-      </div>
-
-      <TransactionReference value={tx.transactionId || tx._id} />
-      {/* AI DISCLAIMER - VISIBLE ON ALL TABS */}
-      <div className="aw-disclaimer">
-        <h4> AI Decision Support Notice</h4>
-        <p>
-          AI-generated analysis is intended solely as a decision-support tool. Machine learning predictions are based on historical data and recognized patterns and may not always be accurate. <strong>AI can make mistakes.</strong> The assigned Barangay Auditor is responsible for reviewing all supporting documents, verifying the transaction, and making the final approval, rejection, or revision decision.
-        </p>
       </div>
 
       {/* TABS HEADER */}

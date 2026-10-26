@@ -1,0 +1,56 @@
+/* Admin queue and read-only review, kept with the lazily loaded proposal page. */
+.budget-proposals.bp-admin .bp-queue-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin: 0 0 1.5rem;
+  padding: 1.75rem 2rem;
+  border: 1px solid #c7d2fe;
+  border-radius: 16px;
+  background: linear-gradient(120deg, #eef2ff 0%, #faf5ff 100%);
+  box-shadow: 0 1px 3px rgb(0 0 0 / .04);
+}
+.budget-proposals .bp-eyebrow { display: block; font-size: .7rem; font-weight: 700; letter-spacing: .1em; color: #6366f1; }
+.budget-proposals.bp-admin .bp-queue-header h2 { margin: .5rem 0; color: #1e293b; font-size: 1.5rem; letter-spacing: -.025em; }
+.budget-proposals.bp-admin .bp-queue-header p { margin: 0; max-width: 660px; color: #64748b; }
+.budget-proposals .bp-queue-icon { display: flex; align-items: center; justify-content: center; flex: 0 0 64px; height: 64px; border: 1px solid #e0e7ff; border-radius: 16px; color: #6366f1; background: #fff; }
+.budget-proposals .bp-queue-panel { overflow: hidden; border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; box-shadow: 0 1px 3px rgb(0 0 0 / .05); }
+.budget-proposals .bp-panel-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .5rem; padding: 1.25rem 1.5rem; border-bottom: 1px solid #e2e8f0; }
+.budget-proposals .bp-panel-heading h3 { margin: 0; font-size: 1rem; font-weight: 700; color: #1e293b; }
+.budget-proposals .bp-panel-heading > span { color: #64748b; font-size: .8rem; }
+.budget-proposals .bp-queue-panel .bp-filters { margin: 0; padding: 1.25rem 1.5rem; border: 0; border-radius: 0; background: #fff; }
+.budget-proposals .bp-queue-panel .bp-table { border: 0; border-top: 1px solid #e2e8f0; border-radius: 0; box-shadow: none; }
+.budget-proposals .bp-view-button { white-space: nowrap; color: #4f46e5; border-color: #c7d2fe; background: #eef2ff; }
+.budget-proposals .bp-view-button:hover:not(:disabled) { border-color: #a5b4fc; background: #e0e7ff; }
+.budget-proposals .bp-section-title { display: flex; align-items: center; gap: .6rem; color: #6366f1; }
+.budget-proposals .bp-section-title h3 { margin: 0; }
+.budget-proposals .bp-section-heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 1.75rem; }
+.budget-proposals .bp-section-heading h3 { margin: 0; }
+.budget-proposals .bp-section-heading > span { padding: .2rem .65rem; border-radius: 999px; background: #e0e7ff; font-size: .75rem; color: #4f46e5; font-weight: 600; }
+.budget-proposals .bp-readonly h2 { margin: 1.25rem 0; }
+.budget-proposals .bp-metadata { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.25rem; margin: 1.25rem 0; padding: 1.1rem 1.25rem; border: 1px solid #f1f5f9; border-radius: 10px; background: #f8fafc; }
+.budget-proposals .bp-metadata dt { margin-bottom: .35rem; font-size: .75rem; font-weight: 500; color: #64748b; }
+.budget-proposals .bp-metadata dd { margin: 0; font-size: .9rem; font-weight: 600; color: #1e293b; white-space: pre-wrap; overflow-wrap: anywhere; }
+.budget-proposals .bp-readonly .bp-metadata dd { text-transform: capitalize; }
+.budget-proposals .bp-narrative h4 { margin: 1rem 0 .45rem; color: #475569; font-size: .8rem; font-weight: 600; }
+.budget-proposals .bp-narrative p { margin: 0; color: #334155; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.8; }
+.budget-proposals .bp-reviewed-item { border-left: 3px solid #818cf8; }
+.budget-proposals .bp-reviewed-item-heading { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: .75rem; padding-bottom: 1rem; border-bottom: 1px solid #f1f5f9; }
+.budget-proposals .bp-reviewed-item-heading h3 { margin: .4rem 0 0; }
+.budget-proposals .bp-reviewed-item-heading > strong { padding: .4rem .75rem; border-radius: 8px; color: #4f46e5; background: #eef2ff; font-size: 1rem; font-variant-numeric: tabular-nums; }
+.budget-proposals.bp-admin .bp-review { border-top: 3px solid #6366f1; }
+.budget-proposals.bp-admin .bp-review textarea { min-height: 120px; }
+.budget-proposals .bp-no-documents { padding: 1rem; border: 1px dashed #cbd5e1; border-radius: 8px; background: #f8fafc; }
+@media (max-width: 700px) {
+  .budget-proposals.bp-admin .bp-queue-header { padding: 1.25rem; }
+  .budget-proposals .bp-queue-icon { display: none; }
+  .budget-proposals .bp-panel-heading, .budget-proposals .bp-queue-panel .bp-filters { padding: 1rem; }
+  .budget-proposals .bp-metadata { grid-template-columns: minmax(0, 1fr); gap: 1rem; }
+  .budget-proposals.bp-admin .bp-review > button { width: 100%; margin: .5rem 0 0; }
+}
+.budget-proposals .bp-queue-panel td:nth-child(4) { min-width: 200px; }
+.budget-proposals .bp-queue-panel th:last-child, .budget-proposals .bp-queue-panel td:last-child { position: sticky; right: 0; z-index: 1; box-shadow: -6px 0 10px -8px rgb(30 41 59 / .3); }
+.budget-proposals .bp-queue-panel th:last-child { background: #f8fafc; }
+.budget-proposals .bp-queue-panel td:last-child { background: #fff; }
+.budget-proposals .bp-queue-panel tr:hover td:last-child { background: #f8faff; }

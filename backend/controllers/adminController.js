@@ -1,3 +1,4 @@
+const { assignApprovedCaptain } = require('../services/budgetProposalPolicy');
 const User = require('../models/User');
 const AuditLog = require('../models/AuditLog');
 const jwt = require('jsonwebtoken');
@@ -129,6 +130,7 @@ exports.updateUserRole = async (req, res) => {
         if (await removesLastAdmin(user, role)) return res.status(400).json({ error: 'Cannot remove the last active administrator' });
         if (user.role !== role) user.sessionVersion += 1;
         user.role = role;
+        assignApprovedCaptain(user, req.user._id);
         if (role === 'administrator') {
             user._allowAdminChange = true;
         }
@@ -247,6 +249,7 @@ exports.updateUser = async (req, res) => {
             }
         }
         if (position !== undefined) user.position = position;
+        if (position !== undefined || role !== undefined) assignApprovedCaptain(user, req.user._id);
         if (isActive !== undefined) {
             if (user.isActive !== isActive) user.sessionVersion += 1;
             user.isActive = isActive;
@@ -507,6 +510,8 @@ exports.createUser = async (req, res) => {
             isApproved: true
         });
 
+        assignApprovedCaptain(user, req.user._id);
+
         // Explicitly allow administrator role assignment through this authorized admin flow
         if (role === 'administrator') {
             user._allowAdminChange = true;
@@ -613,6 +618,7 @@ exports.approveUser = async (req, res) => {
         user.approvedBy = req.user._id;
         user.approvedAt = new Date();
         user.mustSetup2FA = true;
+        assignApprovedCaptain(user, req.user._id);
         await user.save();
         res.json({ success: true, message: 'Account approved; two-factor setup required' });
     } catch (error) {
@@ -622,7 +628,7 @@ exports.approveUser = async (req, res) => {
 
 // Fresh authenticator proof for actions granting access.
 exports.requireStepUp = async (req, res, next) => {
-    const grantsAccess = (req.path.endsWith('/approve') || req.path.endsWith('/activate')) || req.body.role || req.body.isActive === true;
+    const grantsAccess = (req.path.endsWith('/approve') || req.path.endsWith('/activate')) || req.body.role || req.body.position !== undefined || req.body.isActive === true;
     if (!grantsAccess) return next();
     try {
         const actor = await User.findById(req.user._id).select('+twoFactorSecret');

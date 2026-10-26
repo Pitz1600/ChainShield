@@ -75,3 +75,6 @@ temp/
 # Coverage
 coverage/
 .nyc_output/
+
+# Private local database backups and restore verification reports
+/backups/

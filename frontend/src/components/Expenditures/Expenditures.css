@@ -1,0 +1,45 @@
+.expenditure-page { min-width: 0; overflow-wrap: anywhere; }
+.expenditure-page .bp-page-header { align-items: flex-start; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); }
+.expenditure-page .bp-page-header > div { min-width: 0; }
+.expenditure-page .bp-page-header p { max-width: 80ch; margin-top: .75rem; }
+.expenditure-page .bp-card > h2:first-child { margin-top: 0; }
+.expenditure-page h4 { margin: 1.75rem 0 .75rem; }
+.expenditure-page .expenditure-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: 1rem; margin: 1.5rem 0 2rem; }
+.expenditure-page .expenditure-stat { display: flex; flex-direction: column; justify-content: space-between; gap: .75rem; min-width: 0; padding: 1.25rem; border: 1px solid var(--border-color); border-radius: var(--radius-lg); background: var(--bg-card); }
+.expenditure-page .expenditure-stat span { color: var(--text-secondary); font-size: .8rem; line-height: 1.5; }
+.expenditure-page .expenditure-stat strong { font-size: 1.35rem; font-variant-numeric: tabular-nums; letter-spacing: -.025em; }
+.expenditure-page .expenditure-stat:last-child { background: #eef2ff; border-color: #c7d2fe; color: var(--primary-dark); }
+.expenditure-page .expenditure-allocation-totals { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); gap: 1rem; margin: 1.25rem 0 0; padding-top: 1rem; border-top: 1px solid var(--border-color); }
+.expenditure-page .expenditure-allocation-totals dt { color: var(--text-secondary); font-size: .8rem; }
+.expenditure-page .expenditure-allocation-totals dd { margin: .25rem 0 0; font-weight: 650; font-variant-numeric: tabular-nums; }
+.expenditure-page .expenditure-section-title { margin: 2rem 0 1rem; }
+.expenditure-page .expenditure-entry-tabs { margin: 1.25rem 0; padding: .4rem; width: fit-content; max-width: 100%; background: #e8edf5; border-radius: var(--radius-lg); gap: .4rem; }
+.expenditure-page .expenditure-entry-tabs button { background: transparent; border-color: transparent; }
+.expenditure-page .expenditure-entry-tabs button[aria-pressed="true"] { background: var(--bg-card); border-color: #c7d2fe; color: var(--primary-dark); box-shadow: var(--shadow-xs); }
+.expenditure-page form > label { margin: 1.25rem 0; }
+.expenditure-page fieldset { margin: 1.75rem 0; box-shadow: none; }
+.expenditure-page fieldset > p:first-of-type { margin-top: 0; }
+.expenditure-page .expenditure-file { padding: 1rem; background: var(--bg-main); box-shadow: none; }
+.expenditure-page .expenditure-file > span, .expenditure-page .expenditure-file > strong { display: block; margin-bottom: 1rem; }
+.expenditure-page .bp-checkbox { flex-direction: row; align-items: flex-start; gap: .65rem; font-weight: 400; }
+.expenditure-page .bp-checkbox input { flex: 0 0 1rem; padding: 0; margin: .2rem 0 0; }
+.expenditure-page .expenditure-file button { margin-top: .5rem; }
+.expenditure-page button { min-width: 0; max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+.expenditure-page input[type="file"] { overflow: hidden; }
+.expenditure-page .bp-table { max-width: 100%; margin: 1.25rem 0; }
+.expenditure-page table { min-width: 900px; table-layout: fixed; }
+.expenditure-page td { overflow-wrap: anywhere; vertical-align: top; }
+.expenditure-page td:first-child { min-width: 0; }
+.expenditure-page .expenditure-csv table { min-width: 1200px; }
+.expenditure-page .expenditure-csv th:nth-last-child(-n+2) { width: 240px; white-space: normal; }
+.expenditure-page .expenditure-csv > label { margin: 1.25rem 0; }
+.expenditure-page .expenditure-csv > button.bp-primary, .expenditure-page form > button.bp-primary { margin-top: .5rem; }
+.expenditure-page .expenditure-history { padding-left: 1.25rem; margin: 1rem 0 1.5rem; color: var(--text-secondary); font-size: .85rem; }
+.expenditure-page .expenditure-history li + li { margin-top: .75rem; }
+@media (max-width: 700px) {
+  .expenditure-page .expenditure-summary { gap: .75rem; }
+  .expenditure-page .expenditure-stat { padding: 1rem; }
+  .expenditure-page fieldset { padding: 1rem .75rem; }
+  .expenditure-page form > button.bp-primary, .expenditure-page .expenditure-csv > button { width: 100%; }
+  .expenditure-page .bp-actions > button { flex: 1 1 120px; }
+}

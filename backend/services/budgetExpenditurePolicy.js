@@ -1,0 +1,30 @@
+const { text, fail } = require('./budgetProposalPolicy');
+const enabled = () => process.env.BUDGET_EXPENDITURES_ENABLED === 'true';
+const treasurer = u => u.role === 'barangay_official' && /^barangay treasurer$/i.test(String(u.position || '').trim()) && u.isVerified === true && u.isApproved === true;
+const reader = u => u.isVerified === true && u.isApproved === true && (treasurer(u) || ['administrator', 'auditor'].includes(u.role));
+function normalize(body, proposal) {
+  const allocationId = text(body.allocationId, 80);
+  const allocation = proposal.items.find(i => i.itemId === allocationId);
+  if (!allocation) fail('Select an approved allocation');
+  const amount = Number(body.amount), amountCentavos = Math.round(amount * 100);
+  if (!Number.isFinite(amount) || amount <= 0 || !Number.isSafeInteger(amountCentavos) || amountCentavos <= 0 || Math.abs(amount * 100 - amountCentavos) > 0.000001) fail('Amount must be positive PHP with at most two decimal places');
+  const input = { amount };
+  for (const key of ['fromAddress', 'toAddress', 'agency', 'programName', 'description', 'transactionType']) {
+    input[key] = text(body[key], key === 'description' ? 4000 : 200);
+    if (!input[key]) fail(`${key} is required`);
+  }
+  if (!['Social Welfare', 'Procurement', 'Grant', 'Tax', 'Revenue', 'Emergency Funds', 'Other'].includes(input.transactionType)) fail('Invalid transaction type');
+  const date = new Date(body.timestamp);
+  if (typeof body.timestamp !== 'string' || !Number.isFinite(date.getTime())) fail('Valid expenditure date required');
+  input.timestamp = date.toISOString();
+  // These existing fields come from the approved reference, never client overrides.
+  input.approvedBudget = allocation.estimatedAmountCentavos / 100;
+  input.currency = 'PHP';
+  return { input, allocationId, amountCentavos, allocation };
+}
+function totals(rows, approved) {
+  const sum = status => rows.filter(r => status.includes(r.reviewStatus)).reduce((n, r) => n + r.amountCentavos, 0);
+  const verified = sum(['verified']), pending = sum(['submitted', 'correction_required']);
+  return { approved, recorded: rows.reduce((n, r) => n + r.amountCentavos, 0), verified, pending, available: approved - verified - pending };
+}
+module.exports = { enabled, treasurer, reader, normalize, totals };

@@ -51,7 +51,7 @@ function TransactionsPage({ user }) {
             setHistoryCount(historyResponse.data.count || 0);
 
             // Count staged-only records so we can warn the admin
-            if (isAdmin || isOfficial) {
+            if (isAdmin || isOfficial || isAuditor) {
                 const stagedRes = await api.get('/transactions/my-transactions', {
                     params: { limit: 500, includeStaged: true }
                 });
@@ -65,7 +65,7 @@ function TransactionsPage({ user }) {
 
     // Publish all staged transactions so staff can see them
     const handlePublishAll = async () => {
-        if (approving) return;
+        if (!isAuditor || approving) return;
         setApproving(true);
         setApproveMsg('');
         try {
@@ -106,12 +106,12 @@ function TransactionsPage({ user }) {
         auditor: {
             label: 'AUDITOR — TRANSACTION REVIEW',
             title: 'Review & Investigate Flagged Transactions',
-            desc:  'Monitor AI-flagged alerts, review risk scores, and escalate suspicious transactions for administrator action.',
+            desc:  'Monitor AI-flagged alerts, review risk scores, and approve or deny transaction submissions.',
         },
         administrator: {
             label: 'ADMIN — TRANSACTION MANAGEMENT',
             title: 'Monitor Blockchain Transactions',
-            desc:  'Track high-risk alerts flagged by AI, approve or deny submissions, and manage the full transaction ledger.',
+            desc:  'Track high-risk alerts flagged by AI, monitor submissions, and manage the full transaction ledger.',
         },
     };
     const hero = heroConfig[role] || heroConfig.administrator;
@@ -217,7 +217,7 @@ function TransactionsPage({ user }) {
             </div>
 
             {/* ── STAGED RECORDS BANNER ── */}
-            {(isAdmin || isOfficial) && stagedCount > 0 && (
+            {(isAdmin || isOfficial || isAuditor) && stagedCount > 0 && (
                 <div style={{
                     margin: '0 0 16px',
                     padding: '14px 20px',
@@ -237,10 +237,11 @@ function TransactionsPage({ user }) {
                                 {stagedCount} imported transaction{stagedCount !== 1 ? 's' : ''} not yet visible to staff
                             </div>
                             <div style={{ fontSize: '0.76rem', color: '#b45309', marginTop: 2 }}>
-                                These records were processed by the AI pipeline but are awaiting official publication. Staff cannot see them until you publish.
+                                These records were processed by the AI pipeline but are awaiting official publication. Staff cannot see them until an auditor approves publication.
                             </div>
                         </div>
                     </div>
+                    {isAuditor && (
                     <button
                         onClick={handlePublishAll}
                         disabled={approving}
@@ -256,6 +257,7 @@ function TransactionsPage({ user }) {
                         <CheckCircle size={15} />
                         {approving ? 'Publishing...' : `Publish All ${stagedCount} Records`}
                     </button>
+                    )}
                 </div>
             )}
 

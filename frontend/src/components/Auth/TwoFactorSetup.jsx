@@ -2,8 +2,10 @@ import useFieldErrors from '../../utils/useFieldErrors';
 import { apiFieldErrors } from '../../utils/fieldValidation';
 import TextField from '../Forms/TextField';
 import React, { useState, useEffect, useRef } from 'react';
-import { Shield, Smartphone, Copy, CheckCircle, AlertTriangle, ArrowRight } from 'lucide-react';
+import { Copy, CheckCircle, ArrowRight } from 'lucide-react';
 import '../../styles/Login.css';
+import '../../styles/AuthCentered.css';
+import '../../styles/TwoFactorSetup.css';
 import { authAPI } from '../../services/api';
 
 function TwoFactorSetup({ onLogin, onNavigate, onLogout }) {
@@ -135,18 +137,18 @@ function TwoFactorSetup({ onLogin, onNavigate, onLogout }) {
                 <p className="manual-label">Can't scan? Enter this code manually:</p>
                 <div className="secret-box">
                     <code className="secret-code">{secret}</code>
-                    <button className="copy-btn" onClick={copySecret} title="Copy secret">
+                    <button className="copy-btn" onClick={copySecret} title="Copy secret" aria-label={copied ? 'Secret copied' : 'Copy setup secret'}>
                         {copied ? <CheckCircle size={16} /> : <Copy size={16} />}
                     </button>
                 </div>
             </div>
 
-            <form onSubmit={handleVerify} className="auth-form" style={{ marginTop: '1.5rem' }}>
+            <form onSubmit={handleVerify} className="auth-form setup-verification-form">
                 <div className="form-field">
-                    <label className="field-label">
+                    <label className="field-label" htmlFor="setup-totp-code">
                         <span><strong>Step 3:</strong> Enter the 6-digit code from your app</span>
                     </label>
-                    <TextField error={fieldErrors["totpCode"]} onEdit={() => setFieldErrors({})} field="totpCode"
+                    <TextField id="setup-totp-code" inputMode="numeric" autoComplete="one-time-code" error={fieldErrors["totpCode"]} onEdit={() => setFieldErrors({})} field="totpCode"
                         type="text"
                         value={totpCode}
                         onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
@@ -177,24 +179,7 @@ function TwoFactorSetup({ onLogin, onNavigate, onLogout }) {
                         type="button"
                         onClick={handleRestartSetup}
                         disabled={loading}
-                        style={{
-                            background: 'transparent',
-                            border: '1px solid #cbd5e1',
-                            color: '#64748b',
-                            padding: '0.75rem 1.5rem',
-                            borderRadius: '0.375rem',
-                            cursor: 'pointer',
-                            fontSize: '0.875rem',
-                            transition: 'all 0.2s'
-                        }}
-                        onMouseEnter={(e) => {
-                            e.target.style.background = '#f1f5f9';
-                            e.target.style.color = '#475569';
-                        }}
-                        onMouseLeave={(e) => {
-                            e.target.style.background = 'transparent';
-                            e.target.style.color = '#64748b';
-                        }}
+                        className="setup-restart-button"
                     >
                         Generate New QR Code
                     </button>
@@ -253,43 +238,13 @@ function TwoFactorSetup({ onLogin, onNavigate, onLogout }) {
     );
 
     return (
-        <div className="auth-container">
-            <div className="auth-sidebar">
-                <div className="auth-sidebar-content">
-                    <div className="sidebar-brand">
-                        <div className="sidebar-logo"><Shield size={48} /></div>
-                        <h2 className="sidebar-title">ChainShield</h2>
-                        <p className="sidebar-subtitle">Security Setup</p>
-                    </div>
-
-                    <div className="sidebar-illustration">
-                        <div className="illustration-circle"></div>
-                        <div className="illustration-icon"><Smartphone size={64} /></div>
-                    </div>
-
-                    <div className="sidebar-info">
-                        <h3 className="sidebar-info-title">Two-Factor Authentication</h3>
-                        <p className="sidebar-info-text">
-                            {step === 'recovery'
-                                ? 'Save your recovery codes — they are your backup access method.'
-                                : 'Add an extra layer of security to your account with an authenticator app.'}
-                        </p>
-                    </div>
-
-                    <div className="sidebar-footer" style={{ marginTop: 'auto', paddingTop: '2rem' }}>
-                        <button
-                            onClick={onLogout}
-                            className="sidebar-logout-btn"
-                        >
-                            <ArrowRight size={16} style={{ transform: 'rotate(180deg)' }} />
-                            <span>Log Out & Return</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
+        <div className="auth-container auth-centered two-factor-screen">
             <div className="auth-main">
                 <div className="auth-content">
+                    <button type="button" className="back-button" onClick={onLogout}>
+                        <ArrowRight size={16} className="setup-back-icon" />
+                        Log Out & Return
+                    </button>
                     <div className="auth-header">
                         <h1 className="auth-title">
                             {step === 'recovery' ? 'Recovery Codes' : 'Set Up 2FA'}
@@ -302,21 +257,21 @@ function TwoFactorSetup({ onLogin, onNavigate, onLogout }) {
                     </div>
 
                     {error && (
-                        <div className="alert-box error">
+                        <div className="alert-box error" role="alert">
 
                             <span className="alert-message">{error}</span>
                         </div>
                     )}
 
                     {step === 'loading' && !error && (
-                        <div style={{ textAlign: 'center', padding: '3rem' }}>
+                        <div className="setup-content setup-state" role="status">
                             <span className="spinner" style={{ display: 'inline-block', width: 40, height: 40 }}></span>
                             <p style={{ marginTop: '1rem', color: '#666' }}>Initializing 2FA setup...</p>
                         </div>
                     )}
 
                     {step === 'error' && (
-                        <div style={{ textAlign: 'center', padding: '2rem' }}>
+                        <div className="setup-content setup-state">
 
                             <p style={{ marginTop: '1rem', color: '#374151', fontWeight: 600 }}>{error}</p>
                             <button
@@ -332,7 +287,7 @@ function TwoFactorSetup({ onLogin, onNavigate, onLogout }) {
                     )}
 
                     {step === 'done' && (
-                        <div style={{ textAlign: 'center', padding: '2rem' }}>
+                        <div className="setup-content setup-state">
 
                             <p style={{ marginTop: '1rem', color: '#374151', fontWeight: 600 }}>2FA is already enabled on your account.</p>
                             <button className="submit-button" style={{ marginTop: '1.5rem' }} onClick={handleFinish}>

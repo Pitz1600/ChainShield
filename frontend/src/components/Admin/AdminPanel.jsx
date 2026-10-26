@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { isAdmin } from '../../utils/permissions';
 import UserManagement from './UserManagement';
+import BudgetCaptainAssignments from './BudgetCaptainAssignments';
 import AuditLogViewer from './AuditLogViewer';
 import UserSessionsTable from './UserSessionsTable';
 import { Users, FileText, Activity } from 'lucide-react';
@@ -179,7 +180,7 @@ function AdminPanel({ user }) {
             </div>
 
             {/* Tab Content */}
-            {activeTab === 'users' && <UserManagement user={user} />}
+            {activeTab === 'users' && <><UserManagement user={user} /><BudgetCaptainAssignments /></>}
             {activeTab === 'audit' && <AuditLogViewer user={user} />}
             {activeTab === 'sessions' && <UserSessionsTable />}
         </div>

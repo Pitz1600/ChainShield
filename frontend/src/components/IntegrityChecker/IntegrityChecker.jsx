@@ -9,7 +9,8 @@ import { formatAddressLabel, formatCurrency } from '../../utils/helpers';
 import '../../styles/IntegrityChecker.css';
 import useLockBodyScroll from '../../utils/useLockBodyScroll';
 
-const IntegrityCheckerContent = () => {
+const IntegrityCheckerContent = ({ user }) => {
+    const isAuditor = user?.role === 'auditor';
     const [file, setFile] = useState(null);
     const [uploading, setUploading] = useState(false);
     const [results, setResults] = useState(null);
@@ -142,6 +143,7 @@ const IntegrityCheckerContent = () => {
         error.toLowerCase().includes('missing required column');
 
     const handleApprove = async (tx) => {
+        if (!isAuditor) return;
         setApprovingId(tx.transactionId);
         try {
             await api.put(`/transactions/${tx.transactionId}/approve`);
@@ -178,6 +180,7 @@ const IntegrityCheckerContent = () => {
     };
 
     const handleDeny = async (tx) => {
+        if (!isAuditor) return;
         setApprovingId(tx.transactionId);
         try {
             await api.put(`/transactions/${tx.transactionId}/archive`);
@@ -1117,9 +1120,9 @@ const IntegrityCheckerContent = () => {
                             </div>
                             <div className="tx-modal-footer">
                                 <div className="tx-modal-actions">
-                                    <button className="btn-verify" disabled={approvingId === selectedTx.transactionId} onClick={() => handleApprove(selectedTx)}>Approve</button>
+                                    {isAuditor && (<button className="btn-verify" disabled={approvingId === selectedTx.transactionId} onClick={() => handleApprove(selectedTx)}>Approve</button>)}
                                     <button className="btn-flag" disabled={approvingId === selectedTx.transactionId} onClick={() => handleFlag(selectedTx)}>Flag</button>
-                                    <button className="btn-flag" disabled={approvingId === selectedTx.transactionId} onClick={() => handleDeny(selectedTx)}>Deny</button>
+                                    {isAuditor && (<button className="btn-flag" disabled={approvingId === selectedTx.transactionId} onClick={() => handleDeny(selectedTx)}>Deny</button>)}
                                 </div>
                                 <button className="btn-close" onClick={() => setSelectedTx(null)}>Close</button>
                             </div>
@@ -1178,5 +1181,5 @@ export default function IntegrityChecker({ user }) {
         );
     }
 
-    return <IntegrityCheckerContent />;
+    return <IntegrityCheckerContent user={user} />;
 }

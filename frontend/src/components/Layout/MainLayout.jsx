@@ -1,11 +1,14 @@
-import React, { useState, lazy, Suspense, useMemo } from 'react';
+import React, { useState, useEffect, lazy, Suspense, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
+import { expendituresAPI } from '../../services/api';
 import TopBar from './TopBar';
 import PageErrorBoundary from './PageErrorBoundary';
 import '../../styles/MainLayout.css';
 
 // Lazy load components for better performance and Firefox compatibility
+const ApprovedBudgets = lazy(() => import('../Expenditures/ApprovedBudgets'));
+const BudgetProposalsPage = lazy(() => import('../BudgetProposals/BudgetProposalsPage'));
 const Dashboard = lazy(() => import('../Dashboard/Dashboard'));
 const OfficialDashboard = lazy(() => import('../Dashboard/OfficialDashboard'));
 const TransactionsPage = lazy(() => import('../Transactions/TransactionsPage'));
@@ -21,10 +24,15 @@ function MainLayout({ user, onLogout, onNavigate }) {
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  const [budgetSubmission, setBudgetSubmission] = useState(false);
+  useEffect(() => { let active = true; expendituresAPI.access().then(r => { if (active) setBudgetSubmission(r.data.canSubmit); }).catch(() => {}); return () => { active = false; }; }, [user?._id]);
+
   const pathToView = useMemo(() => {
     const path = location.pathname.replace(/\/+$/, '');
     if (path === '/dashboard' || path === '') return 'dashboard';
     if (path.startsWith('/dashboard/')) {
+      if (path === '/dashboard/approved-budgets' || path.startsWith('/dashboard/approved-budgets/')) return 'approved_budgets';
+      if (path === '/dashboard/budget-proposals' || path.startsWith('/dashboard/budget-proposals/')) return 'budget_proposals';
       const segment = path.replace('/dashboard/', '');
       switch (segment) {
         case 'transactions': return 'transactions';
@@ -46,6 +54,8 @@ function MainLayout({ user, onLogout, onNavigate }) {
     const viewToPath = {
       dashboard: '/dashboard',
       transactions: '/dashboard/transactions',
+      budget_proposals: '/dashboard/budget-proposals',
+      approved_budgets: '/dashboard/approved-budgets',
       analytics: '/dashboard/analytics',
       integrity_checker: '/dashboard/integrity-checker',
       admin: '/dashboard/admin',
@@ -85,9 +95,11 @@ function MainLayout({ user, onLogout, onNavigate }) {
                   ? <OfficialDashboard user={user} onNavigate={handleViewChange} />
                   : <Dashboard user={user} onNavigate={onNavigate} />
             )}
-            {pathToView === 'transactions' && <TransactionsPage user={user} />}
+            {pathToView === 'approved_budgets' && <ApprovedBudgets user={user} />}
+            {pathToView === 'budget_proposals' && <BudgetProposalsPage user={user} />}
+            {pathToView === 'transactions' && (budgetSubmission ? <ApprovedBudgets user={user} /> : <TransactionsPage user={user} />)}
             {pathToView === 'analytics' && <Analytics user={user} />}
-            {pathToView === 'integrity_checker' && <IntegrityChecker user={user} />}
+            {pathToView === 'integrity_checker' && (budgetSubmission ? <ApprovedBudgets user={user} /> : <IntegrityChecker user={user} />)}
             {pathToView === 'admin' && <AdminPanel user={user} />}
             {pathToView === 'profile' && <Profile user={user} />}
           </Suspense>

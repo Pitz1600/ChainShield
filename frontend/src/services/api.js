@@ -244,3 +244,33 @@ export const feedbacksAPI = {
 };
 
 export default api;
+
+export const budgetProposalsAPI = {
+  access: () => api.get('/budget-proposals/access'),
+  list: params => api.get('/budget-proposals', { params }),
+  get: id => api.get(`/budget-proposals/${id}`),
+  create: data => api.post('/budget-proposals', data),
+  save: (id, data) => api.patch(`/budget-proposals/${id}`, data),
+  action: (id, action, data) => api.post(`/budget-proposals/${id}/${action}`, data),
+  upload: (id, files, revision) => {
+    const data = new FormData(); data.append('revision', revision);
+    files.forEach(file => data.append('documents', file));
+    return api.post(`/budget-proposals/${id}/documents`, data, { headers: { 'Content-Type': 'multipart/form-data' } });
+  },
+  remove: (id, fileId, revision) => api.delete(`/budget-proposals/${id}/documents/${fileId}`, { data: { revision } }),
+  download: (id, fileId) => api.get(`/budget-proposals/${id}/documents/${fileId}`, { responseType: 'blob' }),
+  assign: (id, data) => api.put(`/budget-proposals/assignments/${id}`, data)
+};
+
+export const expendituresAPI = {
+  template: () => api.get('/transactions/template', { responseType: 'blob' }),
+  previewCsv: (id, data) => api.post(`/approved-budgets/${id}/expenditures/preview-csv`, data, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  importCsv: (id, data, onUploadProgress) => api.post(`/approved-budgets/${id}/expenditures/import-csv`, data, { headers: { 'Content-Type': 'multipart/form-data' }, onUploadProgress }),
+  access: () => api.get('/approved-budgets/access'),
+  list: () => api.get('/approved-budgets'),
+  get: id => api.get(`/approved-budgets/${id}`),
+  submit: (id, data, onUploadProgress) => api.post(`/approved-budgets/${id}/expenditures`, data, { headers: { 'Content-Type': 'multipart/form-data' }, onUploadProgress }),
+  correct: (id, expenseId, data) => api.post(`/approved-budgets/${id}/expenditures/${expenseId}/evidence`, data, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  review: (id, expenseId, data) => api.post(`/approved-budgets/${id}/expenditures/${expenseId}/review`, data),
+  download: (id, expenseId, fileId) => api.get(`/approved-budgets/${id}/expenditures/${expenseId}/evidence/${fileId}`, { responseType: 'blob' })
+};

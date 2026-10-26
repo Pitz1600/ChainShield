@@ -77,6 +77,9 @@ const userSchema = new mongoose.Schema({
     required: true
   },
   position: String,
+  submitBudgetProposals: { type: Boolean, default: null },
+  budgetProposalAccessManaged: { type: Boolean, default: false },
+  barangayId: { type: String, maxlength: 120 },
   isActive: {
     type: Boolean,
     default: true

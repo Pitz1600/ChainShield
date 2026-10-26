@@ -46,6 +46,9 @@ const upload = multer({
     }
 });
 
+router.use((req, res, next) => ['GET', 'HEAD', 'OPTIONS'].includes(req.method) ? next() : auth(req, res, next));
+router.use(require('../middleware/protectBudgetExpenditures'));
+
 // CSV Import routes - requires barangay official or admin role
 router.post('/import', auth, requireOfficial, upload.single('csvFile'), csvImportController.importTransactions);
 router.get('/template', auth, templateDownloadLimiter, csvImportController.downloadTemplate);

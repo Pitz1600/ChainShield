@@ -1,3 +1,4 @@
+import { rolePositionOptions } from '../../utils/rolePositions';
 import '../../styles/AuthCentered.css';
 import TextField from '../Forms/TextField';
 import React, { useState, useRef } from 'react';
@@ -14,8 +15,7 @@ function Register({ onNavigate }) {
     birthday: '',
     email: '',
     role: 'barangay_official',
-    position: 'Kagawad',
-    customPosition: '',
+    position: rolePositionOptions.barangay_official[0],
     password: '',
     confirmPassword: ''
   });
@@ -130,16 +130,23 @@ function Register({ onNavigate }) {
                 <label className="field-label" htmlFor="register-role">Requested role<span className="required">*</span></label>
                 <TextField id="register-role" name="role" field="role" as="select" className="field-input" required
                   error={fieldErrors.role} onEdit={() => setFieldErrors({})}
-                  value={formData.role} onChange={event => setFormData({ ...formData, role: event.target.value })}>
+                  value={formData.role} onChange={event => {
+                    const role = event.target.value;
+                    setFormData({ ...formData, role, position: rolePositionOptions[role]?.[0] || '' });
+                  }}>
                   <option value="barangay_official">Barangay Official</option>
                   <option value="auditor">Auditor</option>
                 </TextField>
               </div>
               <div className="form-field">
                 <label className="field-label" htmlFor="register-position">Position<span className="required">*</span></label>
-                <TextField id="register-position" name="position" field="position" className="field-input" autoComplete="organization-title" required
+                <TextField id="register-position" name="position" field="position" as="select" className="field-input" autoComplete="organization-title" required
                   error={fieldErrors.position} onEdit={() => setFieldErrors({})}
-                  value={formData.position} onChange={event => setFormData({ ...formData, position: event.target.value })} />
+                  value={formData.position} onChange={event => setFormData({ ...formData, position: event.target.value })}>
+                  {(rolePositionOptions[formData.role] || []).map(position => (
+                    <option key={position} value={position}>{position}</option>
+                  ))}
+                </TextField>
               </div>
               {[
                 { field: 'password', label: 'Password', placeholder: 'Create a strong password', hint: 'Minimum 8 characters with uppercase, lowercase, number, and special character' },

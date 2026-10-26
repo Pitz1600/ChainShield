@@ -1,3 +1,4 @@
+import { rolePositionOptions } from '../../utils/rolePositions';
 import useFieldErrors from '../../utils/useFieldErrors';
 import { apiFieldErrors } from '../../utils/fieldValidation';
 import TextField from '../Forms/TextField';
@@ -11,11 +12,6 @@ function UserManagement() {
   const [fieldErrors, setFieldErrors] = useFieldErrors();
     const managedRoleOptions = ['barangay_official', 'auditor', 'administrator'];
     const formatRoleLabel = (role) => String(role || '').replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-    const rolePositionOptions = {
-        barangay_official: ['Barangay Captain', 'Barangay Secretary', 'Barangay Treasurer', 'Barangay Kagawad', 'Barangay Clerk'],
-        auditor: ['Internal Auditor', 'Compliance Auditor', 'Financial Auditor'],
-        administrator: ['System Administrator']
-    };
     const getDefaultPositionForRole = (role) => rolePositionOptions[role]?.[0] || '';
     const createRoleGuidance = {
         barangay_official: {
