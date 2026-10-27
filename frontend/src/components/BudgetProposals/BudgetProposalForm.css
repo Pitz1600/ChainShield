@@ -27,8 +27,8 @@
 .budget-proposals .bp-item-card { border-left: 3px solid var(--primary-light); }
 .budget-proposals label { display: flex; flex-direction: column; gap: .5rem; min-width: 0; margin: .8rem 0; color: var(--text-primary); font-size: .85rem; font-weight: 600; }
 .budget-proposals .bp-fields label { margin: 0; }
-.budget-proposals input, .budget-proposals textarea, .budget-proposals select { width: 100%; min-width: 0; max-width: 100%; padding: .7rem .85rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--bg-card); color: var(--text-primary); font: inherit; font-size: .9rem; font-weight: 400; line-height: 1.5; transition: border-color var(--transition-fast), box-shadow var(--transition-fast); }
-.budget-proposals textarea { min-height: 90px; resize: vertical; }
+.budget-proposals input, .budget-proposals textarea, .budget-proposals select { width: 100%; min-width: 0; max-width: 100%; padding: .45rem .85rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--bg-card); color: var(--text-primary); font: inherit; font-size: .9rem; font-weight: 400; line-height: 1.5; transition: border-color var(--transition-fast), box-shadow var(--transition-fast); }
+.budget-proposals textarea { min-height: 60px; resize: vertical; }
 .budget-proposals input:hover, .budget-proposals textarea:hover, .budget-proposals select:hover { border-color: #a5b4fc; }
 .budget-proposals input:focus, .budget-proposals textarea:focus, .budget-proposals select:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px #6366f11a; }
 .budget-proposals input:disabled, .budget-proposals textarea:disabled, .budget-proposals select:disabled { color: var(--text-primary); opacity: 1; background: var(--bg-main); cursor: default; border-color: var(--border-light); }
@@ -42,7 +42,8 @@
 .budget-proposals .bp-primary:hover:not(:disabled) { background: var(--primary-dark); border-color: transparent; box-shadow: var(--shadow-md); }
 .budget-proposals .bp-danger { color: #b91c1c; background: #fff; border-color: #fecaca; }
 .budget-proposals .bp-danger:hover:not(:disabled) { background: #fef2f2; border-color: #fca5a5; }
-.budget-proposals .bp-item-remove { justify-self: start; align-self: end; }
+.budget-proposals .bp-item-remove { justify-self: start; align-self: end; color: #fff; background: #dc2626; border-color: #dc2626; }
+.budget-proposals .bp-item-remove:hover:not(:disabled) { background: #b91c1c; border-color: #b91c1c; }
 .budget-proposals .bp-back { margin-bottom: .6rem; color: var(--text-secondary); }
 .budget-proposals a { display: inline-block; color: var(--primary-dark); font-size: .85rem; font-weight: 600; text-underline-offset: 4px; }
 .budget-proposals .bp-actions { display: flex; align-items: center; flex-wrap: wrap; gap: .75rem; }

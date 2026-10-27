@@ -60,7 +60,7 @@ async function finishAssessment(req, id, fields, action) {
 }
 
 router.get('/', wrap(async (req, res) => {
-  const rows = await Proposal.find({ status: 'ADMIN_APPROVED' }).select('proposalNumber title reviewedAt reviewedBy totalAmountCentavos items barangayId').sort({ reviewedAt: -1 }).limit(200).lean();
+  const rows = await Proposal.find({ status: 'ADMIN_APPROVED' }).select('proposalNumber title fiscalYear reviewedAt reviewedBy totalAmountCentavos items barangayId').sort({ reviewedAt: -1 }).limit(200).lean();
   const expenses = await Expenditure.find({ budgetProposalId: { $in: rows.map(p => p._id) } }).select('budgetProposalId amountCentavos reviewStatus').lean();
   res.json(rows.map(p => ({ ...p, totals: policy.totals(expenses.filter(e => String(e.budgetProposalId) === String(p._id)), p.totalAmountCentavos) })));
 }));

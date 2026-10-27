@@ -6,15 +6,20 @@ const assert = require('node:assert/strict');
 const root = path.resolve(__dirname, '..');
 const service = require('../backend/services/financialReportService');
 const user = { _id: 'auditor', id: 'auditor', firstName: 'Test', lastName: 'Auditor', role: 'auditor', isVerified: true, isApproved: true, isActive: true, twoFactorEnabled: true };
-const proposal = { _id: '111111111111111111111111', proposalNumber: 'BP-FIXTURE', items: [{ itemId: 'a', name: 'Materials', estimatedAmountCentavos: 10000000 }], totalAmountCentavos: 10000000 };
+const proposal = { _id: '111111111111111111111111', proposalNumber: 'BP-FIXTURE', fiscalYear: 2026, title: 'Fixture budget', items: [{ itemId: 'a', name: 'Materials', estimatedAmountCentavos: 10000000 }], totalAmountCentavos: 10000000 };
 const rows = Array.from({ length: 90 }, (_, i) => ({ _id: String(i).padStart(24, '0'), budgetProposalId: proposal._id, allocationId: 'a', amountCentavos: 10000, reviewStatus: 'verified', input: { timestamp: '2026-10-26T00:00:00Z', description: 'Materials <script>escaped</script> ' + 'Long purpose '.repeat(i === 0 ? 250 : 4), toAddress: 'Fixture payee' }, evidence: [] }));
 let allowed = true;
 function json(res, data, status = 200) { res.writeHead(status, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(data)); }
 const server = http.createServer((req, res) => {
  const url = new URL(req.url, 'http://localhost');
  if (url.pathname.startsWith('/api/')) {
+  if (url.pathname === '/api/annual-budgets/access') return json(res, { canRead: true });
+  if (url.pathname.startsWith('/api/annual-budgets/')) return json(res, { pool: null, reservedCentavos: 10000000, availableCentavos: null, discrepancies: [] });
   if (url.pathname === '/api/auth/profile') return json(res, user);
   if (url.pathname === '/api/auth/csrf-token') return json(res, { csrfToken: 'fixture' });
+  if (url.pathname === '/api/approved-budgets/access') return json(res, { enabled: true, canRead: true });
+  if (url.pathname === '/api/approved-budgets') return json(res, [{ ...proposal, totals: { approved: 10000000, recorded: 900000, pending: 0, verified: 900000, available: 9100000 } }]);
+  if (url.pathname === `/api/approved-budgets/${proposal._id}`) return json(res, { budget: proposal, totals: { approved: 10000000, recorded: 900000, pending: 0, verified: 900000, available: 9100000 }, allocations: [], expenditures: [] });
   if (url.pathname === '/api/reports/access') return json(res, { enabled: true, reportTypes: allowed ? ['summary', 'register', 'audit'] : [] });
   if (url.pathname === '/api/reports/options') return json(res, { fiscalYears: [2026], proposals: [{ id: proposal._id, proposalNumber: 'BP-FIXTURE', fiscalYear: 2026, title: 'Fixture', allocations: [{ id: 'a', name: 'Materials' }] }], page: 1, pages: 1 });
   if (url.pathname === '/api/reports/preview') { let body = ''; req.on('data', c => body += c); req.on('end', () => { try { json(res, service.construct([proposal], rows, [], [], service.normalize(JSON.parse(body)), user)); } catch(e) { json(res, { error: e.message }, e.status || 500); } }); return; }
@@ -58,12 +63,17 @@ const server = http.createServer((req, res) => {
   const wait=async expression=>{for(let i=0;i<100;i++){if(await evaluate(expression))return;await new Promise(r=>setTimeout(r,50));}throw new Error('Timed out: '+expression);};
   const navigate=async route=>send('browsingContext.navigate',{context,url:`http://127.0.0.1:${port}${route}`,wait:'complete'});
 
-  await navigate('/dashboard/reports');
+  await navigate('/dashboard/approved-budgets');
+  await wait('[...document.querySelectorAll("button")].some(b => b.textContent === "Print")');
+  assert.equal(await evaluate('[...document.querySelectorAll(".nav-label")].some(n => n.textContent === "Financial Reports")'), false);
+  await evaluate('[...document.querySelectorAll("button")].find(b => b.textContent === "Print").click()');
   await wait('document.querySelectorAll("form select").length >= 4');
   const select = async (index, value) => evaluate(`(() => { const e = document.querySelectorAll('form select')[${index}]; Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value').set.call(e, ${JSON.stringify(value)}); e.dispatchEvent(new Event('change', { bubbles:true })); })()`);
-  await wait('[...document.querySelectorAll("form select")[1].options].some(o => o.value === "2026")');
-  await select(1, '2026');
-  await wait('!document.querySelector("form button").disabled');
+  await wait('document.querySelector(".year-picker-trigger")?.textContent.includes("2026")');
+  assert.equal(await evaluate('document.querySelector(".year-picker-trigger").disabled && document.querySelectorAll("form select")[1].disabled'), true);
+  await wait('document.querySelectorAll("form select")[1].value === "111111111111111111111111"');
+  assert.equal(await evaluate('document.querySelectorAll("form select")[1].value'), proposal._id);
+  await wait('!document.querySelector("form button:not([type])").disabled');
   await evaluate('document.querySelector("form").requestSubmit()');
   await wait('!!document.querySelector(".financial-report")');
   const printDisabled = '[...document.querySelectorAll("button")].find(b => b.textContent === "Print / Save as PDF").disabled';
@@ -83,7 +93,7 @@ const server = http.createServer((req, res) => {
   await evaluate('document.querySelector("form").requestSubmit()');
   await wait('document.querySelector(".financial-report")?.textContent.includes("Evidence inventory")');
   assert.equal(await evaluate('document.querySelector(".financial-report").textContent.includes("Assessment: Unavailable")'), true);
-  await select(4, 'rejected');
+  await select(3, 'rejected');
   await evaluate('document.querySelector("form").requestSubmit()');
   await wait('document.querySelector(".financial-report")?.textContent.includes("No matching records")');
   await evaluate('window.__prints = 0; window.print = () => { window.__prints++; window.dispatchEvent(new Event("afterprint")); }; [...document.querySelectorAll("button")].find(b => b.textContent === "Print / Save as PDF").click()');
@@ -91,6 +101,17 @@ const server = http.createServer((req, res) => {
   allowed = false;
   await evaluate('[...document.querySelectorAll("button")].find(b => b.textContent === "Print / Save as PDF").click()');
   await wait('!document.querySelector(".financial-report")');
+  allowed = true;
+  await evaluate('[...document.querySelectorAll("button")].find(b => b.textContent === "Back to budget").click()');
+  await wait('[...document.querySelectorAll("button")].some(b => b.textContent === "View Budget")');
+  await evaluate('[...document.querySelectorAll("button")].find(b => b.textContent === "View Budget").click()');
+  await wait('[...document.querySelectorAll("button")].some(b => b.textContent === "Print")');
+  await evaluate('[...document.querySelectorAll("button")].find(b => b.textContent === "Print").click()');
+  await wait('document.querySelectorAll("form select").length >= 4');
+  assert.equal(await evaluate('location.pathname'), '/dashboard/approved-budgets/' + proposal._id);
+  user.role = 'barangay_official'; user.position = 'Barangay Treasurer';
+  await navigate('/dashboard/approved-budgets');
+  await wait('[...document.querySelectorAll(".nav-label")].some(n => n.textContent === "Budgets")');
   assert.deepEqual(errors, []);
   console.log('PASS report navigation, snapshot preview, stale filters, escaped content, revoked access, portrait and multipage landscape PDFs');
   await send('session.end');

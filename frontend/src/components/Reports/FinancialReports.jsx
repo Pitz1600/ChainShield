@@ -1,11 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import YearPicker from '../Common/YearPicker';
 import { reportsAPI } from '../../services/api';
 import FinancialReportPreview, { titles } from './FinancialReportPreview';
 import './Reports.css';
-export default function FinancialReports({ user }) {
-  const location = useLocation();
-  const [filters, setFilters] = useState({ type: location.state?.reportType || 'summary', fiscalYear: location.state?.fiscalYear || '', proposalId: location.state?.proposalId || '', allocationId: '', from: '', to: '', status: '', dateBasis: 'expenditure', includeHistory: false });
+export default function FinancialReports({ user, budget, onClose }) {
+  const [filters, setFilters] = useState({ type: 'summary', fiscalYear: budget?.fiscalYear || '', proposalId: budget?._id || '', allocationId: '', from: '', to: '', status: '', dateBasis: 'expenditure', includeHistory: false });
   const [access, setAccess] = useState(null), [options, setOptions] = useState({ fiscalYears: [], proposals: [] });
   const [report, setReport] = useState(null), [error, setError] = useState(''), [busy, setBusy] = useState(false), [printing, setPrinting] = useState(false);
   const request = useRef(null), revision = useRef(0);
@@ -58,12 +57,12 @@ export default function FinancialReports({ user }) {
     finally { setBusy(false); }
   }
   const proposal = options.proposals.find(p => p.id === filters.proposalId);
-  return <section className="financial-reports"><div className="report-controls"><h1>Financial Reports</h1><p>Generate a preview, inspect the figures, then print or save as PDF. Maximum 5,000 matching expenditures and 8 MB per report.</p>
+  return <section className="financial-reports"><div className="report-controls"><button type="button" disabled={printing} onClick={onClose}>Back to budget</button><h1>Print budget</h1><p>{budget?.proposalNumber} · {budget?.title}</p><p>Generate a preview, inspect the figures, then print or save as PDF. Maximum 5,000 matching expenditures and 8 MB per report.</p>
     {error && <p role="alert">{error}</p>}
     {!access ? <p>Loading report access…</p> : !access.reportTypes.length ? <p>{access.enabled ? 'Reporting access denied.' : 'Budget expenditure reports are unavailable.'}</p> : <form onSubmit={generate}><fieldset disabled={printing}><legend>Report filters</legend>
       <label>Template<select value={filters.type} onChange={e => change({ type: e.target.value, from: '', to: '', status: '', dateBasis: 'expenditure', includeHistory: false })}>{access.reportTypes.map(t => <option key={t} value={t}>{titles[t]}</option>)}</select></label>
-      <label>Fiscal year<select required value={filters.fiscalYear} onChange={e => change({ fiscalYear: e.target.value, proposalId: '', allocationId: '' })}><option value="">Select fiscal year</option>{options.fiscalYears.map(y => <option key={y}>{y}</option>)}</select></label>
-      <label>Approved proposal<select value={filters.proposalId} onChange={e => change({ proposalId: e.target.value, allocationId: '' })}><option value="">All approved proposals</option>{options.proposals.filter(p => p.fiscalYear === Number(filters.fiscalYear)).map(p => <option key={p.id} value={p.id}>{p.proposalNumber} · {p.title}</option>)}</select></label>
+      <YearPicker disabled={Boolean(budget) || printing} value={filters.fiscalYear} years={options.fiscalYears} onChange={value => change({ fiscalYear: value, proposalId: '', allocationId: '' })} />
+      <label>Approved proposal<select disabled={Boolean(budget)} value={filters.proposalId} onChange={e => change({ proposalId: e.target.value, allocationId: '' })}><option value="">All approved proposals</option>{options.proposals.filter(p => p.fiscalYear === Number(filters.fiscalYear)).map(p => <option key={p.id} value={p.id}>{p.proposalNumber} · {p.title}</option>)}</select></label>
       <label>Allocation<select disabled={!proposal} value={filters.allocationId} onChange={e => change({ allocationId: e.target.value })}><option value="">All allocations</option>{proposal?.allocations.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</select></label>
       <fieldset disabled={filters.type === 'summary'}><legend>Period and current review status (registers only)</legend>{['from', 'to'].map(k => <label key={k}>{k === 'from' ? 'From (Philippine time)' : 'Through (inclusive)'}<input type="date" value={filters[k]} onChange={e => change({ [k]: e.target.value })} /></label>)}<label>Human review status<select value={filters.status} onChange={e => change({ status: e.target.value })}><option value="">All statuses</option>{['submitted', 'correction_required', 'verified', 'rejected'].map(s => <option key={s} value={s}>{s.replaceAll('_', ' ')}</option>)}</select></label></fieldset>
       {filters.type === 'audit' && <><label>Date basis<select value={filters.dateBasis} onChange={e => change({ dateBasis: e.target.value })}><option value="expenditure">Expenditure date</option><option value="review">Review date</option></select></label><label><input type="checkbox" checked={filters.includeHistory} onChange={e => change({ includeHistory: e.target.checked })} />Include detailed history and checksums</label></>}

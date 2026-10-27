@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { FileText, Plus, Upload, ArrowLeft, FolderOpen, ClipboardCheck, Download, Eye } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { budgetProposalsAPI as proposals } from '../../services/api';
+import YearPicker from '../Common/YearPicker';
+import { BudgetFigures } from '../AnnualBudget/AnnualBudget';
 import './BudgetProposalForm.css';
 import './BudgetProposalAdmin.css';
 const base = '/dashboard/budget-proposals';
@@ -49,13 +51,14 @@ export default function BudgetProposalsPage({ user }) {
     {!access ? <p>Loading access…</p> : !(access.canSubmit || access.canReview) ? <p>Email verification is complete, but budget submission requires an administrator-approved Barangay Captain account. Ask your administrator to confirm your Captain position in Admin Panel → User Management. Explicitly disabled submission access must be re-enabled there.</p> : !route ? <>
       <div className="bp-queue-header"><div><span className="bp-eyebrow">{admin ? 'ADMINISTRATIVE REVIEW' : 'BUDGET PLANNING'}</span><h2>{admin ? 'Review Budget Proposals' : 'My Proposals'}</h2>{admin && <p>Review the Captain’s proposed spending and supporting documents, then record your decision.</p>}</div>{admin && <span className="bp-queue-icon"><ClipboardCheck size={32} aria-hidden="true" /></span>}</div>
       {canCreate && <div className="bp-upload-entry"><span className="bp-entry-icon"><Upload size={24} aria-hidden="true" /></span><div><h3>Submit a Proposed Budget</h3><p>Create your proposal, add project items, and upload cost estimates, quotations or other supporting files before submitting it for review.</p><button className="bp-primary" onClick={() => navigate(`${base}/new`)}><Plus size={18} aria-hidden="true" /> Create Budget Proposal &amp; Upload Documents</button></div></div>}
-      <section className="bp-queue-panel"><div className="bp-panel-heading"><h3>{admin ? 'Proposal Review Queue' : 'Proposal Records'}</h3><span>Filter by status or fiscal year</span></div><div className="bp-actions bp-filters"><label>Status<select value={status} onChange={e => setStatus(e.target.value)}><option value="">All statuses</option>{Object.entries(statuses).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label><label>Fiscal year<input type="number" value={year} onChange={e => setYear(e.target.value)} /></label></div>
+      <section className="bp-queue-panel"><div className="bp-panel-heading"><h3>{admin ? 'Proposal Review Queue' : 'Proposal Records'}</h3><span>Filter by status or fiscal year</span></div><div className="bp-actions bp-filters"><label>Status<select value={status} onChange={e => setStatus(e.target.value)}><option value="">All statuses</option>{Object.entries(statuses).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label><YearPicker value={year} onChange={setYear} clearable placeholder="All years" /></div>
       <div className="bp-table"><table><thead><tr>{['Proposal number', 'Captain', 'Title', 'Fiscal year', 'Total', 'Submitted', 'Status', 'Action'].map(x => <th key={x}>{x}</th>)}</tr></thead><tbody>{rows.map(p => <tr key={p._id}><td>{p.proposalNumber}</td><td>{p.createdBy?.firstName} {p.createdBy?.lastName}</td><td>{p.title || 'Untitled draft'}</td><td>{p.fiscalYear}</td><td>{money(p.totalAmountCentavos)}</td><td>{p.submittedAt ? new Date(p.submittedAt).toLocaleDateString() : '—'}</td><td><span className={`bp-status bp-status-${p.status.toLowerCase()}`}>{statuses[p.status]}</span></td><td><button className="bp-view-button" onClick={() => navigate(`${base}/${p._id}`)}><Eye size={15} aria-hidden="true" /> {admin ? 'Review' : 'View'}</button></td></tr>)}</tbody></table>{!rows.length && <div className="bp-empty"><FolderOpen size={32} aria-hidden="true" /><h3>No proposals found</h3><p>{canCreate ? 'Create your first proposal or choose a different filter.' : 'Submitted proposals will appear here for review.'}</p></div>}</div></section>
 
     </> : route === 'new' && !canCreate ? <p>Proposal creation and uploads are available only to an authorized Barangay Captain. <button onClick={() => navigate(base)}>Back to review queue</button></p> : !proposal ? <p>Loading proposal…</p> : <>
       <button className="bp-back" onClick={() => navigate(base)}><ArrowLeft size={16} aria-hidden="true" /> Back to proposals</button><div className="bp-proposal-heading"><h2>{proposal.proposalNumber || 'New Proposal'}</h2><span className={`bp-status bp-status-${proposal.status.toLowerCase()}`}>{statuses[proposal.status]}</span></div>
       <p>Submitted by: {proposal.createdBy?.firstName ? `${proposal.createdBy.firstName} ${proposal.createdBy.lastName}` : `${user.firstName} ${user.lastName}`} </p>
       <p>Submitted: {proposal.submittedAt ? new Date(proposal.submittedAt).toLocaleString() : 'Not submitted'} · Reviewed: {proposal.reviewedAt ? new Date(proposal.reviewedAt).toLocaleString() : 'Not reviewed'}</p>
+      <BudgetFigures fiscalYear={proposal.fiscalYear} refresh={proposal.revision} />
       {proposal.reviewerRemarks && <p><strong>Review remarks:</strong> {proposal.reviewerRemarks}</p>}
       {editable && !review && <a href="#budget-proposal-uploads">Upload supporting documents</a>}
       {admin ? <>
@@ -72,7 +75,7 @@ export default function BudgetProposalsPage({ user }) {
         </article>)}
       </> : <>
       <fieldset className="bp-fields" disabled={busy || review}><legend>Proposal Details</legend>{field('title', 'Proposal title *')}
-        <label>Fiscal year *<input type="number" min="2000" max="2200" disabled={!editable} value={proposal.fiscalYear || ''} onChange={e => update('fiscalYear', e.target.value)} /></label>
+        <YearPicker label="Fiscal year *" disabled={!editable || busy || review} value={proposal.fiscalYear || ''} onChange={value => update('fiscalYear', value)} />
         <label>Proposal type *<select disabled={!editable} value={proposal.proposalType} onChange={e => update('proposalType', e.target.value)}>{['annual', 'supplemental'].map(x => <option key={x} value={x}>{x}</option>)}</select></label>
         <label>Program / sector *<select disabled={!editable} value={proposal.sector} onChange={e => update('sector', e.target.value)}>{['infrastructure', 'health', 'education', 'sanitation', 'other'].map(x => <option key={x} value={x}>{x}</option>)}</select></label>{field('justification', 'Purpose / justification *', true)}
       </fieldset>

@@ -1,6 +1,6 @@
 # Financial reports
 
-Open **Financial Reports** from the dashboard navigation, or use either print shortcut on an approved budget. Choose a fiscal year, template and optional filters, generate a preview, then use **Print / Save as PDF**. Changing filters requires a new preview. Reports remain in component memory only; report IDs do not identify stored snapshots.
+Open **Budgets** (officials) or **Approved Budgets** (auditors and administrators). Use **Print** beside **View Budget**, or **Print** inside the budget details. The print view stays within Budgets and locks the selected proposal and fiscal year. Choose a template and optional filters, generate a preview, then use **Print / Save as PDF**. Changing filters requires a new preview. Reports remain in component memory only; report IDs do not identify stored snapshots.
 
 Approved, verified, active Treasurers can access summaries and registers. Auditors and Administrators also receive the audit template. Completed onboarding is required. All endpoints respect `BUDGET_EXPENDITURES_ENABLED=true`. The configured identity is `BUDGET_PROPOSAL_BARANGAY_ID` (default `single-barangay`). An approved budget with a different label blocks reports for administrator resolution.
 

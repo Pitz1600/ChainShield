@@ -1,17 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { budgetProposalsAPI, expendituresAPI, reportsAPI } from '../../services/api';
+import api, { budgetProposalsAPI, expendituresAPI } from '../../services/api';
 import { Home, AlertTriangle, List, Upload, BarChart3, Search, Settings, User, Shield, LogOut, X } from 'lucide-react';
 import { isAdmin, isOfficial } from '../../utils/permissions';
 import '../../styles/Sidebar.css';
 import useLockBodyScroll from '../../utils/useLockBodyScroll';
 
 function Sidebar({ user, activeView, setActiveView, onLogout, isMobileMenuOpen, toggleMobileMenu }) {
+  const [annualAccess, setAnnualAccess] = useState(false);
+  useEffect(() => { let active = true; api.get('/annual-budgets/access').then(r => { if (active) setAnnualAccess(r.data.canRead); }).catch(() => {}); return () => { active = false; }; }, [user?._id]);
   const [budgetAccess, setBudgetAccess] = useState(false);
   useEffect(() => { let active = true; budgetProposalsAPI.access().then(r => { if (active) setBudgetAccess(r.data.canSubmit || r.data.canReview); }).catch(() => {}); return () => { active = false; }; }, [user?._id]);
   const [expenditureAccess, setExpenditureAccess] = useState(false);
   useEffect(() => { let active = true; expendituresAPI.access().then(r => { if (active) setExpenditureAccess(r.data.canRead); }).catch(() => {}); return () => { active = false; }; }, [user?._id]);
-  const [reportAccess, setReportAccess] = useState(false);
-  useEffect(() => { let active = true; setReportAccess(false); reportsAPI.access().then(r => { if (active) setReportAccess(r.data.reportTypes.length > 0); }).catch(() => {}); return () => { active = false; }; }, [user?._id]);
   // Icon mapping
   const iconMap = {
     home: Home,
@@ -51,7 +51,7 @@ function Sidebar({ user, activeView, setActiveView, onLogout, isMobileMenuOpen, 
   // Build menu based on user role
   const getMenuItems = () => {
     let items = [...baseMenuItems];
-    if (reportAccess) items.push({ id: 'reports', icon: 'history', label: 'Financial Reports' });
+    if (annualAccess) items.push({ id: 'annual_budget', icon: 'history', label: 'Annual Budget' });
     if (budgetAccess || (user?.role === 'barangay_official' && user?.position === 'Barangay Captain')) items.push({ id: 'budget_proposals', icon: 'history', label: 'Budget Proposals' });
 
     // Add shared items for everyone
@@ -68,7 +68,7 @@ function Sidebar({ user, activeView, setActiveView, onLogout, isMobileMenuOpen, 
     }
 
 
-    if (expenditureAccess) items.push({ id: 'approved_budgets', icon: 'history', label: 'Approved Budgets' });
+    if (expenditureAccess) items.push({ id: 'approved_budgets', icon: 'history', label: user?.role === 'barangay_official' ? 'Budgets' : 'Approved Budgets' });
     if (expenditureAccess && user?.role === 'barangay_official' && /^barangay treasurer$/i.test(user?.position || '')) items = items.filter(item => !['transactions', 'integrity_checker'].includes(item.id));
     return items;
   };

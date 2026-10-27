@@ -157,6 +157,7 @@ app.get('/api/auth/csrf-token', issueCsrfToken);
 
 app.use('/api/reports', require('./routes/reports'));
 app.use('/api/approved-budgets', require('./routes/budgetExpenditures'));
+app.use('/api/annual-budgets', require('./routes/annualBudgets'));
 app.use('/api/budget-proposals', require('./routes/budgetProposals'));
 app.use('/api/transactions', require('./routes/transactions'));
 app.use('/api/alerts', require('./routes/alerts'));

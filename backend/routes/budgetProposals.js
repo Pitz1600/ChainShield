@@ -80,7 +80,14 @@ for (const [route, status] of [['approve', 'ADMIN_APPROVED'], ['reject', 'REJECT
   if (p.status !== 'SUBMITTED') fail('Proposal is no longer pending review', 409);
   const remarks = text(req.body.remarks, 4000);
   if (route === 'reject' && !remarks) fail('Rejection explanation required');
-  res.json(await change(req, p, { status, reviewedAt: new Date(), reviewedBy: req.user._id, reviewerRemarks: remarks }, event(req, p, route === 'approve' ? 'administrative_review_approved' : 'rejected', status, remarks)));
+  const set = { status, reviewedAt: new Date(), reviewedBy: req.user._id, reviewerRemarks: remarks };
+  const entry = event(req, p, route === 'approve' ? 'administrative_review_approved' : 'rejected', status, remarks);
+  if (route === 'approve') {
+    const updated = await require('../services/annualBudgetService').approve(p, req.body.revision, set, entry);
+    await audit(req, { proposalId: p.id, action: entry.action, status: updated.status, revision: updated.revision });
+    return res.json(updated);
+  }
+  res.json(await change(req, p, set, entry));
 }));
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024, files: 5, fields: 1, parts: 6 } });
 router.post('/:id/documents', canSubmit, wrap(async (req, res) => {

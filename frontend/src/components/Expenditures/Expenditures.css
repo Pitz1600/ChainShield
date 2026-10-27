@@ -43,3 +43,17 @@
   .expenditure-page form > button.bp-primary, .expenditure-page .expenditure-csv > button { width: 100%; }
   .expenditure-page .bp-actions > button { flex: 1 1 120px; }
 }
+
+/* Compact budget list; preserve the full summary on the detail view. */
+.expenditure-page .budget-list-card { padding: 1rem; margin: .75rem 0; }
+.expenditure-page .budget-list-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .75rem 1rem; }
+.expenditure-page .budget-list-heading > div:first-child { flex: 1 1 240px; min-width: 0; }
+.expenditure-page .budget-list-heading h2 { margin: 0; font-size: 1rem; }
+.expenditure-page .budget-list-heading p { margin: .25rem 0 0; font-size: .8rem; color: var(--text-secondary); }
+.expenditure-page .budget-list-heading .bp-actions { gap: .5rem; }
+.expenditure-page .budget-list-heading button { padding: .45rem .75rem; }
+.expenditure-page .budget-list-card .expenditure-summary { grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr)); gap: .5rem; margin: .75rem 0 0; padding-top: .75rem; border-top: 1px solid var(--border-color); }
+.expenditure-page .budget-list-card .expenditure-stat { justify-content: flex-start; gap: .25rem; padding: .5rem; border: 0; border-radius: var(--radius-md); background: transparent; }
+.expenditure-page .budget-list-card .expenditure-stat span { font-size: .75rem; line-height: 1.35; }
+.expenditure-page .budget-list-card .expenditure-stat strong { font-size: 1.05rem; }
+.expenditure-page .budget-list-card .expenditure-stat:last-child { background: #eef2ff; }

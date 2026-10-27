@@ -1,0 +1,15 @@
+.year-picker { min-width: 0; margin: .8rem 0; }
+.year-picker > label { display: block; margin: 0 0 .5rem; font-size: .85rem; font-weight: 600; }
+.bp-fields .year-picker { margin: 0; }
+.bp-filters .year-picker { width: 210px; max-width: 100%; margin: 0; }
+.year-picker .year-picker-trigger { display: flex; align-items: center; justify-content: space-between; gap: 1rem; width: 100%; min-height: 42px; padding: .6rem .8rem; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; color: #1e293b; font: inherit; cursor: pointer; }
+.year-picker .year-picker-dialog { padding: 0; width: min(340px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); border: 1px solid #cbd5e1; border-radius: 12px; background: #fff; color: #1e293b; box-shadow: 0 12px 40px #0003; }
+.year-picker-dialog::backdrop { background: #0f172a66; }
+.year-picker-content { padding: 1rem; }
+.year-picker-dialog h2 { margin: 0 0 1rem; font-size: 1.1rem; }
+.year-picker-navigation, .year-picker-actions { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+.year-picker-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; margin: 1rem 0; }
+.year-picker .year-picker-dialog button { min-height: 42px; padding: .5rem; border: 1px solid #cbd5e1; border-radius: 6px; font: inherit; cursor: pointer; background: #fff; color: #1e293b; }
+.year-picker .year-picker-grid button[aria-pressed="true"] { color: #fff; background: #4338ca; border-color: #4338ca; }
+.year-picker button:disabled { opacity: .45; cursor: not-allowed; }
+.year-picker button:focus-visible { outline: 3px solid #6366f1; outline-offset: 2px; }
