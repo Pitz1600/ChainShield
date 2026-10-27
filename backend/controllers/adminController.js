@@ -523,7 +523,7 @@ exports.createUser = async (req, res) => {
             await emailService.sendTempPasswordEmail(user.email, normalizedPassword, user.username);
         } catch (error) {
             await User.findByIdAndDelete(user._id);
-            throw error;
+            return res.status(502).json({ error: 'Temporary credentials could not be emailed. Account creation was rolled back. Check the email address and mail service, then retry Create User.' });
         }
 
         // Log action

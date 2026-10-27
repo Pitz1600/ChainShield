@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import Welcome from './components/Auth/Welcome';
 import Login from './components/Auth/Login';
-import Register from './components/Auth/Register';
 import PendingApproval from './components/Auth/PendingApproval';
 import EmailVerify from './components/Auth/EmailVerify';
 import TwoFactorSetup from './components/Auth/TwoFactorSetup';
@@ -23,7 +22,6 @@ function App() {
     switch (view) {
       case 'welcome': return '/welcome';
       case 'login': return '/login';
-      case 'register': return '/register';
       case 'email-verify': return '/email-verify';
       case 'force-change-password': return '/force-change-password';
       case 'setup-2fa': return '/setup-2fa';
@@ -79,7 +77,6 @@ function App() {
             '/',
             '/welcome',
             '/login',
-            '/register',
             '/email-verify',
             '/pending-approval',
             '/force-change-password',
@@ -164,7 +161,6 @@ function App() {
       <Route path="/" element={<Navigate to={isAuthenticated ? '/dashboard' : '/welcome'} replace />} />
       <Route path="/welcome" element={<Welcome onNavigate={handleNavigate} />} />
       <Route path="/login" element={<Login onLogin={handleLogin} onNavigate={handleNavigate} />} />
-      <Route path="/register" element={<Register onRegister={handleLogin} onNavigate={handleNavigate} />} />
       <Route path="/pending-approval" element={<PendingApproval onCheck={handleLogin} onLogout={handleLogout} />} />
       <Route path="/email-verify" element={<EmailVerify user={pendingUser} onNavigate={handleNavigate} onLogin={handleLogin} />} />
       <Route path="/force-change-password" element={<ForcePasswordChange onNavigate={handleNavigate} onLogout={handleLogout} />} />

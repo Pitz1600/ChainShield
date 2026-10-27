@@ -109,7 +109,7 @@ test('audit exceptions cannot turn rejection into acceptance', async () => {
     const result = await invoke({});
     assert.equal(result.status, 400);
 });
-test('actual auth route ordering protects login, TOTP login and register before validation/controllers', async () => {
+test('actual auth route ordering protects login and TOTP login before validation/controllers', async () => {
     const express = require('express');
     const ratePath = require.resolve('../middleware/rateLimiter');
     const controllerPath = require.resolve('../controllers/authController');
@@ -117,7 +117,8 @@ test('actual auth route ordering protects login, TOTP login and register before 
     const cached = [ratePath, controllerPath, uploadPath].map(path => require.cache[path]);
     const pass = (req, res, next) => next();
     require.cache[ratePath] = { exports: { loginLimiter: pass, registrationLimiter: pass, otpVerificationLimiter: pass, otpResendLimiter: pass } };
-    require.cache[controllerPath] = { exports: new Proxy({}, { get: () => () => { throw new Error('Controller reached'); } }) };
+    const register = require('../controllers/authController').register;
+    require.cache[controllerPath] = { exports: new Proxy({}, { get: (_, key) => key === 'register' ? register : () => { throw new Error('Controller reached'); } }) };
     require.cache[uploadPath] = { exports: { uploadProfile: { single: () => pass } } };
     const app = express(); app.use(express.json());
     const routePath = require.resolve('../routes/auth');
@@ -128,11 +129,14 @@ test('actual auth route ordering protects login, TOTP login and register before 
         await new Promise(resolve => server.once('listening', resolve));
         try {
             const base = `http://127.0.0.1:${server.address().port}/api/auth`;
-            for (const [route, body] of [['login', {}], ['login', { totpCode: '000000' }], ['register', {}]]) {
+            for (const [route, body] of [['login', {}], ['login', { totpCode: '000000' }]]) {
                 const response = await fetch(`${base}/${route}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
                 assert.equal(response.status, 400);
                 assert.equal((await response.json()).code, 'CAPTCHA_FAILED');
             }
+            const registration = await fetch(`${base}/register`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+            assert.equal(registration.status, 403);
+            assert.match((await registration.json()).error, /administrator/);
             assert.equal((await fetch(`${base}/hack-reset`)).status, 404);
             assert.equal(calls.length, 0);
         } finally { await new Promise(resolve => server.close(resolve)); }

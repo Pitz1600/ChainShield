@@ -68,7 +68,7 @@ function Sidebar({ user, activeView, setActiveView, onLogout, isMobileMenuOpen, 
     }
 
 
-    if (expenditureAccess) items.push({ id: 'approved_budgets', icon: 'history', label: user?.role === 'barangay_official' ? 'Budgets' : 'Approved Budgets' });
+    if (expenditureAccess && !isAdmin(user)) items.push({ id: 'approved_budgets', icon: 'history', label: user?.role === 'barangay_official' ? 'Budgets' : 'Approved Budgets' });
     if (expenditureAccess && user?.role === 'barangay_official' && /^barangay treasurer$/i.test(user?.position || '')) items = items.filter(item => !['transactions', 'integrity_checker'].includes(item.id));
     return items;
   };

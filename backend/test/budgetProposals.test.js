@@ -121,3 +121,36 @@ test('deployment barangay label does not depend on per-user assignments', () => 
   const { barangay } = require('../services/budgetProposalPolicy');
   assert.equal(barangay({}), barangay({ barangayId: 'historical-label' }));
 });
+
+test('administrator edits preserve submission and documents, recompute totals and reject stale decisions', async () => {
+  const p = new Proposal({ ...valid(), _id: id, createdBy: user._id, barangayId: 'pantal', proposalNumber: 'BP-test', status: 'SUBMITTED', totalAmountCentavos: 10001, history: [{ action: 'submitted', snapshot: valid() }] });
+  Proposal.findOne = async () => p;
+  let update, filter;
+  Proposal.findOneAndUpdate = async (f, u) => { filter = f; update = u; return { status: 'SUBMITTED', revision: 2 }; };
+  Audit.logAction = async () => {};
+  const req = { params: { id }, user: { _id: '507f1f77bcf86cd799439013', role: 'administrator' }, body: { ...valid(), items: [{ ...valid().items[0], estimatedAmountCentavos: 8500 }], revision: 1, reason: 'Revised supplier estimate', totalAmountCentavos: 1 } };
+  assert.equal((await call('/:id/review', req, 'patch')).error, undefined);
+  assert.equal(update.$set.totalAmountCentavos, 8500);
+  assert.equal(update.$set.status, undefined); assert.equal(update.$set.documents, undefined);
+  assert.deepEqual(update.$inc, { revision: 1 });
+  assert.equal(filter.status, 'SUBMITTED'); assert.equal(filter.revision, 1);
+  const entry = update.$push.history;
+  assert.equal(entry.snapshot.before.totalAmountCentavos, 10001);
+  assert.equal(entry.snapshot.after.totalAmountCentavos, 8500);
+  assert.equal(entry.actor, req.user._id); assert.equal(entry.remarks, req.body.reason); assert.ok(entry.at); assert.ok(entry.snapshotHash);
+  assert.equal(p.history[0].action, 'submitted');
+  for (const body of [{ reason: ' ' }, { fiscalYear: 2028 }, { items: [] }]) assert.equal((await call('/:id/review', { ...req, body: { ...req.body, ...body } }, 'patch')).error.status, 422);
+  assert.equal((await call('/:id/review', { ...req, body: { ...req.body, revision: 0 } }, 'patch')).error.status, 409);
+  Proposal.findOneAndUpdate = async () => null;
+  assert.equal((await call('/:id/review', req, 'patch')).error.status, 409);
+  for (const status of ['DRAFT', 'ADMIN_APPROVED', 'REJECTED']) { p.status = status; assert.equal((await call('/:id/review', req, 'patch')).error.status, 409); }
+});
+test('submitted edit gate rejects Captain, Treasurer and auditor', () => {
+  const gate = router.stack.find(l => l.route?.path === '/:id/review').route.stack[0].handle;
+  for (const role of ['barangay_official', 'auditor']) {
+    const res = { status(code) { assert.equal(code, 403); return this; }, json() {} };
+    gate({ user: { ...user, role } }, res, () => assert.fail('unauthorized edit'));
+  }
+  let passed = false;
+  gate({ user: { role: 'administrator' } }, {}, () => { passed = true; }); assert.ok(passed);
+});

@@ -49,7 +49,7 @@ test('approval requires email verification, rejects self approval, and forces 2F
   assert.equal(user.isApproved, true); assert.equal(user.mustSetup2FA, true); assert.equal(user.approvedBy, 'admin'); assert.ok(user.approvedAt);
   res = response(); await admin.approveUser({ ...req, user: { _id: 'staff' } }, res); assert.equal(res.statusCode, 400);
 });
-test('public registration ignores privileged flags and accepts only staff roles', async () => {
+test('public registration rejects all roles without creating accounts', async () => {
   const controller = require('../controllers/authController');
   const emailService = require('../services/emailService');
   const AuditLog = require('../models/AuditLog');
@@ -63,10 +63,10 @@ test('public registration ignores privileged flags and accepts only staff roles'
     for (const role of ['barangay_official', 'auditor', 'administrator']) {
       const res = response(); res.cookie = () => res;
       await controller.register({ body: { firstName: 'A', lastName: 'B', email: 'a@example.com', password: 'Strong1!', position: 'Staff', role, isApproved: true, isVerified: true, isActive: false }, get: () => 'test' }, res);
-      if (role === 'administrator') assert.equal(res.statusCode, 403);
-      else { const user = users.at(-1); assert.equal(user.role, role); assert.equal(user.isApproved, false); assert.equal(user.isVerified, false); assert.equal(user.isActive, true); }
+      assert.equal(res.statusCode, 403);
+      assert.match(res.body.error, /administrator/);
     }
-    assert.equal(users.length, 2);
+    assert.equal(users.length, 0);
   } finally { User.prototype.save = saved.save; User.findOne = saved.findOne; emailService.sendOTPEmail = saved.email; AuditLog.logAction = saved.log; }
 });
 test('admin creation emails a server-generated credential and forces both onboarding steps', async () => {
@@ -110,4 +110,22 @@ test('password login never self-verifies a publicly registered official', async 
     await controller.login({ body: { email: user.email, password: 'Strong1!' }, get: () => 'test', ip: '127.0.0.1' }, res);
     assert.equal(user.isVerified, false); assert.equal(res.body.otpRequired, true);
   } finally { User.findOne = saved.findOne; TrustedDevice.isDeviceTrusted = saved.trust; emailService.sendOTPEmail = saved.email; AuditLog.logAction = saved.log; }
+});
+
+test('failed credential delivery rolls back only the new account and explains how to retry', async () => {
+  const email = require('../services/emailService');
+  const saved = { save: User.prototype.save, find: User.findOne, remove: User.findByIdAndDelete, email: email.sendTempPasswordEmail };
+  let created, removed;
+  try {
+    User.findOne = async () => null;
+    User.prototype.save = async function () { created = this; return this; };
+    User.findByIdAndDelete = async id => { removed = id; };
+    email.sendTempPasswordEmail = async () => { throw new Error('SMTP unavailable'); };
+    const res = response();
+    await admin.createUser({ body: { firstName: 'Captain', lastName: 'Fixture', email: 'captain@example.com', role: 'barangay_official', position: 'Barangay Captain' }, user: { _id: '507f1f77bcf86cd799439011', role: 'administrator' }, headers: {} }, res);
+    assert.equal(res.statusCode, 502); assert.equal(removed, created._id);
+    assert.match(res.body.error, /rolled back.*retry Create User/);
+    assert.equal(created.submitBudgetProposals, true); assert.equal(String(created.invitedBy), '507f1f77bcf86cd799439011');
+    assert.ok(!JSON.stringify(res.body).includes(created.password));
+  } finally { User.prototype.save = saved.save; User.findOne = saved.find; User.findByIdAndDelete = saved.remove; email.sendTempPasswordEmail = saved.email; }
 });

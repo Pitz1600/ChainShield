@@ -10,7 +10,6 @@ const {
     registrationLimiter
 } = require('../middleware/rateLimiter');
 const {
-    validateRegistration,
     validateLogin,
     validateOTP,
     validateTOTP
@@ -24,7 +23,7 @@ const { uploadProfile } = require('../middleware/upload');
 // ==========================================
 // PUBLIC ROUTES (rate-limited)
 // ==========================================
-router.post('/register', registrationLimiter, verifyCaptcha('register'), validateFieldLengths, validateRegistration, authController.register);
+router.post('/register', registrationLimiter, authController.register);
 router.post('/login', loginLimiter, verifyCaptcha('login'), validateFieldLengths, validateLogin, authController.login);
 router.post('/verify-login-otp', loginLimiter, validateOTP, authController.verifyLoginOtp);
 router.post('/verify-mfa', authMiddleware, otpVerificationLimiter, validateTOTP, authController.verifyMfa);

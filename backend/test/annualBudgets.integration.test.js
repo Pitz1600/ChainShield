@@ -57,6 +57,25 @@ test('annual budget HTTP workflow and real transaction races', { skip: !uri, tim
       assert.equal(rejected.status, 200); assert.equal((await pool(2026)).body.availableCentavos, 0);
       assert.equal((await request(`/budget-proposals/${p._id}`, 'PATCH', { revision: 2, fiscalYear: 2027, items: [] }, 'captain')).status, 409);
     });
+    await t.test('submitted edits preserve history and attachments and approval uses revised funds', async () => {
+      await create(2035, 90000); await reconcile(2035);
+      const p = await Proposal.create({ proposalNumber: crypto.randomUUID(), barangayId: 'historical-label', createdBy: users.captain._id, fiscalYear: 2035, title: 'Repair', proposalType: 'annual', sector: 'infrastructure', justification: 'Road repairs', items: [{ itemId: 'materials', name: 'Materials', description: 'Repair road', estimatedAmountCentavos: 100000 }], totalAmountCentavos: 100000, status: 'SUBMITTED', history: [{ action: 'submitted', snapshot: { totalAmountCentavos: 100000 } }], documents: [{ originalName: 'estimate.pdf', mimeType: 'application/pdf', bytes: 4, data: Buffer.from('%PDF') }] });
+      const path = `/budget-proposals/${p._id}`;
+      const body = { ...p.toObject(), revision: 1, reason: 'Supplier revised estimate', items: [{ ...p.items[0], estimatedAmountCentavos: 85000 }] };
+      for (const who of ['captain', 'treasurer', 'auditor']) assert.equal((await request(`${path}/review`, 'PATCH', body, who)).status, 403);
+      assert.equal((await approve(p)).status, 409);
+      const edits = await Promise.all([request(`${path}/review`, 'PATCH', body), request(`${path}/review`, 'PATCH', body)]);
+      assert.deepEqual(edits.map(r => r.status).sort(), [200, 409]);
+      assert.equal((await pool(2035)).body.availableCentavos, 90000);
+      const revised = (await request(path, 'GET', null, 'captain')).body;
+      assert.equal(revised.totalAmountCentavos, 85000); assert.equal(revised.status, 'SUBMITTED');
+      assert.equal(revised.documents.length, 1); assert.equal(revised.history[0].snapshot.totalAmountCentavos, 100000);
+      assert.equal(revised.history[1].snapshot.after.totalAmountCentavos, 85000); assert.equal(revised.history[1].actor.firstName, 'admin');
+      assert.equal((await approve(p)).status, 409);
+      assert.equal((await approve(revised)).status, 200);
+      assert.equal((await pool(2035)).body.availableCentavos, 5000);
+      assert.equal((await request(`${path}/review`, 'PATCH', { ...body, revision: 3 })).status, 409);
+    });
     await t.test('recording and auditing expenditures do not reserve annual funds twice', async () => {
       const p = await Proposal.findOne({ fiscalYear: 2026, status: 'ADMIN_APPROVED' });
       const before = (await pool(2026)).body.pool.reservedCentavos;

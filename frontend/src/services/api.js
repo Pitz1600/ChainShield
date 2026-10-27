@@ -246,6 +246,7 @@ export const feedbacksAPI = {
 export default api;
 
 export const budgetProposalsAPI = {
+  editReview: (id, data) => api.patch(`/budget-proposals/${id}/review`, data),
   access: () => api.get('/budget-proposals/access'),
   list: params => api.get('/budget-proposals', { params }),
   get: id => api.get(`/budget-proposals/${id}`),

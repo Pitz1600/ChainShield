@@ -63,11 +63,22 @@ router.post('/', canSubmit, wrap(async (req, res) => {
   await p.save(); await audit(req, { proposalId: p.id, action: 'draft_created' });
   res.status(201).json(p);
 }));
-router.get('/:id', wrap(async (req, res) => { const p = await get(req); await p.populate('createdBy', 'firstName lastName'); res.json(p); }));
-router.get('/:id/history', wrap(async (req, res) => res.json((await get(req)).history)));
+router.get('/:id', wrap(async (req, res) => { const p = await get(req); await p.populate('createdBy history.actor', 'firstName lastName'); res.json(p); }));
+router.get('/:id/history', wrap(async (req, res) => res.json((await (await get(req)).populate('history.actor', 'firstName lastName')).history)));
 router.patch('/:id', canSubmit, wrap(async (req, res) => {
   const p = await get(req); draftOwner(req, p);
   res.json(await change(req, p, normalize(req.body), event(req, p, 'draft_saved')));
+}));
+router.patch('/:id/review', requireAdmin, wrap(async (req, res) => {
+  const p = await get(req);
+  if (p.status !== 'SUBMITTED') fail('Only submitted proposals can be edited', 409);
+  const reason = text(req.body.reason, 4000);
+  if (!reason) fail('An edit reason is required');
+  const fields = normalize(req.body, true);
+  if (fields.fiscalYear !== p.fiscalYear) fail('Fiscal year cannot be changed');
+  const before = normalize(p.toObject(), true);
+  const entry = event(req, p, 'administrator_edited', p.status, reason, { before, after: fields });
+  res.json(await change(req, p, fields, entry));
 }));
 router.post('/:id/submit', canSubmit, wrap(async (req, res) => {
   const p = await get(req); draftOwner(req, p); normalize(p.toObject(), true);

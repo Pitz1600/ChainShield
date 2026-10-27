@@ -341,7 +341,7 @@ function Login({ onLogin, onNavigate }) {
           placeholder="your.email@example.com"
           required
         />
-        <span className="field-hint">Enter your registered email address</span>
+        <span className="field-hint">Enter your account email address. Accounts are created by the Municipal DILG Officer (administrator).</span>
       </div>
 
       <div className="form-field">

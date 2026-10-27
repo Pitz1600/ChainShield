@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield, Zap, Target, BarChart3, Lock, LogIn, FileText, Search, AlertTriangle, Edit } from 'lucide-react';
+import { Shield, Zap, Target, BarChart3, Lock, LogIn, FileText, Search, AlertTriangle } from 'lucide-react';
 import '../../styles/Welcome.css';
 
 function Welcome({ onNavigate }) {
@@ -70,10 +70,6 @@ function Welcome({ onNavigate }) {
             <button className="btn-primary" onClick={() => onNavigate('login')}>
               <span className="btn-icon"><LogIn size={20} /></span>
               <span>Sign In to Portal</span>
-            </button>
-            <button className="btn-secondary" onClick={() => onNavigate('register')}>
-              <span className="btn-icon"><Edit size={20} /></span>
-              <span>Create New Account</span>
             </button>
           </div>
 

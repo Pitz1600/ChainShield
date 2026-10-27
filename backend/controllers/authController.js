@@ -28,94 +28,9 @@ const generateOnboardingToken = (user, scope) => {
 // ==========================================
 // REGISTER
 // ==========================================
-exports.register = async (req, res) => {
-  try {
-    const { firstName, lastName, birthday, email, password, role, position } = req.body;
-    const normalizedEmail = normalizeEmail(email);
-
-    // Public staff registration requires administrator approval.
-    if (!['barangay_official', 'auditor'].includes(role) || !String(position || '').trim()) {
-      return res.status(403).json({
-        error: 'Registration failed. Please check your input and try again.'
-      });
-    }
-
-    const existingUser = await findUserByEmail(User, normalizedEmail);
-    if (existingUser) {
-      // SECURITY: Generic error to prevent user enumeration
-      return res.status(400).json({ error: 'Registration failed. Please check your input and try again.' });
-    }
-
-    // Generate OTP
-    const otp = generateOTP();
-    const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
-
-    const user = new User({
-      firstName,
-      lastName,
-      birthday: birthday || null,
-      email: normalizedEmail,
-      password,
-      role,
-      isApproved: false,
-      position,
-      isVerified: false,
-      otp,
-      otpExpires,
-      otpAttempts: 0,
-      otpLastSentAt: new Date()
-    });
-
-    await user.save();
-
-    // Send OTP via email
-    try {
-      await emailService.sendOTPEmail(normalizedEmail, otp, user.username);
-    } catch (emailError) {
-      console.error('Failed to send OTP email:', emailError);
-    }
-
-    const token = jwt.sign({ id: user._id, sessionVersion: user.sessionVersion }, process.env.JWT_SECRET, { expiresIn: '24h' });
-
-    // SECURITY: Send token as HttpOnly cookie
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      path: '/'
-    });
-
-    res.status(201).json({
-      success: true,
-      user: {
-        id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        username: user.username,
-        birthday: user.birthday,
-        email: user.email,
-        role: user.role,
-        isVerified: user.isVerified,
-        twoFactorEnabled: false,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt
-      }
-    });
-    await AuditLog.logAction({
-      action: 'user_register',
-      userId: user._id,
-      userRole: user.role,
-      username: user.username,
-      ipAddress: req.ip,
-      userAgent: req.get('User-Agent'),
-      details: { email: normalizedEmail }
-    });
-  } catch (error) {
-    console.error('[Registration Error]', error.message);
-    res.status(400).json({ error: 'Registration failed. Please check your input and try again.' });
-  }
-};
+exports.register = (req, res) => res.status(403).json({
+  error: 'Public registration is disabled. Contact the Municipal DILG Officer (administrator) to request an account.'
+});
 
 // ==========================================
 // LOGIN (with TOTP 2FA + Device Detection)
