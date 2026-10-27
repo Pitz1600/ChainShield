@@ -1,3 +1,4 @@
+import NumberInput from '../Forms/NumberInput';
 import { useEffect, useState } from 'react';
 import YearPicker from '../Common/YearPicker';
 import api from '../../services/api';
@@ -66,7 +67,7 @@ export default function AnnualBudget({ user }) {
     {data && <>
       <section className="bp-card"><Figures data={data} />{data.pool && <>{data.pool.reference && <p>Supporting reference: {data.pool.reference}</p>}<p>{data.pool.remarks}</p></>}</section>
       {admin && <form onSubmit={save}><fieldset className="bp-fields" disabled={busy}><legend>{data.pool ? 'Adjust annual pool' : 'Record annual pool'}</legend>
-        <label>Budget available for proposals (PHP) *<input required inputMode="decimal" value={amount} onChange={e => setAmount(e.target.value)} /></label>
+        <label>Budget available for proposals (PHP) *<NumberInput required value={amount} onChange={e => setAmount(e.target.value)} /></label>
         <label>Remarks<textarea maxLength="4000" value={remarks} onChange={e => setRemarks(e.target.value)} /></label>
         {data.pool && <label>Reason for adjustment *<textarea required maxLength="4000" value={reason} onChange={e => setReason(e.target.value)} /></label>}
       </fieldset><div className="bp-actions">

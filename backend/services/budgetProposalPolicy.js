@@ -43,6 +43,7 @@ function normalize(body, complete = false) {
     result.estimatedAmountCentavos = amount;
     result.itemId = text(item.itemId, 80) || crypto.randomUUID();
     if (complete && (!result.name || !result.description || amount <= 0)) fail('Each item needs a name, spending purpose and positive amount');
+    if (complete && !result.expectedTimeline) fail('Each item needs an expected timeline');
     return result;
   });
   out.totalAmountCentavos = out.items.reduce((sum, item) => sum + item.estimatedAmountCentavos, 0);

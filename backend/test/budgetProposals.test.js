@@ -8,7 +8,7 @@ const router = require('../routes/budgetProposals');
 const annual = require('../services/annualBudgetService');
 const original = { approve: annual.approve, find: Proposal.findOne, update: Proposal.findOneAndUpdate, audit: Audit.logAction };
 afterEach(() => { annual.approve = original.approve; Proposal.findOne = original.find; Proposal.findOneAndUpdate = original.update; Audit.logAction = original.audit; });
-const valid = () => ({ title: 'Road repair', fiscalYear: 2027, proposalType: 'annual', sector: 'infrastructure', justification: 'Repair damaged roads', items: [{ name: 'Cement', description: '100 bags for Pantal road', estimatedAmountCentavos: 10001 }] });
+const valid = () => ({ title: 'Road repair', fiscalYear: 2027, proposalType: 'annual', sector: 'infrastructure', justification: 'Repair damaged roads', items: [{ name: 'Cement', description: '100 bags for Pantal road', expectedTimeline: 'January–March 2027', estimatedAmountCentavos: 10001 }] });
 const user = { _id: '507f1f77bcf86cd799439011', role: 'barangay_official', submitBudgetProposals: true, barangayId: 'pantal' };
 const id = '507f1f77bcf86cd799439012';
 async function call(path, req, method) {
@@ -153,4 +153,15 @@ test('submitted edit gate rejects Captain, Treasurer and auditor', () => {
   }
   let passed = false;
   gate({ user: { role: 'administrator' } }, {}, () => { passed = true; }); assert.ok(passed);
+});
+
+
+test('completed proposals require a timeline for every item, while drafts can be incomplete', () => {
+  for (const timeline of [undefined, '', '   ']) {
+    const body = valid();
+    body.items.push({ ...body.items[0], expectedTimeline: timeline });
+    assert.throws(() => normalize(body, true), /expected timeline/);
+    assert.doesNotThrow(() => normalize(body, false));
+  }
+  assert.equal(normalize(valid(), true).items[0].expectedTimeline, 'January–March 2027');
 });
