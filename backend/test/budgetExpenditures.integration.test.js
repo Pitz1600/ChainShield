@@ -19,6 +19,7 @@ test('expenditure HTTP workflow with real MongoDB replica-set transactions', { s
   const Proposal = require('../models/BudgetProposal');
   const Expenditure = require('../models/BudgetExpenditure');
   const Transaction = require('../models/Transaction');
+  const AuditorEvidence = require('../models/AuditorEvidence');
   const pipeline = require('../services/multiStageFraudPipeline');
   const originalPipeline = pipeline.processBatch;
   const app = express(); app.use(express.json());
@@ -113,6 +114,63 @@ test('expenditure HTTP workflow with real MongoDB replica-set transactions', { s
       assert.equal((await Transaction.findById(e.transactionId)).verificationStatus, 'Rejected');
       const stored = await Expenditure.findById(e._id); assert.equal(String(stored.reviewerId), String(users.auditor._id)); assert.ok(stored.reviewedAt);
     });
+    function auditForm(reason = 'Inspection confirms completed work', count = 1) {
+      const data = new FormData(); data.append('explanation', reason);
+      for (let i = 0; i < count; i++) data.append('evidence', new Blob([pdf], { type: 'application/pdf' }), `inspection-${i}.pdf`);
+      return data;
+    }
+    const auditUrl = (b = p, x = e) => `/approved-budgets/${b._id}/expenditures/${x._id}/audit-evidence`;
+    await t.test('Auditor upload on a rejected expenditure preserves finances, assessment and Treasurer files', async () => {
+      const before = (await Expenditure.findById(e._id)).toObject();
+      const budgetBefore = (await Proposal.findById(p._id)).toObject(); const beforeCalls = calls;
+      const response = await request('auditor', auditUrl(), { method: 'POST', body: auditForm() });
+      assert.equal(response.status, 201, JSON.stringify(response));
+      const f = response.body.auditorEvidence[0]; assert.equal(f.data, undefined);
+      assert.equal(f.sha256, crypto.createHash('sha256').update(pdf).digest('hex'));
+      const after = (await Expenditure.findById(e._id)).toObject();
+      for (const key of ['reviewStatus', 'reviewerId', 'reviewedAt', 'reviewReason', 'amountCentavos', 'assessment', 'assessmentStatus', 'evidence', 'input']) assert.deepEqual(after[key], before[key], key);
+      assert.deepEqual((await Proposal.findById(p._id)).toObject(), budgetBefore); assert.equal(calls, beforeCalls);
+      assert.equal(after.history.at(-1).action, 'audit_evidence_uploaded'); assert.equal(String(after.history.at(-1).evidenceReferences[0]), f._id);
+      for (const reader of ['treasurer', 'auditor', 'admin']) {
+        const r = await request(reader, `${auditUrl()}/${f._id}`); assert.equal(r.status, 200); assert.equal(r.body, pdf); assert.equal(r.headers.get('cache-control'), 'private, no-store');
+      }
+      const page = await request('auditor', `/approved-budgets/${p._id}`); assert.equal(page.body.expenditures[0].auditorEvidence[0].data, undefined);
+      const other = await budget();
+      assert.equal((await request('auditor', `${auditUrl(other)}/${f._id}`)).status, 404);
+      const another = await Expenditure.create({ budgetProposalId: p._id, allocationId: 'materials', submissionKey: crypto.randomUUID(), submittedBy: users.treasurer._id, amountCentavos: 1, input: {} });
+      assert.equal((await request('auditor', `${auditUrl(p, another)}/${f._id}`)).status, 404);
+      for (const role of ['treasurer', 'official', 'admin']) assert.equal((await request(role, auditUrl(), { method: 'POST', body: auditForm() })).status, 403);
+      assert.equal((await request('official', `${auditUrl()}/${f._id}`)).status, 403);
+      for (const patch of [{ isActive: false }, { isApproved: false }, { isVerified: false }]) {
+        await User.updateOne({ _id: users.auditor._id }, { $set: patch });
+        assert.ok([401, 403].includes((await request('auditor', auditUrl(), { method: 'POST', body: auditForm() })).status));
+        await User.updateOne({ _id: users.auditor._id }, { $set: { isActive: true, isApproved: true, isVerified: true } });
+      }
+    });
+    await t.test('invalid and failed batches leave no evidence, counters or history', async () => {
+      const before = (await Expenditure.findById(e._id)).toObject();
+      const count = await AuditorEvidence.countDocuments({ expenditureId: e._id });
+      assert.equal((await request('auditor', auditUrl(), { method: 'POST', body: auditForm(' ') })).status, 422);
+      const invalid = auditForm(); invalid.append('evidence', new Blob(['bad'], { type: 'image/png' }), 'invalid.png');
+      assert.equal((await request('auditor', auditUrl(), { method: 'POST', body: invalid })).status, 422);
+      assert.equal((await request('auditor', auditUrl(), { method: 'POST', body: auditForm('Inspection', 6) })).status, 422);
+      const oversized = auditForm(); oversized.append('evidence', new Blob([Buffer.alloc(5 * 1024 * 1024 + 1)], { type: 'application/pdf' }), 'large.pdf');
+      assert.equal((await request('auditor', auditUrl(), { method: 'POST', body: oversized })).status, 422);
+      const original = AuditorEvidence.create;
+      AuditorEvidence.create = async function (docs, options) { await original.call(this, docs.slice(0, 1), options); throw new Error('Injected failure after first file'); };
+      try { assert.equal((await request('auditor', auditUrl(), { method: 'POST', body: auditForm('Inspection', 2) })).status, 500); }
+      finally { AuditorEvidence.create = original; }
+      assert.equal(await AuditorEvidence.countDocuments({ expenditureId: e._id }), count);
+      assert.deepEqual((await Expenditure.findById(e._id)).toObject(), before);
+    });
+    await t.test('concurrent uploads enforce cumulative limits atomically', async () => {
+      await Expenditure.updateOne({ _id: e._id }, { $set: { auditEvidenceCount: 49 } });
+      const responses = await Promise.all([1, 2].map(() => request('auditor', auditUrl(), { method: 'POST', body: auditForm() })));
+      assert.deepEqual(responses.map(r => r.status).sort(), [201, 409]);
+      await Expenditure.updateOne({ _id: e._id }, { $set: { auditEvidenceCount: 2, auditEvidenceBytes: 50 * 1024 * 1024 } });
+      assert.equal((await request('auditor', auditUrl(), { method: 'POST', body: auditForm() })).status, 409);
+      await Expenditure.updateOne({ _id: e._id }, { $set: { auditEvidenceBytes: pdf.length * 2 } });
+    });
     await t.test('analysis failure retains evidence and unavailable status; retry does not duplicate', async () => {
       pipeline.processBatch = async () => { calls++; throw new Error('Simulated unavailable checker'); };
       const other = await budget(); const key = crypto.randomUUID();
@@ -172,6 +230,7 @@ test('expenditure HTTP workflow with real MongoDB replica-set transactions', { s
       const response = await csvSubmit(other, csvContent(), key); assert.equal(response.status, 201, JSON.stringify(response));
       const expenses = response.body.expenditures; assert.equal(expenses.length, 2); assert.equal(expenses[0].sourceRecordId, 'CSV-1'); assert.equal(expenses[1].sourceRecordId, 'CSV-2');
       assert.equal(expenses[0].assessmentStatus, 'complete'); assert.equal(expenses[1].assessmentStatus, 'complete');
+      assert.equal((await request('auditor', auditUrl(other, expenses[0]), { method: 'POST', body: auditForm() })).status, 201);
       const first = await Transaction.findById(expenses[0].transactionId); assert.equal(first.lineItems[0].name, 'Cement'); assert.equal(first.amount, 40); assert.equal(first.mlUsed, true);
       const stored = await Expenditure.find({ budgetProposalId: other._id }).select('+evidence.data').sort({ sourceRowNumber: 1 });
       assert.equal(stored[0].evidence[0].data.toString(), pdf); assert.equal(stored[1].evidence[0].data.toString(), pdf.replace('fixture', 'second'));

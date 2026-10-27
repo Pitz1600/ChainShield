@@ -221,3 +221,40 @@ shared-document selection, batch submission, downloads and auditor review. Integ
 tests use real MongoDB transactions and the unchanged batch service, with a local
 fixture response at the ML HTTP boundary; model behavior and production model files
 are not modified by these tests.
+
+### Auditor supporting evidence
+
+Auditors can use **Upload Audit Evidence** in expenditure details at any review
+status, including CSV-created expenditures. Treasurer documents and Auditor
+supporting evidence appear separately. Uploads require an explanation of up to
+4,000 characters and accept PDF, DOCX, JPG/JPEG and PNG with matching MIME and
+content signatures: five files per request, 5 MB each, 10 MB combined. The separate
+cumulative Auditor limit is **50 files / 50 MB per expenditure**. Files are
+append-only; explain an incorrect attachment in a subsequent upload.
+
+`POST /api/approved-budgets/:id/expenditures/:expenseId/audit-evidence` accepts
+multipart `evidence` files and `explanation`. Only active, approved, verified
+Auditors with completed onboarding can upload. The matching
+`GET .../audit-evidence/:fileId` uses existing expenditure reader authorization
+and checks both parent IDs. No public URLs are created.
+
+The private `auditorevidences` collection holds one document per file, including
+SHA-256, uploader identity/name, timestamp and parent references. Ordinary API
+responses omit file bytes. A MongoDB transaction commits the complete batch,
+expenditure counters and `audit_evidence_uploaded` history references together.
+The expenditure counter update serializes concurrent uploads. No migration is
+needed for existing expenditures (missing counters are treated as zero). Include
+this collection in normal database backups. No changes are made to review,
+financial reservations, Treasurer evidence limits, or AI assessments.
+
+Audit Review Reports include separate Treasurer and Auditor inventories, with
+Auditor explanation, uploader, date, size, MIME type, checksum and file reference.
+Documents themselves are not embedded or sent to the AI checker.
+
+Auditor evidence verification (2026-10-27): 78 backend tests passed, 20 isolated
+replica-set expenditure/report integration checks passed, frontend tests/build
+passed, and Firefox fixture workflows passed at 320–1440 px. Checks include
+inactive/unapproved/unverified users, cross-parent download attempts, invalid
+batches, injected mid-write failure, concurrent cumulative limits, CSV expenditures,
+and preservation of Treasurer evidence, financial reservations and AI results.
+The frontend build still reports its existing unrelated CSS syntax warning.

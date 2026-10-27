@@ -5,6 +5,8 @@ const multer = require('multer');
 const Proposal = require('../models/BudgetProposal');
 const Expenditure = require('../models/BudgetExpenditure');
 const Transaction = require('../models/Transaction');
+const AuditorEvidence = require('../models/AuditorEvidence');
+const auditEvidencePolicy = require('../services/auditorEvidencePolicy');
 const policy = require('../services/budgetExpenditurePolicy');
 const { fail, text } = require('../services/budgetProposalPolicy');
 const { validate } = require('../services/budgetDocumentPolicy');
@@ -130,7 +132,11 @@ router.post('/:id/expenditures/import-csv', wrap(async (req, res) => {
 }));
 router.get('/:id', wrap(async (req, res) => {
   const p = await budget(req); const rows = await Expenditure.find({ budgetProposalId: p._id }).sort({ createdAt: -1 });
-  res.json({ budget: p, expenditures: rows, totals: policy.totals(rows, p.totalAmountCentavos), allocations: p.items.map(i => ({ ...i, totals: policy.totals(rows.filter(e => e.allocationId === i.itemId), i.estimatedAmountCentavos) })) });
+  const auditorFiles = await AuditorEvidence.find({ budgetProposalId: p._id }).sort({ uploadedAt: 1, _id: 1 }).lean();
+  const byExpense = new Map();
+  for (const f of auditorFiles) { const key = String(f.expenditureId); if (!byExpense.has(key)) byExpense.set(key, []); byExpense.get(key).push(f); }
+  const expenditures = rows.map(e => ({ ...e.toObject(), auditorEvidence: byExpense.get(String(e._id)) || [] }));
+  res.json({ budget: p, expenditures, totals: policy.totals(rows, p.totalAmountCentavos), allocations: p.items.map(i => ({ ...i, totals: policy.totals(rows.filter(e => e.allocationId === i.itemId), i.estimatedAmountCentavos) })) });
 }));
 router.post('/:id/expenditures', wrap(async (req, res) => {
   if (!policy.treasurer(req.user)) fail('Approved Treasurer required', 403);
@@ -165,11 +171,37 @@ router.post('/:id/expenditures', wrap(async (req, res) => {
   }
   res.status(201).json(await Expenditure.findById(e._id));
 }));
-router.get('/:id/expenditures/:expenseId', wrap(async (req, res) => { await budget(req); res.json(await expense(req)); }));
+router.get('/:id/expenditures/:expenseId', wrap(async (req, res) => { await budget(req); const e = await expense(req); res.json({ ...e.toObject(), auditorEvidence: await AuditorEvidence.find({ budgetProposalId: req.params.id, expenditureId: e._id }).sort({ uploadedAt: 1, _id: 1 }).lean() }); }));
 router.get('/:id/expenditures/:expenseId/evidence/:fileId', wrap(async (req, res) => {
   await budget(req); const e = await expense(req, true); const f = e.evidence.id(req.params.fileId);
   if (!f) fail('Evidence not found', 404);
   await Expenditure.updateOne({ _id: e._id }, { $push: { history: event(req, 'evidence_downloaded', String(f._id)) } });
+  res.set('Cache-Control', 'private, no-store').set('X-Content-Type-Options', 'nosniff').set('Content-Security-Policy', "sandbox; default-src 'none'").type(f.mimeType).attachment(f.originalName).send(f.data);
+}));
+router.post('/:id/expenditures/:expenseId/audit-evidence', wrap(async (req, res) => {
+  if (req.user.role !== 'auditor') fail('Approved Auditor required', 403);
+  await budget(req); const e = await expense(req);
+  await receive(upload.array('evidence', 5), req, res);
+  const docs = auditEvidencePolicy.documents(req.files, req.body.explanation, req.user).map(d => ({ ...d, _id: new mongoose.Types.ObjectId(), budgetProposalId: e.budgetProposalId, expenditureId: e._id }));
+  const bytes = docs.reduce((n, f) => n + f.bytes, 0);
+  await AuditorEvidence.init();
+  const session = await mongoose.startSession();
+  try { await session.withTransaction(async () => {
+    // Updating this shared counter serializes concurrent uploads, including retries.
+    const updated = await Expenditure.updateOne({ _id: e._id, budgetProposalId: e.budgetProposalId, $expr: { $and: [
+      { $lte: [{ $add: [{ $ifNull: ['$auditEvidenceBytes', 0] }, bytes] }, auditEvidencePolicy.MAX_BYTES] },
+      { $lte: [{ $add: [{ $ifNull: ['$auditEvidenceCount', 0] }, docs.length] }, auditEvidencePolicy.MAX_FILES] }
+    ] } }, { $inc: { auditEvidenceBytes: bytes, auditEvidenceCount: docs.length }, $push: { history: { ...event(req, 'audit_evidence_uploaded', docs[0].explanation), evidenceReferences: docs.map(d => d._id) } } }, { session });
+    if (!updated.modifiedCount) fail('Auditor evidence limit reached (50 files / 50 MB per expenditure)', 409);
+    await AuditorEvidence.create(docs, { session });
+  }); } finally { await session.endSession(); }
+  res.status(201).json({ auditorEvidence: docs.map(({ data, ...metadata }) => metadata) });
+}));
+router.get('/:id/expenditures/:expenseId/audit-evidence/:fileId', wrap(async (req, res) => {
+  await budget(req); const e = await expense(req);
+  if (!mongoose.isValidObjectId(req.params.fileId)) fail('Auditor evidence not found', 404);
+  const f = await AuditorEvidence.findOne({ _id: req.params.fileId, expenditureId: e._id, budgetProposalId: e.budgetProposalId }).select('+data');
+  if (!f) fail('Auditor evidence not found', 404);
   res.set('Cache-Control', 'private, no-store').set('X-Content-Type-Options', 'nosniff').set('Content-Security-Policy', "sandbox; default-src 'none'").type(f.mimeType).attachment(f.originalName).send(f.data);
 }));
 router.post('/:id/expenditures/:expenseId/evidence', wrap(async (req, res) => {

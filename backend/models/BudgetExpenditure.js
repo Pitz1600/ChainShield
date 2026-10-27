@@ -20,7 +20,9 @@ const schema = new mongoose.Schema({
   reviewedAt: Date,
   reviewReason: String,
   evidence: [{ categories: [String], originalName: String, mimeType: String, bytes: Number, sha256: String, uploadedBy: mongoose.Schema.Types.ObjectId, uploadedAt: Date, version: Number, reason: String, data: { type: Buffer, select: false } }],
-  history: [{ actor: mongoose.Schema.Types.ObjectId, action: String, at: Date, reason: String }]
+  auditEvidenceBytes: { type: Number, default: 0 },
+  auditEvidenceCount: { type: Number, default: 0 },
+  history: [{ evidenceReferences: [mongoose.Schema.Types.ObjectId], actor: mongoose.Schema.Types.ObjectId, action: String, at: Date, reason: String }]
 }, { timestamps: true });
 schema.index({ budgetProposalId: 1, submissionKey: 1 }, { unique: true });
 schema.index({ budgetProposalId: 1, sourceRecordId: 1 }, { unique: true, partialFilterExpression: { sourceRecordId: { $type: 'string' } } });

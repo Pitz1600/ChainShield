@@ -36,6 +36,14 @@ const server = http.createServer((req, res) => {
     json(res, expenditure, 201);
    }); return;
   }
+  if (req.method === 'POST' && url.pathname.endsWith('/audit-evidence')) {
+    let body = ''; req.on('data', chunk => { body += chunk; }); req.on('end', () => {
+      assert.equal(mode, 'auditor'); assert.ok(body.includes('Inspection confirms completed work'));
+      expenditure.auditorEvidence = [{ _id: '666666666666666666666666', originalName: 'inspection.pdf', mimeType: 'application/pdf', bytes: 30, uploaderName: 'Auditor Fixture', uploadedBy: 'auditor', uploadedAt: '2026-10-27T10:00:00Z', explanation: 'Inspection confirms completed work', sha256: 'fixture-checksum' }];
+      json(res, { auditorEvidence: expenditure.auditorEvidence }, 201);
+    }); return;
+  }
+  if (url.pathname.includes('/audit-evidence/')) { res.writeHead(200, { 'Content-Type': 'application/pdf' }); res.end('%PDF-1.4 inspection %%EOF'); return; }
   if (req.method === 'POST' && url.pathname.endsWith('/review')) {
    let body = ''; req.on('data', chunk => { body += chunk; }); req.on('end', () => { const data = JSON.parse(body); assert.equal(mode, 'auditor'); expenditure.reviewStatus = data.status; reviews++; json(res, expenditure); }); return;
   }
@@ -127,6 +135,7 @@ const server = http.createServer((req, res) => {
   await evaluate('[...document.querySelectorAll("button")].find(b => b.textContent === "Download for manual review").click()');
   await wait('window.__downloads === 1');
   assert.equal(await evaluate('[...document.querySelectorAll("button")].some(b => b.textContent === "Verify")'), false);
+  assert.equal(await evaluate('[...document.querySelectorAll("button")].some(b => b.textContent === "Upload Audit Evidence")'), false);
   console.log('PASS Treasurer navigation, embedded form, both evidence requirements, submission, original AI explanations and download');
   await evaluate('[...document.querySelectorAll("button")].find(b => b.textContent === "Record Expenditure").click()');
   await evaluate('[...document.querySelectorAll("button")].find(b => b.textContent === "Upload CSV").click()');
@@ -155,6 +164,20 @@ const server = http.createServer((req, res) => {
   await evaluate('[...document.querySelectorAll("button")].find(b => b.textContent === "Verify").click()');
   await wait('document.querySelector("tbody").textContent.includes("verified")');
   assert.equal(reviews, 1);
+  await evaluate('[...document.querySelectorAll("button")].find(b => b.textContent === "Upload Audit Evidence").click()');
+  await wait('!!document.querySelector("form textarea")');
+  assert.equal(await evaluate('[...document.querySelectorAll("button")].find(b => b.textContent === "Save Audit Evidence").disabled'), true);
+  await evaluate(`(() => {
+    const input = document.querySelector('form input[type=file]'); const transfer = new DataTransfer(); transfer.items.add(new File(['%PDF-1.4 inspection %%EOF'], 'inspection.pdf', { type: 'application/pdf' })); input.files = transfer.files; input.dispatchEvent(new Event('change', { bubbles: true }));
+    const area = document.querySelector('form textarea'); Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set.call(area, 'Inspection confirms completed work'); area.dispatchEvent(new Event('input', { bubbles: true }));
+  })()`);
+  await wait('![...document.querySelectorAll("button")].find(b => b.textContent === "Save Audit Evidence").disabled');
+  await evaluate('document.querySelector("form").requestSubmit()');
+  await wait('document.body.textContent.includes("Auditor Fixture")');
+  assert.equal(expenditure.reviewStatus, 'verified'); assert.equal(submissions, 1); assert.equal(reviews, 1);
+  await evaluate('[...document.querySelectorAll("button")].find(b => b.textContent === "Download Auditor evidence").click()');
+  await wait('window.__downloads === 1');
+  console.log('PASS Auditor evidence upload after verification, explanation, metadata, download and unchanged decision');
   await checkResponsive('review');
   await send('browsingContext.setViewport', { context, viewport: { width: 390, height: 844 }, devicePixelRatio: 1 });
   const screenshot = await send('browsingContext.captureScreenshot', { context }); fs.writeFileSync('/tmp/chainshield-expenditure-mobile.png', Buffer.from(screenshot.data, 'base64'));

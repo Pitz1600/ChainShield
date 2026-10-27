@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const crypto = require('crypto');
 const Proposal = require('../models/BudgetProposal');
 const Expenditure = require('../models/BudgetExpenditure');
+const AuditorEvidence = require('../models/AuditorEvidence');
 const Transaction = require('../models/Transaction');
 const User = require('../models/User');
 const { fail, barangay, text } = require('./budgetProposalPolicy');
@@ -88,8 +89,8 @@ function construct(proposals, expenses, transactions, users, filters, user) {
     const linked = e.transactionId ? tx.get(String(e.transactionId)) : null;
     if (e.transactionId && !linked) notices.push(`Orphan transaction reference on EXP-${e._id}`);
     if (e.reviewerId && !people.has(String(e.reviewerId))) notices.push(`Reviewer unavailable on EXP-${e._id}`);
-    const row = { id: String(e._id), reference: `EXP-${e._id}`, date: date.toISOString(), proposalNumber: a.proposalNumber, allocation: a.name, purpose: text(e.input.description), payee: text(e.sourcePayee || e.input.toAddress), amountCentavos: e.amountCentavos, reviewStatus: e.reviewStatus, transactionReference: linked?.transactionId || (e.transactionId ? 'Unavailable (orphan link)' : 'Not linked'), evidenceCount: e.evidence?.length || 0, sortDate: basis };
-    if (filters.type === 'audit') Object.assign(row, { reviewer: name(people.get(String(e.reviewerId))), reviewedAt: e.reviewedAt || null, reviewReason: e.reviewReason || '', assessmentStatus: e.assessmentStatus === 'complete' && e.assessment ? 'Complete' : e.assessmentStatus === 'pending' ? 'Pending' : 'Unavailable', aiRisk: e.assessmentStatus === 'complete' && e.assessment ? { level: typeof e.assessment.riskLevel === 'string' ? e.assessment.riskLevel : 'Unavailable', score: Number.isFinite(e.assessment.riskScore) ? e.assessment.riskScore : null } : null, evidence: (e.evidence || []).map(f => ({ reference: String(f._id), filename: f.originalName, categories: f.categories, version: f.version, ...(filters.includeHistory && { checksum: f.sha256 }) })), ...(filters.includeHistory && { history: (e.history || []).map(h => ({ actor: name(people.get(String(h.actor))), action: h.action, at: h.at, reason: h.reason })) }) });
+    const row = { id: String(e._id), reference: `EXP-${e._id}`, date: date.toISOString(), proposalNumber: a.proposalNumber, allocation: a.name, purpose: text(e.input.description), payee: text(e.sourcePayee || e.input.toAddress), amountCentavos: e.amountCentavos, reviewStatus: e.reviewStatus, transactionReference: linked?.transactionId || (e.transactionId ? 'Unavailable (orphan link)' : 'Not linked'), evidenceCount: (e.evidence?.length || 0) + (e.auditorEvidence?.length || 0), sortDate: basis };
+    if (filters.type === 'audit') Object.assign(row, { reviewer: name(people.get(String(e.reviewerId))), reviewedAt: e.reviewedAt || null, reviewReason: e.reviewReason || '', assessmentStatus: e.assessmentStatus === 'complete' && e.assessment ? 'Complete' : e.assessmentStatus === 'pending' ? 'Pending' : 'Unavailable', aiRisk: e.assessmentStatus === 'complete' && e.assessment ? { level: typeof e.assessment.riskLevel === 'string' ? e.assessment.riskLevel : 'Unavailable', score: Number.isFinite(e.assessment.riskScore) ? e.assessment.riskScore : null } : null, auditorEvidence: (e.auditorEvidence || []).map(f => ({ reference: String(f._id), filename: f.originalName, mimeType: f.mimeType, bytes: f.bytes, uploader: f.uploaderName, uploadedBy: String(f.uploadedBy), uploadedAt: f.uploadedAt, explanation: f.explanation, checksum: f.sha256 })), evidence: (e.evidence || []).map(f => ({ reference: String(f._id), filename: f.originalName, categories: f.categories, version: f.version, ...(filters.includeHistory && { checksum: f.sha256 }) })), ...(filters.includeHistory && { history: (e.history || []).map(h => ({ actor: name(people.get(String(h.actor))), action: h.action, at: h.at, reason: h.reason, evidenceReferences: (h.evidenceReferences || []).map(String) })) }) });
     selected.push(row);
   }
   if (selected.length > MAX_ROWS) fail('Report exceeds 5,000 detail rows. Narrow filters.', 413);
@@ -108,6 +109,12 @@ async function generate(filters, user) {
     const proposals = await Proposal.find({ status: 'ADMIN_APPROVED', barangayId: barangay(), fiscalYear: filters.fiscalYear, ...(filters.proposalId && { _id: filters.proposalId }) }).select('proposalNumber fiscalYear items totalAmountCentavos').session(session).lean();
     if (filters.proposalId && !proposals.length) fail('Approved proposal not found in selected scope/year', 404);
     const expenses = await Expenditure.find({ budgetProposalId: { $in: proposals.map(p => p._id) } }).select(`budgetProposalId allocationId amountCentavos input.timestamp input.description input.toAddress sourcePayee reviewStatus transactionId reviewerId reviewedAt reviewReason assessmentStatus assessment.riskLevel assessment.riskScore evidence._id evidence.originalName evidence.categories evidence.version ${filters.includeHistory ? 'evidence.sha256 history' : ''}`).session(session).lean();
+    if (filters.type !== 'summary') {
+      const files = await AuditorEvidence.find({ budgetProposalId: { $in: proposals.map(p => p._id) }, expenditureId: { $in: expenses.map(e => e._id) } }).sort({ uploadedAt: 1, _id: 1 }).session(session).lean();
+      const byExpense = new Map();
+      for (const f of files) { const key = String(f.expenditureId); if (!byExpense.has(key)) byExpense.set(key, []); byExpense.get(key).push(f); }
+      for (const e of expenses) e.auditorEvidence = byExpense.get(String(e._id)) || [];
+    }
     const transactions = await Transaction.find({ _id: { $in: expenses.map(e => e.transactionId).filter(Boolean) } }).select('transactionId').session(session).lean();
     const users = await User.find({ _id: { $in: expenses.flatMap(e => [e.reviewerId, ...(e.history || []).map(h => h.actor)]).filter(Boolean) } }).select('firstName lastName').session(session).lean();
     return construct(proposals, expenses, transactions, users, filters, user);
