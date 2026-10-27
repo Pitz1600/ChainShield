@@ -1,9 +1,12 @@
-.financial-reports { padding: 24px; }
-.report-controls fieldset { border: 1px solid #aaa; padding: 16px; margin: 12px 0; display: flex; flex-wrap: wrap; gap: 16px; }
-.report-controls label { display: flex; flex-direction: column; gap: 6px; }
-.report-controls input, .report-controls select, .report-controls button { padding: 8px; font: inherit; }
-.report-controls button { margin: 8px 0; cursor: pointer; }
-.report-controls [role=alert] { color: #a00; }
+.financial-reports { width: 100%; max-width: var(--layout-max-width); margin: 0 auto; padding: var(--layout-gutter); min-width: 0; }
+.financial-reports .report-controls { padding: 0; }
+.report-controls .bp-page-header { padding-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); margin: .75rem 0 1.25rem; }
+.report-controls .report-filter-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem 1.5rem; }
+.report-controls .report-filter-grid label { margin: 0; }
+.report-controls .report-period { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; margin: .25rem 0 0; background: var(--bg-main); box-shadow: none; }
+.report-controls .report-period:disabled { opacity: .6; }
+.report-controls .report-generate { grid-column: 1 / -1; justify-self: start; }
+.report-controls [role="status"] { padding: .85rem 1rem; border: 1px solid #c7d2fe; border-radius: var(--radius-md); background: #eef2ff; color: var(--primary-dark); }
 .financial-report { background: white; color: black; padding: 24px; margin-top: 24px; font: 14px Arial, sans-serif; overflow-wrap: anywhere; }
 .financial-report h1 { font-size: 22px; }
 .financial-report h2 { font-size: 18px; margin: 18px 0 10px; }
@@ -33,4 +36,26 @@
 @media print {
   .report-allocation { break-inside: avoid; }
   .financial-report tr.report-long-row { break-inside: auto; }
+}
+
+@media screen {
+  .financial-report { border: 1px solid var(--border-color); border-radius: var(--radius-xl); box-shadow: var(--shadow-xs); color: var(--text-primary); font-family: var(--font-sans); line-height: 1.6; overflow-x: auto; }
+  .financial-report header { padding-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); }
+  .financial-report header h2 { color: var(--primary-dark); }
+  .financial-report header p, .financial-report footer { color: var(--text-secondary); font-size: .8rem; }
+  .financial-report .report-totals { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr)); gap: 1rem; }
+  .financial-report .report-totals > div { padding: 1rem; background: var(--bg-main); border: 1px solid var(--border-color); border-radius: var(--radius-lg); }
+  .financial-report .report-totals dt { color: var(--text-secondary); font-size: .8rem; }
+  .financial-report .report-totals dd { font-size: 1.1rem; font-variant-numeric: tabular-nums; }
+  .financial-report .report-allocation { border-color: var(--border-color); border-radius: var(--radius-lg); padding: 1.25rem; }
+  .financial-report table { min-width: 760px; }
+  .financial-report th, .financial-report td { border-color: var(--border-color); padding: .75rem; }
+  .financial-report th { background: var(--bg-main); font-size: .8rem; }
+  .financial-report footer { border-top: 1px solid var(--border-color); padding-top: 1.25rem; }
+}
+@media screen and (max-width: 640px) {
+  .report-controls .report-filter-grid, .report-controls .report-period { grid-template-columns: minmax(0, 1fr); }
+  .report-controls .report-filter-grid { padding: 1rem; }
+  .financial-reports .financial-report { padding: 1rem; }
+  .report-signatures { flex-wrap: wrap; gap: 1.5rem; }
 }

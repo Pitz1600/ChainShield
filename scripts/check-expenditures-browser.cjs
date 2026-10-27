@@ -23,7 +23,7 @@ const server = http.createServer((req, res) => {
   if (req.method === 'POST' && url.pathname.endsWith('/preview-csv')) return json(res, { filename: 'expenses.csv', rows: [2, 3].map(rowNumber => ({ rowNumber, recordId: `CSV-${rowNumber}`, payer: 'Office', payee: 'Supplier', input: { amount: 10, description: 'CSV materials', timestamp: '2026-10-20T00:00:00Z' } })) });
   if (req.method === 'POST' && url.pathname.endsWith('/import-csv')) {
     let body = ''; req.on('data', c => { body += c; }); req.on('end', () => {
-      assert.ok(body.includes('csvFile') && body.includes('evidenceIndexes') && body.includes('supporting_document')); csvSubmissions++;
+      assert.ok(body.includes('csvFile') && body.includes('evidenceIndexes') && body.includes('name="evidence"') && !body.includes('name="categories"')); csvSubmissions++;
       imported = [4, 5].map(n => ({ ...expenditure, _id: String(n).repeat(24), amountCentavos: 1000, input: { ...expenditure.input, description: 'CSV materials' }, sourceFilename: 'expenses.csv', sourceRowNumber: n - 2 }));
       json(res, { expenditures: imported }, 201);
     }); return;
@@ -47,7 +47,12 @@ const server = http.createServer((req, res) => {
   if (req.method === 'POST' && url.pathname.endsWith('/review')) {
    let body = ''; req.on('data', chunk => { body += chunk; }); req.on('end', () => { const data = JSON.parse(body); assert.equal(mode, 'auditor'); expenditure.reviewStatus = data.status; reviews++; json(res, expenditure); }); return;
   }
-  if (url.pathname.includes('/evidence/')) { res.writeHead(200, { 'Content-Type': 'application/pdf' }); res.end('%PDF-1.4\nfixture\n%%EOF'); return; }
+  if (url.pathname.includes('/evidence/')) {
+    const fileId = url.pathname.split('/').at(-1);
+    if (fileId === 'image-fixture') { res.writeHead(200, { 'Content-Type': 'image/png' }); res.end(fs.readFileSync(path.join(__dirname, 'fixtures/evidence-preview.png'))); return; }
+    if (fileId === 'docx-fixture') { res.writeHead(200, { 'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }); res.end(fs.readFileSync(path.join(__dirname, 'fixtures/evidence-preview.docx'))); return; }
+    res.writeHead(200, { 'Content-Type': 'application/pdf' }); res.end(fs.readFileSync(path.join(__dirname, 'fixtures/evidence-preview.pdf'))); return;
+  }
   if (url.pathname === `/api/approved-budgets/${budget._id}`) return json(res, { budget, totals: totals(), allocations: budget.items.map(i => ({ ...i, totals: totals() })), expenditures: [...(expenditure ? [expenditure] : []), ...imported] });
   return json(res, {});
  }
@@ -111,19 +116,25 @@ const server = http.createServer((req, res) => {
   await wait('document.body.textContent.includes("Approved Road Repairs")');
   assert.equal(await evaluate('[...document.querySelectorAll(".nav-label")].some(n => n.textContent === "Integrity Checker" || n.textContent === "Transactions")'), false);
   await evaluate('[...document.querySelectorAll("button")].find(b => b.textContent === "View Budget").click()');
+  await wait('!!document.querySelector("#expenditure-entry form")');
+  await evaluate('[...document.querySelectorAll("button")].find(b => b.textContent === "Cancel expenditure").click()');
   await wait('[...document.querySelectorAll("button")].some(b => b.textContent === "Record Expenditure")');
   await evaluate('[...document.querySelectorAll("button")].find(b => b.textContent === "Record Expenditure").click()');
   await wait('!!document.querySelector("form")');
+  assert.equal(await evaluate('document.activeElement?.id'), 'expenditure-entry');
+  assert.equal(await evaluate(`document.querySelector('[aria-controls="expenditure-entry"]').getAttribute('aria-expanded')`), 'true');
+
   assert.equal(await evaluate('document.querySelector("form button.bp-primary").disabled'), true);
+  assert.equal(await evaluate('document.querySelector("form").textContent.includes("Approved allocation")'), false);
   await evaluate(`(() => {
     const values = ['60', '2026-10-20T10:00', 'Barangay', 'Supplier', 'LGU', 'Road repairs', 'Road materials'];
     document.querySelectorAll('form input[required]').forEach((el, i) => { Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, values[i]); el.dispatchEvent(new Event('input', { bubbles: true })); });
-    const select = document.querySelector('form select'); Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value').set.call(select, 'materials'); select.dispatchEvent(new Event('change', { bubbles: true }));
     const transfer = new DataTransfer(); transfer.items.add(new File(['%PDF-1.4 fixture %%EOF'], 'receipt.pdf', { type: 'application/pdf' }));
     const upload = document.querySelector('form input[type=file]'); upload.files = transfer.files; upload.dispatchEvent(new Event('change', { bubbles: true }));
   })()`);
   await wait('document.querySelectorAll("form input[type=checkbox]").length === 2');
   assert.equal(await evaluate('document.querySelector("form button.bp-primary").disabled'), true);
+  assert.equal(await evaluate('document.querySelector("form").textContent.includes("Approved allocation")'), false);
   await evaluate('document.querySelectorAll("form input[type=checkbox]").forEach(c => c.click())');
   await wait('!document.querySelector("form button.bp-primary").disabled');
   await checkResponsive('manual');
@@ -140,13 +151,18 @@ const server = http.createServer((req, res) => {
   await evaluate('[...document.querySelectorAll("button")].find(b => b.textContent === "Record Expenditure").click()');
   await evaluate('[...document.querySelectorAll("button")].find(b => b.textContent === "Upload CSV").click()');
   await wait('!![...document.querySelectorAll("input")].find(i => i.getAttribute("aria-label") === "Expenditure CSV file")');
+  assert.equal(await evaluate(`!!document.querySelector('input[aria-label="CSV expenditure evidence"]')`), true);
+  await evaluate(`(() => { const transfer = new DataTransfer(); transfer.items.add(new File(['%PDF-1.4 shared invoice %%EOF'], 'supporting_document_' + 'long_filename_'.repeat(12) + '.pdf', { type: 'application/pdf' })); const input = document.querySelector('input[aria-label="CSV expenditure evidence"]'); input.files = transfer.files; input.dispatchEvent(new Event('change', { bubbles: true })); })()`);
+  await evaluate(`(() => { const transfer = new DataTransfer(); transfer.items.add(new File(['invalid'], 'expenses.txt', { type: 'text/plain' })); const input = document.querySelector('input[aria-label="Expenditure CSV file"]'); input.files = transfer.files; input.dispatchEvent(new Event('change', { bubbles: true })); })()`);
+  await wait('document.querySelector(".expenditure-csv [role=alert]")?.textContent.includes("Choose a CSV file")');
+  assert.equal(await evaluate('document.querySelectorAll(".expenditure-csv tbody tr").length'), 0);
   await evaluate(`(() => { const transfer = new DataTransfer(); transfer.items.add(new File(['Date,Agency,Program Name,Payer Name,Payee Name,Debit Amount,Credit Amount,Description\\n2026-10-20,LGU,Repairs,Office,Supplier,10,0,Materials'], 'expenses.csv', { type: 'text/csv' })); const input = document.querySelector('input[aria-label="Expenditure CSV file"]'); input.files = transfer.files; input.dispatchEvent(new Event('change', { bubbles: true })); })()`);
-  await evaluate('[...document.querySelectorAll("button")].find(b => b.textContent === "Preview CSV").click()');
+  assert.equal(await evaluate('[...document.querySelectorAll("button")].some(b => b.textContent === "Preview CSV")'), false);
   await wait('document.body.textContent.includes("2 expenditures found")');
   assert.equal(await evaluate('[...document.querySelectorAll("button")].find(b => b.textContent.includes("Submit CSV Expenditures")).disabled'), true);
-  await evaluate(`(() => { const transfer = new DataTransfer(); transfer.items.add(new File(['%PDF-1.4 shared invoice %%EOF'], 'supporting_document_' + 'long_filename_'.repeat(12) + '.pdf', { type: 'application/pdf' })); const input = document.querySelector('input[aria-label="CSV expenditure evidence"]'); input.files = transfer.files; input.dispatchEvent(new Event('change', { bubbles: true })); })()`);
-  await wait('document.querySelectorAll("fieldset input[type=checkbox]").length === 2');
-  await evaluate('document.querySelectorAll("fieldset input[type=checkbox]").forEach(c => c.click())');
+  assert.equal(await evaluate('document.querySelectorAll(".expenditure-csv .expenditure-file").length'), 1);
+
+  assert.equal(await evaluate('document.querySelectorAll(".expenditure-csv fieldset input[type=checkbox]").length'), 0);
   await evaluate('[...document.querySelectorAll("button")].find(b => b.textContent === "These documents apply to every row").click()');
   await wait('![...document.querySelectorAll("button")].find(b => b.textContent.includes("Submit CSV Expenditures")).disabled');
   await checkResponsive('csv');
@@ -154,13 +170,45 @@ const server = http.createServer((req, res) => {
   await wait('document.querySelectorAll("tbody tr").length === 3');
   assert.equal(csvSubmissions, 1);
   console.log('PASS CSV entry choice, preview, required per-row evidence, shared-document selection and batch submission');
+  expenditure.evidence.push(
+    { ...expenditure.evidence[0], _id: 'image-fixture', originalName: 'receipt.png', mimeType: 'image/png' },
+    { ...expenditure.evidence[0], _id: 'docx-fixture', originalName: 'delivery.docx', mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }
+  );
   mode = 'auditor';
   await navigate('/dashboard/approved-budgets/111111111111111111111111');
   await wait('document.querySelectorAll("tbody tr").length === 3');
   await evaluate('[...document.querySelectorAll("button")].find(b => b.textContent === "View details").click()');
   await wait('[...document.querySelectorAll("button")].some(b => b.textContent === "Verify")');
+  await wait('document.activeElement?.classList.contains("expenditure-details")');
+  assert.equal(await evaluate('(() => { const rect = document.querySelector("#expenditure-details-title").getBoundingClientRect(); return rect.top >= 0 && rect.bottom <= innerHeight; })()'), true);
+  await evaluate('window.scrollTo(0, 0); [...document.querySelectorAll("button")].find(b => b.textContent === "View details").click()');
+  await wait('document.querySelector("#expenditure-details-title").getBoundingClientRect().bottom <= innerHeight');
+
   assert.equal(await evaluate('[...document.querySelectorAll("button")].find(b => b.textContent === "Reject").disabled'), true);
   assert.equal(await evaluate('[...document.querySelectorAll("button")].find(b => b.textContent === "Request Correction").disabled'), true);
+  const downloadsBeforePreview = await evaluate('window.__downloads');
+  for (const [filename, loaded] of [
+    ['receipt.pdf', 'document.querySelector(".evidence-preview iframe")?.src.startsWith("blob:")'],
+    ['receipt.png', 'document.querySelector(".evidence-preview img")?.naturalWidth > 0'],
+    ['delivery.docx', 'document.querySelector(".evidence-preview-document")?.textContent.includes("Delivery receipt: road repair materials received.")']
+  ]) {
+    await evaluate(`(() => { const card = [...document.querySelectorAll('.expenditure-document')].find(el => el.querySelector('strong')?.textContent === ${JSON.stringify(filename)}); [...card.querySelectorAll('button')].find(b => b.textContent === 'View evidence').click(); })()`);
+    await wait('!!document.querySelector("dialog[open]")');
+    await wait(loaded);
+    await send('browsingContext.setViewport', { context, viewport: { width: 390, height: 844 }, devicePixelRatio: 1 });
+    assert.equal(await evaluate('(() => { const r = document.querySelector("dialog").getBoundingClientRect(); return r.left >= 0 && r.right <= innerWidth && r.top >= 0 && r.bottom <= innerHeight; })()'), true);
+    if (filename === 'delivery.docx') {
+      const shot = await send('browsingContext.captureScreenshot', { context });
+      fs.writeFileSync('/tmp/chainshield-evidence-preview-mobile.png', Buffer.from(shot.data, 'base64'));
+    }
+    await send('browsingContext.setViewport', { context, viewport: { width: 1280, height: 900 }, devicePixelRatio: 1 });
+
+    await evaluate('[...document.querySelectorAll("button")].find(b => b.textContent === "Close preview").click()');
+    await wait('!document.querySelector(".evidence-preview")');
+    assert.equal(await evaluate('document.activeElement?.textContent'), 'View evidence');
+  }
+  assert.equal(await evaluate('window.__downloads'), downloadsBeforePreview);
+  console.log('PASS in-app PDF, image and Word text evidence previews without downloading');
   await evaluate('[...document.querySelectorAll("button")].find(b => b.textContent === "Verify").click()');
   await wait('document.querySelector("tbody").textContent.includes("verified")');
   assert.equal(reviews, 1);

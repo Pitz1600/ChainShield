@@ -644,7 +644,8 @@
 }
 
 /* Sidebar User Profile */
-.sidebar-user-profile {
+.sidebar button.sidebar-user-profile {
+  appearance: none;
   padding: 1.25rem 1.5rem;
   display: flex;
   align-items: center;
@@ -652,11 +653,11 @@
   cursor: pointer;
   transition: all 0.2s ease;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.03);
+  background: transparent;
 }
 
-.sidebar-user-profile:hover {
-  background: rgba(255, 255, 255, 0.08);
+.sidebar button.sidebar-user-profile:hover {
+  background: rgba(99, 102, 241, 0.15);
 }
 
 .user-avatar-container {

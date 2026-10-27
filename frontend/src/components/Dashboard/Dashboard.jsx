@@ -150,23 +150,6 @@ function Dashboard({ user, onNavigate }) {
       #93c5fd ${((stats.critical + stats.high + stats.medium) / Math.max(1, stats.total)) * 100}% 100%
     )`
   };
-  const topAgencies = Object.entries(
-    rtAlerts.reduce((acc, a) => {
-      const key = a.agency || 'Unknown Agency';
-      if (!acc[key]) acc[key] = { count: 0, score: 0 };
-      acc[key].count += 1;
-      acc[key].score += Number(a.riskScore || 0);
-      return acc;
-    }, {})
-  )
-    .map(([agency, v]) => ({
-      agency,
-      count: v.count,
-      avgRisk: Math.round(v.score / Math.max(1, v.count))
-    }))
-    .sort((a, b) => b.avgRisk - a.avgRisk || b.count - a.count)
-    .slice(0, 4);
-
   const alertAge = rtAlerts.reduce((acc, a) => {
     const mins = Math.floor((Date.now() - new Date(a.timestamp).getTime()) / 60000);
     if (mins < 60) acc.recent += 1;
@@ -343,28 +326,6 @@ function Dashboard({ user, onNavigate }) {
         </div>
 
         <div className="dashboard-bottom-grid">
-          <div className="dashboard-card">
-            <h3 className="card-title">Top Agencies at Risk</h3>
-            <p className="card-subtitle">Highest average risk from live alerts</p>
-            <div className="mini-list">
-              {topAgencies.length === 0 ? (
-                <div className="mini-empty">No agency data available</div>
-              ) : (
-                topAgencies.map((item) => (
-                  <DashboardLink key={item.agency} className="mini-row" to={transactionDestination({ tab: 'alerts', search: item.agency })}>
-                    <div className="mini-row-main">
-                      <strong>{item.agency}</strong>
-                      <span>{formatCompact(item.count)} alert{item.count === 1 ? '' : 's'}</span>
-                    </div>
-                    <span className={`mini-pill ${item.avgRisk >= 90 ? 'critical' : item.avgRisk >= 71 ? 'high' : item.avgRisk >= 41 ? 'medium' : 'low'}`}>
-                      {formatCompact(item.avgRisk)}
-                    </span>
-                  </DashboardLink>
-                ))
-              )}
-            </div>
-          </div>
-
           <div className="dashboard-card">
             <h3 className="card-title">Alert Age Distribution</h3>
             <p className="card-subtitle">How fresh suspicious alerts are</p>

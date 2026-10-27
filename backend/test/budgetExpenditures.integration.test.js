@@ -52,7 +52,7 @@ test('expenditure HTTP workflow with real MongoDB replica-set transactions', { s
     const pdf = '%PDF-1.4\nfixture receipt\n%%EOF';
     function form(amount = '60', key = crypto.randomUUID(), categories = [['receipt', 'supporting_document']]) {
       const data = new FormData();
-      for (const [k, v] of Object.entries({ allocationId: 'materials', amount, timestamp: '2026-10-20T10:00:00Z', fromAddress: 'Barangay fixture', toAddress: 'Supplier fixture', agency: 'LGU', programName: 'Repairs', description: 'Materials', transactionType: 'Procurement', submissionKey: key, categories: JSON.stringify(categories) })) data.append(k, v);
+      for (const [k, v] of Object.entries({ amount, timestamp: '2026-10-20T10:00:00Z', fromAddress: 'Barangay fixture', toAddress: 'Supplier fixture', agency: 'LGU', programName: 'Repairs', description: 'Materials', transactionType: 'Procurement', submissionKey: key, categories: JSON.stringify(categories) })) data.append(k, v);
       data.append('evidence', new Blob([pdf], { type: 'application/pdf' }), 'receipt.pdf');
       return data;
     }
@@ -61,7 +61,23 @@ test('expenditure HTTP workflow with real MongoDB replica-set transactions', { s
     let calls = 0;
     pipeline.processBatch = async function (...args) { calls++; return originalPipeline.apply(this, args); };
     let p, e;
-    await t.test('concurrent submissions cannot oversubscribe one approved allocation', async () => {
+    await t.test('whole-budget spending includes existing allocation reservations', async () => {
+      const mixed = await budget(10000);
+      mixed.items = [{ itemId: 'materials', name: 'Materials', estimatedAmountCentavos: 5000 }, { itemId: 'labor', name: 'Labor', estimatedAmountCentavos: 5000 }];
+      await mixed.save();
+      const legacy = form('30'); legacy.append('allocationId', 'materials');
+      assert.equal((await submit(mixed, legacy)).status, 201);
+      const whole = await submit(mixed, form('60'));
+      assert.equal(whole.status, 201);
+      assert.equal(whole.body.allocationId, '__whole_budget__');
+      assert.equal(whole.body.input.approvedBudget, 100);
+      assert.equal(whole.body.input.remainingBudget, 10);
+      assert.equal((await submit(mixed, form('11'))).status, 409);
+      assert.equal((await review(mixed, whole.body, 'rejected', 'Invalid spending')).status, 200);
+      assert.equal((await submit(mixed, form('70'))).status, 201);
+      calls = 0;
+    });
+    await t.test('concurrent submissions cannot oversubscribe the whole approved budget', async () => {
       p = await budget();
       const responses = await Promise.all([submit(p, form()), submit(p, form())]);
       assert.deepEqual(responses.map(r => r.status).sort(), [201, 409], JSON.stringify(responses));
@@ -83,6 +99,9 @@ test('expenditure HTTP workflow with real MongoDB replica-set transactions', { s
       const url = `/approved-budgets/${p._id}/expenditures/${e._id}/evidence/${e.evidence[0]._id}`;
       assert.equal((await request('auditor', url)).status, 200);
       assert.equal((await request('official', url)).status, 403);
+      assert.equal((await request('auditor', url + '?preview=true')).status, 200);
+      assert.equal((await Expenditure.findById(e._id)).history.at(-1).action, 'evidence_viewed');
+      assert.equal((await request('official', url + '?preview=true')).status, 403);
       const other = await budget();
       assert.equal((await request('auditor', `/approved-budgets/${other._id}/expenditures/${e._id}`)).status, 404);
       const download = await request('auditor', url); assert.equal(download.status, 200); assert.equal(download.body, pdf); assert.equal(download.headers.get('x-content-type-options'), 'nosniff');
@@ -202,9 +221,9 @@ test('expenditure HTTP workflow with real MongoDB replica-set transactions', { s
       assert.equal((await request('official', '/approved-budgets')).status, 403);
     });
     const csvContent = (a = 40, b = 20) => `record_id,post_date,agency,program_name,payer_name,payee_name,debit_amount,credit_amount,description_raw,transaction_type,item1_name,item1_quantity,item1_unit_price\nCSV-1,2026-10-20,LGU,Repairs,Office,Supplier A,${a},0,Materials,Procurement,Cement,2,10\nCSV-2,2026-10-20,LGU,Repairs,Office,Supplier B,${b},0,Delivery,Procurement,Gravel,1,20\n`;
-    function csvForm(content, key, selections = [{ allocationId: 'materials', evidenceIndexes: [0] }, { allocationId: 'materials', evidenceIndexes: [1] }]) {
+    function csvForm(content, key, selections = [{ evidenceIndexes: [0] }, { evidenceIndexes: [1] }]) {
       const data = new FormData(); data.append('csvFile', new Blob([content], { type: 'text/csv' }), 'expenses.csv');
-      data.append('submissionKey', key); data.append('rows', JSON.stringify(selections)); data.append('categories', JSON.stringify([['receipt', 'supporting_document'], ['receipt', 'supporting_document']]));
+      data.append('submissionKey', key); data.append('rows', JSON.stringify(selections));
       data.append('evidence', new Blob([pdf], { type: 'application/pdf' }), 'first.pdf'); data.append('evidence', new Blob([pdf.replace('fixture', 'second')], { type: 'application/pdf' }), 'second.pdf'); return data;
     }
     const csvSubmit = (p, content, key, selections) => request('treasurer', `/approved-budgets/${p._id}/expenditures/import-csv`, { method: 'POST', body: csvForm(content, key, selections) });
@@ -214,7 +233,7 @@ test('expenditure HTTP workflow with real MongoDB replica-set transactions', { s
       assert.equal(response.status, 200, JSON.stringify(response)); assert.equal(response.body.rows.length, 2); assert.equal(response.body.rows[0].payee, 'Supplier A'); assert.equal(response.body.rows[0].input.lineItems[0].name, 'Cement');
       assert.equal(await Expenditure.countDocuments({ budgetProposalId: other._id }), 0); assert.equal((await Proposal.findById(other._id)).expenditureReserved.size, 0);
     });
-    await t.test('CSV allocation overflow rolls back the entire batch before analysis', async () => {
+    await t.test('CSV budget overflow rolls back the entire batch before analysis', async () => {
       const other = await budget();
       const response = await csvSubmit(other, csvContent(60, 60), crypto.randomUUID()); assert.equal(response.status, 409, JSON.stringify(response));
       assert.equal(await Expenditure.countDocuments({ budgetProposalId: other._id }), 0); assert.equal((await Proposal.findById(other._id)).expenditureReserved.size, 0);
@@ -233,6 +252,7 @@ test('expenditure HTTP workflow with real MongoDB replica-set transactions', { s
       assert.equal((await request('auditor', auditUrl(other, expenses[0]), { method: 'POST', body: auditForm() })).status, 201);
       const first = await Transaction.findById(expenses[0].transactionId); assert.equal(first.lineItems[0].name, 'Cement'); assert.equal(first.amount, 40); assert.equal(first.mlUsed, true);
       const stored = await Expenditure.find({ budgetProposalId: other._id }).select('+evidence.data').sort({ sourceRowNumber: 1 });
+      assert.deepEqual([...stored[0].evidence[0].categories], ['expenditure_evidence']);
       assert.equal(stored[0].evidence[0].data.toString(), pdf); assert.equal(stored[1].evidence[0].data.toString(), pdf.replace('fixture', 'second'));
       assert.equal((await csvSubmit(other, csvContent(), key)).status, 200); assert.equal(analyses, 1);
       assert.equal((await csvSubmit(other, csvContent(), crypto.randomUUID())).status, 409); assert.equal(analyses, 1);
@@ -246,6 +266,19 @@ test('expenditure HTTP workflow with real MongoDB replica-set transactions', { s
       const response = await csvSubmit(other, csvContent(), key); assert.equal(response.status, 201);
       for (const e of response.body.expenditures) { assert.equal(e.assessmentStatus, 'unavailable'); assert.ok(e.transactionId); assert.equal(e.assessment, undefined); }
       assert.equal((await csvSubmit(other, csvContent(), key)).status, 200); assert.equal(analyses, 1);
+    });
+    await t.test('Treasurer can upload image and Word evidence and auditor can preview them', async () => {
+      pipeline.processBatch = originalPipeline;
+      const other = await budget();
+      const docx = require('node:fs').readFileSync(require('node:path').join(__dirname, '../../scripts/fixtures/evidence-preview.docx'));
+      const png = require('node:fs').readFileSync(require('node:path').join(__dirname, '../../scripts/fixtures/evidence-preview.png'));
+      for (const [filename, type, bytes] of [['receipt.png', 'image/png', png], ['delivery.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', docx]]) {
+        const data = form('1'); data.delete('evidence'); data.append('evidence', new Blob([bytes], { type }), filename);
+        const saved = await submit(other, data); assert.equal(saved.status, 201);
+        const attachment = saved.body.evidence[0]; assert.equal(attachment.mimeType, type);
+        const response = await request('auditor', `/approved-budgets/${other._id}/expenditures/${saved.body._id}/evidence/${attachment._id}?preview=true`);
+        assert.equal(response.status, 200); assert.equal(response.headers.get('content-type').split(';')[0], type);
+      }
     });
   } finally {
     pipeline.processBatch = originalPipeline;

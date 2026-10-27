@@ -1,0 +1,59 @@
+/* Shared sizing also applies to forms in dialogs and lazily loaded pages.
+   Keep horizontal padding intact for search icons and currency prefixes. */
+:root input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not([type="color"]):not([type="hidden"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="image"]),
+:root select:not([multiple]):not([size]) {
+  box-sizing: border-box;
+  height: 2.5rem;
+  min-height: 2.5rem;
+  min-width: 0;
+  max-width: 100%;
+  padding-top: .45rem;
+  padding-bottom: .45rem;
+  line-height: 1.4;
+}
+
+:root textarea {
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
+  padding-top: .5rem;
+  padding-bottom: .5rem;
+  resize: vertical;
+}
+
+/* Flex/grid children must be able to shrink below their content width. */
+:root :is(.form-group, .form-field, .filter-group, .password-control,
+  .currency-input-wrapper, .section-metric-content) {
+  min-width: 0;
+  max-width: 100%;
+}
+
+:root .password-control button {
+  min-height: 2.5rem;
+  padding-top: .45rem;
+  padding-bottom: .45rem;
+}
+
+.section-strip > *,
+.section-metric-card {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.section-metric-icon { flex-shrink: 0; }
+
+.budget-proposals :is(.bp-page-header, .bp-upload-entry) > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.budget-proposals .bp-fields { align-items: start; }
+.budget-proposals :is(form, .bp-table, .bp-actions) { min-width: 0; max-width: 100%; }
+.budget-proposals button { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+.budget-proposals legend { max-width: 100%; overflow-wrap: anywhere; }
+.budget-proposals input[type="file"] { overflow: hidden; }
+
+@media (max-width: 600px) {
+  .budget-proposals :is(.bp-page-header, .bp-upload-entry) { flex-wrap: wrap; }
+  .profile-container .otp-input-group { flex-wrap: wrap; }
+}

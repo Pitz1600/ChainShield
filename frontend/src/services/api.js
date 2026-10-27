@@ -264,6 +264,7 @@ export const budgetProposalsAPI = {
 };
 
 export const expendituresAPI = {
+  previewEvidence: (id, expenseId, fileId, signal) => api.get(`/approved-budgets/${id}/expenditures/${expenseId}/evidence/${fileId}`, { params: { preview: 'true' }, responseType: 'blob', signal }),
   template: () => api.get('/transactions/template', { responseType: 'blob' }),
   previewCsv: (id, data) => api.post(`/approved-budgets/${id}/expenditures/preview-csv`, data, { headers: { 'Content-Type': 'multipart/form-data' } }),
   importCsv: (id, data, onUploadProgress) => api.post(`/approved-budgets/${id}/expenditures/import-csv`, data, { headers: { 'Content-Type': 'multipart/form-data' }, onUploadProgress }),

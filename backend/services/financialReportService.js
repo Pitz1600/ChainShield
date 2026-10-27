@@ -61,6 +61,7 @@ async function options(query) {
 }
 function construct(proposals, expenses, transactions, users, filters, user) {
   const allocations = new Map(), notices = [];
+  const wholeBudgets = new Set(expenses.filter(e => e.allocationId === '__whole_budget__').map(e => String(e.budgetProposalId)));
   for (const p of proposals) {
     let sum = 0;
     for (const i of p.items) {
@@ -69,6 +70,7 @@ function construct(proposals, expenses, transactions, users, filters, user) {
       if (!i.itemId || allocations.has(key)) fail('Data issue: missing or duplicate allocation ID', 409);
       allocations.set(key, { proposalId: String(p._id), proposalNumber: p.proposalNumber, allocationId: i.itemId, name: i.name, approved: i.estimatedAmountCentavos, expenses: [] });
     }
+    if (wholeBudgets.has(String(p._id))) allocations.set(`${p._id}/__whole_budget__`, { proposalId: String(p._id), proposalNumber: p.proposalNumber, allocationId: '__whole_budget__', name: 'Whole approved budget', approved: p.totalAmountCentavos, expenses: [] });
     if (sum !== money(p.totalAmountCentavos)) fail(`Data issue: inconsistent total for ${p.proposalNumber}`, 409);
   }
   const tx = new Map(transactions.map(t => [String(t._id), t])), people = new Map(users.map(u => [String(u._id), u]));
@@ -83,6 +85,7 @@ function construct(proposals, expenses, transactions, users, filters, user) {
     if (e.reviewedAt && !Number.isFinite(+new Date(e.reviewedAt))) fail('Data issue: invalid review date', 409);
     if (filters.allocationId && e.allocationId !== filters.allocationId) continue;
     a.expenses.push(e);
+    if (e.allocationId !== '__whole_budget__' && !filters.allocationId && wholeBudgets.has(String(e.budgetProposalId))) allocations.get(`${e.budgetProposalId}/__whole_budget__`).expenses.push(e);
     const basis = filters.dateBasis === 'review' ? (e.reviewedAt ? +new Date(e.reviewedAt) : null) : +date;
     if (filters.status && e.reviewStatus !== filters.status) continue;
     if ((filters.from || filters.to) && (basis === null || (filters.from && basis < boundary(filters.from)) || (filters.to && basis >= boundary(filters.to) + 86400000))) continue;
@@ -94,7 +97,7 @@ function construct(proposals, expenses, transactions, users, filters, user) {
     selected.push(row);
   }
   if (selected.length > MAX_ROWS) fail('Report exceeds 5,000 detail rows. Narrow filters.', 413);
-  const allocationTotals = [...allocations.values()].filter(a => !filters.allocationId || a.allocationId === filters.allocationId).map(({ expenses: entries, approved, ...a }) => ({ ...a, totals: totals(entries, approved) }));
+  const allocationTotals = [...allocations.values()].filter(a => filters.allocationId ? a.allocationId === filters.allocationId : !wholeBudgets.has(a.proposalId) || a.allocationId === '__whole_budget__').map(({ expenses: entries, approved, ...a }) => ({ ...a, totals: totals(entries, approved) }));
   if (filters.allocationId && !allocationTotals.length) fail('Allocation not found', 404);
   const approved = allocationTotals.reduce((n, a) => add(n, a.totals.approved), 0);
   selected.sort((a, b) => (a.sortDate ?? 0) - (b.sortDate ?? 0) || a.id.localeCompare(b.id));

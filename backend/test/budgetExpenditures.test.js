@@ -10,7 +10,7 @@ const original = { proposal: Proposal.findOne, expense: Expenditure.findOne, exi
 afterEach(() => { Proposal.findOne = original.proposal; Expenditure.findOne = original.expense; Transaction.exists = original.exists; Expenditure.init = original.init; });
 const user = { _id: '507f1f77bcf86cd799439011', role: 'barangay_official', position: 'Barangay Treasurer', isVerified: true, isApproved: true, barangayId: 'pantal' };
 const id = '507f1f77bcf86cd799439012';
-const proposal = { _id: id, items: [{ itemId: 'cement', estimatedAmountCentavos: 10000 }] };
+const proposal = { _id: id, totalAmountCentavos: 10000, items: [{ itemId: 'cement', estimatedAmountCentavos: 10000 }] };
 const input = { allocationId: 'cement', amount: '1.23', timestamp: '2026-10-20T10:00:00Z', fromAddress: 'Barangay', toAddress: 'Supplier', agency: 'LGU', programName: 'Road repair', description: 'Materials', transactionType: 'Procurement' };
 async function call(path, req, method = 'post') {
   const handler = router.stack.find(l => l.route?.path === path && l.route.methods[method]).route.stack.at(-1).handle;
@@ -122,4 +122,10 @@ test('atomic allocation predicate refuses exhausted funds before record creation
     Proposal.findOneAndUpdate = async filter => { assert.equal(filter.$expr.$lte[0].$add[1], 123); assert.equal(filter.$expr.$lte[1], 10000); return null; };
     assert.equal((await call('/:id/expenditures', multipart([['receipt', 'supporting_document']]))).error.status, 409);
   } finally { mongoose.startSession = originals.start; Proposal.findOneAndUpdate = originals.update; }
+});
+
+test('whole-budget expenditure requires no allocation and uses the approved total', () => {
+  const result = policy.normalize({ ...input, allocationId: undefined }, { ...proposal, totalAmountCentavos: 30000 });
+  assert.equal(result.allocationId, '__whole_budget__');
+  assert.equal(result.input.approvedBudget, 300);
 });

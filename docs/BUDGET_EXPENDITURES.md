@@ -47,17 +47,30 @@ Do not enable solely because the code builds.
 ## Storage, accounting and failures
 
 Each submission atomically inserts a `BudgetExpenditure` (including both evidence
-categories) and reserves its approved item amount in the parent proposal, inside a
+categories) and reserves its amount against the whole approved budget in the parent proposal, inside a
 MongoDB transaction. Concurrent writes serialize on that proposal. All money is
 integer centavos. Pending, correction-required and verified expenditures reserve funds;
 rejection releases the reservation exactly once. Recorded totals include rejected
 submissions and are labeled accordingly. No client may change approved allocations.
 
+The Treasurer entry form is visible when opening a budget. Manual and CSV entries
+require no allocation selection; receipts and supporting documents remain mandatory.
+New entries without an allocation use the internal `__whole_budget__` marker. Existing
+allocation-linked records remain intact. The atomic spending limit sums every reservation
+in the proposal map, including historical allocation reservations, against the approved
+proposal total. Rejection releases the entry’s original reservation bucket. No data
+migration is required. Deploy the backend change together with the frontend change.
+
 Evidence is limited to five files, 5 MB each, 10 MB combined per upload. PDF, JPEG,
 PNG and DOCX extension/MIME/signature validation reuses the existing document policy.
 One file can have both categories. Downloads require authentication and matching
 budget/expenditure IDs and use attachment, sandbox, no-cache and nosniff headers. No public
-URLs are created. No malware scanner is available; scanning remains future work.
+URLs are created. In expenditure details, **View evidence** opens a private in-app viewer:
+PDF and JPG/PNG previews use an authenticated fetch and a temporary local blob URL;
+DOCX files use a text-only preview, with the original download available for formatting
+and embedded images. Preview requests use the same evidence authorization and log
+`evidence_viewed`. Closing the viewer cancels requests and releases local blob URLs.
+No evidence is sent to an external document-viewing service. No malware scanner is available; scanning remains future work.
 
 Correction uploads require the submitting Treasurer, an auditor correction request,
 a reason and a complete new evidence set. Originals and history remain available;
@@ -187,23 +200,23 @@ unchanged CSVColumnMapper; it supports the old manual-entry CSV headers, debit/c
 amount columns, quoted descriptions and itemized columns. Required financial details
 must actually be present; the adapter does not invent missing payees, agencies or dates.
 
-CSV workflow: choose the file → preview → select an approved allocation per row →
-upload/classify evidence → select the applicable evidence for each row → submit.
+CSV workflow: choose the CSV (rows load automatically) and upload evidence →
+select the applicable evidence for each row → submit against the whole budget.
 A shared invoice/supporting document can be explicitly applied to multiple rows.
-Every row must have both receipt/proof-of-payment and supporting-document categories.
+Every CSV row must have at least one assigned evidence file. CSV uploads use the general expenditure_evidence category automatically; users do not classify files. Manual entry retains its existing receipt/supporting-document requirements.
 
 New authenticated Treasurer endpoints:
 
 - POST /api/approved-budgets/:id/expenditures/preview-csv (csvFile only; no saves)
 - POST /api/approved-budgets/:id/expenditures/import-csv (csvFile, evidence files,
-  categories JSON, rows JSON with allocationId/evidenceIndexes, submissionKey)
+  rows JSON with evidenceIndexes (allocationId is optional for legacy clients), submissionKey)
 
 Limits: 25 rows, UTF-8 CSV at most 2 MB, 20 evidence files at most 5 MB each and
 10 MB combined, 12 MB total buffered multipart file data, and 25 MB stored evidence
 across all rows (including explicitly shared documents). Split larger batches.
 All CSV rows and evidence are revalidated on final submission. Reservation and record
 creation commit together in one MongoDB transaction; any invalid row, duplicate source
-record, missing evidence or insufficient allocation aborts the entire save.
+record, missing evidence or insufficient overall budget balance aborts the entire save.
 
 The full CSV batch is then sent once to the unchanged processBatch service using the
 same original CSV import options: requireApproval=true, staged=true, batchSize=250,

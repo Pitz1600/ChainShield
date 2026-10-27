@@ -13,6 +13,9 @@ const { validate } = require('../services/budgetDocumentPolicy');
 const csvImport = require('../services/budgetExpenditureCsv');
 const wrap = fn => (req, res, next) => Promise.resolve(fn(req, res)).catch(next);
 const event = (req, action, reason = '') => ({ actor: req.user._id, action, reason, at: new Date() });
+// Sum legacy allocation reservations and new whole-budget reservations atomically.
+const reservedTotal = { $sum: { $map: { input: { $objectToArray: { $ifNull: ['$expenditureReserved', {}] } }, as: 'reservation', in: '$$reservation.v' } } };
+const reservationTotal = proposal => [...proposal.expenditureReserved.values()].reduce((sum, value) => sum + value, 0);
 const reserveKey = id => `expenditureReserved.${crypto.createHash('sha256').update(id).digest('hex')}`;
 router.use(require('../middleware/auth'));
 router.get('/access', (req, res) => res.json({ enabled: policy.enabled(), canSubmit: policy.enabled() && policy.treasurer(req.user), canReview: policy.enabled() && req.user.role === 'auditor' && policy.reader(req.user), canRead: policy.enabled() && policy.reader(req.user) }));
@@ -34,17 +37,21 @@ async function files(req, res) {
   await new Promise((resolve, reject) => upload.array('evidence', 5)(req, res, err => err ? reject(Object.assign(err, { status: 422 })) : resolve()));
   return evidenceDocuments(req);
 }
-function evidenceDocuments(req, maxFiles = 5) {
+function evidenceDocuments(req, maxFiles = 5, requireClassification = true) {
   let categories;
-  try { categories = JSON.parse(req.body.categories); } catch { fail('Evidence classifications required'); }
+  if (requireClassification) {
+    try { categories = JSON.parse(req.body.categories); } catch { fail('Evidence classifications required'); }
+  } else {
+    categories = (req.files || []).map(() => ['expenditure_evidence']);
+  }
   if (!req.files?.length || !Array.isArray(categories) || categories.length !== req.files.length || req.files.length > maxFiles || req.files.reduce((n, f) => n + f.size, 0) > 10 * 1024 * 1024) fail(`Attach one to ${maxFiles} files, at most 5 MB each and 10 MB combined`);
   const docs = req.files.map((f, i) => {
     const c = categories[i];
-    if (!Array.isArray(c) || !c.length || c.some(v => !['receipt', 'supporting_document'].includes(v))) fail('Invalid evidence classification');
+    if (!Array.isArray(c) || !c.length || c.some(v => !(requireClassification ? ['receipt', 'supporting_document'] : ['expenditure_evidence']).includes(v))) fail('Invalid evidence classification');
     if (/\.xlsx$/i.test(f.originalname)) fail('Use PDF, DOCX, JPG or PNG evidence');
     return { categories: [...new Set(c)], originalName: text(f.originalname.replace(/[\\/\x00-\x1f\x7f]/g, '_'), 240), mimeType: validate(f), bytes: f.size, data: f.buffer, sha256: crypto.createHash('sha256').update(f.buffer).digest('hex'), uploadedBy: req.user._id, uploadedAt: new Date(), version: 1 };
   });
-  if (!['receipt', 'supporting_document'].every(c => docs.some(d => d.categories.includes(c)))) fail('Receipt and supporting document are both required; one file may serve both');
+  if (requireClassification && !['receipt', 'supporting_document'].every(c => docs.some(d => d.categories.includes(c)))) fail('Receipt and supporting document are both required; one file may serve both');
   return docs;
 }
 const safe = e => { const out = e.toObject(); out.evidence.forEach(d => delete d.data); return out; };
@@ -81,17 +88,16 @@ router.post('/:id/expenditures/import-csv', wrap(async (req, res) => {
   const batchKey = text(req.body.submissionKey, 60);
   if (!/^[a-zA-Z0-9-]{16,60}$/.test(batchKey)) fail('Valid submission key required');
   let selections;
-  try { selections = JSON.parse(req.body.rows); } catch { fail('Select allocation and evidence for every CSV row'); }
-  if (!Array.isArray(selections) || selections.length !== parsed.rows.length) fail('Select allocation and evidence for every CSV row');
+  try { selections = JSON.parse(req.body.rows); } catch { fail('Select evidence for every CSV row'); }
+  if (!Array.isArray(selections) || selections.length !== parsed.rows.length) fail('Select evidence for every CSV row');
   req.files = req.files.evidence;
-  const documents = evidenceDocuments(req, 20);
+  const documents = evidenceDocuments(req, 20, false);
   const entries = parsed.rows.map((row, i) => {
     const selection = selections[i];
     const normalized = policy.normalize({ ...row.input, allocationId: selection?.allocationId }, p);
     const indexes = selection?.evidenceIndexes;
     if (!Array.isArray(indexes) || !indexes.length || indexes.some(n => !Number.isInteger(n) || n < 0 || n >= documents.length)) fail(`CSV row ${row.rowNumber}: select its evidence files`);
     const evidence = [...new Set(indexes)].map(n => documents[n]);
-    if (!['receipt', 'supporting_document'].every(c => evidence.some(f => f.categories.includes(c)))) fail(`CSV row ${row.rowNumber}: receipt and supporting document are both required`);
     return { ...normalized, input: { ...normalized.input, lineItems: row.input.lineItems, beneficiaryType: row.input.beneficiaryType }, evidence,
       budgetProposalId: p._id, submittedBy: req.user._id, submissionKey: `${batchKey}-${i}`,
       sourceCsvHash: parsed.sha256, sourceRowNumber: row.rowNumber, sourceFilename: parsed.filename,
@@ -107,12 +113,11 @@ router.post('/:id/expenditures/import-csv', wrap(async (req, res) => {
   const session = await mongoose.startSession(); let saved;
   try { await session.withTransaction(async () => {
     const records = [];
-    for (const entry of entries) {
-      const { allocation, ...record } = entry;
+    for (const record of entries) {
       const key = reserveKey(record.allocationId);
-      const updated = await Proposal.findOneAndUpdate({ _id: p._id, status: 'ADMIN_APPROVED', $expr: { $lte: [{ $add: [{ $ifNull: [`$${key}`, 0] }, record.amountCentavos] }, allocation.estimatedAmountCentavos] } }, { $inc: { [key]: record.amountCentavos } }, { session, new: true });
-      if (!updated) fail('CSV batch exceeds an approved allocation’s available funds; no expenditures saved', 409);
-      record.input.remainingBudget = (allocation.estimatedAmountCentavos - updated.expenditureReserved.get(key.split('.')[1])) / 100;
+      const updated = await Proposal.findOneAndUpdate({ _id: p._id, status: 'ADMIN_APPROVED', $expr: { $lte: [{ $add: [reservedTotal, record.amountCentavos] }, p.totalAmountCentavos] } }, { $inc: { [key]: record.amountCentavos } }, { session, new: true });
+      if (!updated) fail('CSV batch exceeds the approved budget’s available funds; no expenditures saved', 409);
+      record.input.remainingBudget = (p.totalAmountCentavos - reservationTotal(updated)) / 100;
       records.push(record);
     }
     saved = await Expenditure.create(records, { session });
@@ -141,7 +146,7 @@ router.get('/:id', wrap(async (req, res) => {
 router.post('/:id/expenditures', wrap(async (req, res) => {
   if (!policy.treasurer(req.user)) fail('Approved Treasurer required', 403);
   const p = await budget(req); const evidence = await files(req, res);
-  const { input, allocationId, amountCentavos, allocation } = policy.normalize(req.body, p);
+  const { input, allocationId, amountCentavos } = policy.normalize(req.body, p);
   const submissionKey = text(req.body.submissionKey, 80);
   if (!/^[a-zA-Z0-9-]{16,80}$/.test(submissionKey)) fail('Valid submission key required');
   await Expenditure.init(); // Ensure idempotency's unique index exists before accepting submissions.
@@ -151,10 +156,10 @@ router.post('/:id/expenditures', wrap(async (req, res) => {
   try {
     await session.withTransaction(async () => {
       const key = reserveKey(allocationId);
-      const updated = await Proposal.findOneAndUpdate({ _id: p._id, status: 'ADMIN_APPROVED', $expr: { $lte: [{ $add: [{ $ifNull: [`$${key}`, 0] }, amountCentavos] }, allocation.estimatedAmountCentavos] } }, { $inc: { [key]: amountCentavos } }, { session, new: true });
-      if (!updated) fail('Allocation has insufficient available funds', 409);
-      const reserved = updated.expenditureReserved.get(key.split('.')[1]);
-      input.remainingBudget = (allocation.estimatedAmountCentavos - reserved) / 100;
+      const updated = await Proposal.findOneAndUpdate({ _id: p._id, status: 'ADMIN_APPROVED', $expr: { $lte: [{ $add: [reservedTotal, amountCentavos] }, p.totalAmountCentavos] } }, { $inc: { [key]: amountCentavos } }, { session, new: true });
+      if (!updated) fail('Approved budget has insufficient available funds', 409);
+      const reserved = reservationTotal(updated);
+      input.remainingBudget = (p.totalAmountCentavos - reserved) / 100;
       [e] = await Expenditure.create([{ budgetProposalId: p._id, allocationId, submissionKey, submittedBy: req.user._id, amountCentavos, input, evidence, history: [event(req, 'submitted_with_evidence')] }], { session });
     });
   } finally { await session.endSession(); }
@@ -175,7 +180,7 @@ router.get('/:id/expenditures/:expenseId', wrap(async (req, res) => { await budg
 router.get('/:id/expenditures/:expenseId/evidence/:fileId', wrap(async (req, res) => {
   await budget(req); const e = await expense(req, true); const f = e.evidence.id(req.params.fileId);
   if (!f) fail('Evidence not found', 404);
-  await Expenditure.updateOne({ _id: e._id }, { $push: { history: event(req, 'evidence_downloaded', String(f._id)) } });
+  await Expenditure.updateOne({ _id: e._id }, { $push: { history: event(req, req.query?.preview === 'true' ? 'evidence_viewed' : 'evidence_downloaded', String(f._id)) } });
   res.set('Cache-Control', 'private, no-store').set('X-Content-Type-Options', 'nosniff').set('Content-Security-Policy', "sandbox; default-src 'none'").type(f.mimeType).attachment(f.originalName).send(f.data);
 }));
 router.post('/:id/expenditures/:expenseId/audit-evidence', wrap(async (req, res) => {

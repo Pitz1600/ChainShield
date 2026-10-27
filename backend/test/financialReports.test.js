@@ -72,3 +72,15 @@ test('snapshot unavailability fails explicitly and releases session', async () =
   try { await assert.rejects(service.generate(filters(), user), e => e.status === 503 && /consistent financial snapshot/.test(e.message)); assert.equal(ended, true); }
   finally { mongoose.startSession = original; }
 });
+
+test('whole-budget reports combine legacy and new spending without duplicating approved funds', () => {
+  const whole = { ...rows[0], _id: 'whole', allocationId: '__whole_budget__', amountCentavos: 1000000 };
+  const report = service.construct([proposal], [...rows, whole], [], [], filters(), user);
+  assert.equal(report.summary.approved, 10000000);
+  assert.equal(report.summary.available, 5500000);
+  assert.equal(report.allocationTotals.length, 1);
+  assert.equal(report.allocationTotals[0].name, 'Whole approved budget');
+  assert.equal(report.allocationTotals[0].totals.available, report.summary.available);
+  const register = service.construct([proposal], [whole], [], [], filters({ type: 'register' }), user);
+  assert.equal(register.rows[0].allocation, 'Whole approved budget');
+});
