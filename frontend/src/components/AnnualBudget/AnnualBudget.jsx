@@ -73,7 +73,7 @@ export default function AnnualBudget({ user }) {
       </fieldset><div className="bp-actions">
         <button type="submit" className="bp-primary" disabled={busy}>{busy ? 'Saving…' : 'Save'}</button>
       </div></form>}
-      {admin && data.pool && <section className="bp-card"><h3>Reconcile existing approvals</h3><p>Includes archived approvals. A restorable database snapshot is retained before updating reservations. Incomplete records or totals above the pool keep approvals blocked.</p><button disabled={busy} onClick={() => run(() => api.post(`/annual-budgets/${year}/reconcile`, { revision: data.pool.revision }))}>Back up and reconcile this year</button></section>}
+      {admin && data.pool && <section className="bp-card"><h3>Reconcile existing approvals</h3><p>Includes archived approvals. A restorable database snapshot is retained before updating reservations. Incomplete records or totals above the pool keep approvals blocked.</p><button className="bp-primary" disabled={busy} onClick={() => run(() => api.post(`/annual-budgets/${year}/reconcile`, { revision: data.pool.revision }))}>Back up and reconcile this year</button></section>}
       {data.pool && <section className="bp-card"><h3>Adjustment and reconciliation history</h3><ol>{data.pool.history.map(h => <li key={h._id}>
         {new Date(h.at).toLocaleString()} · {h.actor?.firstName} {h.actor?.lastName} · {h.action}
         {h.newCentavos != null && <span> · {h.previousCentavos != null ? `${money(h.previousCentavos)} → ` : ''}{money(h.newCentavos)}</span>}

@@ -10,6 +10,7 @@ function TransactionsPage({ user }) {
     const [searchParams] = useSearchParams();
     const role        = user?.role;
     const isOfficial  = role === 'barangay_official';
+    const isCaptain   = isOfficial && user?.position === 'Barangay Captain';
     const isAuditor   = role === 'auditor';
     const isAdmin     = role === 'administrator';
 
@@ -100,8 +101,10 @@ function TransactionsPage({ user }) {
     const heroConfig = {
         barangay_official: {
             label: 'BARANGAY OFFICIAL — TRANSACTION RECORDS',
-            title: 'Manage Your Submitted Transactions',
-            desc:  'Upload new transaction CSVs, track the status of your submissions, and verify records on the blockchain.',
+            title: isCaptain ? 'View Barangay Transactions' : 'Manage Your Submitted Transactions',
+            desc: isCaptain
+                ? 'Monitor barangay transaction records, track their status, and view blockchain verification details.'
+                : 'Upload new transaction CSVs, track the status of your submissions, and verify records on the blockchain.',
         },
         auditor: {
             label: 'AUDITOR — TRANSACTION REVIEW',
@@ -294,10 +297,10 @@ function TransactionsPage({ user }) {
                         onClick={() => setActiveTab('ledger')}
                     >
                         <List size={18} />
-                        <span>{isOfficial ? 'My Submissions' : 'All Transactions'}</span>
+                        <span>{isOfficial && !isCaptain ? 'My Submissions' : 'All Transactions'}</span>
                         {historyCount > 0 && <span className="tab-badge">{historyCount}</span>}
                     </button>
-                    {isOfficial && (
+                    {isOfficial && !isCaptain && (
                         <button
                             className={`tab-button ${activeTab === 'upload' ? 'active' : ''}`}
                             onClick={() => setActiveTab('upload')}
@@ -313,7 +316,7 @@ function TransactionsPage({ user }) {
             <div className="tab-content">
                 {activeTab === 'alerts' ? (
                     <AlertsManagement embedded={true} user={user} />
-                ) : activeTab === 'upload' ? (
+                ) : activeTab === 'upload' && isOfficial && !isCaptain ? (
                     <div style={{ padding: '2rem', textAlign: 'center' }}>
                         <div style={{ maxWidth: 480, margin: '0 auto', background: '#f8fafc', border: '0.5px solid #e2e8f0', borderRadius: 12, padding: '2rem' }}>
 

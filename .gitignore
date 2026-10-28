@@ -59,6 +59,13 @@ Thumbs.db
 dist/
 build/
 *.tsbuildinfo
+.vite/
+.npm-cache/
+
+# Local AI assistant history and caches
+.aider.chat.history.md
+.aider.input.history
+.aider.tags.cache*/
 
 # Docker
 docker-compose.override.yml
